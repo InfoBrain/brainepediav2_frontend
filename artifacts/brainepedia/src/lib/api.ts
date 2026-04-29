@@ -1,6 +1,6 @@
 import { getToken } from "./auth";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.brainepedia.com";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const headers: Record<string, string> = {
