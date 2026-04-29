@@ -1,0 +1,234 @@
+**PROMPT TITLE:**
+Design a High-Converting Homepage for Brainepedia (Proof-of-Competence Platform)
+
+---
+
+**OBJECTIVE:**
+Create a **fully responsive, production-ready HTML homepage** (with embedded CSS and minimal JavaScript) for a platform called **Brainepedia** — a problem-based experience system that allows users to gain **verified professional experience by solving real-world problems**.
+
+The goal is to:
+
+* Capture attention immediately
+* Challenge traditional learning beliefs
+* Create curiosity
+* Clearly communicate value
+* Drive users to sign up
+
+---
+
+## 🔷 CORE PRODUCT IDEA
+
+Brainepedia is NOT a learning platform.
+
+It is a **Proof-of-Competence Platform** where:
+
+* Users solve real-world problems (missions)
+* AI evaluates their performance
+* Experience is earned (XP)
+* Skills are verified (Verified Experience - VX)
+
+---
+
+## 🔷 DESIGN STYLE
+
+* Dark Mode (Primary background: #0A0E14)
+* Futuristic + Professional (SaaS meets RPG)
+* Neon accents (#00D2FF, #FFD700)
+* Clean spacing, premium feel
+* Smooth animations and hover effects
+* Typography:
+
+  * Headings: Bold Sans-serif (Inter / Sora)
+  * Data: Monospace (JetBrains Mono style)
+
+---
+
+## 🔷 PAGE STRUCTURE
+
+---
+
+### 🔥 1. HERO SECTION (HOOK)
+
+**Goal:** Stop scrolling instantly
+
+Include:
+
+* Headline:
+  **“Stop Learning. Start Proving.”**
+
+* Subheadline:
+  “The world’s first AI-driven career RPG. Solve real-world missions. Earn Verified Experience (VX) that recruiters trust.”
+
+* CTA Buttons:
+
+  * Primary: “Enter the Imperial City”
+  * Secondary: “Watch Brainiac in Action”
+
+* Visual:
+
+  * Futuristic dashboard OR animated grid/map
+  * Optional: AI hologram feel
+
+---
+
+### ⚡ 2. PROBLEM SECTION
+
+**Goal:** Trigger pain
+
+Show 3 problems:
+
+* Courses don’t prove skill
+* Degrees take years
+* Portfolios can be faked
+
+Use icons + bold short text
+
+---
+
+### 🚀 3. SOLUTION SECTION
+
+**Goal:** Show clear transformation
+
+Highlight:
+
+* Real-world missions (not quizzes)
+* AI evaluation (Brainiac)
+* Verified Experience (VX)
+* Immutable experience ledger
+
+Include animated cards or feature blocks
+
+---
+
+### 🎮 4. HOW IT WORKS (GAME LOOP)
+
+Visual step flow:
+
+1. Choose a Profession
+2. Enter a District
+3. Solve Missions
+4. Submit Evidence
+5. AI Evaluates
+6. Earn XP + VX
+
+Make it interactive if possible
+
+---
+
+### 🧠 5. AI SECTION (BRAINIAC)
+
+Introduce:
+
+* Brainiac AI as a mentor (not a teacher)
+* Gives feedback, not answers
+
+Add:
+
+* Code snippet UI or evaluation preview
+
+---
+
+### 🏙️ 6. CHOOSE YOUR PATH
+
+Grid or horizontal scroll of professions:
+
+* Software Engineer
+* Lawyer
+* Doctor
+* Product Designer
+
+Each card:
+
+* Title
+* Short mission preview
+
+---
+
+### 💎 7. XP LEDGER / PROOF
+
+Show:
+
+* XP gained
+* Badges
+* Verification stamp
+
+Include:
+
+* “Verified by Brainiac” animation feel
+
+---
+
+### 💰 8. PRICING SECTION
+
+3-tier layout:
+
+* Initiate (Free)
+* Architect (Mid-tier)
+* Grandmaster (Premium)
+
+Highlight:
+
+* Unlimited missions
+* AI depth
+* Certification
+
+---
+
+### 🏁 9. FINAL CTA
+
+Strong closing:
+
+“The Imperial City is waiting.
+Will you prove yourself?”
+
+Button:
+👉 “Start Your First Mission”
+
+---
+
+## 🔷 TECHNICAL REQUIREMENTS
+
+* Pure HTML + CSS + minimal JS
+* Fully responsive (mobile + desktop)
+* Clean semantic structure
+* Use sections (`<section>`)
+* Add subtle animations (CSS or JS)
+* No frameworks (Tailwind optional but not required)
+* Optimized for fast loading
+
+---
+
+## 🔷 COPY STYLE
+
+* Bold, confident, slightly provocative
+* Avoid “learning platform” language
+* Use words like:
+
+  * Prove
+  * Earn
+  * Verified
+  * Real-world
+  * Experience
+
+---
+
+## 🔷 OUTPUT FORMAT
+
+Return:
+
+* Complete HTML file
+* Embedded CSS
+* Optional JS (for animation/interactions)
+
+---
+
+## 🔷 FINAL GOAL
+
+The page should make users feel:
+
+👉 “This is different. This is serious. I need to try this.”
+
+---
+
+**DO NOT create a generic SaaS landing page.
+This must feel like a hybrid of a professional platform and a high-stakes game world.**
