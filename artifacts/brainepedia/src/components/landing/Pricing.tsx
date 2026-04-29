@@ -7,28 +7,48 @@ export function Pricing() {
     {
       name: "Initiate",
       price: "Free",
-      desc: "Enter the city and prove your baseline.",
-      features: ["3 Missions per month", "Basic Brainiac feedback", "Public profile"],
-      button: "Start Free",
+      period: "",
+      desc: "Step into the gates.",
+      features: [
+        "Limited to Entry-Level districts",
+        "3 active missions per month",
+        "Basic Pass / Fail evaluation",
+        "50MB total for file uploads via FileService"
+      ],
+      button: "Begin as Initiate",
       variant: "outline" as const
     },
     {
       name: "Architect",
-      price: "$29",
+      price: "$19",
       period: "/mo",
-      desc: "For serious operators building their ledger.",
-      features: ["Unlimited Missions", "Deep Brainiac evaluation", "Priority queue", "Verified Badges"],
+      desc: "Build a verified career.",
+      features: [
+        "Full access to all professional districts",
+        "Unlimited active missions",
+        "Detailed technical breakdown and optimization suggestions",
+        "Priority submission processing",
+        "Imperial City leaderboard ranking",
+        "2GB for high-fidelity project assets",
+        "Verified Badges for LinkedIn"
+      ],
       button: "Become an Architect",
       variant: "default" as const,
       popular: true
     },
     {
       name: "Grandmaster",
-      price: "$79",
-      period: "/mo",
-      desc: "Elite status. Certification and direct referrals.",
-      features: ["Everything in Architect", "1-on-1 Human Expert Review", "Recruiter Network Access", "Gold-stamped Profile"],
-      button: "Claim Grandmaster",
+      price: "$49",
+      period: "/ user / mo",
+      desc: "Command the city.",
+      features: [
+        "Custom districts for corporate training",
+        "Verification badges for LinkedIn",
+        "Team performance analytics",
+        "Private \"Problem Nodes\" created by your organization",
+        "Direct API access for custom integration"
+      ],
+      button: "Deploy Your Team",
       variant: "outline" as const,
       premium: true
     }
@@ -44,7 +64,7 @@ export function Pricing() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan, i) => (
             <motion.div 
               key={i}
@@ -59,13 +79,13 @@ export function Pricing() {
               } bg-card relative flex flex-col`}
             >
               {plan.popular && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  Recommended
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_15px_rgba(0,210,255,0.4)]">
+                  Most Chosen
                 </div>
               )}
               {plan.premium && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  Elite
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_15px_rgba(255,215,0,0.4)]">
+                  Enterprise / Team
                 </div>
               )}
 
@@ -80,8 +100,8 @@ export function Pricing() {
               <ul className="space-y-4 mb-8 flex-1">
                 {plan.features.map((f, j) => (
                   <li key={j} className="flex items-start gap-3 text-sm">
-                    <Check className={`w-5 h-5 shrink-0 ${plan.premium ? 'text-accent' : 'text-primary'}`} />
-                    <span className="text-muted-foreground">{f}</span>
+                    <Check className={`w-5 h-5 shrink-0 mt-0.5 ${plan.premium ? 'text-accent' : 'text-primary'}`} />
+                    <span className="text-muted-foreground leading-snug">{f}</span>
                   </li>
                 ))}
               </ul>
@@ -97,6 +117,12 @@ export function Pricing() {
               </Button>
             </motion.div>
           ))}
+        </div>
+
+        <div className="mt-12 text-center">
+          <p className="font-mono text-xs text-muted-foreground opacity-60">
+            All prices in USD. Cancel anytime. Annual billing saves 20%.
+          </p>
         </div>
       </div>
     </section>

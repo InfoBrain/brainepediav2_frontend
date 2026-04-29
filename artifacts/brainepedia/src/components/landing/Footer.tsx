@@ -1,4 +1,5 @@
-import { Zap } from "lucide-react";
+import { Link } from "wouter";
+import logo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
 
 export function Footer() {
   return (
@@ -6,11 +7,9 @@ export function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center border border-primary/50">
-                <Zap className="w-5 h-5 text-primary" />
-              </div>
-              <span className="font-bold text-xl tracking-tight text-foreground">Brainepedia</span>
+            <div className="flex items-center gap-3 mb-6">
+              <img src={logo} alt="Brainepedia" className="h-10 w-auto opacity-90" />
+              <span className="font-bold text-2xl tracking-tight text-foreground">Brainepedia</span>
             </div>
             <p className="text-muted-foreground max-w-sm">
               The AI-driven career RPG. Earn Verified Experience (VX) by solving real-world missions. Stop learning, start proving.
@@ -20,10 +19,10 @@ export function Footer() {
           <div>
             <h4 className="font-bold mb-4">Product</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Missions</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Brainiac Evaluator</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">VX Ledger</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
+              <li><Link href="/problem" className="hover:text-primary transition-colors">The Problem</Link></li>
+              <li><Link href="/solution" className="hover:text-primary transition-colors">The System</Link></li>
+              <li><Link href="/how-it-works" className="hover:text-primary transition-colors">How It Works</Link></li>
+              <li><a href="/#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
             </ul>
           </div>
 

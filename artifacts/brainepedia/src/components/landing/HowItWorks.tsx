@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { UserPlus, MapPin, Target, UploadCloud, Cpu, Award } from "lucide-react";
+import { UserPlus, MapPin, Target, UploadCloud, Cpu, Award, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 
 export function HowItWorks() {
   const steps = [
@@ -49,6 +50,17 @@ export function HowItWorks() {
             ))}
           </div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center mt-20"
+        >
+          <Link href="/how-it-works" className="inline-flex items-center gap-2 text-primary font-medium hover:text-primary/80 transition-colors">
+            Read the full chapter <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

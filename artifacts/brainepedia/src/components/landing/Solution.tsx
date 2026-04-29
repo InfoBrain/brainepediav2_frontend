@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { BrainCircuit, ShieldCheck, Database } from "lucide-react";
+import { BrainCircuit, ShieldCheck, Database, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 
 export function Solution() {
   return (
@@ -60,6 +61,17 @@ export function Solution() {
             </p>
           </motion.div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center mt-16"
+        >
+          <Link href="/solution" className="inline-flex items-center gap-2 text-primary font-medium hover:text-primary/80 transition-colors">
+            Read the full chapter <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

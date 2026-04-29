@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { GraduationCap, Clock, FileWarning } from "lucide-react";
+import { GraduationCap, Clock, FileWarning, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 
 export function Problem() {
   const problems = [
@@ -23,7 +24,7 @@ export function Problem() {
   return (
     <section className="py-24 bg-background relative border-y border-border/30">
       <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
           {problems.map((p, i) => (
             <motion.div 
               key={i}
@@ -42,6 +43,17 @@ export function Problem() {
             </motion.div>
           ))}
         </div>
+        
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center"
+        >
+          <Link href="/problem" className="inline-flex items-center gap-2 text-primary font-medium hover:text-primary/80 transition-colors">
+            Read the full chapter <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
