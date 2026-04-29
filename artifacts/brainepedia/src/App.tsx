@@ -8,6 +8,14 @@ import { ProblemPage } from "@/pages/Problem";
 import { SolutionPage } from "@/pages/Solution";
 import { HowItWorksPage } from "@/pages/HowItWorks";
 
+// Auth pages
+import Login from "@/pages/auth/Login";
+import Register from "@/pages/auth/Register";
+import VerifyOtp from "@/pages/auth/VerifyOtp";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
+import ChangePassword from "@/pages/auth/ChangePassword";
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -17,6 +25,14 @@ function Router() {
       <Route path="/problem" component={ProblemPage} />
       <Route path="/solution" component={SolutionPage} />
       <Route path="/how-it-works" component={HowItWorksPage} />
+      
+      <Route path="/auth/login" component={Login} />
+      <Route path="/auth/register" component={Register} />
+      <Route path="/auth/verify-otp" component={VerifyOtp} />
+      <Route path="/auth/forgot-password" component={ForgotPassword} />
+      <Route path="/auth/reset-password" component={ResetPassword} />
+      <Route path="/auth/change-password" component={ChangePassword} />
+
       <Route component={NotFound} />
     </Switch>
   );

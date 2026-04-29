@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Link } from "wouter";
 import logo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
+import { cn } from "@/lib/utils";
 
 export function Nav() {
   return (
@@ -21,10 +22,12 @@ export function Nav() {
           <a href="/#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Pricing</a>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" className="hidden sm:inline-flex text-muted-foreground hover:text-foreground">Log In</Button>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] border border-primary/50">
+          <Link href="/auth/login" className={cn(buttonVariants({ variant: "ghost" }), "hidden sm:inline-flex text-muted-foreground hover:text-foreground")}>
+            Log In
+          </Link>
+          <Link href="/auth/register" className={cn(buttonVariants({ variant: "default" }), "bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] border border-primary/50")}>
             Enter City
-          </Button>
+          </Link>
         </div>
       </div>
     </nav>

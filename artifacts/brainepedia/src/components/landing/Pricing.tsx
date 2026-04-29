@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { Link } from "wouter";
+import { cn } from "@/lib/utils";
 
 export function Pricing() {
   const plans = [
@@ -106,15 +108,17 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <Button 
-                variant={plan.variant} 
-                className={`w-full font-bold ${
+              <Link 
+                href="/auth/register"
+                className={cn(
+                  buttonVariants({ variant: plan.variant }),
+                  "w-full font-bold",
                   plan.premium ? 'border-accent text-accent hover:bg-accent/10' : 
                   plan.popular ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
-                }`}
+                )}
               >
                 {plan.button}
-              </Button>
+              </Link>
             </motion.div>
           ))}
         </div>
