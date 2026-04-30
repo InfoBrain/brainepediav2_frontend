@@ -35,6 +35,7 @@ import CreateProfile from "@/pages/profile/CreateProfile";
 
 // User sub-pages
 import BadgesPage from "@/pages/user/BadgesPage";
+import SubscriptionSuccess from "@/pages/user/SubscriptionSuccess";
 
 // Profession journey
 import SelectProfession from "@/pages/profession/SelectProfession";
@@ -56,6 +57,11 @@ function Router() {
       <Route path="/auth/reset-password" component={ResetPassword} />
       <Route path="/auth/change-password" component={ChangePassword} />
 
+      <Route path="/user/subscription/success">
+        <RequireAuth allow={["User"]}>
+          <SubscriptionSuccess />
+        </RequireAuth>
+      </Route>
       <Route path="/user/:rest*">
         <RequireAuth allow={["User"]}>
           <UserDashboard />

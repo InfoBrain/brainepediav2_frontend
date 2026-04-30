@@ -7,6 +7,7 @@ import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
 import { getUser, getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -111,6 +112,7 @@ const BADGE_MILESTONES: BadgeMilestone[] = [
 export default function UserDashboard() {
   const userId = getUserId() || "me";
   const user = getUser();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [districts, setDistricts] = useState<District[]>([]);
@@ -203,7 +205,8 @@ export default function UserDashboard() {
 
   const handleUpgrade = async () => {
     setUpgradeLoading(true);
-    const res = await api.subscriptions.initialize({ tier: "Architect" });
+    const callbackUrl = `${window.location.origin}${import.meta.env.BASE_URL}user/subscription/success`;
+    const res = await api.subscriptions.initialize({ tier: "Architect", callbackUrl, redirectUrl: callbackUrl });
     setUpgradeLoading(false);
     const url = (res.data as any)?.checkoutUrl || (res.data as any)?.authorization_url;
     if (res.ok) {
@@ -214,10 +217,17 @@ export default function UserDashboard() {
       if (url) {
         window.location.href = url;
       } else {
-        alert("Subscription initialized.");
+        toast({
+          title: "Subscription initialised",
+          description: "Check your dashboard for updated status.",
+        });
       }
     } else {
-      alert(res.error || "Couldn't start upgrade.");
+      toast({
+        title: "Upgrade failed",
+        description: res.error || "Couldn't start the upgrade. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
