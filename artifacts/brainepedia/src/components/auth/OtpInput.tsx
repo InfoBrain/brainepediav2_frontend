@@ -80,7 +80,7 @@ export function OtpInput({ value, onChange, length = 6 }: OtpInputProps) {
         .map((_, index) => (
           <Input
             key={index}
-            ref={(el) => (inputRefs.current[index] = el)}
+            ref={(el) => { inputRefs.current[index] = el; }}
             className="w-12 h-14 text-center text-xl font-mono border-border/50 bg-background/50 focus-visible:ring-primary shadow-inner"
             type="text"
             inputMode="numeric"
