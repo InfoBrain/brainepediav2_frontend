@@ -372,7 +372,8 @@ export default function UserDashboard() {
     const callbackUrl = `${window.location.origin}${import.meta.env.BASE_URL}user/subscription/success`;
     const res = await api.subscriptions.initialize({ tier: "Architect", callbackUrl, redirectUrl: callbackUrl });
     setUpgradeLoading(false);
-    const url = (res.data as any)?.checkoutUrl || (res.data as any)?.authorization_url;
+    const data = res.data as { checkoutUrl?: string; authorization_url?: string } | null;
+    const url = data?.checkoutUrl || data?.authorization_url;
     if (res.ok) {
       api.activityLogs.create({
         userId,
@@ -401,10 +402,10 @@ export default function UserDashboard() {
   const sub = SUB_NAMES[stats?.currentSubscription ?? 0] || "Initiate";
   const displayName = profile
     ? `${profile.firstName || ""} ${profile.surName || profile.lastName || ""}`.trim() ||
-      user?.firstName || (user as any)?.email || "Operative"
+      user?.firstName || user?.email || "Operative"
     : user?.firstName
-    ? `${user.firstName} ${(user as any).lastName || ""}`.trim()
-    : (user as any)?.email || "Operative";
+    ? `${user.firstName} ${user?.lastName || ""}`.trim()
+    : user?.email || "Operative";
   const displayTitle = profile?.currentTitle || "Brainepedia Operative";
   const avatarUrl = profile?.avatarUrl || profile?.imageUrl || null;
   const initial = displayName.charAt(0).toUpperCase();

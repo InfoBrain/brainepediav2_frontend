@@ -93,7 +93,7 @@ export default function DistrictMap() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const profName = data?.name || (fallbackProf as any)?.name || "Profession";
+  const profName = data?.name || (fallbackProf as { name?: string } | null)?.name || "Profession";
   const districts = data?.districts ?? [];
 
   // Find the recommended district (lowest non-zero completion, or first unstarted)

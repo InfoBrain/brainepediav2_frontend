@@ -179,7 +179,8 @@ export default function AdminProfessions() {
     setAiState({ phase: "idle" });
   }
   function handleAcceptAll() {
-    toast({ title: "Professions accepted", description: `${(aiState as any).items?.length ?? 0} professions are now live.` });
+    const count = aiState.phase === "preview" ? aiState.items.length : 0;
+    toast({ title: "Professions accepted", description: `${count} professions are now live.` });
     load();
     closeAiModal();
   }

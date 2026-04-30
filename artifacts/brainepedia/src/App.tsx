@@ -69,11 +69,6 @@ function Router() {
           <ActivityFeed />
         </RequireAuth>
       </Route>
-      <Route path="/user/:rest*">
-        <RequireAuth allow={["User"]}>
-          <UserDashboard />
-        </RequireAuth>
-      </Route>
       <Route path="/user/badges">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <BadgesPage />
@@ -82,6 +77,11 @@ function Router() {
       <Route path="/user/profile/create">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <CreateProfile />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/:rest*">
+        <RequireAuth allow={["User"]}>
+          <UserDashboard />
         </RequireAuth>
       </Route>
       <Route path="/admin/professions">
