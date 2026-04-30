@@ -16,6 +16,7 @@ import {
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
+import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -44,6 +45,7 @@ type ProblemNode = {
 type AdminUser = { id: string; email?: string; name?: string; role?: string };
 
 export default function AdminDashboard() {
+  const userId = getUserId() || "";
   const [stats, setStats] = useState<Stats | null>(null);
   const [nodes, setNodes] = useState<ProblemNode[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -112,7 +114,7 @@ export default function AdminDashboard() {
     setSavingNode(true);
     const fd = new FormData();
     fd.append("multiplier", String(editing.multiplier));
-    const res = await api.problemNodes.update(editing.id, fd);
+    const res = await api.problemNodes.update(editing.id, userId, fd);
     setSavingNode(false);
     if (res.ok) {
       setNodes((prev) =>

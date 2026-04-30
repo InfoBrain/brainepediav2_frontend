@@ -132,12 +132,29 @@ export const api = {
     get: (id: string) => fetchApi(`/api/Professions/${encodeURIComponent(id)}`),
     city: (id: string, userId?: string | null) =>
       fetchApi(`/api/Professions/${encodeURIComponent(id)}/city${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
-    create: (formData: FormData) =>
-      fetchApi("/api/Professions", { method: "POST", body: formData }),
-    update: (id: string, formData: FormData) =>
-      fetchApi(`/api/Professions/${encodeURIComponent(id)}`, { method: "PUT", body: formData }),
-    delete: (id: string) =>
-      fetchApi(`/api/Professions/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    /**
+     * POST /api/Professions?userId=...
+     * userId MUST be a query param. FormData fields: Name, IconFile, IconUrl.
+     */
+    create: (userId: string, formData: FormData) =>
+      fetchApi(`/api/Professions?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
+    /**
+     * PUT /api/Professions/{id}?ProfessionId=...&Name=...&IconUrl=...
+     * Name, ProfessionId, IconUrl are query params. Only IconFile goes in FormData.
+     */
+    update: (id: string, params: { name: string; iconUrl?: string | null }, iconFile?: File | null) => {
+      const qs = new URLSearchParams({ ProfessionId: id, Name: params.name });
+      if (params.iconUrl) qs.set("IconUrl", params.iconUrl);
+      const fd = new FormData();
+      if (iconFile) fd.append("IconFile", iconFile);
+      return fetchApi(`/api/Professions/${encodeURIComponent(id)}?${qs.toString()}`, {
+        method: "PUT",
+        body: fd,
+      });
+    },
+    /** DELETE /api/Professions/{id}?userId=... */
+    delete: (id: string, userId: string) =>
+      fetchApi(`/api/Professions/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
     generateSeed: (data: { professionName: string; districtCount: number }) =>
       fetchApi("/api/Professions/generate-seed", { method: "POST", body: JSON.stringify(data) }),
   },
@@ -145,27 +162,40 @@ export const api = {
     byProfession: (professionId: string) =>
       fetchApi(`/api/Districts/by-profession/${encodeURIComponent(professionId)}`),
     get: (id: string) => fetchApi(`/api/Districts/${encodeURIComponent(id)}`),
-    create: (formData: FormData) =>
-      fetchApi("/api/Districts", { method: "POST", body: formData }),
-    update: (id: string, formData: FormData) =>
-      fetchApi(`/api/Districts/${encodeURIComponent(id)}`, { method: "PUT", body: formData }),
-    delete: (id: string) =>
-      fetchApi(`/api/Districts/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    /**
+     * POST /api/Districts?userId=...
+     * userId MUST be a query param. All other fields (Name, Description, ProfessionId, etc.) in FormData.
+     */
+    create: (userId: string, formData: FormData) =>
+      fetchApi(`/api/Districts?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
+    /**
+     * PUT /api/Districts/{id}?userId=...
+     * userId MUST be a query param. All other fields in FormData.
+     */
+    update: (id: string, userId: string, formData: FormData) =>
+      fetchApi(`/api/Districts/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "PUT", body: formData }),
+    /** DELETE /api/Districts/{id}?userId=... */
+    delete: (id: string, userId: string) =>
+      fetchApi(`/api/Districts/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
   },
   difficulties: {
     list: () => fetchApi("/api/Difficulties"),
   },
   problemNodes: {
-    byDistrict: (districtId: string) =>
-      fetchApi(`/api/ProblemNodes/by-district/${encodeURIComponent(districtId)}`),
+    byDistrict: (districtId: string, userId?: string | null) =>
+      fetchApi(`/api/ProblemNodes/by-district/${encodeURIComponent(districtId)}${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
     get: (id: string) => fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`),
-    create: (formData: FormData) =>
-      fetchApi("/api/ProblemNodes", { method: "POST", body: formData }),
-    update: (id: string, formData: FormData) =>
-      fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`, { method: "PUT", body: formData }),
-    delete: (id: string) =>
-      fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`, { method: "DELETE" }),
-    aiGenerate: (data: { topic: string; districtId: string; difficultyId: string }) =>
-      fetchApi("/api/ProblemNodes/ai-generate", { method: "POST", body: JSON.stringify(data) }),
+    /** POST /api/ProblemNodes?userId=... — userId as query param, rest in FormData */
+    create: (userId: string, formData: FormData) =>
+      fetchApi(`/api/ProblemNodes?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
+    /** PUT /api/ProblemNodes/{id}?userId=... — userId as query param, rest in FormData */
+    update: (id: string, userId: string, formData: FormData) =>
+      fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "PUT", body: formData }),
+    /** DELETE /api/ProblemNodes/{id}?userId=... */
+    delete: (id: string, userId: string) =>
+      fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
+    /** POST /api/ProblemNodes/ai-generate?userId=... */
+    aiGenerate: (userId: string, data: { topic: string; districtId: string; difficultyId: string }) =>
+      fetchApi(`/api/ProblemNodes/ai-generate?userId=${encodeURIComponent(userId)}`, { method: "POST", body: JSON.stringify(data) }),
   },
 };

@@ -166,16 +166,15 @@ export default function AdminDistricts() {
     }
     setSaving(true);
     const fd = new FormData();
-    fd.append("name", form.name.trim());
-    fd.append("description", form.description);
-    fd.append("mapCoordinatesJson", form.mapCoordinatesJson);
-    fd.append("professionId", form.professionId);
-    fd.append("userId", userId);
-    if (form.assetFile) fd.append("assetFile", form.assetFile);
+    fd.append("Name", form.name.trim());
+    fd.append("Description", form.description);
+    fd.append("MapCoordinatesJson", form.mapCoordinatesJson);
+    fd.append("ProfessionId", form.professionId);
+    if (form.assetFile) fd.append("AssetFile", form.assetFile);
 
     const res = modal.open && modal.mode === "edit"
-      ? await api.districts.update(modal.district.id, fd)
-      : await api.districts.create(fd);
+      ? await api.districts.update(modal.district.id, userId, fd)
+      : await api.districts.create(userId, fd);
 
     setSaving(false);
     if (res.ok) {
@@ -190,7 +189,7 @@ export default function AdminDistricts() {
   async function handleDelete() {
     if (!deleteState.open) return;
     setDeleting(true);
-    const res = await api.districts.delete(deleteState.district.id);
+    const res = await api.districts.delete(deleteState.district.id, userId);
     setDeleting(false);
     if (res.ok) {
       toast({ title: "District deleted" });

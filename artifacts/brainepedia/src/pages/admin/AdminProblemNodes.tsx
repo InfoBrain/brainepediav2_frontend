@@ -277,21 +277,20 @@ export default function AdminProblemNodes() {
     }
     setSaving(true);
     const fd = new FormData();
-    fd.append("title", form.title.trim());
-    fd.append("context", form.context);
-    fd.append("missionBrief", form.missionBrief);
-    fd.append("constraints", JSON.stringify(form.constraints.filter(Boolean)));
-    fd.append("expectedOutcomes", JSON.stringify(form.expectedOutcomes.filter(Boolean)));
-    fd.append("experiencePoints", form.experiencePoints || "0");
-    fd.append("estimatedMinutes", form.estimatedMinutes || "0");
-    fd.append("difficultyId", form.difficultyId);
-    fd.append("districtId", form.districtId || selectedDistId);
-    fd.append("userId", userId);
-    if (form.attachment) fd.append("attachment", form.attachment);
+    fd.append("Title", form.title.trim());
+    fd.append("Context", form.context);
+    fd.append("MissionBrief", form.missionBrief);
+    fd.append("Constraints", JSON.stringify(form.constraints.filter(Boolean)));
+    fd.append("ExpectedOutcomes", JSON.stringify(form.expectedOutcomes.filter(Boolean)));
+    fd.append("ExperiencePoints", form.experiencePoints || "0");
+    fd.append("EstimatedMinutes", form.estimatedMinutes || "0");
+    fd.append("DifficultyId", form.difficultyId);
+    fd.append("DistrictId", form.districtId || selectedDistId);
+    if (form.attachment) fd.append("Attachment", form.attachment);
 
     const res = modal.open && modal.mode === "edit"
-      ? await api.problemNodes.update(modal.node.id, fd)
-      : await api.problemNodes.create(fd);
+      ? await api.problemNodes.update(modal.node.id, userId, fd)
+      : await api.problemNodes.create(userId, fd);
 
     setSaving(false);
     if (res.ok) {
@@ -306,7 +305,7 @@ export default function AdminProblemNodes() {
   async function handleDelete() {
     if (!deleteState.open) return;
     setDeleting(true);
-    const res = await api.problemNodes.delete(deleteState.node.id);
+    const res = await api.problemNodes.delete(deleteState.node.id, userId);
     setDeleting(false);
     if (res.ok) {
       toast({ title: "Problem node deleted" });
@@ -324,7 +323,7 @@ export default function AdminProblemNodes() {
       return;
     }
     setAi(s => ({ ...s, loading: true, preview: null }));
-    const res = await api.problemNodes.aiGenerate({
+    const res = await api.problemNodes.aiGenerate(userId, {
       topic: aiForm.topic,
       districtId: aiForm.districtId || selectedDistId,
       difficultyId: aiForm.difficultyId,
@@ -343,17 +342,16 @@ export default function AdminProblemNodes() {
     };
     setSaving(true);
     const fd = new FormData();
-    fd.append("title", p.title || "AI Generated");
-    fd.append("context", p.context || "");
-    fd.append("missionBrief", p.missionBrief || "");
-    fd.append("constraints", JSON.stringify(parseArray(p.constraints)));
-    fd.append("expectedOutcomes", JSON.stringify(parseArray(p.expectedOutcomes)));
-    fd.append("experiencePoints", String(p.experiencePoints ?? 0));
-    fd.append("estimatedMinutes", String(p.estimatedMinutes ?? 0));
-    fd.append("difficultyId", aiForm.difficultyId);
-    fd.append("districtId", aiForm.districtId || selectedDistId);
-    fd.append("userId", userId);
-    const res = await api.problemNodes.create(fd);
+    fd.append("Title", p.title || "AI Generated");
+    fd.append("Context", p.context || "");
+    fd.append("MissionBrief", p.missionBrief || "");
+    fd.append("Constraints", JSON.stringify(parseArray(p.constraints)));
+    fd.append("ExpectedOutcomes", JSON.stringify(parseArray(p.expectedOutcomes)));
+    fd.append("ExperiencePoints", String(p.experiencePoints ?? 0));
+    fd.append("EstimatedMinutes", String(p.estimatedMinutes ?? 0));
+    fd.append("DifficultyId", aiForm.difficultyId);
+    fd.append("DistrictId", aiForm.districtId || selectedDistId);
+    const res = await api.problemNodes.create(userId, fd);
     setSaving(false);
     if (res.ok) {
       toast({ title: "AI problem node saved!" });

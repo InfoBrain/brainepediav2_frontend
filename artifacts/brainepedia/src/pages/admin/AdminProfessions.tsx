@@ -105,14 +105,34 @@ export default function AdminProfessions() {
       return;
     }
     setSaving(true);
-    const fd = new FormData();
-    fd.append("name", name.trim());
-    fd.append("userId", userId);
-    if (iconFile) fd.append("iconFile", iconFile);
 
-    const res = modal.open && modal.mode === "edit"
-      ? await api.professions.update(modal.profession.id, fd)
-      : await api.professions.create(fd);
+    let res;
+    if (modal.open && modal.mode === "edit") {
+      // PUT: Name/ProfessionId/IconUrl as query params, only IconFile in FormData
+      const existingIconUrl = !iconFile ? (modal.profession.iconUrl || null) : null;
+      res = await api.professions.update(
+        modal.profession.id,
+        { name: name.trim(), iconUrl: existingIconUrl },
+        iconFile,
+      );
+    } else {
+      // POST: userId as query param, Name/IconFile as FormData
+      const fd = new FormData();
+      fd.append("Name", name.trim());
+      if (iconFile) fd.append("IconFile", iconFile);
+      const createRes = await api.professions.create(userId, fd);
+      if (!createRes.ok) {
+        setSaving(false);
+        toast({ title: "Error", description: createRes.error, variant: "destructive" });
+        return;
+      }
+      // Server doesn't persist Name on POST — immediately PUT to set it
+      const newId = createRes.data?.professionId;
+      if (newId) {
+        await api.professions.update(newId, { name: name.trim() }, iconFile ?? null);
+      }
+      res = createRes;
+    }
 
     setSaving(false);
     if (res.ok) {
@@ -127,7 +147,7 @@ export default function AdminProfessions() {
   async function handleDelete() {
     if (!deleteState.open) return;
     setDeleting(true);
-    const res = await api.professions.delete(deleteState.profession.id);
+    const res = await api.professions.delete(deleteState.profession.id, userId);
     setDeleting(false);
     if (res.ok) {
       toast({ title: "Profession deleted" });
