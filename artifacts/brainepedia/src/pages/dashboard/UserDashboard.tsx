@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown, User as UserIcon, LayoutDashboard, Compass } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
@@ -56,6 +56,44 @@ type BadgeMilestone = {
   rarity: number;
   check: (s: Stats) => boolean;
 };
+
+type EarnedBadge = {
+  name: string;
+  description: string;
+  rarityKey: string;
+  isNew?: boolean;
+};
+
+const RARITY_COLOR: Record<string, { ring: string; glow: string; label: string; labelText: string }> = {
+  legendary: {
+    ring: "from-amber-400 to-yellow-600",
+    glow: "shadow-[0_0_22px_rgba(255,215,0,0.7)]",
+    label: "text-amber-400",
+    labelText: "Legendary",
+  },
+  epic: {
+    ring: "from-[#A78BFA] to-[#7C3AED]",
+    glow: "shadow-[0_0_18px_rgba(168,85,247,0.6)]",
+    label: "text-[#A78BFA]",
+    labelText: "Epic",
+  },
+  rare: {
+    ring: "from-cyan-400 to-blue-600",
+    glow: "shadow-[0_0_15px_rgba(34,211,238,0.5)]",
+    label: "text-cyan-400",
+    labelText: "Rare",
+  },
+  common: {
+    ring: "from-slate-400 to-slate-600",
+    glow: "",
+    label: "text-slate-400",
+    labelText: "Common",
+  },
+};
+
+function numericRarityToKey(rarity: number): string {
+  return ["common", "rare", "epic", "legendary"][Math.min(rarity, 3)] ?? "common";
+}
 
 const BADGE_MILESTONES: BadgeMilestone[] = [
   {
@@ -119,6 +157,9 @@ export default function UserDashboard() {
   const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [earnedBadges, setEarnedBadges] = useState<EarnedBadge[]>([]);
+  const [newBadges, setNewBadges] = useState<EarnedBadge[]>([]);
+  const newBadgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Seed hero card immediately from auth user stored at login
@@ -166,16 +207,29 @@ export default function UserDashboard() {
       }
 
       if (stats && userId) {
+        const rawBadges = normBadgesFromRaw(b.ok ? b.data : null);
         const existingNames = new Set<string>(
-          normBadgesFromRaw(b.ok ? b.data : null).map((x) => x.name).filter(Boolean) as string[]
+          rawBadges.map((x) => x.name).filter(Boolean) as string[]
         );
+
+        // Build the existing badge list for the showcase panel
+        const existingBadgeList: EarnedBadge[] = rawBadges
+          .filter((x) => x.name)
+          .map((x) => ({
+            name: x.name!,
+            description: x.description || "",
+            rarityKey: numericRarityToKey(x.rarity ?? 0),
+            isNew: false,
+          }));
+
         const toAward = BADGE_MILESTONES.filter(
           (milestone) => milestone.check(stats) && !existingNames.has(milestone.name)
         );
         if (toAward.length > 0) {
-          await Promise.all(
-            toAward.map((milestone) =>
-              Promise.all([
+          // Award each badge and only surface it in the UI when the API call succeeds
+          const awardResults = await Promise.all(
+            toAward.map(async (milestone) => {
+              const [awardRes] = await Promise.all([
                 api.userBadges.award({
                   userId,
                   name: milestone.name,
@@ -186,13 +240,54 @@ export default function UserDashboard() {
                   userId,
                   activity: `Unlocked badge: ${milestone.name} — ${milestone.description}`,
                 }),
-              ])
-            )
+              ]);
+              return { milestone, success: awardRes.ok };
+            })
           );
+
           if (!cancelled) {
             const refreshed = await api.activityLogs.forUser(userId);
             if (!cancelled && refreshed.ok) setActivity(normActivity(refreshed.data));
+
+            // Only celebrate badges that were successfully persisted
+            const confirmedMilestones = awardResults
+              .filter((r) => r.success)
+              .map((r) => r.milestone);
+
+            if (confirmedMilestones.length > 0) {
+              const freshBadges: EarnedBadge[] = confirmedMilestones.map((m) => ({
+                name: m.name,
+                description: m.description,
+                rarityKey: numericRarityToKey(m.rarity),
+                isNew: true,
+              }));
+
+              // Notify for each successfully awarded badge via toast
+              freshBadges.forEach((badge) => {
+                const r = RARITY_COLOR[badge.rarityKey] ?? RARITY_COLOR.common;
+                toast({
+                  title: `🏆 Badge Unlocked: ${badge.name}`,
+                  description: `${badge.description} · ${r.labelText}`,
+                });
+              });
+
+              // Merge new badges into showcase (new ones first), clear isNew after delay
+              setNewBadges(freshBadges);
+              setEarnedBadges([...freshBadges, ...existingBadgeList]);
+
+              if (newBadgeTimerRef.current) clearTimeout(newBadgeTimerRef.current);
+              newBadgeTimerRef.current = setTimeout(() => {
+                setNewBadges([]);
+                setEarnedBadges((prev) =>
+                  prev.map((badge) => ({ ...badge, isNew: false }))
+                );
+              }, 6000);
+            } else {
+              setEarnedBadges(existingBadgeList);
+            }
           }
+        } else if (!cancelled) {
+          setEarnedBadges(existingBadgeList);
         }
       }
 
@@ -200,6 +295,7 @@ export default function UserDashboard() {
     })();
     return () => {
       cancelled = true;
+      if (newBadgeTimerRef.current) clearTimeout(newBadgeTimerRef.current);
     };
   }, [userId]);
 
@@ -328,6 +424,79 @@ export default function UserDashboard() {
             <StatTile label="Problems Solved" value={solved.toLocaleString()} accent="text-[#A78BFA]" icon={Target} />
             <StatTile label="Subscription" value={sub} accent="text-[#FFD700]" icon={Crown} />
           </div>
+
+          {/* Badge Showcase Panel */}
+          {earnedBadges.length > 0 && (
+            <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-lg font-bold text-amber-400">Badge Showcase</h2>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    {newBadges.length > 0
+                      ? `${newBadges.length} new badge${newBadges.length > 1 ? "s" : ""} unlocked!`
+                      : "Your latest honours"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {newBadges.length > 0 && (
+                    <motion.span
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-amber-400/20 text-amber-400 border border-amber-400/40"
+                    >
+                      New!
+                    </motion.span>
+                  )}
+                  <Trophy className="h-5 w-5 text-amber-400" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                <AnimatePresence>
+                  {earnedBadges.slice(0, 6).map((badge, i) => {
+                    const r = RARITY_COLOR[badge.rarityKey] ?? RARITY_COLOR.common;
+                    return (
+                      <motion.div
+                        key={badge.name}
+                        initial={badge.isNew ? { opacity: 0, scale: 0.7, y: 12 } : false}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20, delay: badge.isNew ? i * 0.12 : 0 }}
+                        className="relative"
+                      >
+                        <div className={`rounded-xl p-[2px] bg-gradient-to-br ${r.ring} ${r.glow}`}>
+                          <div className="bg-[#0A0E14] rounded-[10px] p-3 flex flex-col items-center justify-center text-center gap-1.5 min-h-[90px]">
+                            <Trophy className={`h-6 w-6 ${r.label}`} />
+                            <div className="text-xs font-bold leading-tight line-clamp-2 text-white">
+                              {badge.name}
+                            </div>
+                            <div className={`text-[9px] font-mono uppercase tracking-wider ${r.label}`}>
+                              {r.labelText}
+                            </div>
+                          </div>
+                        </div>
+                        {badge.isNew && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-amber-400 border border-black flex items-center justify-center"
+                          >
+                            <span className="text-[8px] font-bold text-black leading-none">✦</span>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+              <div className="mt-4 text-right">
+                <Link
+                  href="/user/badges"
+                  className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400 transition-colors"
+                >
+                  View all badges →
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Imperial Map (hex grid) + Subscription card */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -535,10 +704,12 @@ function normActivity(d: any): ActivityLog[] {
     performedBy: x.performedBy || x.by,
   }));
 }
-function normBadgesFromRaw(d: any): { name?: string }[] {
+function normBadgesFromRaw(d: any): { name?: string; description?: string; rarity?: number }[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.badges) ? d.badges : [];
   return arr.map((x: any) => ({
     name: x.name || x.badgeName || x.title,
+    description: x.description,
+    rarity: x.rarity !== undefined ? Number(x.rarity) : x.tier !== undefined ? Number(x.tier) : 0,
   }));
 }
 function formatRel(iso: string): string {
