@@ -16,15 +16,32 @@ export function getUser() {
   }
 }
 
-export function setToken(token: string | null | undefined, user: any) {
-  if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
+/** Decode a JWT without verification — used only for non-security-critical display info. */
+function decodeJwt(token: string): Record<string, any> | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(payload);
+    return JSON.parse(json);
+  } catch {
+    return null;
   }
-  if (user) {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
-    if (user.token) localStorage.setItem(TOKEN_KEY, user.token);
-    else if (user.accessToken) localStorage.setItem(TOKEN_KEY, user.accessToken);
-    else if (user.jwt) localStorage.setItem(TOKEN_KEY, user.jwt);
+}
+
+export function setToken(token: string | null | undefined, user: any) {
+  // Always unwrap nested userProfile wrapper the API may return
+  const profile = user?.userProfile ?? user;
+  const resolvedToken = token
+    || profile?.token
+    || profile?.accessToken
+    || profile?.jwt;
+
+  if (resolvedToken) {
+    localStorage.setItem(TOKEN_KEY, resolvedToken);
+  }
+  if (profile) {
+    localStorage.setItem(USER_KEY, JSON.stringify(profile));
   }
   window.dispatchEvent(new Event("auth-change"));
 }
@@ -40,20 +57,46 @@ export function isAuthenticated() {
 }
 
 export function getUserRole(): "GlobalAdmin" | "Employer" | "User" | null {
-  const u = getUser();
-  if (!u) return null;
-  const raw = u.role || u.Role || u.userRole || (Array.isArray(u.roles) ? u.roles[0] : u.roles);
-  if (!raw) return "User";
-  const s = String(raw).toLowerCase();
+  if (!isAuthenticated()) return null;
+
+  // 1. Try profile stored in localStorage (direct fields)
+  const u = getUser()?.userProfile ?? getUser();
+  const profileRaw = u?.role || u?.Role || u?.userRole || u?.roles;
+  if (profileRaw) {
+    return parseRole(profileRaw);
+  }
+
+  // 2. Fall back to JWT claims (roles are encoded in the token payload)
+  const token = getToken();
+  if (!token) return "User";
+  const claims = decodeJwt(token);
+  const jwtRaw = claims?.roles || claims?.role
+    || claims?.["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+  if (jwtRaw) {
+    return parseRole(jwtRaw);
+  }
+
+  return "User";
+}
+
+function parseRole(raw: unknown): "GlobalAdmin" | "Employer" | "User" {
+  const s = String(Array.isArray(raw) ? raw[0] : raw).toLowerCase();
   if (s.includes("admin")) return "GlobalAdmin";
   if (s.includes("employer")) return "Employer";
   return "User";
 }
 
 export function getUserId(): string | null {
-  const u = getUser();
-  if (!u) return null;
-  return u.userId || u.id || u.Id || u.user?.id || u.user?.userId || null;
+  // 1. Try profile stored in localStorage
+  const u = getUser()?.userProfile ?? getUser();
+  const profileId = u?.userId || u?.id || u?.Id;
+  if (profileId) return profileId;
+
+  // 2. Fall back to JWT uid / sub claim
+  const token = getToken();
+  if (!token) return null;
+  const claims = decodeJwt(token);
+  return claims?.uid || claims?.sub || null;
 }
 
 export function getDashboardPath(role?: ReturnType<typeof getUserRole>): string {
@@ -65,7 +108,7 @@ export function getDashboardPath(role?: ReturnType<typeof getUserRole>): string 
 
 export function useAuth() {
   const [isAuth, setIsAuth] = useState(isAuthenticated());
-  
+
   useEffect(() => {
     const handleAuthChange = () => setIsAuth(isAuthenticated());
     window.addEventListener("auth-change", handleAuthChange);

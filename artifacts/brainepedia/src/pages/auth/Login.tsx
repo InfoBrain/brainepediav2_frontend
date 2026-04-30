@@ -70,9 +70,10 @@ export default function Login() {
       return;
     }
     
-    // Attempt to extract token
-    const token = res.data?.token || res.data?.accessToken || res.data?.jwt;
-    setToken(token, res.data);
+    // Unwrap the nested userProfile the API returns
+    const profile = res.data?.userProfile || res.data;
+    const token = profile?.token || profile?.accessToken || profile?.jwt;
+    setToken(token, profile);
     setLocation(getDashboardPath());
   };
 
