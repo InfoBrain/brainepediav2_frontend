@@ -94,10 +94,7 @@ export default function AdminDashboard() {
     }
     setSeeding(true);
     setSeedResult("");
-    const res = await api.professions.generateSeed({
-      professionName: seedName.trim(),
-      districtCount: Math.max(1, Math.min(50, seedCount)),
-    });
+    const res = await api.professions.generateSeed(Math.max(1, Math.min(50, seedCount)));
     setSeeding(false);
     setSeedResult(
       res.ok

@@ -18,6 +18,8 @@ import {
   Wand2,
   PlusCircle,
   Minus,
+  CheckCircle2,
+  RefreshCw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
@@ -316,8 +318,7 @@ export default function AdminProblemNodes() {
     }
   }
 
-  async function handleAiGenerate(e: React.FormEvent) {
-    e.preventDefault();
+  async function runAiGenerate() {
     if (!aiForm.topic.trim()) {
       toast({ title: "Topic is required", variant: "destructive" });
       return;
@@ -330,6 +331,11 @@ export default function AdminProblemNodes() {
     });
     setAi(s => ({ ...s, loading: false, preview: res.ok ? res.data : null }));
     if (!res.ok) toast({ title: "AI generation failed", description: res.error, variant: "destructive" });
+  }
+
+  async function handleAiGenerate(e: React.FormEvent) {
+    e.preventDefault();
+    await runAiGenerate();
   }
 
   async function saveAiPreview() {
@@ -777,41 +783,113 @@ export default function AdminProblemNodes() {
                 </Button>
               </form>
 
-              {/* Preview */}
+              {/* Rich Preview */}
               <AnimatePresence>
                 {ai.preview && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="border border-[#9D4EDD]/30 rounded-xl p-4 bg-[#9D4EDD]/5 space-y-3"
+                    className="border border-[#9D4EDD]/30 rounded-xl bg-[#9D4EDD]/5 overflow-hidden"
                   >
-                    <h3 className="text-sm font-semibold text-[#9D4EDD] uppercase tracking-wider">Preview</h3>
-                    <p className="text-white font-semibold">{ai.preview.title}</p>
-                    {ai.preview.context && (
-                      <p className="text-gray-400 text-sm">{ai.preview.context}</p>
-                    )}
-                    {ai.preview.missionBrief && (
-                      <p className="text-sm text-gray-300 border-l-2 border-[#9D4EDD]/40 pl-3">{ai.preview.missionBrief}</p>
-                    )}
-                    <div className="flex gap-4 text-sm">
-                      {ai.preview.experiencePoints != null && (
-                        <span className="flex items-center gap-1 text-[#FFD700]">
-                          <Zap className="w-3.5 h-3.5" />{ai.preview.experiencePoints} XP
-                        </span>
-                      )}
-                      {ai.preview.estimatedMinutes != null && (
-                        <span className="flex items-center gap-1 text-gray-400">
-                          <Clock className="w-3.5 h-3.5" />{ai.preview.estimatedMinutes}m
-                        </span>
-                      )}
+                    {/* Preview header */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-[#9D4EDD]/20">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-[#9D4EDD]" />
+                        <span className="text-xs font-semibold text-[#9D4EDD] uppercase tracking-wider">AI Generated Preview</span>
+                      </div>
+                      <div className="flex gap-3 text-xs">
+                        {ai.preview.experiencePoints != null && (
+                          <span className="flex items-center gap-1 text-[#FFD700] font-mono">
+                            <Zap className="w-3 h-3" />{ai.preview.experiencePoints} XP
+                          </span>
+                        )}
+                        {ai.preview.estimatedMinutes != null && (
+                          <span className="flex items-center gap-1 text-gray-400 font-mono">
+                            <Clock className="w-3 h-3" />{ai.preview.estimatedMinutes}m
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <Button
-                      onClick={saveAiPreview}
-                      disabled={saving}
-                      className="w-full bg-[#00D2FF] hover:bg-[#00D2FF]/80 text-black font-semibold gap-2"
-                    >
-                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save to Database"}
-                    </Button>
+
+                    <div className="p-4 space-y-3 max-h-72 overflow-y-auto">
+                      {/* Title */}
+                      <p className="text-white font-semibold text-sm leading-tight">{ai.preview.title}</p>
+
+                      {/* Context */}
+                      {ai.preview.context && (
+                        <p className="text-gray-400 text-xs leading-relaxed">{ai.preview.context}</p>
+                      )}
+
+                      {/* Mission Brief */}
+                      {ai.preview.missionBrief && (
+                        <div className="border-l-2 border-[#9D4EDD]/50 pl-3">
+                          <p className="text-[10px] text-[#9D4EDD] font-mono uppercase tracking-wider mb-1">Mission Brief</p>
+                          <p className="text-xs text-gray-300 leading-relaxed">{ai.preview.missionBrief}</p>
+                        </div>
+                      )}
+
+                      {/* Constraints */}
+                      {(() => {
+                        const c = Array.isArray(ai.preview.constraints)
+                          ? ai.preview.constraints
+                          : typeof ai.preview.constraints === "string"
+                          ? (() => { try { return JSON.parse(ai.preview.constraints); } catch { return [ai.preview.constraints]; } })()
+                          : [];
+                        return c.length > 0 ? (
+                          <div>
+                            <p className="text-[10px] text-amber-400 font-mono uppercase tracking-wider mb-1.5">Constraints</p>
+                            <ul className="space-y-1">
+                              {c.map((item: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2 text-xs text-gray-300">
+                                  <span className="text-amber-400 mt-0.5 shrink-0">›</span>{item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null;
+                      })()}
+
+                      {/* Expected Outcomes */}
+                      {(() => {
+                        const e = Array.isArray(ai.preview.expectedOutcomes)
+                          ? ai.preview.expectedOutcomes
+                          : typeof ai.preview.expectedOutcomes === "string"
+                          ? (() => { try { return JSON.parse(ai.preview.expectedOutcomes); } catch { return [ai.preview.expectedOutcomes]; } })()
+                          : [];
+                        return e.length > 0 ? (
+                          <div>
+                            <p className="text-[10px] text-emerald-400 font-mono uppercase tracking-wider mb-1.5">Expected Outcomes</p>
+                            <ul className="space-y-1">
+                              {e.map((item: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2 text-xs text-gray-300">
+                                  <span className="text-emerald-400 mt-0.5 shrink-0">✓</span>{item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null;
+                      })()}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 p-4 pt-0">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={runAiGenerate}
+                        disabled={ai.loading || saving}
+                        className="flex-1 border-gray-700 text-gray-400 hover:text-white gap-1.5 text-sm"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" /> Regenerate
+                      </Button>
+                      <Button
+                        onClick={saveAiPreview}
+                        disabled={saving}
+                        className="flex-1 bg-[#00D2FF] hover:bg-[#00D2FF]/80 text-black font-semibold gap-1.5 text-sm"
+                      >
+                        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><CheckCircle2 className="w-3.5 h-3.5" /> Save</>}
+                      </Button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

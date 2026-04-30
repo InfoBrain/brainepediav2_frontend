@@ -155,8 +155,9 @@ export const api = {
     /** DELETE /api/Professions/{id}?userId=... */
     delete: (id: string, userId: string) =>
       fetchApi(`/api/Professions/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
-    generateSeed: (data: { professionName: string; districtCount: number }) =>
-      fetchApi("/api/Professions/generate-seed", { method: "POST", body: JSON.stringify(data) }),
+    /** POST /api/Professions/generate-seed?count=N — AI-generates N professions */
+    generateSeed: (count: number) =>
+      fetchApi(`/api/Professions/generate-seed?count=${count}`, { method: "POST" }),
   },
   districts: {
     byProfession: (professionId: string) =>
@@ -177,6 +178,9 @@ export const api = {
     /** DELETE /api/Districts/{id}?userId=... */
     delete: (id: string, userId: string) =>
       fetchApi(`/api/Districts/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
+    /** POST /api/Districts/seed-districts/{professionId} — AI-generates districts for a profession */
+    seedDistricts: (professionId: string) =>
+      fetchApi(`/api/Districts/seed-districts/${encodeURIComponent(professionId)}`, { method: "POST" }),
   },
   difficulties: {
     list: () => fetchApi("/api/Difficulties"),

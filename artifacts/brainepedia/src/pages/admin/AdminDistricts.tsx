@@ -12,6 +12,8 @@ import {
   Upload,
   BookOpen,
   MapPin,
+  Wand2,
+  CheckCircle2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
@@ -98,6 +100,16 @@ export default function AdminDistricts() {
   const [assetPreview, setAssetPreview] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
 
+  // AI seed state
+  const [aiSeeding, setAiSeeding] = useState(false);
+  const [aiSeedMsg, setAiSeedMsg] = useState(0);
+  const AI_SEED_MESSAGES = [
+    "Designing districts…",
+    "Mapping skill zones…",
+    "Structuring learning paths…",
+    "Finalising district layout…",
+  ];
+
   useEffect(() => {
     (async () => {
       setProfLoading(true);
@@ -131,6 +143,26 @@ export default function AdminDistricts() {
       setAssetPreview(URL.createObjectURL(file));
     } else {
       setAssetPreview(null);
+    }
+  }
+
+  async function handleAiSeed() {
+    if (!selectedProfessionId) {
+      toast({ title: "Select a profession first", variant: "destructive" });
+      return;
+    }
+    setAiSeeding(true);
+    setAiSeedMsg(0);
+    const interval = setInterval(() => setAiSeedMsg(i => (i + 1) % AI_SEED_MESSAGES.length), 2000);
+    const profName = professions.find(p => p.id === selectedProfessionId)?.name || "this profession";
+    const res = await api.districts.seedDistricts(selectedProfessionId);
+    clearInterval(interval);
+    setAiSeeding(false);
+    if (res.ok) {
+      toast({ title: "Districts generated!", description: `Districts for "${profName}" are ready.` });
+      loadDistricts(selectedProfessionId);
+    } else {
+      toast({ title: "AI generation failed", description: res.error, variant: "destructive" });
     }
   }
 
@@ -209,14 +241,25 @@ export default function AdminDistricts() {
             <h1 className="text-2xl font-bold text-white">Districts</h1>
             <p className="text-sm text-gray-400 mt-0.5">Manage learning districts within each profession</p>
           </div>
-          <Button
-            onClick={openCreate}
-            disabled={!selectedProfessionId}
-            className="bg-[#00D2FF] hover:bg-[#00D2FF]/80 text-black font-semibold gap-2 disabled:opacity-40"
-          >
-            <Plus className="w-4 h-4" />
-            New District
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={handleAiSeed}
+              disabled={!selectedProfessionId || aiSeeding}
+              className="border-purple-500/40 text-purple-400 hover:bg-purple-500/10 hover:border-purple-400 gap-2 disabled:opacity-40"
+            >
+              {aiSeeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+              {aiSeeding ? "Generating…" : "Generate with AI"}
+            </Button>
+            <Button
+              onClick={openCreate}
+              disabled={!selectedProfessionId}
+              className="bg-[#00D2FF] hover:bg-[#00D2FF]/80 text-black font-semibold gap-2 disabled:opacity-40"
+            >
+              <Plus className="w-4 h-4" />
+              New District
+            </Button>
+          </div>
         </div>
 
         {/* Profession Filter */}
@@ -474,6 +517,48 @@ export default function AdminDistricts() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* AI Seeding Overlay */}
+      <AnimatePresence>
+        {aiSeeding && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex flex-col items-center gap-5 px-8 py-10 bg-[#0D1117] border border-purple-500/30 rounded-2xl shadow-2xl max-w-xs w-full mx-4"
+            >
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full border-2 border-purple-500/20 flex items-center justify-center">
+                  <Wand2 className="w-8 h-8 text-purple-400 animate-pulse" />
+                </div>
+                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-purple-500 animate-spin" />
+              </div>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={aiSeedMsg}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="text-sm text-purple-300 font-mono text-center"
+                >
+                  {AI_SEED_MESSAGES[aiSeedMsg]}
+                </motion.p>
+              </AnimatePresence>
+              <p className="text-xs text-gray-600 text-center">
+                Designing districts for{" "}
+                <span className="text-gray-400">
+                  {professions.find(p => p.id === selectedProfessionId)?.name || "this profession"}
+                </span>
+              </p>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </DashboardShell>

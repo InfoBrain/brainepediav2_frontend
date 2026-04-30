@@ -12,7 +12,7 @@ import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
 const PROFESSION_KEY = "brainepedia.selected.profession";
 
-export function getSelectedProfession(): { id: string; name: string } | null {
+function getSelectedProfession(): { id: string; name: string } | null {
   try {
     const raw = localStorage.getItem(PROFESSION_KEY);
     return raw ? JSON.parse(raw) : null;
