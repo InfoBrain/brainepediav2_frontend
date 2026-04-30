@@ -1,0 +1,171 @@
+You are building a modern, production-ready frontend page for a platform called Brainepedia.
+
+This page is the "Select Profession" page — the first step in the user journey.
+
+STACK:
+- React + TypeScript
+- TailwindCSS
+- React Query (TanStack Query)
+- Axios
+- React Router
+- Zustand (or Redux Toolkit)
+
+API BASE:
+https://api.brainepedia.com/api
+
+-----------------------------------
+
+🎯 OBJECTIVE
+
+Design a highly engaging, gamified page where users select a Profession (career path).
+
+This is NOT a basic list page — it should feel like:
+"Choose Your Journey"
+
+-----------------------------------
+
+📡 API INTEGRATION
+
+GET /Professions
+
+Response:
+[
+  {
+    "professionId": "guid",
+    "name": "Frontend Developer",
+    "iconUrl": "https://..."
+  }
+]
+
+-----------------------------------
+
+🧱 PAGE STRUCTURE
+
+1. HEADER SECTION
+- Title: "Choose Your Path"
+- Subtitle: "Start solving real-world problems in your chosen field"
+- Small description explaining:
+  → You will progress through districts
+  → Solve real-world challenges
+  → Earn XP and badges
+
+-----------------------------------
+
+2. PROFESSIONS GRID
+
+Display professions as cards in a responsive grid.
+
+Each card must include:
+- Icon (from iconUrl)
+- Profession name
+- Hover effect
+- Subtle animation
+
+Card design:
+- Rounded (2xl)
+- Soft shadow
+- Hover scale (scale-105)
+- Glow border on hover
+
+-----------------------------------
+
+3. CARD INTERACTION
+
+On click:
+- Save selected profession in global state
+- Navigate to:
+  /profession/{professionId}
+
+-----------------------------------
+
+4. LOADING STATE
+
+- Show skeleton loaders while fetching data
+- At least 6 placeholder cards
+
+-----------------------------------
+
+5. ERROR STATE
+
+- Friendly message:
+  "Unable to load professions"
+- Retry button
+
+-----------------------------------
+
+6. EMPTY STATE
+
+- Message:
+  "No professions available yet"
+
+-----------------------------------
+
+🎨 UI/UX REQUIREMENTS
+
+- Clean modern UI
+- Gamified feel (like a game selection screen)
+- Smooth animations (Framer Motion)
+- Fully responsive
+- Dark mode support
+
+-----------------------------------
+
+🧠 STATE MANAGEMENT
+
+Store:
+- selectedProfessionId
+- selectedProfessionName
+
+-----------------------------------
+
+📁 FILE STRUCTURE
+
+/pages
+  SelectProfession.tsx
+
+/components
+  ProfessionCard.tsx
+  SkeletonCard.tsx
+
+/services
+  professionService.ts
+
+/store
+  useAppStore.ts
+
+-----------------------------------
+
+🔌 API SERVICE (IMPORTANT)
+
+Create a reusable service:
+
+professionService.ts
+
+- getProfessions()
+
+-----------------------------------
+
+⚡ BONUS FEATURES
+
+- Add subtle entrance animation for cards
+- Add "Continue" button (optional if selection auto-navigates)
+- Add search/filter (optional)
+
+-----------------------------------
+
+🚨 IMPORTANT RULES
+
+- Use real API (no mock data)
+- Clean reusable components
+- Separate UI and logic properly
+- Use TypeScript types
+- Handle all states (loading, error, success)
+
+-----------------------------------
+
+🎯 FINAL RESULT
+
+A beautiful, engaging "Choose Your Path" page that:
+- Feels like a game
+- Encourages exploration
+- Smoothly transitions user into the next step

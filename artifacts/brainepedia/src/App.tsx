@@ -36,6 +36,9 @@ import CreateProfile from "@/pages/profile/CreateProfile";
 // User sub-pages
 import BadgesPage from "@/pages/user/BadgesPage";
 
+// Profession journey
+import SelectProfession from "@/pages/profession/SelectProfession";
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -105,6 +108,17 @@ function Router() {
         </RequireAuth>
       </Route>
       <Route path="/profile/:userId" component={ViewProfile} />
+
+      <Route path="/profession/select">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <SelectProfession />
+        </RequireAuth>
+      </Route>
+      <Route path="/profession/:professionId">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <SelectProfession />
+        </RequireAuth>
+      </Route>
 
       <Route component={NotFound} />
     </Switch>
