@@ -37,7 +37,21 @@ export function Footer() {
         </div>
 
         <div className="border-t border-border/30 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Brainepedia. All rights reserved.</p>
+          <div className="flex flex-col sm:flex-row items-center gap-1.5 text-center sm:text-left">
+            <p>© {new Date().getFullYear()} Brainepedia. All rights reserved.</p>
+            <span className="hidden sm:inline opacity-40">·</span>
+            <p>
+              A product of{" "}
+              <a
+                href="https://infobrainltd.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground underline underline-offset-2 transition-colors"
+              >
+                Infobrainltd.com
+              </a>
+            </p>
+          </div>
           <div className="font-mono text-xs opacity-50">
             SYSTEM.STATUS: ONLINE
           </div>

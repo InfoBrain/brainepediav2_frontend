@@ -5,6 +5,7 @@ import { clearToken, getUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import logoUrl from "@assets/branepedia_logo_1777539679828.png";
+import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
 export type NavItem = {
   href: string;
@@ -150,6 +151,7 @@ export function DashboardShell({
         </header>
 
         <main className="flex-1 px-4 md:px-8 py-6 md:py-8">{children}</main>
+        <CopyrightBar className="border-t border-white/5" />
       </div>
 
       {showBrainiac && <BrainiacWidget />}

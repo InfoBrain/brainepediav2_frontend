@@ -8,6 +8,7 @@ import { SkeletonCard } from "@/components/profession/SkeletonCard";
 import { api } from "@/lib/api";
 import { isAuthenticated } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
 const PROFESSION_KEY = "brainepedia.selected.profession";
 
@@ -252,6 +253,8 @@ export default function SelectProfession() {
         {/* Bottom padding so content is not hidden behind the sticky bar */}
         {selected && <div className="h-24" />}
       </main>
+
+      <CopyrightBar className="relative z-10 border-t border-white/5" />
     </div>
   );
 }

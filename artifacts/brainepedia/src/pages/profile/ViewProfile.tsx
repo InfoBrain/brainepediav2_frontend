@@ -25,6 +25,7 @@ import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
 import { getDashboardPath, isAuthenticated } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
 type Profile = {
   userId?: string;
@@ -332,6 +333,7 @@ export default function ViewProfile() {
           </section>
         </div>
       </main>
+      <CopyrightBar className="border-t border-white/5" />
     </div>
   );
 }

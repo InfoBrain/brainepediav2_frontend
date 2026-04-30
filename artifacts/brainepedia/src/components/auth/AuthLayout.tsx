@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import logo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
 import { ReactNode } from "react";
+import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -10,7 +11,8 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ children, quote }: AuthLayoutProps) {
   return (
-    <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background overflow-hidden relative">
+    <div className="min-h-[100dvh] flex flex-col bg-background overflow-hidden">
+    <div className="flex flex-col md:flex-row flex-1 relative">
       {/* Absolute Back Link */}
       <div className="absolute top-6 left-6 z-50">
         <Link href="/" className="text-sm font-mono text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
@@ -69,6 +71,8 @@ export function AuthLayout({ children, quote }: AuthLayoutProps) {
           {children}
         </motion.div>
       </div>
+    </div>
+    <CopyrightBar className="border-t border-white/5 bg-background" />
     </div>
   );
 }
