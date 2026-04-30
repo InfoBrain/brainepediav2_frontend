@@ -35,6 +35,7 @@ import CreateProfile from "@/pages/profile/CreateProfile";
 
 // User sub-pages
 import BadgesPage from "@/pages/user/BadgesPage";
+import ActivityFeed from "@/pages/user/ActivityFeed";
 import SubscriptionSuccess from "@/pages/user/SubscriptionSuccess";
 
 // Profession journey
@@ -61,6 +62,11 @@ function Router() {
       <Route path="/user/subscription/success">
         <RequireAuth allow={["User"]}>
           <SubscriptionSuccess />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/activity">
+        <RequireAuth allow={["User"]}>
+          <ActivityFeed />
         </RequireAuth>
       </Route>
       <Route path="/user/:rest*">
