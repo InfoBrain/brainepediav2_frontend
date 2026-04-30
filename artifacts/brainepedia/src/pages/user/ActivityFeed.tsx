@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "wouter";
 import {
   Activity,
   CreditCard,
@@ -164,7 +165,8 @@ function groupByDate(logs: ActivityLog[]): { label: string; entries: ActivityLog
 const PAGE_SIZE = 20;
 
 export default function ActivityFeed() {
-  const userId = getUserId() || "me";
+  const [, navigate] = useLocation();
+  const userId = getUserId();
   const [allLogs, setAllLogs] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<EventType | "all">("all");
@@ -172,13 +174,17 @@ export default function ActivityFeed() {
   const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
+    if (!userId) {
+      navigate("/login");
+      return;
+    }
     (async () => {
       setLoading(true);
       const res = await api.activityLogs.forUser(userId);
       setLoading(false);
       if (res.ok) setAllLogs(normActivityLogs(res.data));
     })();
-  }, [userId]);
+  }, [userId, navigate]);
 
   const filtered = useMemo(
     () => (filter === "all" ? allLogs : allLogs.filter((l) => l.type === filter)),

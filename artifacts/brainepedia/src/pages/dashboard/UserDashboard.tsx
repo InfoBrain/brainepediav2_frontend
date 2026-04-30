@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown, User as UserIcon, LayoutDashboard, Compass } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
@@ -204,7 +204,8 @@ const BADGE_MILESTONES: BadgeMilestone[] = [
 
 
 export default function UserDashboard() {
-  const userId = getUserId() || "me";
+  const [, navigate] = useLocation();
+  const userId = getUserId();
   const user = getUser();
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -218,6 +219,15 @@ export default function UserDashboard() {
   const newBadgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (!userId) {
+      navigate("/login");
+    }
+  }, [userId, navigate]);
+
+  useEffect(() => {
+    // Do not run data fetches without a valid user ID
+    if (!userId) return;
+
     // Seed hero card immediately from auth user stored at login
     if (user) {
       setProfile(prev => prev ?? {
@@ -375,10 +385,12 @@ export default function UserDashboard() {
     const data = res.data as { checkoutUrl?: string; authorization_url?: string } | null;
     const url = data?.checkoutUrl || data?.authorization_url;
     if (res.ok) {
-      api.activityLogs.create({
-        userId,
-        activity: "Initiated subscription upgrade to Architect tier",
-      });
+      if (userId) {
+        api.activityLogs.create({
+          userId,
+          activity: "Initiated subscription upgrade to Architect tier",
+        });
+      }
       if (url) {
         window.location.href = url;
       } else {
@@ -601,7 +613,7 @@ export default function UserDashboard() {
                 {upgradeLoading ? "Preparing…" : "Upgrade — $19/mo"}
               </Button>
               <Link
-                href={`/profile/${encodeURIComponent(userId)}`}
+                href={userId ? `/profile/${encodeURIComponent(userId)}` : "/"}
                 className="block mt-3 text-center text-xs font-mono text-muted-foreground hover:text-amber-400 transition-colors"
               >
                 View your public profile →

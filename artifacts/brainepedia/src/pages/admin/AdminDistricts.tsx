@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation } from "wouter";
 import {
   LayoutDashboard,
   Users,
@@ -83,8 +84,9 @@ const emptyForm = (): DistrictForm => ({
 });
 
 export default function AdminDistricts() {
+  const [, navigate] = useLocation();
   const { toast } = useToast();
-  const userId = getUserId() || "";
+  const userId = getUserId();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [professions, setProfessions] = useState<Profession[]>([]);
@@ -131,6 +133,10 @@ export default function AdminDistricts() {
   useEffect(() => {
     loadDistricts(selectedProfessionId);
   }, [selectedProfessionId, loadDistricts]);
+
+  useEffect(() => {
+    if (!userId) navigate("/login");
+  }, [userId, navigate]);
 
   function setField<K extends keyof DistrictForm>(k: K, v: DistrictForm[K]) {
     setForm(f => ({ ...f, [k]: v }));
@@ -196,6 +202,7 @@ export default function AdminDistricts() {
       toast({ title: "Please select a profession", variant: "destructive" });
       return;
     }
+    if (!userId) { navigate("/login"); return; }
     setSaving(true);
     const fd = new FormData();
     fd.append("Name", form.name.trim());
@@ -220,6 +227,7 @@ export default function AdminDistricts() {
 
   async function handleDelete() {
     if (!deleteState.open) return;
+    if (!userId) { navigate("/login"); return; }
     setDeleting(true);
     const res = await api.districts.delete(deleteState.district.id, userId);
     setDeleting(false);

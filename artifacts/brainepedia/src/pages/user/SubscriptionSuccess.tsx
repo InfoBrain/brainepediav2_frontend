@@ -18,7 +18,7 @@ type Status = "loading" | "success" | "failed";
 export default function SubscriptionSuccess() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const userId = getUserId() || "me";
+  const userId = getUserId();
 
   const [status, setStatus] = useState<Status>("loading");
   const [subTier, setSubTier] = useState<number | null>(null);
@@ -49,6 +49,14 @@ export default function SubscriptionSuccess() {
         variant: "destructive",
       });
       scheduleRedirect(3500);
+      return () => {
+        cancelled = true;
+        if (timerRef.current) clearTimeout(timerRef.current);
+      };
+    }
+
+    if (!userId) {
+      navigate("/login");
       return () => {
         cancelled = true;
         if (timerRef.current) clearTimeout(timerRef.current);

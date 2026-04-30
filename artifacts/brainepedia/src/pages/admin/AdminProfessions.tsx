@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation } from "wouter";
 import {
   LayoutDashboard,
   Users,
@@ -59,8 +60,9 @@ const AI_MESSAGES = [
 ];
 
 export default function AdminProfessions() {
+  const [, navigate] = useLocation();
   const { toast } = useToast();
-  const userId = getUserId() || "";
+  const userId = getUserId();
 
   const [professions, setProfessions] = useState<Profession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +91,10 @@ export default function AdminProfessions() {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    if (!userId) navigate("/login");
+  }, [userId, navigate]);
+
   // Cycle loading messages
   useEffect(() => {
     if (aiState.phase !== "loading") return;
@@ -114,6 +120,7 @@ export default function AdminProfessions() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) { toast({ title: "Name is required", variant: "destructive" }); return; }
+    if (!userId) { navigate("/login"); return; }
     setSaving(true);
     let res;
     if (modal.open && modal.mode === "edit") {
@@ -144,6 +151,7 @@ export default function AdminProfessions() {
 
   async function handleDelete() {
     if (!deleteState.open) return;
+    if (!userId) { navigate("/login"); return; }
     setDeleting(true);
     const res = await api.professions.delete(deleteState.profession.id, userId);
     setDeleting(false);

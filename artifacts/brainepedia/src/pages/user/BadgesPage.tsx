@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import {
   LayoutDashboard,
   Map,
@@ -152,19 +153,24 @@ function BadgeCard({ badge, index }: { badge: Badge; index: number }) {
 }
 
 export default function BadgesPage() {
-  const userId = getUserId() || "";
+  const [, navigate] = useLocation();
+  const userId = getUserId();
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      navigate("/login");
+      return;
+    }
     (async () => {
       setLoading(true);
       const res = await api.userBadges.forUser(userId);
       setLoading(false);
       if (res.ok) setBadges(normBadges(res.data));
     })();
-  }, [userId]);
+  }, [userId, navigate]);
 
   const legendary = badges.filter(b => b.rarity === 3);
   const epic = badges.filter(b => b.rarity === 2);

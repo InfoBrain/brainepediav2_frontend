@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "wouter";
 import {
   LayoutDashboard,
   Users,
@@ -45,7 +46,8 @@ type ProblemNode = {
 type AdminUser = { id: string; email?: string; name?: string; role?: string };
 
 export default function AdminDashboard() {
-  const userId = getUserId() || "";
+  const [, navigate] = useLocation();
+  const userId = getUserId();
   const [stats, setStats] = useState<Stats | null>(null);
   const [nodes, setNodes] = useState<ProblemNode[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -85,6 +87,10 @@ export default function AdminDashboard() {
     return () => clearTimeout(t);
   }, [search, roleFilter]);
 
+  useEffect(() => {
+    if (!userId) navigate("/login");
+  }, [userId, navigate]);
+
   const filteredUsers = useMemo(() => users, [users]);
 
   const handleSeed = async () => {
@@ -108,6 +114,7 @@ export default function AdminDashboard() {
 
   const saveEdit = async () => {
     if (!editing) return;
+    if (!userId) { navigate("/login"); return; }
     setSavingNode(true);
     const fd = new FormData();
     fd.append("multiplier", String(editing.multiplier));
