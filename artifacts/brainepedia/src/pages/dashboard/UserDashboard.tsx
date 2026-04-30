@@ -40,6 +40,8 @@ const SUB_NAMES: Record<number, string> = {
 type Profile = {
   firstName?: string;
   surName?: string;
+  lastName?: string;
+  email?: string;
   currentTitle?: string;
   avatarUrl?: string;
   imageUrl?: string;
@@ -57,6 +59,19 @@ export default function UserDashboard() {
   const [upgradeLoading, setUpgradeLoading] = useState(false);
 
   useEffect(() => {
+    // Seed hero card immediately from auth user stored at login
+    if (user) {
+      setProfile(prev => prev ?? {
+        firstName: user.firstName,
+        surName: user.lastName || user.surName,
+        currentTitle: undefined,
+        avatarUrl: undefined,
+        imageUrl: undefined,
+        currentSubscription: undefined,
+      });
+    }
+
+    const userEmail = user?.email || "";
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -70,13 +85,17 @@ export default function UserDashboard() {
       if (s.ok) setStats(normStats(s.data));
       if (m.ok) setDistricts(normDistricts(m.data));
       if (a.ok) setActivity(normActivity(a.data));
-      // Resolve profile: direct lookup or fallback to list search
-      if (pDirect.ok && pDirect.data) {
+
+      // Resolve profile: direct lookup or fallback — match by email since userId is null in API
+      if (pDirect.ok && pDirect.data && typeof pDirect.data === "object") {
         setProfile(pDirect.data as Profile);
       } else {
         const all = await api.profiles.search({});
         if (!cancelled && all.ok && Array.isArray(all.data)) {
-          const found = all.data.find((x: any) => x.userId === userId);
+          const found = all.data.find((x: any) =>
+            (userEmail && x.email?.toLowerCase() === userEmail.toLowerCase()) ||
+            x.userId === userId
+          );
           if (found) setProfile(found as Profile);
         }
       }
@@ -104,9 +123,10 @@ export default function UserDashboard() {
   const solved = stats?.problemsSolvedCount ?? 0;
   const sub = SUB_NAMES[stats?.currentSubscription ?? 0] || "Initiate";
   const displayName = profile
-    ? `${profile.firstName || ""} ${profile.surName || ""}`.trim() || (user as any)?.email || "Operative"
-    : (user as any)?.firstName
-    ? `${(user as any).firstName} ${(user as any).lastName || ""}`.trim()
+    ? `${profile.firstName || ""} ${profile.surName || profile.lastName || ""}`.trim() ||
+      user?.firstName || (user as any)?.email || "Operative"
+    : user?.firstName
+    ? `${user.firstName} ${(user as any).lastName || ""}`.trim()
     : (user as any)?.email || "Operative";
   const displayTitle = profile?.currentTitle || "Brainepedia Operative";
   const avatarUrl = profile?.avatarUrl || profile?.imageUrl || null;

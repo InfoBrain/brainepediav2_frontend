@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { getUserRole, getUserId } from "@/lib/auth";
+import { getUserRole, getUserId, getUser } from "@/lib/auth";
 
 const nav: NavItem[] = [
   { href: "/profile/edit", label: "Edit Profile", icon: UserIcon },
@@ -53,11 +53,13 @@ export default function EditProfile() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const userId = getUserId();
+  const authUser = getUser();
   const role = getUserRole();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -68,15 +70,15 @@ export default function EditProfile() {
   } = useForm<FormVals>({
     resolver: zodResolver(schema),
     defaultValues: {
-      firstName: "",
-      surName: "",
+      firstName: authUser?.firstName || "",
+      surName: authUser?.lastName || authUser?.surName || "",
       middleName: "",
       nickName: "",
       aboutMe: "",
       currentTitle: "",
       profession: "",
       address: "",
-      phoneNumber: "",
+      phoneNumber: authUser?.phoneNumber || "",
       country: "",
       state: "",
       city: "",
@@ -96,32 +98,43 @@ export default function EditProfile() {
       navigate("/login");
       return;
     }
+    const userEmail = authUser?.email || "";
     let cancelled = false;
     (async () => {
       setLoading(true);
       let d: any = null;
+
+      // Primary: try GET /api/Profiles/{userId} (may 404 if API uses profileId)
       const res = await api.profiles.get(userId);
-      if (!cancelled) {
-        if (res.ok && res.data && typeof res.data === "object") {
-          d = res.data;
-        } else {
-          // Fallback: search all profiles and find by userId
-          const all = await api.profiles.search({});
-          if (!cancelled && all.ok && Array.isArray(all.data)) {
-            d = all.data.find((x: any) => x.userId === userId || x.profileId === userId) || null;
-          }
+      if (!cancelled && res.ok && res.data && typeof res.data === "object") {
+        d = res.data;
+      }
+
+      // Fallback: fetch all profiles and match by email (userId field is null in API)
+      if (!d) {
+        const all = await api.profiles.search({});
+        if (!cancelled && all.ok && Array.isArray(all.data)) {
+          d = all.data.find((x: any) =>
+            (userEmail && x.email?.toLowerCase() === userEmail.toLowerCase()) ||
+            x.userId === userId
+          ) || null;
         }
+      }
+
+      if (!cancelled) {
         if (d) {
+          // Store profileId so onSubmit can use the correct PUT /api/Profiles/{profileId}
+          setProfileId(d.profileId || d.id || null);
           reset({
-            firstName: d.firstName || "",
-            surName: d.surName || d.surname || d.lastName || "",
+            firstName: d.firstName || authUser?.firstName || "",
+            surName: d.surName || d.surname || d.lastName || authUser?.lastName || authUser?.surName || "",
             middleName: d.middleName || "",
             nickName: d.nickName || d.nickname || "",
             aboutMe: d.aboutMe || d.bio || "",
             currentTitle: d.currentTitle || d.title || "",
             profession: d.profession || "",
             address: d.address || "",
-            phoneNumber: d.phoneNumber || d.phone || "",
+            phoneNumber: d.phoneNumber || d.phone || authUser?.phoneNumber || "",
             country: d.country || "",
             state: d.state || "",
             city: d.city || "",
@@ -142,7 +155,7 @@ export default function EditProfile() {
     return () => {
       cancelled = true;
     };
-  }, [userId, navigate, reset]);
+  }, [userId, navigate, reset, authUser?.email]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -161,7 +174,9 @@ export default function EditProfile() {
   };
 
   const onSubmit = async (vals: FormVals) => {
-    if (!userId) return;
+    // Use profileId (from the profile record) for PUT; fall back to userId if not yet loaded
+    const targetId = profileId || userId;
+    if (!targetId) return;
     setSubmitting(true);
     const fd = new FormData();
     fd.append("FirstName", vals.firstName);
@@ -186,7 +201,7 @@ export default function EditProfile() {
     if (vals.youtube) fd.append("Youtube", vals.youtube);
     if (imageFile) fd.append("ImageFile", imageFile);
 
-    const res = await api.profiles.update(userId, fd);
+    const res = await api.profiles.update(targetId, fd);
     setSubmitting(false);
     if (res.ok) {
       toast({
