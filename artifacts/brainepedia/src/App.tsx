@@ -21,6 +21,11 @@ import UserDashboard from "@/pages/dashboard/UserDashboard";
 import AdminDashboard from "@/pages/dashboard/AdminDashboard";
 import EmployerDashboard from "@/pages/dashboard/EmployerDashboard";
 import { RequireAuth } from "@/components/dashboard/RequireAuth";
+import { ForbiddenWatcher } from "@/components/dashboard/ForbiddenWatcher";
+
+// Profile pages
+import ViewProfile from "@/pages/profile/ViewProfile";
+import EditProfile from "@/pages/profile/EditProfile";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +60,13 @@ function Router() {
         </RequireAuth>
       </Route>
 
+      <Route path="/profile/edit">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <EditProfile />
+        </RequireAuth>
+      </Route>
+      <Route path="/profile/:userId" component={ViewProfile} />
+
       <Route component={NotFound} />
     </Switch>
   );
@@ -65,6 +77,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <ForbiddenWatcher />
           <Router />
         </WouterRouter>
         <Toaster />

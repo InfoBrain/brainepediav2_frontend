@@ -1,0 +1,108 @@
+Project Concept:
+Build a high-fidelity, Cyber-Imperial themed React/Tailwind CSS application for Brainepedia. The system uses Role-Based Access Control (RBAC) to distinguish between GlobalAdmin, User, and Employer. Use Axios for API communication and Framer Motion for gamified animations.
+
+1. The GlobalAdmin Dashboard (World Architect)
+Objective: High-level system oversight and content management.
+
+Endpoint: GET /api/Admin/Stats
+
+Purpose: Populate the analytics cards (Total Users, Revenue, Active Missions).
+
+Response: { totalUsers: int, activeSubscriptions: int, totalXpAwarded: long }
+
+Endpoint: GET /api/Admin/Users
+
+Parameters: ?role=User or ?role=Employer
+
+Response: List<IdentityUser>
+
+Endpoint: POST /api/Professions/generate-seed
+
+Body: { professionName: string, districtCount: int }
+
+Purpose: Triggers the AI to create new industry nodes.
+
+Endpoint: PUT /api/ProblemNodes/{id}
+
+Body: The full ProblemNode object.
+
+Purpose: Adjust XP multipliers or mission constraints.
+
+2. The User Dashboard (The Command Center)
+Objective: Display the "Imperial Map" progress and daily stats.
+
+Endpoint: GET /api/Profiles/stats/{userId}
+
+Response: { totalXP: int, dayStreak: int, problemsSolvedCount: int, currentSubscription: int }
+
+Endpoint: GET /api/UserProgresses/map/{userId}
+
+Response: List<{ districtName: string, earnedXP: int, totalPossibleXP: int, completionPercentage: double }>
+
+UI Requirement: Render as interactive hex-grid District cards with progress bars.
+
+Endpoint: GET /api/ActivityLogs/{userId}
+
+Response: List<{ activity: string, createdAt: DateTime, performedBy: string }>
+
+UI Requirement: A vertical scrolling timeline of recent actions.
+
+3. User View Profile Page (The Verified Portfolio)
+Objective: A read-only, shareable "Proof of Work" page.
+
+Endpoint: GET /api/Profiles/{userId}
+
+Response: Full Profile entity (FullName, Bio, CurrentTitle, Social URLs, AvatarUrl).
+
+Endpoint: GET /api/UserBadges/user/{userId}
+
+Response: List<{ name: string, description: string, iconUrl: string, rarity: int }>
+
+UI Requirement: A 3D-effect "Trophy Case" where badges glow based on rarity (Common to Legendary).
+
+Endpoint: GET /api/UserProgresses/map/{userId}
+
+Purpose: Show a radar chart of skill proficiency across different Districts.
+
+4. User Update Profile Page (Portfolio Manager)
+Objective: Form-driven interface to manage identity.
+
+Endpoint: PUT /api/Profiles/{userId}
+
+Request Type: multipart/form-data
+
+Body (Form-Data):
+
+FirstName, SurName, MiddleName (Strings)
+
+AboutMe, CurrentTitle, Profession (Strings)
+
+Facebook, LinkedIn, Github, Twitter (URL Strings)
+
+ImageFile (File/Blob for Avatar)
+
+Response: 204 No Content on success.
+
+UI Constraint: Do not allow editing of TotalXP, ReferralCode, or CurrentSubscription fields; these must remain read-only or hidden to prevent client-side manipulation.
+
+5. The Employer Dashboard (Talent Scout)
+Objective: Search and verify candidate skillsets.
+
+Endpoint: GET /api/Profiles/search
+
+Parameters: ?profession=Legal or ?minXP=1000
+
+Response: List<Profile>
+
+Endpoint: GET /api/UserBadges/user/{candidateId}
+
+Purpose: Allows employers to verify the authenticity of a candidate's earned accolades.
+
+🔷 Technical Integration Specs for Replit:
+Global State: Cache the userId and userRole in a UserContext upon login.
+
+Visual Style: Use bg-slate-950 for the background, text-amber-400 for primary headings (Gold), and shadow-[0_0_15px_rgba(168,85,247,0.5)] for purple glowing interactive elements.
+
+Loading States: Implement a "Brainiac Thinking" spinner for all API calls.
+
+Error Handling: Catch 403 Forbidden errors to prompt users to visit the Subscriptions page (Paystack flow) if they try to access restricted Districts.

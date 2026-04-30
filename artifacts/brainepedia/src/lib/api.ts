@@ -2,17 +2,25 @@ import { getToken } from "./auth";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
-async function fetchApi(endpoint: string, options: RequestInit = {}) {
+export type ApiResult<T = any> = {
+  ok: boolean;
+  data?: T;
+  error?: string;
+  status?: number;
+};
+
+async function fetchApi<T = any>(endpoint: string, options: RequestInit = {}): Promise<ApiResult<T>> {
   const headers: Record<string, string> = {
     ...((options.headers as any) || {}),
   };
 
-  // Only add Content-Type if we're sending a body
-  if (options.body && !headers["Content-Type"]) {
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+
+  if (options.body && !headers["Content-Type"] && !isFormData) {
     headers["Content-Type"] = "application/json";
   }
+  if (isFormData) delete headers["Content-Type"];
 
-  // Only add Authorization if token exists and it's not explicitly omitted
   const token = getToken();
   if (token && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -25,20 +33,28 @@ async function fetchApi(endpoint: string, options: RequestInit = {}) {
     });
 
     const isJson = response.headers.get("content-type")?.includes("application/json");
-    const data = isJson ? await response.json() : await response.text();
+    let data: any = undefined;
+    if (response.status !== 204) {
+      data = isJson ? await response.json() : await response.text();
+    }
 
     if (!response.ok) {
       let errorMsg = "Something went wrong. Please try again.";
-      if (typeof data === "string" && data) errorMsg = data;
+      if (response.status === 403) {
+        errorMsg = "Access restricted. Upgrade your subscription to unlock this District.";
+      } else if (typeof data === "string" && data) errorMsg = data;
       else if (data && typeof data === "object") {
         if (data.message) errorMsg = data.message;
         else if (data.error) errorMsg = data.error;
         else if (data.title) errorMsg = data.title;
       }
-      return { ok: false, error: errorMsg };
+      if (response.status === 403) {
+        window.dispatchEvent(new CustomEvent("api-forbidden", { detail: { message: errorMsg } }));
+      }
+      return { ok: false, error: errorMsg, status: response.status };
     }
 
-    return { ok: true, data };
+    return { ok: true, data, status: response.status };
   } catch (err: any) {
     return { ok: false, error: err.message || "Network error. Please try again." };
   }
@@ -55,8 +71,16 @@ export const api = {
     changePassword: (data: any) => fetchApi("/api/Account/change_password", { method: "POST", body: JSON.stringify(data) }),
   },
   profiles: {
+    get: (userId: string) => fetchApi(`/api/Profiles/${encodeURIComponent(userId)}`),
     stats: (userId: string) => fetchApi(`/api/Profiles/stats/${encodeURIComponent(userId)}`),
-    search: (profession: string) => fetchApi(`/api/Profiles/search?profession=${encodeURIComponent(profession)}`),
+    search: (params: { profession?: string; minXP?: number }) => {
+      const q = new URLSearchParams();
+      if (params.profession) q.set("profession", params.profession);
+      if (typeof params.minXP === "number") q.set("minXP", String(params.minXP));
+      return fetchApi(`/api/Profiles/search?${q.toString()}`);
+    },
+    update: (userId: string, formData: FormData) =>
+      fetchApi(`/api/Profiles/${encodeURIComponent(userId)}`, { method: "PUT", body: formData }),
   },
   userProgresses: {
     map: (userId: string) => fetchApi(`/api/UserProgresses/map/${encodeURIComponent(userId)}`),
@@ -81,7 +105,8 @@ export const api = {
     },
   },
   professions: {
-    generateSeed: (data: any = {}) => fetchApi("/api/Professions/generate-seed", { method: "POST", body: JSON.stringify(data) }),
+    generateSeed: (data: { professionName: string; districtCount: number }) =>
+      fetchApi("/api/Professions/generate-seed", { method: "POST", body: JSON.stringify(data) }),
   },
   problemNodes: {
     update: (id: string, data: any) => fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(data) }),

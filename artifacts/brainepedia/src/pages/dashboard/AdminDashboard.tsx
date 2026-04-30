@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,8 +28,7 @@ const nav: NavItem[] = [
 type Stats = {
   totalUsers?: number;
   activeSubscriptions?: number;
-  monthlyRevenue?: number;
-  missionSuccessRate?: number;
+  totalXpAwarded?: number;
 };
 type ProblemNode = {
   id: string;
@@ -48,6 +48,8 @@ export default function AdminDashboard() {
   const [roleFilter, setRoleFilter] = useState("");
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState<string>("");
+  const [seedName, setSeedName] = useState("");
+  const [seedCount, setSeedCount] = useState(5);
   const [editing, setEditing] = useState<{ id: string; multiplier: number } | null>(null);
   const [savingNode, setSavingNode] = useState(false);
 
@@ -80,13 +82,20 @@ export default function AdminDashboard() {
   const filteredUsers = useMemo(() => users, [users]);
 
   const handleSeed = async () => {
+    if (!seedName.trim()) {
+      setSeedResult("Profession name is required.");
+      return;
+    }
     setSeeding(true);
     setSeedResult("");
-    const res = await api.professions.generateSeed({});
+    const res = await api.professions.generateSeed({
+      professionName: seedName.trim(),
+      districtCount: Math.max(1, Math.min(50, seedCount)),
+    });
     setSeeding(false);
     setSeedResult(
       res.ok
-        ? "Seed generation triggered. New profession categories will appear shortly."
+        ? `Seeded "${seedName}" with ${seedCount} districts. New nodes will appear shortly.`
         : res.error || "Seed failed."
     );
   };
@@ -117,11 +126,11 @@ export default function AdminDashboard() {
       theme="admin"
     >
       {loading ? (
-        <Loading />
+        <BrainiacSpinner text="Brainiac auditing the empire…" />
       ) : (
         <div className="space-y-6">
           {/* System Health */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <HealthCard
               label="Total Users"
               value={(stats?.totalUsers ?? 0).toLocaleString()}
@@ -135,16 +144,10 @@ export default function AdminDashboard() {
               accent="text-emerald-400"
             />
             <HealthCard
-              label="Monthly Revenue"
-              value={`$${(stats?.monthlyRevenue ?? 0).toLocaleString()}`}
-              icon={TrendingUp}
-              accent="text-[#FFD700]"
-            />
-            <HealthCard
-              label="Mission Success Rate"
-              value={`${Math.round(stats?.missionSuccessRate ?? 0)}%`}
-              icon={LayoutDashboard}
-              accent="text-[#A5B4FC]"
+              label="Total XP Awarded"
+              value={(stats?.totalXpAwarded ?? 0).toLocaleString()}
+              icon={Sparkles}
+              accent="text-amber-400"
             />
           </div>
 
@@ -238,16 +241,42 @@ export default function AdminDashboard() {
             <div className="bg-gradient-to-br from-[#6366F1]/15 to-[#0d1119] border border-[#6366F1]/30 rounded-xl p-6">
               <Sparkles className="h-6 w-6 text-[#A5B4FC] mb-3" />
               <h3 className="text-lg font-bold mb-1">Profession Generator</h3>
-              <p className="text-sm text-muted-foreground mb-5">
-                Trigger the OpenAI-powered service to generate new industry profession seeds.
+              <p className="text-sm text-muted-foreground mb-4">
+                Trigger the AI to create new industry nodes.
               </p>
+              <div className="space-y-3 mb-4">
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">
+                    Profession Name
+                  </label>
+                  <Input
+                    value={seedName}
+                    onChange={(e) => setSeedName(e.target.value)}
+                    placeholder="e.g. Cybersecurity"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">
+                    District Count
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={seedCount}
+                    onChange={(e) => setSeedCount(Number(e.target.value))}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
               <Button
                 className="w-full bg-[#6366F1] hover:bg-[#4F46E5] text-white font-bold"
                 onClick={handleSeed}
                 disabled={seeding}
               >
                 {seeding && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {seeding ? "Seeding..." : "Generate Profession Seeds"}
+                {seeding ? "Seeding…" : "Generate Profession Seeds"}
               </Button>
               {seedResult && (
                 <div className="mt-4 text-xs font-mono text-muted-foreground p-3 border border-white/5 rounded-md bg-black/30">
@@ -358,22 +387,12 @@ function Empty({ text }: { text: string }) {
     </div>
   );
 }
-function Loading() {
-  return (
-    <div className="flex items-center justify-center py-24 text-muted-foreground gap-3">
-      <Loader2 className="h-5 w-5 animate-spin" />
-      <span className="font-mono text-sm">Loading admin console…</span>
-    </div>
-  );
-}
-
 function normalizeStats(d: any): Stats {
   if (!d || typeof d !== "object") return {};
   return {
     totalUsers: Number(d.totalUsers ?? d.users ?? 0),
     activeSubscriptions: Number(d.activeSubscriptions ?? d.subscriptions ?? 0),
-    monthlyRevenue: Number(d.monthlyRevenue ?? d.revenue ?? 0),
-    missionSuccessRate: Number(d.missionSuccessRate ?? d.successRate ?? 0),
+    totalXpAwarded: Number(d.totalXpAwarded ?? d.totalXP ?? d.xp ?? 0),
   };
 }
 function normalizeNodes(d: any): ProblemNode[] {

@@ -1,28 +1,39 @@
 import { useEffect, useState } from "react";
-import { Map, Trophy, Activity, CreditCard, Loader2, Sparkles, Zap, Crown } from "lucide-react";
+import { Link } from "wouter";
+import { Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown, User as UserIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
 import { getUser, getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
 const nav: NavItem[] = [
   { href: "/user/map", label: "Imperial Map", icon: Map },
+  { href: "/profile/edit", label: "My Profile", icon: UserIcon },
   { href: "/user/badges", label: "My Badges", icon: Trophy },
   { href: "/user/activity", label: "Activity Feed", icon: Activity },
   { href: "/user/subscription", label: "Subscription", icon: CreditCard },
 ];
 
-type Stats = { xp?: number; rank?: string; level?: number; avatarUrl?: string; districtName?: string };
-type District = { id?: string; name: string; mastery: number };
-type Badge = { id?: string; name: string; rarity?: string; iconUrl?: string; earnedAt?: string };
-type Activity = { id?: string; title: string; xp?: number; at?: string };
+type Stats = {
+  totalXP: number;
+  dayStreak: number;
+  problemsSolvedCount: number;
+  currentSubscription: number;
+};
+type District = {
+  districtName: string;
+  earnedXP: number;
+  totalPossibleXP: number;
+  completionPercentage: number;
+};
+type ActivityLog = { activity: string; createdAt?: string; performedBy?: string };
 
-const RARITY_GLOW: Record<string, string> = {
-  common: "shadow-[0_0_15px_rgba(148,163,184,0.4)] border-slate-400/40",
-  rare: "shadow-[0_0_18px_rgba(0,210,255,0.5)] border-[#00D2FF]/50",
-  epic: "shadow-[0_0_22px_rgba(168,85,247,0.55)] border-purple-400/50",
-  legendary: "shadow-[0_0_28px_rgba(255,215,0,0.6)] border-[#FFD700]/60",
+const SUB_NAMES: Record<number, string> = {
+  0: "Initiate",
+  1: "Architect",
+  2: "Grandmaster",
 };
 
 export default function UserDashboard() {
@@ -30,8 +41,7 @@ export default function UserDashboard() {
   const user = getUser();
   const [stats, setStats] = useState<Stats | null>(null);
   const [districts, setDistricts] = useState<District[]>([]);
-  const [badges, setBadges] = useState<Badge[]>([]);
-  const [activity, setActivity] = useState<Activity[]>([]);
+  const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
 
@@ -39,17 +49,15 @@ export default function UserDashboard() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [s, m, b, a] = await Promise.all([
+      const [s, m, a] = await Promise.all([
         api.profiles.stats(userId),
         api.userProgresses.map(userId),
-        api.userBadges.forUser(userId),
         api.activityLogs.forUser(userId),
       ]);
       if (cancelled) return;
-      if (s.ok) setStats(normalizeStats(s.data));
-      if (m.ok) setDistricts(normalizeDistricts(m.data));
-      if (b.ok) setBadges(normalizeBadges(b.data));
-      if (a.ok) setActivity(normalizeActivity(a.data));
+      if (s.ok) setStats(normStats(s.data));
+      if (m.ok) setDistricts(normDistricts(m.data));
+      if (a.ok) setActivity(normActivity(a.data));
       setLoading(false);
     })();
     return () => {
@@ -61,32 +69,31 @@ export default function UserDashboard() {
     setUpgradeLoading(true);
     const res = await api.subscriptions.initialize({ tier: "Architect" });
     setUpgradeLoading(false);
-    if (res.ok && (res.data as any)?.checkoutUrl) {
-      window.location.href = (res.data as any).checkoutUrl;
+    const url = (res.data as any)?.checkoutUrl || (res.data as any)?.authorization_url;
+    if (res.ok && url) {
+      window.location.href = url;
     } else {
       alert(res.ok ? "Subscription initialized." : res.error || "Couldn't start upgrade.");
     }
   };
 
-  const xp = stats?.xp ?? 0;
-  const rank = stats?.rank || "Initiate";
-  const userInitial = (user?.firstName || user?.email || "U").charAt(0).toUpperCase();
+  const totalXP = stats?.totalXP ?? 0;
+  const dayStreak = stats?.dayStreak ?? 0;
+  const solved = stats?.problemsSolvedCount ?? 0;
+  const sub = SUB_NAMES[stats?.currentSubscription ?? 0] || "Initiate";
+  const initial = (user?.firstName || user?.email || "U").charAt(0).toUpperCase();
 
   const headerRight = (
     <div className="hidden md:flex items-center gap-4">
       <div className="text-right">
-        <div className="text-xs font-mono text-muted-foreground">XP</div>
-        <div className="text-base font-bold text-[#FFD700]">{xp.toLocaleString()}</div>
+        <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">XP</div>
+        <div className="text-base font-bold text-amber-400">{totalXP.toLocaleString()}</div>
       </div>
       <div className="px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider bg-[#7C3AED]/15 text-[#A78BFA] border border-[#7C3AED]/40">
-        {rank}
+        {sub}
       </div>
-      <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#4C1D95] flex items-center justify-center font-bold text-white border-2 border-[#FFD700]/60 shadow-[0_0_12px_rgba(255,215,0,0.4)]">
-        {stats?.avatarUrl ? (
-          <img src={stats.avatarUrl} className="h-full w-full rounded-full object-cover" alt="" />
-        ) : (
-          userInitial
-        )}
+      <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#4C1D95] flex items-center justify-center font-bold text-white border-2 border-amber-400/60 shadow-[0_0_12px_rgba(255,215,0,0.4)]">
+        {initial}
       </div>
     </div>
   );
@@ -94,143 +101,79 @@ export default function UserDashboard() {
   return (
     <DashboardShell
       nav={nav}
-      title="Conqueror's Hub"
+      title="Command Center"
       subtitle="// imperial.dashboard.user"
       headerRight={headerRight}
       theme="user"
       showBrainiac
     >
       {loading ? (
-        <LoadingState />
+        <BrainiacSpinner />
       ) : (
         <div className="space-y-6">
-          {/* Mobile header stats */}
-          <div className="md:hidden grid grid-cols-2 gap-3">
-            <StatPill label="XP" value={xp.toLocaleString()} />
-            <StatPill label="Rank" value={rank} />
+          {/* Stat tiles */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatTile label="Total XP" value={totalXP.toLocaleString()} accent="text-amber-400" icon={Sparkles} />
+            <StatTile label="Day Streak" value={String(dayStreak)} accent="text-orange-400" icon={Flame} />
+            <StatTile label="Problems Solved" value={solved.toLocaleString()} accent="text-[#A78BFA]" icon={Target} />
+            <StatTile label="Subscription" value={sub} accent="text-[#FFD700]" icon={Crown} />
           </div>
 
-          {/* Progress Card */}
+          {/* Imperial Map (hex grid) + Subscription card */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-[#0d1119] border border-white/5 rounded-xl p-6">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-bold">District Mastery</h2>
+                  <h2 className="text-lg font-bold text-amber-400">Imperial Map</h2>
                   <p className="text-xs text-muted-foreground font-mono">
-                    Your conquest of the Imperial City
+                    Districts under your conquest
                   </p>
                 </div>
-                <Sparkles className="h-5 w-5 text-[#FFD700]" />
+                <Map className="h-5 w-5 text-amber-400" />
               </div>
               {districts.length === 0 ? (
-                <EmptyHint text="No districts mapped yet. Start a mission to claim territory." />
+                <Empty text="No districts mapped yet. Start a mission to claim territory." />
               ) : (
-                <div className="space-y-4">
-                  {districts.slice(0, 5).map((d, i) => (
-                    <div key={d.id || i}>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-medium">{d.name}</span>
-                        <span className="font-mono text-[#FFD700]">{Math.round(d.mastery)}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-white/5 overflow-hidden border border-white/5">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(100, d.mastery)}%` }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
-                          className="h-full rounded-full bg-gradient-to-r from-[#FFD700] via-[#FFC107] to-[#FF8F00] shadow-[0_0_12px_rgba(255,215,0,0.55)]"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <HexGrid districts={districts} />
               )}
             </div>
 
-            {/* Subscription card */}
-            <div className="bg-gradient-to-br from-[#7C3AED]/15 to-[#0d1119] border border-[#7C3AED]/30 rounded-xl p-6 shadow-[0_0_20px_rgba(124,58,237,0.2)]">
-              <Crown className="h-6 w-6 text-[#FFD700] mb-3" />
+            {/* Subscription upgrade */}
+            <div className="bg-gradient-to-br from-[#7C3AED]/15 to-[#0d1119] border border-[#7C3AED]/30 rounded-xl p-6 shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+              <Crown className="h-6 w-6 text-amber-400 mb-3" />
               <h3 className="text-lg font-bold mb-1">Ascend to Architect</h3>
               <p className="text-sm text-muted-foreground mb-5">
                 Unlock advanced missions, premium badges, and priority Brainiac access.
               </p>
               <Button
-                className="w-full bg-[#FFD700] hover:bg-[#FFC107] text-black font-bold shadow-[0_0_18px_rgba(255,215,0,0.45)]"
+                className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold shadow-[0_0_15px_rgba(168,85,247,0.5)]"
                 onClick={handleUpgrade}
                 disabled={upgradeLoading}
               >
-                {upgradeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {upgradeLoading ? "Preparing..." : "Upgrade — $19/mo"}
+                {upgradeLoading ? "Preparing…" : "Upgrade — $19/mo"}
               </Button>
+              <Link
+                href={`/profile/${encodeURIComponent(userId)}`}
+                className="block mt-3 text-center text-xs font-mono text-muted-foreground hover:text-amber-400 transition-colors"
+              >
+                View your public profile →
+              </Link>
             </div>
           </div>
 
-          {/* Trophy Carousel */}
+          {/* Activity timeline */}
           <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-lg font-bold">Trophy Case</h2>
-                <p className="text-xs text-muted-foreground font-mono">Latest earned badges</p>
-              </div>
-              <Trophy className="h-5 w-5 text-[#FFD700]" />
-            </div>
-            {badges.length === 0 ? (
-              <EmptyHint text="No badges yet. Complete a mission to claim your first." />
-            ) : (
-              <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory">
-                {badges.slice(0, 12).map((b, i) => {
-                  const glow = RARITY_GLOW[(b.rarity || "common").toLowerCase()] || RARITY_GLOW.common;
-                  return (
-                    <motion.div
-                      key={b.id || i}
-                      whileHover={{ y: -4 }}
-                      className={`shrink-0 w-36 snap-start bg-[#0A0E14] border rounded-xl p-4 text-center ${glow}`}
-                    >
-                      <div className="h-16 w-16 mx-auto rounded-full bg-gradient-to-br from-[#FFD700]/30 to-[#7C3AED]/20 flex items-center justify-center mb-3">
-                        {b.iconUrl ? (
-                          <img src={b.iconUrl} alt="" className="h-10 w-10" />
-                        ) : (
-                          <Trophy className="h-7 w-7 text-[#FFD700]" />
-                        )}
-                      </div>
-                      <div className="text-sm font-semibold truncate">{b.name}</div>
-                      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mt-1">
-                        {b.rarity || "common"}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Recent Activity */}
-          <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-lg font-bold">Recent Activity</h2>
-                <p className="text-xs text-muted-foreground font-mono">Last 5 mission completions</p>
+                <h2 className="text-lg font-bold text-amber-400">Recent Activity</h2>
+                <p className="text-xs text-muted-foreground font-mono">Imperial timeline</p>
               </div>
               <Activity className="h-5 w-5 text-[#A78BFA]" />
             </div>
             {activity.length === 0 ? (
-              <EmptyHint text="No recent activity logged." />
+              <Empty text="No activity logged yet." />
             ) : (
-              <ul className="divide-y divide-white/5">
-                {activity.slice(0, 5).map((a, i) => (
-                  <li key={a.id || i} className="py-3 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Zap className="h-4 w-4 text-[#FFD700] shrink-0" />
-                      <span className="truncate">{a.title}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs font-mono text-muted-foreground shrink-0">
-                      {typeof a.xp === "number" && (
-                        <span className="text-[#FFD700]">+{a.xp} XP</span>
-                      )}
-                      {a.at && <span>{formatRel(a.at)}</span>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <Timeline items={activity.slice(0, 12)} />
             )}
           </div>
         </div>
@@ -239,16 +182,114 @@ export default function UserDashboard() {
   );
 }
 
-function StatPill({ label, value }: { label: string; value: string }) {
+function StatTile({
+  label,
+  value,
+  accent,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  accent: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
   return (
-    <div className="bg-[#0d1119] border border-white/5 rounded-lg px-4 py-3">
-      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">{label}</div>
-      <div className="text-base font-bold text-[#FFD700]">{value}</div>
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-[#0d1119] border border-white/5 rounded-xl p-4"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">
+          {label}
+        </span>
+        <Icon className={`h-4 w-4 ${accent}`} />
+      </div>
+      <div className={`text-2xl font-bold ${accent}`}>{value}</div>
+    </motion.div>
+  );
+}
+
+function HexGrid({ districts }: { districts: District[] }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-3">
+      {districts.slice(0, 12).map((d, i) => {
+        const pct = Math.max(0, Math.min(100, d.completionPercentage));
+        const tier = pct >= 75 ? "high" : pct >= 35 ? "mid" : "low";
+        const ringColor =
+          tier === "high"
+            ? "from-amber-400 to-amber-600"
+            : tier === "mid"
+            ? "from-[#A78BFA] to-[#7C3AED]"
+            : "from-slate-500 to-slate-700";
+        const glow =
+          tier === "high"
+            ? "shadow-[0_0_18px_rgba(255,215,0,0.55)]"
+            : tier === "mid"
+            ? "shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+            : "shadow-none";
+        return (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.04 }}
+            whileHover={{ scale: 1.04 }}
+            className="relative group"
+          >
+            <div
+              className={`hex-cell bg-gradient-to-br ${ringColor} p-[2px] ${glow} cursor-pointer`}
+              style={{
+                clipPath:
+                  "polygon(25% 5%, 75% 5%, 98% 50%, 75% 95%, 25% 95%, 2% 50%)",
+              }}
+            >
+              <div
+                className="bg-[#0A0E14] h-full w-full p-3 flex flex-col items-center justify-center text-center"
+                style={{
+                  clipPath:
+                    "polygon(25% 5%, 75% 5%, 98% 50%, 75% 95%, 25% 95%, 2% 50%)",
+                }}
+              >
+                <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground truncate max-w-full px-1">
+                  {d.districtName}
+                </div>
+                <div className="text-2xl font-bold text-amber-400 mt-1">
+                  {Math.round(pct)}%
+                </div>
+                <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                  {d.earnedXP.toLocaleString()} / {d.totalPossibleXP.toLocaleString()}
+                </div>
+              </div>
+            </div>
+            <style>{`.hex-cell{aspect-ratio:1/1.05}`}</style>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }
 
-function EmptyHint({ text }: { text: string }) {
+function Timeline({ items }: { items: ActivityLog[] }) {
+  return (
+    <ol className="relative border-l-2 border-white/10 ml-2 space-y-4 max-h-[28rem] overflow-y-auto pr-2">
+      {items.map((a, i) => (
+        <li key={i} className="ml-4">
+          <div className="absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(255,215,0,0.7)] border border-amber-300" />
+          <div className="bg-black/30 border border-white/5 rounded-lg px-4 py-3">
+            <div className="text-sm">{a.activity}</div>
+            <div className="flex items-center gap-3 mt-1 text-[10px] uppercase tracking-wider font-mono text-muted-foreground">
+              {a.createdAt && <span>{formatRel(a.createdAt)}</span>}
+              {a.performedBy && <span>by {a.performedBy}</span>}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function Empty({ text }: { text: string }) {
   return (
     <div className="py-8 text-center text-sm text-muted-foreground font-mono border border-dashed border-white/10 rounded-lg">
       {text}
@@ -256,49 +297,32 @@ function EmptyHint({ text }: { text: string }) {
   );
 }
 
-function LoadingState() {
-  return (
-    <div className="flex items-center justify-center py-24 text-muted-foreground gap-3">
-      <Loader2 className="h-5 w-5 animate-spin" />
-      <span className="font-mono text-sm">Loading your hub…</span>
-    </div>
-  );
-}
-
-function normalizeStats(d: any): Stats {
-  if (!d || typeof d !== "object") return {};
+function normStats(d: any): Stats {
+  if (!d || typeof d !== "object") {
+    return { totalXP: 0, dayStreak: 0, problemsSolvedCount: 0, currentSubscription: 0 };
+  }
   return {
-    xp: Number(d.xp ?? d.totalXp ?? d.experience ?? 0),
-    rank: d.rank || d.tier || d.level || "Initiate",
-    avatarUrl: d.avatarUrl || d.avatar,
-    districtName: d.currentDistrict || d.districtName,
+    totalXP: Number(d.totalXP ?? d.totalXp ?? d.xp ?? 0),
+    dayStreak: Number(d.dayStreak ?? d.streak ?? 0),
+    problemsSolvedCount: Number(d.problemsSolvedCount ?? d.problemsSolved ?? 0),
+    currentSubscription: Number(d.currentSubscription ?? 0),
   };
 }
-function normalizeDistricts(d: any): District[] {
+function normDistricts(d: any): District[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.districts) ? d.districts : [];
   return arr.map((x: any) => ({
-    id: x.id ?? x.districtId,
-    name: x.name || x.district || "District",
-    mastery: Number(x.mastery ?? x.percent ?? x.progress ?? 0),
+    districtName: x.districtName || x.name || "District",
+    earnedXP: Number(x.earnedXP ?? x.earned ?? 0),
+    totalPossibleXP: Number(x.totalPossibleXP ?? x.total ?? 0),
+    completionPercentage: Number(x.completionPercentage ?? x.percent ?? 0),
   }));
 }
-function normalizeBadges(d: any): Badge[] {
-  const arr = Array.isArray(d) ? d : Array.isArray(d?.badges) ? d.badges : [];
-  return arr.map((x: any) => ({
-    id: x.id ?? x.badgeId,
-    name: x.name || x.title || "Badge",
-    rarity: x.rarity || x.tier,
-    iconUrl: x.iconUrl || x.icon,
-    earnedAt: x.earnedAt || x.createdAt,
-  }));
-}
-function normalizeActivity(d: any): Activity[] {
+function normActivity(d: any): ActivityLog[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.logs) ? d.logs : [];
   return arr.map((x: any) => ({
-    id: x.id,
-    title: x.title || x.message || x.action || "Activity",
-    xp: typeof x.xp === "number" ? x.xp : undefined,
-    at: x.at || x.createdAt || x.timestamp,
+    activity: x.activity || x.title || x.message || "Activity",
+    createdAt: x.createdAt || x.at || x.timestamp,
+    performedBy: x.performedBy || x.by,
   }));
 }
 function formatRel(iso: string): string {

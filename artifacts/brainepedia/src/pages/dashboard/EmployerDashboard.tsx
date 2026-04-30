@@ -42,7 +42,7 @@ type DistrictRow = { name: string; mastery: number };
 
 export default function EmployerDashboard() {
   const [profession, setProfession] = useState("");
-  const [query, setQuery] = useState("");
+  const [minXP, setMinXP] = useState<string>("");
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Candidate | null>(null);
@@ -52,7 +52,11 @@ export default function EmployerDashboard() {
 
   const runSearch = async () => {
     setLoading(true);
-    const res = await api.profiles.search(profession || query);
+    const params: { profession?: string; minXP?: number } = {};
+    if (profession.trim()) params.profession = profession.trim();
+    const n = Number(minXP);
+    if (minXP !== "" && !isNaN(n)) params.minXP = n;
+    const res = await api.profiles.search(params);
     setLoading(false);
     if (res.ok) setCandidates(normalizeCandidates(res.data));
     else setCandidates([]);
@@ -112,18 +116,20 @@ export default function EmployerDashboard() {
               <div className="relative flex-1">
                 <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Name or keyword"
+                  value={profession}
+                  onChange={(e) => setProfession(e.target.value)}
+                  placeholder="Profession (e.g. Tech, Legal)"
                   className="pl-9"
                 />
               </div>
             </div>
             <div className="flex gap-2 mb-3">
               <Input
-                value={profession}
-                onChange={(e) => setProfession(e.target.value)}
-                placeholder="Profession (e.g. Tech, Legal)"
+                type="number"
+                min={0}
+                value={minXP}
+                onChange={(e) => setMinXP(e.target.value)}
+                placeholder="Minimum XP"
               />
               <Button onClick={runSearch} disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Find"}
