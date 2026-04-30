@@ -39,6 +39,30 @@ export function isAuthenticated() {
   return !!getToken();
 }
 
+export function getUserRole(): "GlobalAdmin" | "Employer" | "User" | null {
+  const u = getUser();
+  if (!u) return null;
+  const raw = u.role || u.Role || u.userRole || (Array.isArray(u.roles) ? u.roles[0] : u.roles);
+  if (!raw) return "User";
+  const s = String(raw).toLowerCase();
+  if (s.includes("admin")) return "GlobalAdmin";
+  if (s.includes("employer")) return "Employer";
+  return "User";
+}
+
+export function getUserId(): string | null {
+  const u = getUser();
+  if (!u) return null;
+  return u.userId || u.id || u.Id || u.user?.id || u.user?.userId || null;
+}
+
+export function getDashboardPath(role?: ReturnType<typeof getUserRole>): string {
+  const r = role ?? getUserRole();
+  if (r === "GlobalAdmin") return "/admin/dashboard";
+  if (r === "Employer") return "/employer/portal";
+  return "/user/map";
+}
+
 export function useAuth() {
   const [isAuth, setIsAuth] = useState(isAuthenticated());
   

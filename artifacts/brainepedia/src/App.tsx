@@ -16,6 +16,12 @@ import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
 import ChangePassword from "@/pages/auth/ChangePassword";
 
+// Dashboard pages
+import UserDashboard from "@/pages/dashboard/UserDashboard";
+import AdminDashboard from "@/pages/dashboard/AdminDashboard";
+import EmployerDashboard from "@/pages/dashboard/EmployerDashboard";
+import { RequireAuth } from "@/components/dashboard/RequireAuth";
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -32,6 +38,22 @@ function Router() {
       <Route path="/auth/forgot-password" component={ForgotPassword} />
       <Route path="/auth/reset-password" component={ResetPassword} />
       <Route path="/auth/change-password" component={ChangePassword} />
+
+      <Route path="/user/:rest*">
+        <RequireAuth allow={["User"]}>
+          <UserDashboard />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/:rest*">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminDashboard />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/:rest*">
+        <RequireAuth allow={["Employer"]}>
+          <EmployerDashboard />
+        </RequireAuth>
+      </Route>
 
       <Route component={NotFound} />
     </Switch>

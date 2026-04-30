@@ -1,0 +1,93 @@
+Prompt 1: The User Dashboard (The Conqueror's Hub)
+Context: Use this for the standard user after they log in as "User".
+
+"Design a modern, responsive User Dashboard for 'Brainepedia' using React and Tailwind CSS. The theme is 'Cyber-Imperial' (Deep Obsidian backgrounds, Gold #FFD700 accents, and Royal Purple glows).
+
+Layout Requirements:
+
+Sidebar Navigation: Links to 'Imperial Map', 'My Badges', 'Activity Feed', and 'Subscription'.
+
+Header: Display User XP, Rank (Initiate/Architect/Grandmaster), and a circular Avatar.
+
+Main Content (Grid):
+
+Progress Card: Shows current District mastery percentage with a custom gold progress bar.
+
+Achievement Carousel: Displays the latest User Badges with rarity-based glow effects.
+
+Recent Activity: A list of the last 5 mission completions.
+
+Brainiac Floating Widget: A small interactive AI bubble in the corner for quick guidance.
+
+Required API Endpoints to Integrate:
+
+GET /api/Profiles/stats/{userId} (Header Stats)
+
+GET /api/UserProgresses/map/{userId} (Map/Progress Cards)
+
+GET /api/UserBadges/user/{userId} (Trophy Case)
+
+GET /api/ActivityLogs/{userId} (Recent Feed)
+
+POST /api/Subscriptions/initialize (Upgrade Button logic)"
+
+🔷 Prompt 2: The GlobalAdmin Dashboard (The Architect's Console)
+Context: Use this for the "GlobalAdmin" role to manage the world-building and system health.
+
+"Design a professional, data-dense Admin Dashboard for 'Brainepedia' Global Administrators. The aesthetic should be clean and authoritative (Dark Mode with Indigo and Slate accents).
+
+Dashboard Features:
+
+System Health Widgets: Total Users, Active Subscriptions (Revenue), and Mission Success Rates.
+
+Content Manager: A table to view and edit 'ProblemNodes' and 'Districts'.
+
+AI Seed Tool: An interface to trigger the 'Profession Generation Service' to create new industry categories.
+
+User Audit: A searchable list of all users and their associated roles from the Identity table.
+
+Required API Endpoints to Integrate:
+
+GET /api/Admin/Stats (System-wide analytics)
+
+POST /api/Professions/generate-seed (Trigger OpenAI profession generation)
+
+GET /api/Admin/Users (IdentityUser list with role filtering)
+
+PUT /api/ProblemNodes/{id} (Update mission difficulty multipliers)"
+
+🔷 Prompt 3: The Employer Dashboard (The Validator's Suite)
+Context: Use this for the "Employer" role who needs to verify talent.
+
+"Design a 'Talent Verification' Dashboard for the 'Employer' role on Brainepedia. The focus is on credibility and data visualization.
+
+UI Components:
+
+Talent Search: Search bar to find users by 'Profession' or 'Verified XP' level.
+
+Candidate Cards: Display a user's 'Full Name', 'Grandmaster Status', and a list of 'Top Earned Badges'.
+
+Competency Chart: A radar chart showing a candidate's progress across different Districts (Legal, Tech, Health).
+
+Verification Link: A secure button to view a candidate's public 'Verified Experience Certificate'.
+
+Required API Endpoints to Integrate:
+
+GET /api/Profiles/search?profession={type} (Find candidates)
+
+GET /api/UserProgresses/map/{candidateId} (Visualize candidate skills)
+
+GET /api/UserBadges/user/{candidateId} (Verify credentials)"
+
+🔷 Implementation Strategy for Roles
+To make this work in your Replit project, ensure your frontend includes a Role Guard. This logic should check the Role column from your IdentityUser data immediately after login to redirect the user:
+
+JavaScript
+// Example logic for Replit/Frontend
+if (user.role === "GlobalAdmin") {
+  navigate("/admin/dashboard");
+} else if (user.role === "Employer") {
+  navigate("/employer/portal");
+} else {
+  navigate("/user/map");
+}

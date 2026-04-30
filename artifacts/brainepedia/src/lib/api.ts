@@ -53,5 +53,37 @@ export const api = {
     verifyOtp: (data: any) => fetchApi("/api/Account/post_otp", { method: "POST", body: JSON.stringify(data) }),
     resendOtp: (email: string) => fetchApi(`/api/Account/resend_otp?email=${encodeURIComponent(email)}`, { method: "GET" }),
     changePassword: (data: any) => fetchApi("/api/Account/change_password", { method: "POST", body: JSON.stringify(data) }),
-  }
+  },
+  profiles: {
+    stats: (userId: string) => fetchApi(`/api/Profiles/stats/${encodeURIComponent(userId)}`),
+    search: (profession: string) => fetchApi(`/api/Profiles/search?profession=${encodeURIComponent(profession)}`),
+  },
+  userProgresses: {
+    map: (userId: string) => fetchApi(`/api/UserProgresses/map/${encodeURIComponent(userId)}`),
+  },
+  userBadges: {
+    forUser: (userId: string) => fetchApi(`/api/UserBadges/user/${encodeURIComponent(userId)}`),
+  },
+  activityLogs: {
+    forUser: (userId: string) => fetchApi(`/api/ActivityLogs/${encodeURIComponent(userId)}`),
+  },
+  subscriptions: {
+    initialize: (data: any) => fetchApi("/api/Subscriptions/initialize", { method: "POST", body: JSON.stringify(data) }),
+  },
+  admin: {
+    stats: () => fetchApi("/api/Admin/Stats"),
+    users: (params: { search?: string; role?: string } = {}) => {
+      const q = new URLSearchParams();
+      if (params.search) q.set("search", params.search);
+      if (params.role) q.set("role", params.role);
+      const qs = q.toString();
+      return fetchApi(`/api/Admin/Users${qs ? `?${qs}` : ""}`);
+    },
+  },
+  professions: {
+    generateSeed: (data: any = {}) => fetchApi("/api/Professions/generate-seed", { method: "POST", body: JSON.stringify(data) }),
+  },
+  problemNodes: {
+    update: (id: string, data: any) => fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(data) }),
+  },
 };

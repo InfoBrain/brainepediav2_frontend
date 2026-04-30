@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { api } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { setToken, getDashboardPath } from "@/lib/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,7 +73,7 @@ export default function Login() {
     // Attempt to extract token
     const token = res.data?.token || res.data?.accessToken || res.data?.jwt;
     setToken(token, res.data);
-    setLocation("/");
+    setLocation(getDashboardPath());
   };
 
   return (
