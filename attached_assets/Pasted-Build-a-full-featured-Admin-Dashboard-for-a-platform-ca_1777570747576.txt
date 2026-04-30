@@ -1,0 +1,276 @@
+Build a full-featured Admin Dashboard for a platform called "Brainepedia".
+
+TECH STACK:
+- React (Vite)
+- Tailwind CSS
+- Axios for API calls
+- React Router
+- React Hook Form (for forms)
+- Toast notifications (success/error)
+- Modal system for confirmations
+
+THEME:
+- Dark Mode (#0A0E14 background)
+- Neon Blue (#00D2FF accents)
+- Clean, futuristic SaaS UI
+- Smooth animations and hover effects
+
+----------------------------------------
+
+🔐 GLOBAL REQUIREMENTS
+
+1. Every API request MUST include:
+   - userId as query param or form-data field
+
+2. Handle file uploads using FormData:
+   - Images → Profession Icons
+   - District Assets
+   - ProblemNode Attachments (Image/Document/Code)
+
+3. Show:
+   - Loading states
+   - Error handling
+   - Success notifications
+
+4. Confirm before DELETE actions
+
+----------------------------------------
+
+📁 ROUTING STRUCTURE
+
+/ admin
+  /professions
+  /districts
+  /problem-nodes
+
+----------------------------------------
+
+👔 1. PROFESSIONS MANAGEMENT
+
+API:
+- GET /api/professions
+- POST /api/professions
+- PUT /api/professions/{id}
+- DELETE /api/professions/{id}
+
+FEATURES:
+
+✅ LIST VIEW
+- Table/Grid:
+  - Icon
+  - Name
+  - Actions (Edit, Delete)
+
+✅ CREATE PROFESSION
+FORM:
+- Name (text)
+- IconFile (file upload - image)
+
+SUBMIT:
+- Send as FormData:
+  - name
+  - iconFile
+  - userId
+
+✅ EDIT PROFESSION
+- Pre-fill existing data
+- Allow updating name + icon
+
+✅ DELETE
+- Confirmation modal
+- Call DELETE API
+
+----------------------------------------
+
+🏙️ 2. DISTRICTS MANAGEMENT
+
+API:
+- GET /api/districts/by-profession/{professionId}?userId=
+- POST /api/districts
+- PUT /api/districts/{id}
+- DELETE /api/districts/{id}
+
+FEATURES:
+
+✅ FILTER BY PROFESSION
+- Dropdown to select profession
+
+✅ LIST VIEW
+- Name
+- Description
+- Completion (optional display)
+- Actions
+
+✅ CREATE DISTRICT
+FORM:
+- Name
+- Description
+- MapCoordinatesJson (textarea JSON)
+- ProfessionId (dropdown)
+- AssetFile (image/document/code)
+
+SUBMIT:
+- FormData:
+  - name
+  - description
+  - mapCoordinatesJson
+  - professionId
+  - assetFile
+  - userId
+
+✅ EDIT DISTRICT
+- Same form pre-filled
+
+✅ DELETE DISTRICT
+- Confirmation modal
+
+----------------------------------------
+
+🧠 3. PROBLEM NODES MANAGEMENT
+
+API:
+- GET /api/problemnodes/by-district/{districtId}?userId=
+- GET /api/problemnodes/{id}
+- POST /api/problemnodes
+- PUT /api/problemnodes/{id}
+- DELETE /api/problemnodes/{id}
+- POST /api/problemnodes/ai-generate
+
+----------------------------------------
+
+FEATURES:
+
+✅ FILTER BY DISTRICT
+- Dropdown (based on selected profession → districts)
+
+✅ LIST VIEW
+- Title
+- Difficulty
+- XP
+- Time
+- Status (optional)
+- Actions
+
+----------------------------------------
+
+✅ CREATE PROBLEM NODE
+
+FORM FIELDS:
+
+- Title (text)
+- Context (textarea)
+- MissionBrief (textarea)
+- Constraints (dynamic list input → array)
+- ExpectedOutcomes (dynamic list input → array)
+- ExperiencePoints (number)
+- EstimatedMinutes (number)
+- DifficultyId (dropdown)
+- DistrictId (dropdown)
+- Attachment (file upload)
+
+IMPORTANT:
+- Convert Constraints & ExpectedOutcomes to arrays
+- Backend will serialize JSON
+
+SUBMIT:
+- Send FormData:
+  - title
+  - context
+  - missionBrief
+  - constraints (JSON.stringify)
+  - expectedOutcomes (JSON.stringify)
+  - experiencePoints
+  - estimatedMinutes
+  - difficultyId
+  - districtId
+  - attachment
+  - userId
+
+----------------------------------------
+
+✅ AI GENERATE PROBLEM
+
+FORM:
+- Topic
+- DistrictId
+- DifficultyId
+
+CALL:
+POST /api/problemnodes/ai-generate
+
+DISPLAY:
+- Show generated preview
+- Allow "Save to DB"
+
+----------------------------------------
+
+✅ EDIT PROBLEM NODE
+- Load existing data
+- Parse JSON constraints back to array
+- Allow update
+
+----------------------------------------
+
+✅ DELETE PROBLEM NODE
+- Confirmation modal
+
+----------------------------------------
+
+🧩 COMPONENT STRUCTURE
+
+- Sidebar (Navigation)
+- Header (User info)
+- DataTable Component
+- FormModal Component
+- FileUpload Component
+- ConfirmDialog Component
+
+----------------------------------------
+
+⚡ UX ENHANCEMENTS
+
+- Drag & drop file upload
+- Animated buttons
+- Skeleton loaders
+- Inline validation errors
+- Toast notifications
+
+----------------------------------------
+
+🧠 STATE MANAGEMENT
+
+- Use React hooks (useState, useEffect)
+- Optional: Context API for global state
+
+----------------------------------------
+
+🌐 API BASE URL
+
+https://api.brainepedia.com
+
+----------------------------------------
+
+🎯 FINAL GOAL
+
+Admin should be able to:
+
+✔ Create professions with icons  
+✔ Create districts under professions  
+✔ Create problem nodes under districts  
+✔ Upload files (image, document, code)  
+✔ Use AI to generate problem nodes  
+✔ Edit everything  
+✔ Delete everything  
+✔ See clean, responsive UI  
+
+----------------------------------------
+
+IMPORTANT:
+
+- Follow backend structure strictly
+- Do NOT hardcode data
+- All data must come from API
+- Ensure FormData is used for file uploads
+- Ensure userId is always sent
+
+----------------------------------------

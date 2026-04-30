@@ -10,6 +10,8 @@ import {
   Save,
   X,
   TrendingUp,
+  BookOpen,
+  MapPin,
 } from "lucide-react";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
@@ -20,7 +22,9 @@ import { motion } from "framer-motion";
 
 const nav: NavItem[] = [
   { href: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/content", label: "Content Manager", icon: Database },
+  { href: "/admin/professions", label: "Professions", icon: BookOpen },
+  { href: "/admin/districts", label: "Districts", icon: MapPin },
+  { href: "/admin/problem-nodes", label: "Problem Nodes", icon: Database },
   { href: "/admin/seed", label: "AI Seed Tool", icon: Sparkles },
   { href: "/admin/users", label: "User Audit", icon: Users },
 ];
@@ -106,7 +110,9 @@ export default function AdminDashboard() {
   const saveEdit = async () => {
     if (!editing) return;
     setSavingNode(true);
-    const res = await api.problemNodes.update(editing.id, { multiplier: editing.multiplier });
+    const fd = new FormData();
+    fd.append("multiplier", String(editing.multiplier));
+    const res = await api.problemNodes.update(editing.id, fd);
     setSavingNode(false);
     if (res.ok) {
       setNodes((prev) =>

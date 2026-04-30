@@ -121,11 +121,42 @@ export const api = {
     },
   },
   professions: {
+    list: () => fetchApi("/api/Professions"),
+    get: (id: string) => fetchApi(`/api/Professions/${encodeURIComponent(id)}`),
+    create: (formData: FormData) =>
+      fetchApi("/api/Professions", { method: "POST", body: formData }),
+    update: (id: string, formData: FormData) =>
+      fetchApi(`/api/Professions/${encodeURIComponent(id)}`, { method: "PUT", body: formData }),
+    delete: (id: string) =>
+      fetchApi(`/api/Professions/${encodeURIComponent(id)}`, { method: "DELETE" }),
     generateSeed: (data: { professionName: string; districtCount: number }) =>
       fetchApi("/api/Professions/generate-seed", { method: "POST", body: JSON.stringify(data) }),
   },
+  districts: {
+    byProfession: (professionId: string) =>
+      fetchApi(`/api/Districts/by-profession/${encodeURIComponent(professionId)}`),
+    get: (id: string) => fetchApi(`/api/Districts/${encodeURIComponent(id)}`),
+    create: (formData: FormData) =>
+      fetchApi("/api/Districts", { method: "POST", body: formData }),
+    update: (id: string, formData: FormData) =>
+      fetchApi(`/api/Districts/${encodeURIComponent(id)}`, { method: "PUT", body: formData }),
+    delete: (id: string) =>
+      fetchApi(`/api/Districts/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  },
+  difficulties: {
+    list: () => fetchApi("/api/Difficulties"),
+  },
   problemNodes: {
-    update: (id: string, data: any) =>
-      fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(data) }),
+    byDistrict: (districtId: string) =>
+      fetchApi(`/api/ProblemNodes/by-district/${encodeURIComponent(districtId)}`),
+    get: (id: string) => fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`),
+    create: (formData: FormData) =>
+      fetchApi("/api/ProblemNodes", { method: "POST", body: formData }),
+    update: (id: string, formData: FormData) =>
+      fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`, { method: "PUT", body: formData }),
+    delete: (id: string) =>
+      fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    aiGenerate: (data: { topic: string; districtId: string; difficultyId: string }) =>
+      fetchApi("/api/ProblemNodes/ai-generate", { method: "POST", body: JSON.stringify(data) }),
   },
 };

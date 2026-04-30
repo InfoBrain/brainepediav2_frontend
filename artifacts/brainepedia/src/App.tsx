@@ -23,6 +23,11 @@ import EmployerDashboard from "@/pages/dashboard/EmployerDashboard";
 import { RequireAuth } from "@/components/dashboard/RequireAuth";
 import { ForbiddenWatcher } from "@/components/dashboard/ForbiddenWatcher";
 
+// Admin content management pages
+import AdminProfessions from "@/pages/admin/AdminProfessions";
+import AdminDistricts from "@/pages/admin/AdminDistricts";
+import AdminProblemNodes from "@/pages/admin/AdminProblemNodes";
+
 // Profile pages
 import ViewProfile from "@/pages/profile/ViewProfile";
 import EditProfile from "@/pages/profile/EditProfile";
@@ -47,6 +52,21 @@ function Router() {
       <Route path="/user/:rest*">
         <RequireAuth allow={["User"]}>
           <UserDashboard />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/professions">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminProfessions />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/districts">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminDistricts />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/problem-nodes">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminProblemNodes />
         </RequireAuth>
       </Route>
       <Route path="/admin/:rest*">
