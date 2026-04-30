@@ -95,6 +95,62 @@ function numericRarityToKey(rarity: number): string {
   return ["common", "rare", "epic", "legendary"][Math.min(rarity, 3)] ?? "common";
 }
 
+// ---------------------------------------------------------------------------
+// localStorage badge cache — keyed per user so multi-account devices are safe.
+// All operations are wrapped in try/catch so an unavailable storage (e.g.
+// private-browsing or quota exceeded) degrades gracefully to a no-op cache.
+// ---------------------------------------------------------------------------
+const BADGE_CACHE_PREFIX = "brainepedia:awarded_badges:";
+
+function getCachedBadgeNames(userId: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(`${BADGE_CACHE_PREFIX}${userId}`);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return new Set<string>(parsed as string[]);
+  } catch {
+    // localStorage unavailable or JSON malformed — treat as empty cache
+  }
+  return new Set();
+}
+
+function cacheBadgeName(userId: string, name: string): void {
+  try {
+    const key = `${BADGE_CACHE_PREFIX}${userId}`;
+    const raw = localStorage.getItem(key);
+    let existing: string[] = [];
+    try {
+      const parsed = JSON.parse(raw ?? "[]");
+      if (Array.isArray(parsed)) existing = parsed as string[];
+    } catch {
+      existing = [];
+    }
+    if (!existing.includes(name)) {
+      localStorage.setItem(key, JSON.stringify([...existing, name]));
+    }
+  } catch {
+    // localStorage unavailable — silently skip
+  }
+}
+
+function seedBadgeCache(userId: string, names: string[]): void {
+  try {
+    const key = `${BADGE_CACHE_PREFIX}${userId}`;
+    const raw = localStorage.getItem(key);
+    let existing: string[] = [];
+    try {
+      const parsed = JSON.parse(raw ?? "[]");
+      if (Array.isArray(parsed)) existing = parsed as string[];
+    } catch {
+      existing = [];
+    }
+    const merged = Array.from(new Set([...existing, ...names]));
+    localStorage.setItem(key, JSON.stringify(merged));
+  } catch {
+    // localStorage unavailable — silently skip
+  }
+}
+
 const BADGE_MILESTONES: BadgeMilestone[] = [
   {
     name: "First Blood",
@@ -208,9 +264,14 @@ export default function UserDashboard() {
 
       if (stats && userId) {
         const rawBadges = normBadgesFromRaw(b.ok ? b.data : null);
-        const existingNames = new Set<string>(
-          rawBadges.map((x) => x.name).filter(Boolean) as string[]
-        );
+        const serverNames = rawBadges.map((x) => x.name).filter(Boolean) as string[];
+
+        // Seed localStorage cache with whatever the server returned (union, never shrinks)
+        if (serverNames.length > 0) seedBadgeCache(userId, serverNames);
+
+        // Combined guard: server list OR localStorage cache — whichever has the name wins
+        const cachedNames = getCachedBadgeNames(userId);
+        const existingNames = new Set<string>([...serverNames, ...cachedNames]);
 
         // Build the existing badge list for the showcase panel
         const existingBadgeList: EarnedBadge[] = rawBadges
@@ -241,6 +302,13 @@ export default function UserDashboard() {
                   activity: `Unlocked badge: ${milestone.name} — ${milestone.description}`,
                 }),
               ]);
+              // Persist to localStorage on success OR on 409 (conflict = the
+              // server already has this badge, e.g. from a prior attempt where
+              // the server succeeded but the client received an error response).
+              // This closes the gap where a transient network failure on an
+              // award that actually persisted would leave the cache un-updated.
+              const alreadyExists = awardRes.status === 409;
+              if (awardRes.ok || alreadyExists) cacheBadgeName(userId, milestone.name);
               return { milestone, success: awardRes.ok };
             })
           );
