@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
+import { getDashboardPath, isAuthenticated } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
 type Profile = {
@@ -143,12 +144,13 @@ export default function ViewProfile() {
     );
   }
   if (error || !profile) {
+    const backPath = isAuthenticated() ? getDashboardPath() : "/";
     return (
       <div className="min-h-screen bg-[#0A0E14] text-foreground flex flex-col items-center justify-center gap-4">
         <div className="text-amber-400 font-mono uppercase tracking-wider text-sm">
           {error || "Profile unavailable."}
         </div>
-        <Link href="/">
+        <Link href={backPath}>
           <Button variant="outline">Return to base</Button>
         </Link>
       </div>
@@ -171,8 +173,8 @@ export default function ViewProfile() {
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-white/5 bg-black/60 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-amber-400 font-mono text-xs uppercase tracking-wider hover:text-amber-300">
-            <ArrowLeft className="h-4 w-4" /> Brainepedia
+          <Link href={isAuthenticated() ? getDashboardPath() : "/"} className="flex items-center gap-2 text-amber-400 font-mono text-xs uppercase tracking-wider hover:text-amber-300">
+            <ArrowLeft className="h-4 w-4" /> {isAuthenticated() ? "Dashboard" : "Brainepedia"}
           </Link>
           <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
             // public.dossier

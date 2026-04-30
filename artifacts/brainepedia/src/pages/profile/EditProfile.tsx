@@ -174,11 +174,12 @@ export default function EditProfile() {
   };
 
   const onSubmit = async (vals: FormVals) => {
-    // Use profileId (from the profile record) for PUT; fall back to userId if not yet loaded
-    const targetId = profileId || userId;
-    if (!targetId) return;
+    // PUT /api/Profiles/{userId} — the API routes by userId (from JWT), not profileId.
+    // The body must also include UserId so the backend can validate ownership.
+    if (!userId) return;
     setSubmitting(true);
     const fd = new FormData();
+    fd.append("UserId", userId);
     fd.append("FirstName", vals.firstName);
     fd.append("SurName", vals.surName);
     if (vals.middleName) fd.append("MiddleName", vals.middleName);
@@ -201,7 +202,7 @@ export default function EditProfile() {
     if (vals.youtube) fd.append("Youtube", vals.youtube);
     if (imageFile) fd.append("ImageFile", imageFile);
 
-    const res = await api.profiles.update(targetId, fd);
+    const res = await api.profiles.update(userId, fd);
     setSubmitting(false);
     if (res.ok) {
       toast({
