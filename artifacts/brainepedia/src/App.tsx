@@ -31,6 +31,10 @@ import AdminProblemNodes from "@/pages/admin/AdminProblemNodes";
 // Profile pages
 import ViewProfile from "@/pages/profile/ViewProfile";
 import EditProfile from "@/pages/profile/EditProfile";
+import CreateProfile from "@/pages/profile/CreateProfile";
+
+// User sub-pages
+import BadgesPage from "@/pages/user/BadgesPage";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +56,16 @@ function Router() {
       <Route path="/user/:rest*">
         <RequireAuth allow={["User"]}>
           <UserDashboard />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/badges">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <BadgesPage />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/profile/create">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <CreateProfile />
         </RequireAuth>
       </Route>
       <Route path="/admin/professions">
@@ -83,6 +97,11 @@ function Router() {
       <Route path="/profile/edit">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <EditProfile />
+        </RequireAuth>
+      </Route>
+      <Route path="/profile/create">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <CreateProfile />
         </RequireAuth>
       </Route>
       <Route path="/profile/:userId" component={ViewProfile} />

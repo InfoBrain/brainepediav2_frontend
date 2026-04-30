@@ -1,0 +1,263 @@
+Update and complete User the Dashboard system for a platform called "Brainepedia". 
+
+TECH STACK:
+- React (Vite)
+- Tailwind CSS
+- Axios
+- React Router
+- React Hook Form
+- Chart.js (for stats visualization)
+
+THEME:
+- Dark Mode (#0A0E14)
+- Neon Blue (#00D2FF)
+- Gold (#FFD700 for badges)
+- Clean futuristic UI
+
+----------------------------------------
+
+🔐 GLOBAL RULES
+
+1. Every API request MUST include userId
+2. Use FormData for profile creation/update (image upload)
+3. Handle:
+   - Loading states
+   - Error states
+   - Toast notifications
+
+----------------------------------------
+
+📁 ROUTES
+
+/dashboard
+/profile
+/profile/edit
+/badges
+
+----------------------------------------
+
+🧠 1. DASHBOARD PAGE (CORE EXPERIENCE)
+
+API:
+GET /api/profiles/stats/{userId}
+GET /api/profiles/map/{userId}
+GET /api/activitylogs/{userId}
+
+----------------------------------------
+
+DISPLAY SECTIONS:
+
+✅ HERO USER CARD
+- Avatar
+- Full Name
+- Current Title
+- Subscription Status (Active/Expired)
+
+----------------------------------------
+
+✅ QUICK STATS (TOP CARDS)
+
+- Total XP
+- Problems Solved
+- Day Streak
+- Subscription Level
+
+STYLE:
+- Animated counters
+- Glow effect
+
+----------------------------------------
+
+✅ MAP PROGRESS (CORE FEATURE)
+
+DATA:
+GET /api/profiles/map/{userId}
+
+DISPLAY:
+- List or grid of districts:
+  - District Name
+  - Progress bar (%)
+  - XP earned vs total
+  - "Mastered" badge if 100%
+
+OPTIONAL:
+- Visual map-style layout
+
+----------------------------------------
+
+✅ RECENT ACTIVITY TIMELINE
+
+DATA:
+GET /api/activitylogs/{userId}
+
+DISPLAY:
+- Activity text
+- Timestamp
+- Icon (auto based on action)
+
+STYLE:
+- Vertical timeline
+- Smooth animation
+
+----------------------------------------
+
+🏆 2. BADGES PAGE (TROPHY CASE)
+
+API:
+GET /api/userbadges/{userId}
+
+----------------------------------------
+
+DISPLAY:
+
+- Grid of badge cards:
+  - Icon
+  - Name
+  - Description
+  - Rarity (Bronze, Silver, Gold, Platinum)
+  - Date unlocked
+
+STYLE:
+- Glow effect based on rarity:
+  - Bronze → brown glow
+  - Silver → white glow
+  - Gold → gold glow
+  - Platinum → blue glow
+
+EMPTY STATE:
+- "No badges yet. Complete missions to earn rewards."
+
+----------------------------------------
+
+👤 3. PROFILE PAGE (VIEW)
+
+API:
+GET /api/profiles/{id}
+
+----------------------------------------
+
+DISPLAY:
+
+- Avatar (large)
+- Full Name
+- Email
+- Phone
+- Profession
+- Location (Country, State, City)
+- About Me
+- Social links (if available)
+
+STATS:
+- Total XP
+- Experience
+- Problems Solved
+- Day Streak
+
+CTA:
+- "Edit Profile"
+
+----------------------------------------
+
+✏️ 4. EDIT PROFILE PAGE
+
+API:
+PUT /api/profiles/{id}
+
+----------------------------------------
+
+FORM FIELDS:
+
+- First Name
+- SurName
+- Middle Name
+- NickName
+- About Me
+- Address
+- Phone Number
+- Profession
+- Country
+- State
+- City
+- Gender
+- Date of Birth
+- ImageFile (upload avatar)
+
+----------------------------------------
+
+SUBMIT:
+
+- Send as FormData:
+  - all fields
+  - imageFile
+  - userId
+
+----------------------------------------
+
+UX:
+
+- Image preview before upload
+- Validation errors
+- Save success toast
+
+----------------------------------------
+
+🆕 5. CREATE PROFILE PAGE
+
+API:
+POST /api/profiles
+
+----------------------------------------
+
+FORM:
+Same as Edit Profile
+
+----------------------------------------
+
+SPECIAL LOGIC:
+
+- On success:
+  → Redirect to /dashboard
+
+----------------------------------------
+
+🧩 COMPONENT STRUCTURE
+
+- Sidebar Navigation
+- Header (User info + logout)
+- StatCard Component
+- ProgressBar Component
+- BadgeCard Component
+- ActivityTimeline Component
+- ProfileForm Component
+- FileUpload Component
+
+----------------------------------------
+
+⚡ UX ENHANCEMENTS
+
+- Skeleton loaders
+- Animated progress bars
+- Hover effects
+- Responsive design (mobile-first)
+
+----------------------------------------
+
+🌐 API BASE
+
+https://api.brainepedia.com
+
+----------------------------------------
+
+🎯 FINAL GOAL
+
+User should be able to:
+
+✔ Create profile  
+✔ Upload avatar  
+✔ View personal stats  
+✔ Track progress across districts  
+✔ See earned badges  
+✔ View activity history  
+✔ Update profile anytime  
+
+----------------------------------------

@@ -29,13 +29,23 @@ const schema = z.object({
   firstName: z.string().min(1, "First name is required").max(80),
   surName: z.string().min(1, "Surname is required").max(80),
   middleName: z.string().max(80).optional().or(z.literal("")),
+  nickName: z.string().max(80).optional().or(z.literal("")),
   aboutMe: z.string().max(1000).optional().or(z.literal("")),
   currentTitle: z.string().max(120).optional().or(z.literal("")),
   profession: z.string().max(120).optional().or(z.literal("")),
+  address: z.string().max(300).optional().or(z.literal("")),
+  phoneNumber: z.string().max(30).optional().or(z.literal("")),
+  country: z.string().max(80).optional().or(z.literal("")),
+  state: z.string().max(80).optional().or(z.literal("")),
+  city: z.string().max(80).optional().or(z.literal("")),
+  gender: z.string().max(20).optional().or(z.literal("")),
+  dateOfBirth: z.string().optional().or(z.literal("")),
   facebook: z.string().max(200).optional().or(z.literal("")),
   linkedIn: z.string().max(200).optional().or(z.literal("")),
   github: z.string().max(200).optional().or(z.literal("")),
   twitter: z.string().max(200).optional().or(z.literal("")),
+  instagram: z.string().max(200).optional().or(z.literal("")),
+  youtube: z.string().max(200).optional().or(z.literal("")),
 });
 type FormVals = z.infer<typeof schema>;
 
@@ -61,13 +71,23 @@ export default function EditProfile() {
       firstName: "",
       surName: "",
       middleName: "",
+      nickName: "",
       aboutMe: "",
       currentTitle: "",
       profession: "",
+      address: "",
+      phoneNumber: "",
+      country: "",
+      state: "",
+      city: "",
+      gender: "",
+      dateOfBirth: "",
       facebook: "",
       linkedIn: "",
       github: "",
       twitter: "",
+      instagram: "",
+      youtube: "",
     },
   });
 
@@ -96,13 +116,23 @@ export default function EditProfile() {
             firstName: d.firstName || "",
             surName: d.surName || d.surname || d.lastName || "",
             middleName: d.middleName || "",
+            nickName: d.nickName || d.nickname || "",
             aboutMe: d.aboutMe || d.bio || "",
             currentTitle: d.currentTitle || d.title || "",
             profession: d.profession || "",
+            address: d.address || "",
+            phoneNumber: d.phoneNumber || d.phone || "",
+            country: d.country || "",
+            state: d.state || "",
+            city: d.city || "",
+            gender: d.gender || "",
+            dateOfBirth: d.dateOfBirth ? String(d.dateOfBirth).slice(0, 10) : "",
             facebook: d.facebook || "",
             linkedIn: d.linkedIn || d.linkedin || "",
             github: d.github || "",
             twitter: d.twitter || "",
+            instagram: d.instagram || "",
+            youtube: d.youtube || "",
           });
           setImagePreview(d.imageUrl || d.avatarUrl || d.profileImage || null);
         }
@@ -137,13 +167,23 @@ export default function EditProfile() {
     fd.append("FirstName", vals.firstName);
     fd.append("SurName", vals.surName);
     if (vals.middleName) fd.append("MiddleName", vals.middleName);
+    if (vals.nickName) fd.append("NickName", vals.nickName);
     if (vals.aboutMe) fd.append("AboutMe", vals.aboutMe);
     if (vals.currentTitle) fd.append("CurrentTitle", vals.currentTitle);
     if (vals.profession) fd.append("Profession", vals.profession);
+    if (vals.address) fd.append("Address", vals.address);
+    if (vals.phoneNumber) fd.append("PhoneNumber", vals.phoneNumber);
+    if (vals.country) fd.append("Country", vals.country);
+    if (vals.state) fd.append("State", vals.state);
+    if (vals.city) fd.append("City", vals.city);
+    if (vals.gender) fd.append("Gender", vals.gender);
+    if (vals.dateOfBirth) fd.append("DateOfBirth", vals.dateOfBirth);
     if (vals.facebook) fd.append("Facebook", vals.facebook);
     if (vals.linkedIn) fd.append("LinkedIn", vals.linkedIn);
     if (vals.github) fd.append("Github", vals.github);
     if (vals.twitter) fd.append("Twitter", vals.twitter);
+    if (vals.instagram) fd.append("Instagram", vals.instagram);
+    if (vals.youtube) fd.append("Youtube", vals.youtube);
     if (imageFile) fd.append("ImageFile", imageFile);
 
     const res = await api.profiles.update(userId, fd);
@@ -248,11 +288,56 @@ export default function EditProfile() {
               <Field label="Surname" error={errors.surName?.message}>
                 <Input {...register("surName")} />
               </Field>
+              <Field label="Nickname" error={errors.nickName?.message}>
+                <Input placeholder="How you want to be known" {...register("nickName")} />
+              </Field>
               <Field label="Current Title" error={errors.currentTitle?.message}>
                 <Input placeholder="Senior Engineer" {...register("currentTitle")} />
               </Field>
               <Field label="Profession" error={errors.profession?.message}>
                 <Input placeholder="Software Engineering" {...register("profession")} />
+              </Field>
+            </div>
+          </Section>
+
+          {/* Contact */}
+          <Section title="Contact" subtitle="// reach.me">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Phone Number" error={errors.phoneNumber?.message}>
+                <Input type="tel" placeholder="+1 234 567 8900" {...register("phoneNumber")} />
+              </Field>
+              <Field label="Address" error={errors.address?.message}>
+                <Input placeholder="Street address" {...register("address")} />
+              </Field>
+              <Field label="Country" error={errors.country?.message}>
+                <Input placeholder="e.g. Nigeria" {...register("country")} />
+              </Field>
+              <Field label="State / Province" error={errors.state?.message}>
+                <Input placeholder="e.g. Lagos" {...register("state")} />
+              </Field>
+              <Field label="City" error={errors.city?.message}>
+                <Input placeholder="e.g. Ikeja" {...register("city")} />
+              </Field>
+            </div>
+          </Section>
+
+          {/* Personal Details */}
+          <Section title="Personal Details" subtitle="// identity.markers">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Gender" error={errors.gender?.message}>
+                <select
+                  {...register("gender")}
+                  className="w-full bg-[#0A0E14] border border-white/10 text-white text-sm rounded-lg px-3 py-2 outline-none"
+                >
+                  <option value="">— Select —</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Non-binary">Non-binary</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+              </Field>
+              <Field label="Date of Birth" error={errors.dateOfBirth?.message}>
+                <Input type="date" {...register("dateOfBirth")} />
               </Field>
             </div>
           </Section>
@@ -280,8 +365,14 @@ export default function EditProfile() {
               <Field label="Twitter / X" error={errors.twitter?.message}>
                 <Input placeholder="https://x.com/you" {...register("twitter")} />
               </Field>
+              <Field label="Instagram" error={errors.instagram?.message}>
+                <Input placeholder="https://instagram.com/you" {...register("instagram")} />
+              </Field>
               <Field label="Facebook" error={errors.facebook?.message}>
                 <Input placeholder="https://facebook.com/you" {...register("facebook")} />
+              </Field>
+              <Field label="YouTube" error={errors.youtube?.message}>
+                <Input placeholder="https://youtube.com/@you" {...register("youtube")} />
               </Field>
             </div>
           </Section>

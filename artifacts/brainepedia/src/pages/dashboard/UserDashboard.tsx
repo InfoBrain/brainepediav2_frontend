@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown, User as UserIcon } from "lucide-react";
+import { Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown, User as UserIcon, LayoutDashboard } from "lucide-react";
 import { motion } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
@@ -9,6 +9,7 @@ import { getUser, getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
 const nav: NavItem[] = [
+  { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/user/map", label: "Imperial Map", icon: Map },
   { href: "/profile/edit", label: "My Profile", icon: UserIcon },
   { href: "/user/badges", label: "My Badges", icon: Trophy },
@@ -36,9 +37,19 @@ const SUB_NAMES: Record<number, string> = {
   2: "Grandmaster",
 };
 
+type Profile = {
+  firstName?: string;
+  surName?: string;
+  currentTitle?: string;
+  avatarUrl?: string;
+  imageUrl?: string;
+  currentSubscription?: number;
+};
+
 export default function UserDashboard() {
   const userId = getUserId() || "me";
   const user = getUser();
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [districts, setDistricts] = useState<District[]>([]);
   const [activity, setActivity] = useState<ActivityLog[]>([]);
@@ -49,16 +60,27 @@ export default function UserDashboard() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [s, m, a] = await Promise.all([
+      const [s, m, a, pDirect] = await Promise.all([
         api.profiles.stats(userId),
-        api.userProgresses.map(userId),
+        api.profiles.map(userId),
         api.activityLogs.forUser(userId),
+        api.profiles.get(userId),
       ]);
       if (cancelled) return;
       if (s.ok) setStats(normStats(s.data));
       if (m.ok) setDistricts(normDistricts(m.data));
       if (a.ok) setActivity(normActivity(a.data));
-      setLoading(false);
+      // Resolve profile: direct lookup or fallback to list search
+      if (pDirect.ok && pDirect.data) {
+        setProfile(pDirect.data as Profile);
+      } else {
+        const all = await api.profiles.search({});
+        if (!cancelled && all.ok && Array.isArray(all.data)) {
+          const found = all.data.find((x: any) => x.userId === userId);
+          if (found) setProfile(found as Profile);
+        }
+      }
+      if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
@@ -81,7 +103,14 @@ export default function UserDashboard() {
   const dayStreak = stats?.dayStreak ?? 0;
   const solved = stats?.problemsSolvedCount ?? 0;
   const sub = SUB_NAMES[stats?.currentSubscription ?? 0] || "Initiate";
-  const initial = (user?.firstName || user?.email || "U").charAt(0).toUpperCase();
+  const displayName = profile
+    ? `${profile.firstName || ""} ${profile.surName || ""}`.trim() || (user as any)?.email || "Operative"
+    : (user as any)?.firstName
+    ? `${(user as any).firstName} ${(user as any).lastName || ""}`.trim()
+    : (user as any)?.email || "Operative";
+  const displayTitle = profile?.currentTitle || "Brainepedia Operative";
+  const avatarUrl = profile?.avatarUrl || profile?.imageUrl || null;
+  const initial = displayName.charAt(0).toUpperCase();
 
   const headerRight = (
     <div className="hidden md:flex items-center gap-4">
@@ -92,9 +121,17 @@ export default function UserDashboard() {
       <div className="px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider bg-[#7C3AED]/15 text-[#A78BFA] border border-[#7C3AED]/40">
         {sub}
       </div>
-      <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#4C1D95] flex items-center justify-center font-bold text-white border-2 border-amber-400/60 shadow-[0_0_12px_rgba(255,215,0,0.4)]">
-        {initial}
-      </div>
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={displayName}
+          className="h-9 w-9 rounded-full object-cover border-2 border-amber-400/60 shadow-[0_0_12px_rgba(255,215,0,0.4)]"
+        />
+      ) : (
+        <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#4C1D95] flex items-center justify-center font-bold text-white border-2 border-amber-400/60 shadow-[0_0_12px_rgba(255,215,0,0.4)]">
+          {initial}
+        </div>
+      )}
     </div>
   );
 
@@ -111,6 +148,46 @@ export default function UserDashboard() {
         <BrainiacSpinner />
       ) : (
         <div className="space-y-6">
+          {/* Hero User Card */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-5 bg-gradient-to-r from-[#0d1119] to-[#0d1119]/60 border border-white/5 rounded-xl p-5"
+          >
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="h-16 w-16 rounded-2xl object-cover border-2 border-amber-400/60 shadow-[0_0_18px_rgba(255,215,0,0.3)] flex-shrink-0"
+              />
+            ) : (
+              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#4C1D95] flex items-center justify-center text-2xl font-bold text-white border-2 border-amber-400/60 shadow-[0_0_18px_rgba(255,215,0,0.3)] flex-shrink-0">
+                {initial}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-xl font-bold text-white truncate">{displayName}</p>
+              <p className="text-sm text-gray-400 truncate">{displayTitle}</p>
+            </div>
+            <div className="hidden sm:flex flex-col items-end gap-1">
+              <span className={`px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider border ${
+                sub === "Grandmaster"
+                  ? "bg-amber-400/20 text-amber-400 border-amber-400/40"
+                  : sub === "Architect"
+                  ? "bg-[#7C3AED]/20 text-[#A78BFA] border-[#7C3AED]/40"
+                  : "bg-gray-800 text-gray-400 border-gray-700"
+              }`}>
+                {sub}
+              </span>
+              <Link
+                href="/profile/edit"
+                className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400 transition-colors"
+              >
+                Edit Profile →
+              </Link>
+            </div>
+          </motion.div>
+
           {/* Stat tiles */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatTile label="Total XP" value={totalXP.toLocaleString()} accent="text-amber-400" icon={Sparkles} />

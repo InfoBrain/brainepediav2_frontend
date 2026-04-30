@@ -72,14 +72,15 @@ export const api = {
   },
   profiles: {
     /**
-     * GET /api/Profiles — returns the full list. Components filter by userId if needed.
-     * The server may not fully honour query params, so client-side filtering is also applied.
+     * GET /api/Profiles/{userId} — may 404 if no profile; use search() + client filter as fallback.
      */
     get: (userId: string) => fetchApi(`/api/Profiles/${encodeURIComponent(userId)}`),
     stats: (userId: string) => fetchApi(`/api/Profiles/stats/${encodeURIComponent(userId)}`),
+    /** GET /api/Profiles/map/{userId} — returns array of district progress objects */
+    map: (userId: string) => fetchApi(`/api/Profiles/map/${encodeURIComponent(userId)}`),
     /**
      * Search / list all profiles.
-     * Real route: GET /api/Profiles  (no /search suffix — the server uses the same route)
+     * Real route: GET /api/Profiles  (no /search suffix)
      */
     search: (params: { profession?: string; minXP?: number } = {}) => {
       const q = new URLSearchParams();
@@ -88,12 +89,14 @@ export const api = {
       const qs = q.toString();
       return fetchApi(`/api/Profiles${qs ? `?${qs}` : ""}`);
     },
+    create: (formData: FormData) =>
+      fetchApi("/api/Profiles", { method: "POST", body: formData }),
     update: (userId: string, formData: FormData) =>
       fetchApi(`/api/Profiles/${encodeURIComponent(userId)}`, { method: "PUT", body: formData }),
   },
   userProgresses: {
-    /** Spec: GET /api/UserProgresses/map/{userId} */
-    map: (userId: string) => fetchApi(`/api/UserProgresses/map/${encodeURIComponent(userId)}`),
+    /** Legacy alias kept for any remaining callers */
+    map: (userId: string) => fetchApi(`/api/Profiles/map/${encodeURIComponent(userId)}`),
   },
   userBadges: {
     /**
