@@ -1,0 +1,218 @@
+Design and build a modern Admin Dashboard UI for Brainepedia that allows administrators to:
+
+Manage (CRUD):
+Professions
+Districts
+Problem Nodes
+Use AI-powered generation tools to:
+Auto-generate professions
+Auto-generate districts for a profession
+Auto-generate problem nodes for a district
+⚙️ TECH STACK
+React (Vite)
+TypeScript
+TailwindCSS
+React Query (API state)
+Axios (API calls)
+React Hook Form + Zod (forms)
+Zustand (optional state)
+Framer Motion (animations)
+🔐 AUTH REQUIREMENT
+Admin must be authenticated
+Include Authorization: Bearer <token>
+Some endpoints require role: GlobalAdmin
+🧭 ADMIN NAVIGATION
+
+Sidebar:
+
+Dashboard
+Professions
+Districts
+Problem Nodes
+Activity Logs
+🧩 MODULE 1: PROFESSIONS (UPDATED WITH AI)
+📄 PAGE: /admin/professions
+🔷 UI FEATURES
+
+Top Section:
+
+Title: "Professions"
+Buttons:
+➕ Add Profession
+🤖 Generate with AI
+🤖 AI GENERATE PROFESSIONS
+🔷 Button:
+
+"Generate with AI"
+
+🔷 Modal Form:
+
+Fields:
+
+Number of professions (default = 5)
+🔷 API CALL:
+POST /api/Professions/generate-seed?count=5
+
+🔷 RESPONSE HANDLING
+Display generated professions in a preview list
+Allow:
+✅ Accept All (already saved by backend)
+🔄 Refresh (call again)
+❌ Close
+🔷 UX NOTE
+Show loading animation:
+👉 “AI is crafting professions…”
+🧩 TABLE
+
+Columns:
+
+Icon
+Name
+Actions (Edit/Delete)
+🧩 MODULE 2: DISTRICTS (UPDATED WITH AI)
+📄 PAGE: /admin/districts
+🔷 FILTER
+Dropdown: Select Profession
+🔷 HEADER ACTIONS
+➕ Add District
+🤖 Generate Districts (AI)
+🤖 AI GENERATE DISTRICTS
+🔷 Button:
+
+"Generate Districts with AI"
+
+🔷 API CALL:
+POST /api/Districts/seed-districts/{professionId}
+
+
+(Requires GlobalAdmin role)
+
+🔷 UX FLOW
+Admin selects a profession
+Clicks AI Generate
+Show loader:
+👉 “Designing districts for {ProfessionName}…”
+🔷 RESPONSE
+{
+  message: "Successfully generated districts for Frontend Developer"
+}
+
+🔷 AFTER SUCCESS
+Auto-refresh district list
+Show toast:
+✅ “Districts generated successfully”
+🧩 DISTRICT TABLE
+
+Columns:
+
+Name
+Description
+Completion Placeholder
+Actions
+🧩 MODULE 3: PROBLEM NODES (UPDATED WITH AI)
+📄 PAGE: /admin/problem-nodes
+🔷 FILTERS
+Profession dropdown
+District dropdown (dependent)
+🔷 HEADER ACTIONS
+➕ Add Problem
+🤖 Generate Problem (AI)
+🤖 AI GENERATE PROBLEM NODE
+🔷 Button:
+
+"Generate Problem with AI"
+
+🔷 MODAL FORM
+
+Fields:
+
+Topic (text input)
+Difficulty (dropdown)
+District (auto-selected)
+🔷 API CALL
+POST /api/ProblemNodes/ai-generate?userId={adminId}
+
+
+Body:
+
+{
+  "topic": "Responsive navbar layout",
+  "districtId": "GUID",
+  "difficultyId": "GUID"
+}
+
+🔷 RESPONSE HANDLING
+Show generated problem preview:
+
+Display:
+
+Title
+Context
+Mission Brief
+Constraints (list)
+Expected Outcomes (list)
+XP
+Estimated Minutes
+🔷 ACTIONS
+✅ Save (already persisted)
+🔄 Regenerate
+❌ Cancel
+🔷 UX LOADER
+
+“AI is designing a real-world challenge…”
+
+🧩 PROBLEM TABLE
+
+Columns:
+
+Title
+Difficulty
+XP
+Time
+Status
+Actions
+🧠 UX DESIGN PRINCIPLES (VERY IMPORTANT)
+1. AI SHOULD FEEL LIKE A SUPERPOWER
+
+Not just buttons — give feedback:
+
+Loading states
+Smart messages
+Visual transitions
+2. ALWAYS SHOW RESULT PREVIEW
+
+Do NOT just silently create data.
+
+Let admin SEE what AI generated.
+
+3. ERROR HANDLING
+
+Handle:
+
+401 → Unauthorized
+403 → Not allowed (GlobalAdmin only)
+500 → AI failure
+🎨 DESIGN STYLE
+Dark mode default
+Glassmorphism cards
+Smooth animations
+Clean spacing
+🔔 TOAST MESSAGES
+“AI generation started…”
+“Content generated successfully”
+“Something went wrong”
+🚀 BONUS (OPTIONAL BUT POWERFUL)
+
+Add:
+
+1. AI History Panel
+Track generated items
+2. Regenerate Variants
+“Give me another version”
+3. Edit Before Save (future improvement)
+📦 EXPECTED OUTPUT FROM REPLIT
+Fully functional admin UI
+Connected to APIs
+AI flows working smoothly
+Clean UX with feedback states
+Reusable components
