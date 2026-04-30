@@ -1,0 +1,237 @@
+You are building a production-ready frontend page for Brainepedia.
+
+This page is called:
+"District Map (City View)"
+
+It represents a Profession as a city, and Districts as zones inside that city.
+
+-----------------------------------
+
+⚙️ TECH STACK
+
+- React + TypeScript
+- TailwindCSS
+- React Query (TanStack Query)
+- Axios
+- Zustand (or Redux Toolkit)
+- Framer Motion (animations)
+
+-----------------------------------
+
+🌐 API BASE
+
+https://api.brainepedia.com/api
+
+-----------------------------------
+
+📡 API ENDPOINT
+
+GET /Professions/{id}/city?userId={userId}
+
+Response:
+{
+  "professionId": "guid",
+  "name": "Frontend Developer",
+  "iconUrl": "...",
+  "districts": [
+    {
+      "districtId": "guid",
+      "name": "UI Layout",
+      "description": "Master responsive layout techniques",
+      "completionPercentage": 65
+    }
+  ]
+}
+
+-----------------------------------
+
+🎯 OBJECTIVE
+
+Create an immersive, gamified "city map" where users explore districts.
+
+This should NOT look like a basic list.
+
+It should feel like:
+- A skill map
+- A game world
+- A journey system
+
+-----------------------------------
+
+🧱 PAGE STRUCTURE
+
+1. TOP HEADER
+
+Display:
+- Profession Name (e.g., "Frontend Developer")
+- Small subtitle:
+  "Explore districts and master real-world skills"
+
+Optional:
+- Back button (← Back to professions)
+
+-----------------------------------
+
+2. CITY MAP CONTAINER
+
+Design a visual map-like layout:
+
+Option A (Recommended):
+- Grid-based layout with creative positioning
+
+Option B (Advanced):
+- Use MapCoordinatesJson (if available later)
+
+Each District is displayed as a "node card" on the map.
+
+-----------------------------------
+
+3. DISTRICT CARD DESIGN
+
+Each district must show:
+
+- District Name
+- Short Description
+- Progress bar (Completion %)
+- Status indicator:
+  - 0% → "Not Started"
+  - 1–99% → "In Progress"
+  - 100% → "Mastered"
+
+-----------------------------------
+
+🎨 CARD STYLE
+
+- Rounded-2xl
+- Soft shadow
+- Hover animation (scale + glow)
+- Color-coded progress:
+  - 0% → gray
+  - mid → blue
+  - 100% → green
+
+-----------------------------------
+
+4. INTERACTION
+
+On click:
+- Save selected district in global state
+- Navigate to:
+
+/district/{districtId}
+
+-----------------------------------
+
+5. PROGRESS VISUALIZATION
+
+Each card must include:
+
+- Progress bar (animated)
+- Percentage label (e.g., "65% Complete")
+
+-----------------------------------
+
+6. GAMIFICATION ELEMENTS
+
+Add:
+
+- “Mastered” badge for 100%
+- Lock icon (optional future feature)
+- Subtle pulse animation for incomplete districts
+
+-----------------------------------
+
+7. LOADING STATE
+
+- Skeleton map (6–8 placeholder cards)
+- Animated shimmer effect
+
+-----------------------------------
+
+8. ERROR STATE
+
+- Message:
+  "Unable to load districts"
+- Retry button
+
+-----------------------------------
+
+9. EMPTY STATE
+
+- Message:
+  "No districts available for this profession"
+
+-----------------------------------
+
+🧠 STATE MANAGEMENT
+
+Store:
+- selectedProfession
+- selectedDistrict
+- userId
+
+-----------------------------------
+
+📁 FILE STRUCTURE
+
+/pages
+  DistrictMap.tsx
+
+/components
+  DistrictCard.tsx
+  MapContainer.tsx
+  ProgressBar.tsx
+
+/services
+  professionService.ts
+
+/store
+  useAppStore.ts
+
+-----------------------------------
+
+🔌 SERVICE FUNCTION
+
+professionService.ts:
+
+getProfessionCity(professionId, userId)
+
+-----------------------------------
+
+🎨 UI/UX REQUIREMENTS
+
+- Must feel like a "game world"
+- Smooth animations (Framer Motion)
+- Responsive design
+- Clean modern UI
+- Dark mode support
+
+-----------------------------------
+
+⚡ BONUS FEATURES
+
+- Animate cards on load (fade + slide)
+- Highlight next recommended district (lowest completion)
+- Add hover tooltip with more info
+- Add breadcrumb navigation:
+  Home > Profession > District Map
+
+-----------------------------------
+
+🚨 IMPORTANT RULES
+
+- DO NOT use mock data
+- Must use real API
+- Clean architecture
+- Reusable components
+- Proper TypeScript types
+
+-----------------------------------
+
+🎯 FINAL RESULT
+
+A visually engaging "District Map" page that:
+- Feels like exploring a city
+- Clearly shows user progress
+- Encourages users to click into districts
+- Drives curiosity and engagement

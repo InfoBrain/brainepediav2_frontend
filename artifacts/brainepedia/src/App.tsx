@@ -39,6 +39,7 @@ import SubscriptionSuccess from "@/pages/user/SubscriptionSuccess";
 
 // Profession journey
 import SelectProfession from "@/pages/profession/SelectProfession";
+import DistrictMap from "@/pages/profession/DistrictMap";
 
 const queryClient = new QueryClient();
 
@@ -122,7 +123,7 @@ function Router() {
       </Route>
       <Route path="/profession/:professionId">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
-          <SelectProfession />
+          <DistrictMap />
         </RequireAuth>
       </Route>
 

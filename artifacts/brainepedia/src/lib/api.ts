@@ -130,6 +130,8 @@ export const api = {
   professions: {
     list: () => fetchApi("/api/Professions"),
     get: (id: string) => fetchApi(`/api/Professions/${encodeURIComponent(id)}`),
+    city: (id: string, userId?: string | null) =>
+      fetchApi(`/api/Professions/${encodeURIComponent(id)}/city${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
     create: (formData: FormData) =>
       fetchApi("/api/Professions", { method: "POST", body: formData }),
     update: (id: string, formData: FormData) =>
