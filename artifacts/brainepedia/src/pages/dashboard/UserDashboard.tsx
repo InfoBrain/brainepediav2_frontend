@@ -48,6 +48,65 @@ type Profile = {
   currentSubscription?: number;
 };
 
+type BadgeMilestone = {
+  name: string;
+  description: string;
+  rarity: number;
+  check: (s: Stats) => boolean;
+};
+
+const BADGE_MILESTONES: BadgeMilestone[] = [
+  {
+    name: "First Blood",
+    description: "Earned your first XP in the empire",
+    rarity: 0,
+    check: (s) => s.totalXP > 0,
+  },
+  {
+    name: "Problem Solver",
+    description: "Conquered your first problem node",
+    rarity: 1,
+    check: (s) => s.problemsSolvedCount >= 1,
+  },
+  {
+    name: "Streak Keeper",
+    description: "Maintained a 3-day activity streak",
+    rarity: 1,
+    check: (s) => s.dayStreak >= 3,
+  },
+  {
+    name: "Centurion",
+    description: "Crossed the 100 XP threshold",
+    rarity: 1,
+    check: (s) => s.totalXP >= 100,
+  },
+  {
+    name: "Week Warrior",
+    description: "Held the line for 7 consecutive days",
+    rarity: 2,
+    check: (s) => s.dayStreak >= 7,
+  },
+  {
+    name: "XP Veteran",
+    description: "Accumulated 500 total XP",
+    rarity: 2,
+    check: (s) => s.totalXP >= 500,
+  },
+  {
+    name: "Architect Tier",
+    description: "Ascended to the Architect subscription rank",
+    rarity: 2,
+    check: (s) => s.currentSubscription >= 1,
+  },
+  {
+    name: "Imperial Champion",
+    description: "Reached 1 000 XP — a true empire builder",
+    rarity: 3,
+    check: (s) => s.totalXP >= 1000,
+  },
+];
+
+
 export default function UserDashboard() {
   const userId = getUserId() || "me";
   const user = getUser();
@@ -75,14 +134,17 @@ export default function UserDashboard() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [s, m, a, pDirect] = await Promise.all([
+      const [s, m, a, pDirect, b] = await Promise.all([
         api.profiles.stats(userId),
         api.profiles.map(userId),
         api.activityLogs.forUser(userId),
         api.profiles.get(userId),
+        api.userBadges.forUser(userId),
       ]);
       if (cancelled) return;
-      if (s.ok) setStats(normStats(s.data));
+
+      const stats = s.ok ? normStats(s.data) : null;
+      if (stats) setStats(stats);
       if (m.ok) setDistricts(normDistricts(m.data));
       if (a.ok) setActivity(normActivity(a.data));
 
@@ -99,6 +161,38 @@ export default function UserDashboard() {
           if (found) setProfile(found as Profile);
         }
       }
+
+      if (stats && userId) {
+        const existingNames = new Set<string>(
+          normBadgesFromRaw(b.ok ? b.data : null).map((x) => x.name).filter(Boolean) as string[]
+        );
+        const toAward = BADGE_MILESTONES.filter(
+          (milestone) => milestone.check(stats) && !existingNames.has(milestone.name)
+        );
+        if (toAward.length > 0) {
+          await Promise.all(
+            toAward.map((milestone) =>
+              Promise.all([
+                api.userBadges.award({
+                  userId,
+                  name: milestone.name,
+                  description: milestone.description,
+                  rarity: milestone.rarity,
+                }),
+                api.activityLogs.create({
+                  userId,
+                  activity: `Unlocked badge: ${milestone.name} — ${milestone.description}`,
+                }),
+              ])
+            )
+          );
+          if (!cancelled) {
+            const refreshed = await api.activityLogs.forUser(userId);
+            if (!cancelled && refreshed.ok) setActivity(normActivity(refreshed.data));
+          }
+        }
+      }
+
       if (!cancelled) setLoading(false);
     })();
     return () => {
@@ -111,10 +205,18 @@ export default function UserDashboard() {
     const res = await api.subscriptions.initialize({ tier: "Architect" });
     setUpgradeLoading(false);
     const url = (res.data as any)?.checkoutUrl || (res.data as any)?.authorization_url;
-    if (res.ok && url) {
-      window.location.href = url;
+    if (res.ok) {
+      api.activityLogs.create({
+        userId,
+        activity: "Initiated subscription upgrade to Architect tier",
+      });
+      if (url) {
+        window.location.href = url;
+      } else {
+        alert("Subscription initialized.");
+      }
     } else {
-      alert(res.ok ? "Subscription initialized." : res.error || "Couldn't start upgrade.");
+      alert(res.error || "Couldn't start upgrade.");
     }
   };
 
@@ -420,6 +522,12 @@ function normActivity(d: any): ActivityLog[] {
     activity: x.activity || x.title || x.message || "Activity",
     createdAt: x.createdAt || x.at || x.timestamp,
     performedBy: x.performedBy || x.by,
+  }));
+}
+function normBadgesFromRaw(d: any): { name?: string }[] {
+  const arr = Array.isArray(d) ? d : Array.isArray(d?.badges) ? d.badges : [];
+  return arr.map((x: any) => ({
+    name: x.name || x.badgeName || x.title,
   }));
 }
 function formatRel(iso: string): string {

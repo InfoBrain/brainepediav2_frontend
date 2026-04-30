@@ -104,9 +104,13 @@ export const api = {
      * rarity field is an int: 0=Common, 1=Rare, 2=Epic, 3=Legendary
      */
     forUser: (userId: string) => fetchApi(`/api/UserBadges/${encodeURIComponent(userId)}`),
+    award: (data: { userId: string; name: string; description?: string; rarity?: number; iconUrl?: string }) =>
+      fetchApi("/api/UserBadges/award", { method: "POST", body: JSON.stringify(data) }),
   },
   activityLogs: {
     forUser: (userId: string) => fetchApi(`/api/ActivityLogs/${encodeURIComponent(userId)}`),
+    create: (data: { userId: string; activity: string; performedBy?: string }) =>
+      fetchApi("/api/ActivityLogs", { method: "POST", body: JSON.stringify(data) }),
   },
   subscriptions: {
     initialize: (data: any) => fetchApi("/api/Subscriptions/initialize", { method: "POST", body: JSON.stringify(data) }),

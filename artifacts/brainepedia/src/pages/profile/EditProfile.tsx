@@ -208,6 +208,11 @@ export default function EditProfile() {
         title: "Profile updated",
         description: "Your dossier has been refined.",
       });
+      api.activityLogs.create({
+        userId,
+        activity: "Updated operative dossier",
+        performedBy: vals.firstName ? `${vals.firstName} ${vals.surName}`.trim() : undefined,
+      });
     } else {
       toast({
         title: "Update failed",

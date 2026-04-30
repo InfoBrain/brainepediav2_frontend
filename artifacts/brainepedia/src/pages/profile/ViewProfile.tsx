@@ -401,12 +401,12 @@ function normalizeRarity(raw: number | string | undefined): string {
 function normBadges(d: any): Badge[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.badges) ? d.badges : [];
   return arr.map((x: any) => ({
-    id: x.id || x.badgeId,
+    id: x.id || x.badgeId || x.userBadgeId,
     name: x.name || x.badgeName || x.title,
     description: x.description,
     rarity: normalizeRarity(x.rarity ?? x.tier),
     iconUrl: x.iconUrl || x.imageUrl,
-    earnedAt: x.earnedAt || x.createdAt,
+    earnedAt: x.earnedAt || x.unlockedAt || x.createdAt,
   }));
 }
 function normDistricts(d: any): District[] {
