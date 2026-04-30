@@ -71,22 +71,36 @@ export const api = {
     changePassword: (data: any) => fetchApi("/api/Account/change_password", { method: "POST", body: JSON.stringify(data) }),
   },
   profiles: {
+    /**
+     * GET /api/Profiles — returns the full list. Components filter by userId if needed.
+     * The server may not fully honour query params, so client-side filtering is also applied.
+     */
     get: (userId: string) => fetchApi(`/api/Profiles/${encodeURIComponent(userId)}`),
     stats: (userId: string) => fetchApi(`/api/Profiles/stats/${encodeURIComponent(userId)}`),
-    search: (params: { profession?: string; minXP?: number }) => {
+    /**
+     * Search / list all profiles.
+     * Real route: GET /api/Profiles  (no /search suffix — the server uses the same route)
+     */
+    search: (params: { profession?: string; minXP?: number } = {}) => {
       const q = new URLSearchParams();
       if (params.profession) q.set("profession", params.profession);
       if (typeof params.minXP === "number") q.set("minXP", String(params.minXP));
-      return fetchApi(`/api/Profiles/search?${q.toString()}`);
+      const qs = q.toString();
+      return fetchApi(`/api/Profiles${qs ? `?${qs}` : ""}`);
     },
     update: (userId: string, formData: FormData) =>
       fetchApi(`/api/Profiles/${encodeURIComponent(userId)}`, { method: "PUT", body: formData }),
   },
   userProgresses: {
+    /** Spec: GET /api/UserProgresses/map/{userId} */
     map: (userId: string) => fetchApi(`/api/UserProgresses/map/${encodeURIComponent(userId)}`),
   },
   userBadges: {
-    forUser: (userId: string) => fetchApi(`/api/UserBadges/user/${encodeURIComponent(userId)}`),
+    /**
+     * Real route: GET /api/UserBadges/{userId}  (NOT /user/{userId})
+     * rarity field is an int: 0=Common, 1=Rare, 2=Epic, 3=Legendary
+     */
+    forUser: (userId: string) => fetchApi(`/api/UserBadges/${encodeURIComponent(userId)}`),
   },
   activityLogs: {
     forUser: (userId: string) => fetchApi(`/api/ActivityLogs/${encodeURIComponent(userId)}`),
@@ -95,7 +109,9 @@ export const api = {
     initialize: (data: any) => fetchApi("/api/Subscriptions/initialize", { method: "POST", body: JSON.stringify(data) }),
   },
   admin: {
+    /** Spec: GET /api/Admin/Stats — endpoint may not yet be live; returns graceful empty on 404 */
     stats: () => fetchApi("/api/Admin/Stats"),
+    /** Spec: GET /api/Admin/Users?role=User|Employer — endpoint may not yet be live */
     users: (params: { search?: string; role?: string } = {}) => {
       const q = new URLSearchParams();
       if (params.search) q.set("search", params.search);
@@ -109,6 +125,7 @@ export const api = {
       fetchApi("/api/Professions/generate-seed", { method: "POST", body: JSON.stringify(data) }),
   },
   problemNodes: {
-    update: (id: string, data: any) => fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(data) }),
+    update: (id: string, data: any) =>
+      fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(data) }),
   },
 };

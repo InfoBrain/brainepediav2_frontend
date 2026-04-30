@@ -315,25 +315,24 @@ function normalizeCandidates(d: any): Candidate[] {
   const arr = Array.isArray(d) ? d : d?.candidates || d?.items || d?.results || [];
   if (!Array.isArray(arr)) return [];
   return arr.map((x: any) => ({
-    id: String(x.id ?? x.userId ?? x.profileId ?? Math.random()),
+    id: String(x.userId ?? x.id ?? x.profileId ?? Math.random()),
     fullName:
       x.fullName ||
       x.name ||
-      `${x.firstName || ""} ${x.lastName || ""}`.trim() ||
+      `${x.firstName || ""} ${x.surName || x.lastName || ""}`.trim() ||
       "Candidate",
-    profession: x.profession || x.role || x.title,
+    profession: x.profession || x.role || x.currentTitle || x.title,
     isGrandmaster:
       Boolean(x.isGrandmaster) ||
+      Number(x.currentSubscription) === 2 ||
       String(x.rank || x.tier || "").toLowerCase().includes("grandmaster"),
     topBadges: Array.isArray(x.badges)
       ? x.badges.map((b: any) => ({ name: b.name || b.title || "Badge", rarity: b.rarity }))
       : [],
     verifiedXp:
-      typeof x.verifiedXp === "number"
-        ? x.verifiedXp
-        : typeof x.xp === "number"
-        ? x.xp
-        : undefined,
+      typeof x.totalXP === "number" ? x.totalXP :
+      typeof x.verifiedXp === "number" ? x.verifiedXp :
+      typeof x.xp === "number" ? x.xp : undefined,
   }));
 }
 

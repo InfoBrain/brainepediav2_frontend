@@ -79,25 +79,35 @@ export default function EditProfile() {
     let cancelled = false;
     (async () => {
       setLoading(true);
+      let d: any = null;
       const res = await api.profiles.get(userId);
-      if (cancelled) return;
-      if (res.ok && res.data && typeof res.data === "object") {
-        const d = res.data as any;
-        reset({
-          firstName: d.firstName || "",
-          surName: d.surName || d.surname || d.lastName || "",
-          middleName: d.middleName || "",
-          aboutMe: d.aboutMe || d.bio || "",
-          currentTitle: d.currentTitle || d.title || "",
-          profession: d.profession || "",
-          facebook: d.facebook || "",
-          linkedIn: d.linkedIn || d.linkedin || "",
-          github: d.github || "",
-          twitter: d.twitter || "",
-        });
-        setImagePreview(d.imageUrl || d.avatarUrl || d.profileImage || null);
+      if (!cancelled) {
+        if (res.ok && res.data && typeof res.data === "object") {
+          d = res.data;
+        } else {
+          // Fallback: search all profiles and find by userId
+          const all = await api.profiles.search({});
+          if (!cancelled && all.ok && Array.isArray(all.data)) {
+            d = all.data.find((x: any) => x.userId === userId || x.profileId === userId) || null;
+          }
+        }
+        if (d) {
+          reset({
+            firstName: d.firstName || "",
+            surName: d.surName || d.surname || d.lastName || "",
+            middleName: d.middleName || "",
+            aboutMe: d.aboutMe || d.bio || "",
+            currentTitle: d.currentTitle || d.title || "",
+            profession: d.profession || "",
+            facebook: d.facebook || "",
+            linkedIn: d.linkedIn || d.linkedin || "",
+            github: d.github || "",
+            twitter: d.twitter || "",
+          });
+          setImagePreview(d.imageUrl || d.avatarUrl || d.profileImage || null);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     })();
     return () => {
       cancelled = true;

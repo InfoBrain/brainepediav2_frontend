@@ -107,11 +107,28 @@ export default function ViewProfile() {
         api.userProgresses.map(userId),
       ]);
       if (cancelled) return;
-      if (p.ok) setProfile(normProfile(p.data));
-      else setError(p.error || "Profile not found.");
-      if (b.ok) setBadges(normBadges(b.data));
-      if (m.ok) setDistricts(normDistricts(m.data));
-      setLoading(false);
+      if (p.ok && p.data) {
+        setProfile(normProfile(p.data));
+      } else {
+        // Fallback: search all profiles and find by userId
+        const all = await api.profiles.search({});
+        if (!cancelled) {
+          if (all.ok && Array.isArray(all.data)) {
+            const found = all.data.find(
+              (x: any) => x.userId === userId || x.profileId === userId
+            );
+            if (found) setProfile(normProfile(found));
+            else setError("Profile not found.");
+          } else {
+            setError(p.error || "Profile not found.");
+          }
+        }
+      }
+      if (!cancelled) {
+        if (b.ok) setBadges(normBadges(b.data));
+        if (m.ok) setDistricts(normDistricts(m.data));
+        setLoading(false);
+      }
     })();
     return () => {
       cancelled = true;
@@ -368,13 +385,26 @@ function normProfile(d: any): Profile {
     currentSubscription: Number(d.currentSubscription ?? 0),
   };
 }
+/** Maps API rarity (int 0-3 or string) to canonical string key */
+function normalizeRarity(raw: number | string | undefined): string {
+  if (raw === undefined || raw === null) return "common";
+  if (typeof raw === "number") {
+    return ["common", "rare", "epic", "legendary"][Math.min(raw, 3)] ?? "common";
+  }
+  const s = String(raw).toLowerCase();
+  if (s.includes("legend")) return "legendary";
+  if (s.includes("epic")) return "epic";
+  if (s.includes("rare")) return "rare";
+  return "common";
+}
+
 function normBadges(d: any): Badge[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.badges) ? d.badges : [];
   return arr.map((x: any) => ({
     id: x.id || x.badgeId,
     name: x.name || x.badgeName || x.title,
     description: x.description,
-    rarity: x.rarity || x.tier,
+    rarity: normalizeRarity(x.rarity ?? x.tier),
     iconUrl: x.iconUrl || x.imageUrl,
     earnedAt: x.earnedAt || x.createdAt,
   }));
