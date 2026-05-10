@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown, User as UserIcon, LayoutDashboard, Compass } from "lucide-react";
+import { Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown, User as UserIcon, LayoutDashboard, Compass, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
   { href: "/profession/select", label: "Choose Path", icon: Compass },
   { href: "/user/map", label: "Imperial Map", icon: Map },
   { href: "/profile/edit", label: "My Profile", icon: UserIcon },
