@@ -399,7 +399,7 @@ export default function MissionListPage() {
           <span className="text-white/60">Missions</span>
         </nav>
         <button
-          onClick={() => navigate(-1 as any)}
+          onClick={() => window.history.back()}
           className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back

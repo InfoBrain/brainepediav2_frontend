@@ -222,10 +222,7 @@ export default function EvaluationPage() {
   useEffect(() => {
     if (progress < 100) return;
     const timer = setTimeout(() => {
-      navigate(`/app/submission/${submissionId}/result`, {
-        state: resultRef.current,
-        replace: true,
-      } as any);
+      navigate(`/app/submission/${submissionId}/result`);
     }, 500);
     return () => clearTimeout(timer);
   }, [progress, submissionId, navigate]);

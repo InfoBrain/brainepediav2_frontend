@@ -282,11 +282,11 @@ function BrainiacPanel({
 
     setThinking(false);
     if (res.ok) {
-      const d = res.data as any;
+      const d = res.data as Record<string, unknown>;
       setMessages(m => [...m, {
         role: "ai",
-        text: d?.response || d?.message || "I'm here to help. Keep thinking through the problem!",
-        penalty: d?.penaltyApplied || 0,
+        text: String(d?.response || d?.message || "I'm here to help. Keep thinking through the problem!"),
+        penalty: Number(d?.penaltyApplied) || 0,
       }]);
     } else {
       setMessages(m => [...m, { role: "ai", text: "I couldn't connect right now. Try again in a moment." }]);
@@ -598,7 +598,8 @@ export default function SolvePage() {
     setSubmitting(false);
 
     if (res.ok) {
-      const submissionId = (res.data as any)?.submissionId || (res.data as any)?.id || "";
+      const rd = res.data as Record<string, unknown>;
+      const submissionId = String(rd?.submissionId || rd?.id || "");
       setUnsaved(false);
       navigate(`/app/submission/${submissionId}/evaluating`);
     } else {
@@ -621,7 +622,7 @@ export default function SolvePage() {
       {/* Top nav bar */}
       <header className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b border-white/5 bg-black/30 backdrop-blur z-20">
         <button
-          onClick={() => navigate(-1 as any)}
+          onClick={() => window.history.back()}
           className="flex items-center gap-1.5 text-xs font-mono text-white/30 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />

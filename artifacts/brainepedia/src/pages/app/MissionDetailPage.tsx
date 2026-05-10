@@ -223,8 +223,8 @@ export default function MissionDetailPage() {
       if (!userId) return null;
       const res = await api.experienceSessions.getActive(userId, problemNodeId);
       if (!res.ok || !res.data) return null;
-      const d = res.data as any;
-      return { sessionId: d.sessionId || d.id || "", status: d.status || "active" };
+      const d = res.data as Record<string, unknown>;
+      return { sessionId: String(d.sessionId || d.id || ""), status: String(d.status || "active") };
     },
     enabled: Boolean(userId) && Boolean(problemNodeId),
     staleTime: 30 * 1000,
@@ -242,7 +242,8 @@ export default function MissionDetailPage() {
     setStarting(false);
 
     if (res.ok) {
-      const sessionId = (res.data as any)?.sessionId || (res.data as any)?.id || "";
+      const rd = res.data as Record<string, unknown>;
+      const sessionId = String(rd?.sessionId || rd?.id || "");
       navigate(`/app/session/${sessionId}/solve`);
       return;
     }
@@ -303,7 +304,7 @@ export default function MissionDetailPage() {
           <span className="text-white/60 truncate max-w-[160px]">{node?.title || "Mission"}</span>
         </nav>
         <button
-          onClick={() => navigate(-1 as any)}
+          onClick={() => window.history.back()}
           className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back
