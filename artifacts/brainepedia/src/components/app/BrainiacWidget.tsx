@@ -19,7 +19,9 @@ export function BrainiacWidget() {
     setThinking(true);
     const res = await api.evaluations.chatBrainiac({ prompt });
     setThinking(false);
-    const text = (res.data as any)?.response || (res.data as any)?.message || "I'm here to help. Could you rephrase your question?";
+    type ChatResult = { response?: string; message?: string };
+    const d = res.data as ChatResult | null;
+    const text = d?.response || d?.message || "I'm here to help. Could you rephrase your question?";
     setMessages(m => [...m, { role: "ai", text }]);
   }
 

@@ -83,7 +83,8 @@ export default function UserProgressPage() {
     queryFn: async () => {
       const res = await api.profiles.stats(userId);
       if (!res.ok) throw new Error("Failed");
-      const d = res.data as any;
+      type StatsPayload = { totalXP?: number; problemsSolvedCount?: number; dayStreak?: number; currentSubscription?: string; isSubscriptionActive?: boolean };
+      const d = res.data as StatsPayload;
       return { totalXP: d?.totalXP ?? 0, problemsSolvedCount: d?.problemsSolvedCount ?? 0, dayStreak: d?.dayStreak ?? 0, currentSubscription: d?.currentSubscription ?? "Initiate", isSubscriptionActive: Boolean(d?.isSubscriptionActive) };
     },
     enabled: Boolean(userId),
@@ -336,7 +337,7 @@ export default function UserProgressPage() {
                     <motion.div key={b.userBadgeId} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
                       whileHover={{ scale: 1.05, y: -3 }}
                       className={`rounded-xl border ${rs.border} ${rs.bg} p-4 text-center cursor-default`}>
-                      {b.iconUrl ? <img src={b.iconUrl} alt={b.name} className="w-10 h-10 mx-auto mb-2 object-contain" onError={e => { (e.currentTarget as any).style.display = "none"; }} /> : <Trophy className="w-10 h-10 mx-auto mb-2 text-[#FFD700]/60" />}
+                      {b.iconUrl ? <img src={b.iconUrl} alt={b.name} className="w-10 h-10 mx-auto mb-2 object-contain" onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} /> : <Trophy className="w-10 h-10 mx-auto mb-2 text-[#FFD700]/60" />}
                       <p className="text-xs font-bold text-white truncate">{b.name}</p>
                       <p className={`text-[10px] font-mono mt-0.5 ${rs.text}`}>{b.rarity}</p>
                       {b.unlockedAt && <p className="text-[10px] text-white/20 mt-1">{new Date(b.unlockedAt).toLocaleDateString()}</p>}
