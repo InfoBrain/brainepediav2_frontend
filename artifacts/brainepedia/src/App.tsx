@@ -1,7 +1,8 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useSessionTimeout } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import { ProblemPage } from "@/pages/Problem";
@@ -180,11 +181,18 @@ function Router() {
   );
 }
 
+function SessionGuard() {
+  const [, setLocation] = useLocation();
+  useSessionTimeout(() => setLocation("/auth/login"));
+  return null;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <SessionGuard />
           <ForbiddenWatcher />
           <Router />
           <BrainiacWidget />

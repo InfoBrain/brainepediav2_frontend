@@ -103,7 +103,7 @@ function normDifficulties(d: any): Difficulty[] {
   const arr = Array.isArray(d) ? d : d?.data || [];
   return arr.map((x: any) => ({
     id: String(x.id ?? x.difficultyId ?? ""),
-    name: x.name || x.difficultyName || `Level ${x.level ?? ""}`,
+    name: x.levelName || x.name || x.difficultyName || `Level ${x.level ?? ""}`,
     level: x.level,
   }));
 }

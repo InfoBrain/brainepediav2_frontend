@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const TOKEN_KEY = "brainepedia.auth.token";
 const USER_KEY = "brainepedia.auth.user";
@@ -53,7 +53,20 @@ export function clearToken() {
 }
 
 export function isAuthenticated() {
-  return !!getToken();
+  const token = getToken();
+  if (!token) return false;
+  const claims = decodeJwt(token);
+  if (claims?.exp && Date.now() / 1000 > claims.exp) {
+    clearToken();
+    return false;
+  }
+  return true;
+}
+
+/** Returns the profileId stored from the login payload (distinct from userId). */
+export function getProfileId(): string | null {
+  const u = getUser()?.userProfile ?? getUser();
+  return u?.profileId || null;
 }
 
 export function getUserRole(): "GlobalAdmin" | "Employer" | "User" | null {
@@ -116,4 +129,40 @@ export function useAuth() {
   }, []);
 
   return { isAuthenticated: isAuth, user: getUser() };
+}
+
+/**
+ * Hook that auto-logs out the user when their JWT token expires.
+ * Call this once at the top-level App component.
+ */
+export function useSessionTimeout(onExpired?: () => void) {
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    function schedule() {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      const token = getToken();
+      if (!token) return;
+      const claims = decodeJwt(token);
+      if (!claims?.exp) return;
+      const msUntilExpiry = claims.exp * 1000 - Date.now();
+      if (msUntilExpiry <= 0) {
+        clearToken();
+        onExpired?.();
+        return;
+      }
+      timerRef.current = setTimeout(() => {
+        clearToken();
+        onExpired?.();
+        window.dispatchEvent(new Event("session-expired"));
+      }, msUntilExpiry);
+    }
+
+    schedule();
+    window.addEventListener("auth-change", schedule);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      window.removeEventListener("auth-change", schedule);
+    };
+  }, [onExpired]);
 }

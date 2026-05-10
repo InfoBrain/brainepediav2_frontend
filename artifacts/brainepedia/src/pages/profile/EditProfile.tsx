@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { getUserRole, getUserId, getUser } from "@/lib/auth";
+import { getUserRole, getUserId, getProfileId, getUser } from "@/lib/auth";
 
 const nav: NavItem[] = [
   { href: "/profile/edit", label: "Edit Profile", icon: UserIcon },
@@ -53,6 +53,7 @@ export default function EditProfile() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const userId = getUserId();
+  const authProfileId = getProfileId();
   const authUser = getUser();
   const role = getUserRole();
   const [loading, setLoading] = useState(true);
@@ -225,9 +226,10 @@ export default function EditProfile() {
     }
   };
 
+  const viewProfileHref = (authProfileId || profileId || userId) ? `/profile/${encodeURIComponent(authProfileId || profileId || userId || "")}` : "/";
   const headerRight = (
     <Link
-      href={userId ? `/profile/${encodeURIComponent(userId)}` : "/"}
+      href={viewProfileHref}
       className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-amber-400/40 bg-amber-400/10 text-xs font-mono uppercase tracking-wider text-amber-400 hover:bg-amber-400/20 transition"
     >
       <Eye className="h-3.5 w-3.5" /> View Public
@@ -251,7 +253,7 @@ export default function EditProfile() {
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
           <Link
-            href={userId ? `/profile/${encodeURIComponent(userId)}` : "/"}
+            href={viewProfileHref}
             className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400"
           >
             <ArrowLeft className="h-3 w-3" /> Back to public profile
@@ -401,7 +403,7 @@ export default function EditProfile() {
           </Section>
 
           <div className="flex items-center justify-end gap-3 sticky bottom-0 bg-gradient-to-t from-[#0A0E14] via-[#0A0E14]/95 to-transparent pt-4 pb-2">
-            <Link href={userId ? `/profile/${encodeURIComponent(userId)}` : "/"}>
+            <Link href={viewProfileHref}>
               <Button type="button" variant="outline">
                 Cancel
               </Button>

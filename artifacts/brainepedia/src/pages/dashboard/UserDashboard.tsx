@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
-import { getUser, getUserId } from "@/lib/auth";
+import { getUser, getUserId, getProfileId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -207,6 +207,7 @@ const BADGE_MILESTONES: BadgeMilestone[] = [
 export default function UserDashboard() {
   const [, navigate] = useLocation();
   const userId = getUserId();
+  const profileId = getProfileId();
   const user = getUser();
   const { toast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -614,7 +615,7 @@ export default function UserDashboard() {
                 {upgradeLoading ? "Preparing…" : "Upgrade — $19/mo"}
               </Button>
               <Link
-                href={userId ? `/profile/${encodeURIComponent(userId)}` : "/"}
+                href={(profileId || userId) ? `/profile/${encodeURIComponent(profileId || userId || "")}` : "/"}
                 className="block mt-3 text-center text-xs font-mono text-muted-foreground hover:text-amber-400 transition-colors"
               >
                 View your public profile →

@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import logoUrl from "@assets/branepedia_logo_1777539679828.png";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export type NavItem = {
   href: string;
@@ -67,10 +77,13 @@ export function DashboardShell({
 }) {
   const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const t = themeMap[theme];
   const user = getUser();
 
-  const handleLogout = () => {
+  const requestLogout = () => setLogoutOpen(true);
+
+  const confirmLogout = () => {
     clearToken();
     setLocation("/auth/login");
   };
@@ -84,7 +97,7 @@ export function DashboardShell({
           location={location}
           theme={t}
           onNavigate={() => setMobileOpen(false)}
-          onLogout={handleLogout}
+          onLogout={requestLogout}
         />
       </aside>
 
@@ -111,7 +124,7 @@ export function DashboardShell({
                 location={location}
                 theme={t}
                 onNavigate={() => setMobileOpen(false)}
-                onLogout={handleLogout}
+                onLogout={requestLogout}
               />
             </motion.aside>
           </>
@@ -143,7 +156,7 @@ export function DashboardShell({
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-muted-foreground">
                 <span>{user?.email || user?.userName || "operator"}</span>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleLogout} title="Sign out">
+              <Button variant="ghost" size="icon" onClick={requestLogout} title="Sign out">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -155,6 +168,29 @@ export function DashboardShell({
       </div>
 
       {showBrainiac && <BrainiacWidget />}
+
+      {/* Logout confirmation dialog */}
+      <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <AlertDialogContent className="bg-[#0d1119] border border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Sign out of Brainepedia?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Your session will end and you'll need to log back in to continue your mission.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-white/20 text-muted-foreground hover:text-foreground hover:bg-white/5">
+              Stay in
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmLogout}
+              className="bg-destructive/80 hover:bg-destructive text-white border-0"
+            >
+              Sign out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
