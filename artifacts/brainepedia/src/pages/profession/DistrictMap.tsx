@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, AlertCircle, RefreshCw, Map, Home } from "lucide-react";
+import { ArrowLeft, AlertCircle, RefreshCw, Map, Home, TrendingUp } from "lucide-react";
 import { DistrictCard, type District } from "@/components/profession/DistrictCard";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 import { api } from "@/lib/api";
@@ -142,6 +142,11 @@ export default function DistrictMap() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
+          <Link href="/app/dashboard">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-cyan-400/70 hover:text-cyan-400 text-xs font-mono">
+              <TrendingUp className="w-3.5 h-3.5" /> Progress
+            </Button>
+          </Link>
           <Link href="/profession/select">
             <Button variant="ghost" size="sm" className="gap-1.5 text-white/40 hover:text-white text-xs font-mono">
               <ArrowLeft className="w-3.5 h-3.5" /> Professions
