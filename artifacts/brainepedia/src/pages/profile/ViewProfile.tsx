@@ -17,13 +17,15 @@ import {
   Github,
   Globe,
   Linkedin,
+  Pin,
+  PinOff,
   Sparkles,
   Twitter,
   Facebook,
 } from "lucide-react";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
-import { getDashboardPath, isAuthenticated } from "@/lib/auth";
+import { getDashboardPath, getProfileId, isAuthenticated } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
@@ -89,43 +91,94 @@ function rarityKey(r?: string): keyof typeof RARITY_COLOR {
   return "common";
 }
 
+const PIN_STORAGE_PREFIX = "brainepedia.pinned.badges.";
+const MAX_PINS = 3;
+
+function loadPinned(profileId: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(PIN_STORAGE_PREFIX + profileId);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function savePinned(profileId: string, pins: Set<string>) {
+  try {
+    localStorage.setItem(PIN_STORAGE_PREFIX + profileId, JSON.stringify([...pins]));
+  } catch {
+    // ignore
+  }
+}
+
 export default function ViewProfile() {
   const params = useParams<{ userId: string }>();
-  const userId = params.userId;
+  const profileIdParam = params.userId ?? "";
   const [profile, setProfile] = useState<Profile | null>(null);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+
+  const isOwn = Boolean(profileIdParam) && profileIdParam === (getProfileId() ?? "");
 
   useEffect(() => {
-    if (!userId) return;
+    if (!profileIdParam) return;
+    setPinnedIds(loadPinned(profileIdParam));
+  }, [profileIdParam]);
+
+  useEffect(() => {
+    if (!profileIdParam) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [p, b, m] = await Promise.all([
-        api.profiles.get(userId),
-        api.userBadges.forUser(userId),
-        api.userProgresses.map(userId),
-      ]);
-      if (cancelled) return;
-      if (p.ok && p.data) {
-        setProfile(normProfile(p.data));
-      } else {
-        // Fallback: search all profiles and find by userId
-        const all = await api.profiles.search({});
-        if (!cancelled) {
-          if (all.ok && Array.isArray(all.data)) {
-            const found = all.data.find(
-              (x: any) => x.userId === userId || x.profileId === userId
-            );
-            if (found) setProfile(normProfile(found));
-            else setError("Profile not found.");
-          } else {
-            setError(p.error || "Profile not found.");
+      setError("");
+
+      let profileData: any = null;
+
+      const p = await api.profiles.get(profileIdParam);
+      if (!cancelled) {
+        if (p.ok && p.data && typeof p.data === "object") {
+          profileData = p.data;
+          setProfile(normProfile(profileData));
+        } else {
+          const all = await api.profiles.search({});
+          if (!cancelled) {
+            if (all.ok && Array.isArray(all.data)) {
+              const found = all.data.find(
+                (x: any) => x.userId === profileIdParam || x.profileId === profileIdParam
+              );
+              if (found) {
+                profileData = found;
+                setProfile(normProfile(found));
+              } else {
+                setError("Profile not found.");
+                setLoading(false);
+                return;
+              }
+            } else {
+              setError(p.error || "Profile not found.");
+              setLoading(false);
+              return;
+            }
           }
         }
       }
+
+      if (cancelled || !profileData) return;
+
+      const actualUserId: string =
+        profileData.userId ||
+        profileData.UserId ||
+        profileData.id ||
+        profileIdParam;
+
+      const [b, m] = await Promise.all([
+        api.userBadges.forUser(actualUserId),
+        api.userProgresses.map(actualUserId),
+      ]);
+
       if (!cancelled) {
         if (b.ok) setBadges(normBadges(b.data));
         if (m.ok) setDistricts(normDistricts(m.data));
@@ -135,7 +188,22 @@ export default function ViewProfile() {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [profileIdParam]);
+
+  function togglePin(badgeId: string) {
+    if (!badgeId) return;
+    setPinnedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(badgeId)) {
+        next.delete(badgeId);
+      } else {
+        if (next.size >= MAX_PINS) return prev;
+        next.add(badgeId);
+      }
+      savePinned(profileIdParam, next);
+      return next;
+    });
+  }
 
   if (loading) {
     return (
@@ -169,9 +237,11 @@ export default function ViewProfile() {
     pct: Math.round(d.completionPercentage),
   }));
 
+  const pinnedBadges = badges.filter((b) => b.id && pinnedIds.has(b.id));
+  const unpinnedBadges = badges.filter((b) => !b.id || !pinnedIds.has(b.id));
+
   return (
     <div className="min-h-screen bg-[#0A0E14] text-foreground">
-      {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-white/5 bg-black/60 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <Link href={isAuthenticated() ? getDashboardPath() : "/"} className="flex items-center gap-2 text-amber-400 font-mono text-xs uppercase tracking-wider hover:text-amber-300">
@@ -250,43 +320,63 @@ export default function ViewProfile() {
                 </h2>
                 <p className="text-xs text-muted-foreground font-mono mt-0.5">
                   {badges.length} badge{badges.length === 1 ? "" : "s"} earned
+                  {isOwn && badges.length > 0 && (
+                    <span className="ml-2 text-white/30">· pin up to {MAX_PINS} to highlight</span>
+                  )}
                 </p>
               </div>
             </div>
+
             {badges.length === 0 ? (
               <Empty text="No badges earned yet." />
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 [perspective:1000px]">
-                {badges.slice(0, 16).map((b, i) => {
-                  const k = rarityKey(b.rarity);
-                  const r = RARITY_COLOR[k];
-                  return (
-                    <motion.div
-                      key={b.id || i}
-                      initial={{ opacity: 0, rotateY: -20 }}
-                      animate={{ opacity: 1, rotateY: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      whileHover={{ rotateY: 12, rotateX: -6, scale: 1.05 }}
-                      className="group [transform-style:preserve-3d]"
-                    >
-                      <div className={`relative rounded-xl p-[2px] bg-gradient-to-br ${r.ring} ${r.glow}`}>
-                        <div className="bg-[#0A0E14] rounded-[10px] p-4 flex flex-col items-center text-center min-h-[140px]">
-                          {b.iconUrl ? (
-                            <img src={b.iconUrl} alt={b.name} className="h-12 w-12 mb-2 object-contain" />
-                          ) : (
-                            <div className={`h-12 w-12 mb-2 rounded-full bg-gradient-to-br ${r.ring} flex items-center justify-center`}>
-                              <Award className="h-6 w-6 text-white" />
-                            </div>
-                          )}
-                          <div className="text-sm font-bold leading-tight line-clamp-2">{b.name || "Badge"}</div>
-                          <div className={`text-[9px] uppercase tracking-widest font-mono mt-1 ${r.label}`}>
-                            {k}
-                          </div>
-                        </div>
+              <div className="space-y-6">
+                {/* Pinned section */}
+                {pinnedBadges.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Pin className="h-3.5 w-3.5 text-amber-400" />
+                      <span className="text-xs font-mono text-amber-400 uppercase tracking-widest">Pinned</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 [perspective:1000px]">
+                      {pinnedBadges.map((b, i) => (
+                        <BadgeCard
+                          key={b.id || i}
+                          badge={b}
+                          index={i}
+                          isPinned
+                          isOwn={isOwn}
+                          onTogglePin={togglePin}
+                          pinnedCount={pinnedIds.size}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rest of badges */}
+                {unpinnedBadges.length > 0 && (
+                  <div>
+                    {pinnedBadges.length > 0 && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-xs font-mono text-white/30 uppercase tracking-widest">All Badges</span>
                       </div>
-                    </motion.div>
-                  );
-                })}
+                    )}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 [perspective:1000px]">
+                      {unpinnedBadges.slice(0, 16).map((b, i) => (
+                        <BadgeCard
+                          key={b.id || i}
+                          badge={b}
+                          index={i}
+                          isPinned={false}
+                          isOwn={isOwn}
+                          onTogglePin={togglePin}
+                          pinnedCount={pinnedIds.size}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </section>
@@ -338,6 +428,77 @@ export default function ViewProfile() {
   );
 }
 
+function BadgeCard({
+  badge: b,
+  index: i,
+  isPinned,
+  isOwn,
+  onTogglePin,
+  pinnedCount,
+}: {
+  badge: Badge;
+  index: number;
+  isPinned: boolean;
+  isOwn: boolean;
+  onTogglePin: (id: string) => void;
+  pinnedCount: number;
+}) {
+  const k = rarityKey(b.rarity);
+  const r = RARITY_COLOR[k];
+  const canPin = isPinned || pinnedCount < MAX_PINS;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, rotateY: -20 }}
+      animate={{ opacity: 1, rotateY: 0 }}
+      transition={{ delay: i * 0.04 }}
+      whileHover={{ rotateY: 12, rotateX: -6, scale: 1.05 }}
+      className="group [transform-style:preserve-3d] relative"
+    >
+      <div className={`relative rounded-xl p-[2px] bg-gradient-to-br ${r.ring} ${r.glow} ${isPinned ? "ring-2 ring-amber-400/40" : ""}`}>
+        <div className="bg-[#0A0E14] rounded-[10px] p-4 flex flex-col items-center text-center min-h-[140px]">
+          {b.iconUrl ? (
+            <img src={b.iconUrl} alt={b.name} className="h-12 w-12 mb-2 object-contain" />
+          ) : (
+            <div className={`h-12 w-12 mb-2 rounded-full bg-gradient-to-br ${r.ring} flex items-center justify-center`}>
+              <Award className="h-6 w-6 text-white" />
+            </div>
+          )}
+          <div className="text-sm font-bold leading-tight line-clamp-2">{b.name || "Badge"}</div>
+          <div className={`text-[9px] uppercase tracking-widest font-mono mt-1 ${r.label}`}>
+            {k}
+          </div>
+          {isPinned && (
+            <div className="mt-1 inline-flex items-center gap-0.5 text-[8px] font-mono text-amber-400/70 uppercase tracking-widest">
+              <Pin className="h-2.5 w-2.5" /> pinned
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isOwn && (
+        <button
+          onClick={() => b.id && onTogglePin(b.id)}
+          disabled={!canPin && !isPinned}
+          title={isPinned ? "Unpin badge" : canPin ? "Pin badge" : `Max ${MAX_PINS} pinned`}
+          className={`
+            absolute top-1.5 right-1.5 p-1 rounded-md transition-all
+            opacity-0 group-hover:opacity-100
+            ${isPinned
+              ? "bg-amber-400/20 text-amber-400 hover:bg-amber-400/30"
+              : canPin
+                ? "bg-white/10 text-white/50 hover:bg-white/20 hover:text-white"
+                : "bg-white/5 text-white/20 cursor-not-allowed"
+            }
+          `}
+        >
+          {isPinned ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+        </button>
+      )}
+    </motion.div>
+  );
+}
+
 function SocialLink({
   href,
   icon: Icon,
@@ -373,23 +534,23 @@ function Empty({ text }: { text: string }) {
 function normProfile(d: any): Profile {
   if (!d || typeof d !== "object") return {};
   return {
-    userId: d.userId || d.id,
-    firstName: d.firstName,
-    surName: d.surName || d.surname || d.lastName,
-    middleName: d.middleName,
-    aboutMe: d.aboutMe || d.bio,
-    currentTitle: d.currentTitle || d.title,
-    profession: d.profession,
-    imageUrl: d.imageUrl || d.avatarUrl || d.profileImage,
-    facebook: d.facebook,
-    linkedIn: d.linkedIn || d.linkedin,
-    github: d.github,
-    twitter: d.twitter,
-    totalXP: Number(d.totalXP ?? d.totalXp ?? 0),
-    currentSubscription: Number(d.currentSubscription ?? 0),
+    userId: d.userId || d.UserId || d.id,
+    firstName: d.firstName || d.FirstName,
+    surName: d.surName || d.SurName || d.surname || d.lastName || d.LastName,
+    middleName: d.middleName || d.MiddleName,
+    aboutMe: d.aboutMe || d.AboutMe || d.bio,
+    currentTitle: d.currentTitle || d.CurrentTitle || d.title,
+    profession: d.profession || d.Profession,
+    imageUrl: d.imageUrl || d.ImageUrl || d.avatarUrl || d.profileImage,
+    facebook: d.facebook || d.Facebook,
+    linkedIn: d.linkedIn || d.LinkedIn || d.linkedin,
+    github: d.github || d.Github || d.GitHub,
+    twitter: d.twitter || d.Twitter,
+    totalXP: Number(d.totalXP ?? d.TotalXP ?? d.totalXp ?? 0),
+    currentSubscription: Number(d.currentSubscription ?? d.CurrentSubscription ?? 0),
   };
 }
-/** Maps API rarity (int 0-3 or string) to canonical string key */
+
 function normalizeRarity(raw: number | string | undefined): string {
   if (raw === undefined || raw === null) return "common";
   if (typeof raw === "number") {
@@ -405,14 +566,15 @@ function normalizeRarity(raw: number | string | undefined): string {
 function normBadges(d: any): Badge[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.badges) ? d.badges : [];
   return arr.map((x: any) => ({
-    id: x.id || x.badgeId || x.userBadgeId,
-    name: x.name || x.badgeName || x.title,
-    description: x.description,
-    rarity: normalizeRarity(x.rarity ?? x.tier),
-    iconUrl: x.iconUrl || x.imageUrl,
+    id: x.id || x.badgeId || x.userBadgeId || x.Id || x.BadgeId,
+    name: x.name || x.badgeName || x.title || x.Name,
+    description: x.description || x.Description,
+    rarity: normalizeRarity(x.rarity ?? x.Rarity ?? x.tier),
+    iconUrl: x.iconUrl || x.imageUrl || x.IconUrl,
     earnedAt: x.earnedAt || x.unlockedAt || x.createdAt,
   }));
 }
+
 function normDistricts(d: any): District[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.districts) ? d.districts : [];
   return arr.map((x: any) => ({

@@ -234,6 +234,32 @@ export default function MissionDetailPage() {
   const isCompleted = node?.isCompleted ?? false;
   const hasActiveSession = Boolean(activeSession?.sessionId);
 
+  const {
+    data: latestSubmissionId,
+    isLoading: submissionLookupLoading,
+  } = useQuery<string | null>({
+    queryKey: ["latest-submission", userId, problemNodeId],
+    queryFn: async () => {
+      if (!userId || !problemNodeId) return null;
+      const res = await api.submissions.forUser(userId);
+      if (!res.ok) return null;
+      const arr = Array.isArray(res.data)
+        ? res.data
+        : res.data?.submissions || res.data?.data || [];
+      const match = arr.find(
+        (s: any) =>
+          s.problemNodeId === problemNodeId ||
+          s.ProblemNodeId === problemNodeId ||
+          s.problemNode?.problemNodeId === problemNodeId ||
+          s.problemNode?.id === problemNodeId
+      );
+      return match ? String(match.submissionId || match.id || "") : null;
+    },
+    enabled: Boolean(userId) && Boolean(problemNodeId) && isCompleted,
+    staleTime: 60 * 1000,
+    retry: false,
+  });
+
   async function handleStart() {
     if (!userId) { navigate("/auth/login"); return; }
     setStarting(true);
@@ -499,16 +525,23 @@ export default function MissionDetailPage() {
                 You can pause and resume anytime
               </p>
 
-              {sessionLoading ? (
+              {sessionLoading || (isCompleted && submissionLookupLoading) ? (
                 <div className="flex items-center justify-center py-3">
                   <Loader2 className="w-5 h-5 text-[#00D2FF] animate-spin" />
                 </div>
               ) : isCompleted ? (
                 <button
+                  onClick={() => {
+                    if (latestSubmissionId) {
+                      navigate(`/app/submission/${latestSubmissionId}/result`);
+                    } else {
+                      navigate("/user/activity");
+                    }
+                  }}
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-base font-bold font-mono hover:bg-emerald-500/20 transition-all duration-200"
                 >
                   <Eye className="w-5 h-5" />
-                  View Submission / Result
+                  View Result
                 </button>
               ) : hasActiveSession ? (
                 <button

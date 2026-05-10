@@ -246,11 +246,12 @@ export default function UserDashboard() {
     let cancelled = false;
     (async () => {
       setLoading(true);
+      const profileId = getProfileId() || userId;
       const [s, m, a, pDirect, b] = await Promise.all([
         api.profiles.stats(userId),
         api.profiles.map(userId),
         api.activityLogs.forUser(userId),
-        api.profiles.get(userId),
+        api.profiles.get(profileId),
         api.userBadges.forUser(userId),
       ]);
       if (cancelled) return;
