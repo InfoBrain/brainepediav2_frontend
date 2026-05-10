@@ -186,10 +186,24 @@ export const api = {
     list: () => fetchApi("/api/Difficulties"),
   },
   experienceSessions: {
+    get: (sessionId: string) =>
+      fetchApi(`/api/ExperienceSessions/${encodeURIComponent(sessionId)}`),
     getActive: (userId: string, problemNodeId: string) =>
       fetchApi(`/api/ExperienceSessions/active/${encodeURIComponent(userId)}/${encodeURIComponent(problemNodeId)}`),
     start: (data: { userId: string; problemNodeId: string }) =>
       fetchApi("/api/ExperienceSessions/start", { method: "POST", body: JSON.stringify(data) }),
+    abandon: (sessionId: string, userId: string) =>
+      fetchApi(`/api/ExperienceSessions/${encodeURIComponent(sessionId)}/abandon?userId=${encodeURIComponent(userId)}`, { method: "PATCH" }),
+  },
+  submissions: {
+    submit: (formData: FormData) =>
+      fetchApi("/api/Submissions/submit", { method: "POST", body: formData }),
+  },
+  evaluations: {
+    askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string; question?: string }) =>
+      fetchApi("/api/Evaluations/ask-brainiac", { method: "POST", body: JSON.stringify(data) }),
+    process: (submissionId: string) =>
+      fetchApi(`/api/Evaluations/process/${encodeURIComponent(submissionId)}`, { method: "POST" }),
   },
   problemNodes: {
     byDistrict: (districtId: string, userId?: string | null) =>
