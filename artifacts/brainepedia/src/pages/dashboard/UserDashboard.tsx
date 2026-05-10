@@ -509,6 +509,32 @@ export default function UserDashboard() {
             <StatTile label="Subscription" value={sub} accent="text-[#FFD700]" icon={Crown} />
           </div>
 
+          {/* View Progress CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Link
+              href="/app/dashboard"
+              className="flex items-center justify-between w-full bg-[#0d1119] border border-[#00D2FF]/20 hover:border-[#00D2FF]/50 rounded-xl px-5 py-4 group transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-[#00D2FF]/10 flex items-center justify-center group-hover:bg-[#00D2FF]/20 transition-colors">
+                  <TrendingUp className="h-5 w-5 text-[#00D2FF]" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">View Progress</p>
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                    Track missions, XP &amp; district completion
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs font-mono text-[#00D2FF] group-hover:translate-x-1 transition-transform inline-block">
+                →
+              </span>
+            </Link>
+          </motion.div>
+
           {/* Badge Showcase Panel */}
           {earnedBadges.length > 0 && (
             <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
