@@ -203,6 +203,8 @@ export const api = {
       fetchApi("/api/Submissions/submit", { method: "POST", body: formData }),
     get: (submissionId: string) =>
       fetchApi(`/api/Submissions/${encodeURIComponent(submissionId)}`),
+    forUser: (userId: string) =>
+      fetchApi(`/api/Submissions/user/${encodeURIComponent(userId)}`),
   },
   evaluations: {
     askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string; question?: string }) =>
