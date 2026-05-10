@@ -91,8 +91,8 @@ export const api = {
     },
     create: (formData: FormData) =>
       fetchApi("/api/Profiles", { method: "POST", body: formData }),
-    update: (userId: string, formData: FormData) =>
-      fetchApi(`/api/Profiles/${encodeURIComponent(userId)}`, { method: "PUT", body: formData }),
+    update: (profileId: string, formData: FormData) =>
+      fetchApi(`/api/Profiles/edit/${encodeURIComponent(profileId)}`, { method: "POST", body: formData }),
   },
   userProgresses: {
     /** Legacy alias kept for any remaining callers */
@@ -142,7 +142,7 @@ export const api = {
     create: (userId: string, formData: FormData) =>
       fetchApi(`/api/Professions?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
     /**
-     * PUT /api/Professions/{id}?ProfessionId=...&Name=...&IconUrl=...
+     * POST /api/Professions/edit/{id}?ProfessionId=...&Name=...&IconUrl=...
      * Name, ProfessionId, IconUrl are query params. Only IconFile goes in FormData.
      */
     update: (id: string, params: { name: string; iconUrl?: string | null }, iconFile?: File | null) => {
@@ -150,8 +150,8 @@ export const api = {
       if (params.iconUrl) qs.set("IconUrl", params.iconUrl);
       const fd = new FormData();
       if (iconFile) fd.append("IconFile", iconFile);
-      return fetchApi(`/api/Professions/${encodeURIComponent(id)}?${qs.toString()}`, {
-        method: "PUT",
+      return fetchApi(`/api/Professions/edit/${encodeURIComponent(id)}?${qs.toString()}`, {
+        method: "POST",
         body: fd,
       });
     },
@@ -173,11 +173,11 @@ export const api = {
     create: (userId: string, formData: FormData) =>
       fetchApi(`/api/Districts?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
     /**
-     * PUT /api/Districts/{id}?userId=...
+     * POST /api/Districts/edit/{id}?userId=...
      * userId MUST be a query param. All other fields in FormData.
      */
     update: (id: string, userId: string, formData: FormData) =>
-      fetchApi(`/api/Districts/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "PUT", body: formData }),
+      fetchApi(`/api/Districts/edit/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
     /** DELETE /api/Districts/{id}?userId=... */
     delete: (id: string, userId: string) =>
       fetchApi(`/api/Districts/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
@@ -221,9 +221,9 @@ export const api = {
     /** POST /api/ProblemNodes?userId=... — userId as query param, rest in FormData */
     create: (userId: string, formData: FormData) =>
       fetchApi(`/api/ProblemNodes?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
-    /** PUT /api/ProblemNodes/{id}?userId=... — userId as query param, rest in FormData */
+    /** POST /api/ProblemNodes/edit/{id}?userId=... — userId as query param, rest in FormData */
     update: (id: string, userId: string, formData: FormData) =>
-      fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "PUT", body: formData }),
+      fetchApi(`/api/ProblemNodes/edit/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
     /** DELETE /api/ProblemNodes/{id}?userId=... */
     delete: (id: string, userId: string) =>
       fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),

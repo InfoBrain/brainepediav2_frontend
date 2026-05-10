@@ -8,10 +8,11 @@ import {
 import {
   Zap, Target, Flame, Crown, Map, Trophy, Activity, BookOpen, LogOut,
   Home, ArrowRight, Star, CheckCircle2, Clock, TrendingUp, User,
-  LayoutDashboard, RefreshCw, AlertCircle, Loader2, Lock,
+  LayoutDashboard, RefreshCw, AlertCircle, Loader2, Lock, CreditCard, Compass,
 } from "lucide-react";
+import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { api } from "@/lib/api";
-import { getUserId, getUser, clearToken } from "@/lib/auth";
+import { getUserId, getUser } from "@/lib/auth";
 
 type Stats = { totalXP: number; problemsSolvedCount: number; dayStreak: number; currentSubscription: string; isSubscriptionActive: boolean };
 type DistrictProgress = { districtName: string; districtId: string; earnedXP: number; totalPossibleXP: number; percentage: number; isMastered: boolean };
@@ -39,12 +40,15 @@ function getLevel(xp: number): { level: number; current: number; next: number; p
   return { level: lv, current, next, pct: next > current ? Math.min(100, ((xp - current) / (next - current)) * 100) : 100 };
 }
 
-const NAV_ITEMS = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/app/dashboard" },
-  { label: "Missions", icon: Target, href: "/profession/select" },
-  { label: "District Map", icon: Map, href: "/profession/select" },
-  { label: "Badges", icon: Trophy, href: "/user/badges" },
-  { label: "Activity", icon: Activity, href: "/user/activity" },
+const nav: NavItem[] = [
+  { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
+  { href: "/profession/select", label: "Choose Path", icon: Compass },
+  { href: "/profession/select", label: "Imperial Map", icon: Map },
+  { href: "/profile/edit", label: "My Profile", icon: User },
+  { href: "/user/badges", label: "My Badges", icon: Trophy },
+  { href: "/user/activity", label: "Activity Feed", icon: Activity },
+  { href: "/user/subscription", label: "Subscription", icon: CreditCard },
 ];
 
 function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string | number; sub?: string; color: string }) {
@@ -56,7 +60,7 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
       className={`relative rounded-2xl border bg-[#0d1117] p-5 overflow-hidden border-white/8`}
     >
       <div className={`absolute inset-0 opacity-5 ${color} rounded-2xl`} />
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color} bg-current/10`} style={{ background: "rgba(255,255,255,0.05)" }}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3`} style={{ background: "rgba(255,255,255,0.05)" }}>
         <span className={color}>{icon}</span>
       </div>
       <p className="text-[11px] font-mono text-white/40 uppercase tracking-widest mb-1">{label}</p>
@@ -69,15 +73,7 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
 export default function UserProgressPage() {
   const [, navigate] = useLocation();
   const userId = getUserId() || "";
-  const user = getUser()?.userProfile ?? getUser();
-  const [activeSection, setActiveSection] = useState("dashboard");
 
-  function handleLogout() {
-    clearToken();
-    navigate("/auth/login");
-  }
-
-  // Profile stats
   const { data: stats, isLoading: statsLoading } = useQuery<Stats>({
     queryKey: ["profile-stats", userId],
     queryFn: async () => {
@@ -91,7 +87,6 @@ export default function UserProgressPage() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Map progress
   const { data: districts, isLoading: distLoading } = useQuery<DistrictProgress[]>({
     queryKey: ["profile-map", userId],
     queryFn: async () => {
@@ -111,7 +106,6 @@ export default function UserProgressPage() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Badges
   const { data: badges } = useQuery<Badge[]>({
     queryKey: ["badges", userId],
     queryFn: async () => {
@@ -124,7 +118,6 @@ export default function UserProgressPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Activity
   const { data: activities } = useQuery<Activity[]>({
     queryKey: ["activity-logs", userId],
     queryFn: async () => {
@@ -137,7 +130,6 @@ export default function UserProgressPage() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // XP history
   const { data: xpHistory } = useQuery<XPEntry[]>({
     queryKey: ["xp-history", userId],
     queryFn: async () => {
@@ -152,7 +144,6 @@ export default function UserProgressPage() {
 
   const lvData = getLevel(stats?.totalXP ?? 0);
 
-  // Chart data
   const chartData = (() => {
     if (!xpHistory?.length) return [];
     const byDay: Record<string, number> = {};
@@ -171,56 +162,11 @@ export default function UserProgressPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060a10] text-white flex">
-      {/* ── SIDEBAR ── */}
-      <aside className="hidden lg:flex flex-col w-60 flex-shrink-0 bg-[#080c12] border-r border-white/5 sticky top-0 h-screen overflow-y-auto">
-        <div className="p-5 border-b border-white/5">
-          <p className="text-xs font-mono text-[#00D2FF] tracking-[0.3em] uppercase">Brainepedia</p>
-          <p className="text-[10px] text-white/20 mt-0.5">Operator Command Center</p>
-        </div>
-        <nav className="flex-1 p-3 space-y-1 pt-4">
-          {NAV_ITEMS.map(item => (
-            <Link key={item.label} href={item.href}>
-              <button className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-mono transition-colors text-left
-                ${item.label === "Dashboard" ? "bg-[#00D2FF]/10 text-[#00D2FF]" : "text-white/40 hover:text-white hover:bg-white/5"}`}>
-                <item.icon className="w-4 h-4 shrink-0" />
-                {item.label}
-              </button>
-            </Link>
-          ))}
-        </nav>
-        <div className="p-3 border-t border-white/5">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-mono text-white/30 hover:text-red-400 hover:bg-red-400/5 transition-colors">
-            <LogOut className="w-4 h-4" /> Logout
-          </button>
-        </div>
-      </aside>
+    <DashboardShell nav={nav} title="Progress" subtitle="// mission.stats">
+      <div className="flex gap-6 max-w-6xl">
+        {/* Main content */}
+        <div className="flex-1 min-w-0 space-y-8">
 
-      {/* ── MAIN ── */}
-      <div className="flex-1 overflow-x-hidden">
-        {/* Profile Header */}
-        <header className="sticky top-0 z-20 bg-[#060a10]/90 backdrop-blur border-b border-white/5 px-4 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00D2FF] to-[#9D4EDD] flex items-center justify-center text-sm font-black font-mono shrink-0">
-              {(user?.firstName || user?.email || "U").charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-white truncate">{[user?.firstName, user?.surName || user?.lastName].filter(Boolean).join(" ") || "Operator"}</p>
-              <p className="text-xs font-mono text-white/30 truncate">{user?.currentTitle || user?.email || ""}</p>
-            </div>
-            <div className="ml-auto flex items-center gap-3 text-xs font-mono">
-              {stats && (
-                <>
-                  <span className="hidden sm:flex items-center gap-1 text-[#FFD700]"><Star className="w-3.5 h-3.5" />{stats.totalXP} XP</span>
-                  <span className="hidden sm:flex items-center gap-1 text-orange-400"><Flame className="w-3.5 h-3.5" />{stats.dayStreak}d</span>
-                  <span className={`font-bold ${subColor(stats.currentSubscription)}`}>{stats.currentSubscription}</span>
-                </>
-              )}
-            </div>
-          </div>
-        </header>
-
-        <div className="px-4 lg:px-8 py-8 space-y-8 max-w-5xl">
           {/* XP Progress Card */}
           {statsLoading ? (
             <div className="h-32 rounded-2xl bg-white/3 animate-pulse" />
@@ -267,7 +213,9 @@ export default function UserProgressPage() {
           {/* District Progress */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold font-mono text-white/60 uppercase tracking-widest flex items-center gap-2"><Map className="w-4 h-4 text-[#00D2FF]" /> District Mastery</h2>
+              <h2 className="text-sm font-bold font-mono text-white/60 uppercase tracking-widest flex items-center gap-2">
+                <Map className="w-4 h-4 text-[#00D2FF]" /> District Mastery
+              </h2>
             </div>
             {distLoading ? (
               <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 rounded-xl bg-white/3 animate-pulse" />)}</div>
@@ -350,7 +298,6 @@ export default function UserProgressPage() {
 
           {/* Activity + XP Ledger */}
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Activity */}
             <section>
               <h2 className="text-sm font-bold font-mono text-white/60 uppercase tracking-widest flex items-center gap-2 mb-4">
                 <Activity className="w-4 h-4 text-[#00D2FF]" /> Recent Activity
@@ -370,7 +317,6 @@ export default function UserProgressPage() {
               </div>
             </section>
 
-            {/* XP Ledger */}
             <section>
               <h2 className="text-sm font-bold font-mono text-white/60 uppercase tracking-widest flex items-center gap-2 mb-4">
                 <Zap className="w-4 h-4 text-[#FFD700]" /> XP Ledger
@@ -412,58 +358,54 @@ export default function UserProgressPage() {
             </div>
           </section>
         </div>
+
+        {/* Right panel — subscription & rank sidebar */}
+        <aside className="hidden xl:flex flex-col w-56 shrink-0 space-y-4">
+          <div className="rounded-xl border border-white/8 bg-[#0d1117] p-4">
+            <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1">Global Rank</p>
+            <p className="text-xl font-black text-[#00D2FF] font-mono">#—</p>
+            <p className="text-[10px] text-white/20 font-mono mt-0.5">Complete more missions to rank up</p>
+          </div>
+
+          <div className="rounded-xl border border-[#9D4EDD]/20 bg-[#9D4EDD]/5 p-4">
+            <p className="text-[10px] font-mono text-[#9D4EDD]/60 uppercase tracking-widest mb-2">Next Badge</p>
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy className="w-5 h-5 text-[#9D4EDD]" />
+              <p className="text-sm font-bold text-white">Bug Slayer</p>
+            </div>
+            <p className="text-xs text-white/30 mb-3">Solve 3 more debugging missions</p>
+            <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+              <div className="h-full w-1/3 rounded-full bg-[#9D4EDD]/60" />
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[#FFD700]/20 bg-[#FFD700]/5 p-4">
+            <p className="text-[10px] font-mono text-[#FFD700]/60 uppercase tracking-widest mb-2">Daily Challenge</p>
+            <p className="text-sm text-white font-bold mb-1">Daily Available</p>
+            <p className="text-xs text-white/40 mb-3">Earn +50 XP bonus</p>
+            <Link href="/profession/select">
+              <button className="w-full py-2 text-xs font-mono font-bold text-black bg-[#FFD700] rounded-lg hover:bg-[#FFD700]/80 transition-colors">
+                Start Challenge
+              </button>
+            </Link>
+          </div>
+
+          {stats && (
+            <div className={`rounded-xl border p-4 ${stats.isSubscriptionActive ? "border-emerald-500/20 bg-emerald-500/5" : "border-red-500/20 bg-red-500/5"}`}>
+              <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1">Subscription</p>
+              <p className={`text-sm font-bold ${stats.isSubscriptionActive ? "text-emerald-400" : "text-red-400"}`}>
+                {stats.isSubscriptionActive ? "Active" : "Expired"}
+              </p>
+              <p className="text-xs text-white/30 mt-0.5">{stats.currentSubscription} Plan</p>
+              {!stats.isSubscriptionActive && (
+                <Link href="/user/subscription/success">
+                  <button className="mt-2 w-full py-1.5 text-xs font-mono font-bold text-black bg-[#FFD700] rounded-lg hover:opacity-80 transition-opacity">Upgrade</button>
+                </Link>
+              )}
+            </div>
+          )}
+        </aside>
       </div>
-
-      {/* ── RIGHT PANEL ── */}
-      <aside className="hidden xl:flex flex-col w-64 flex-shrink-0 border-l border-white/5 bg-[#080c12] sticky top-0 h-screen overflow-y-auto p-5 space-y-5">
-        {/* Rank */}
-        <div className="rounded-xl border border-white/8 bg-[#0d1117] p-4">
-          <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1">Global Rank</p>
-          <p className="text-xl font-black text-[#00D2FF] font-mono">#—</p>
-          <p className="text-[10px] text-white/20 font-mono mt-0.5">Complete more missions to rank up</p>
-        </div>
-
-        {/* Next Achievement */}
-        <div className="rounded-xl border border-[#9D4EDD]/20 bg-[#9D4EDD]/5 p-4">
-          <p className="text-[10px] font-mono text-[#9D4EDD]/60 uppercase tracking-widest mb-2">Next Badge</p>
-          <div className="flex items-center gap-2 mb-2">
-            <Trophy className="w-5 h-5 text-[#9D4EDD]" />
-            <p className="text-sm font-bold text-white">Bug Slayer</p>
-          </div>
-          <p className="text-xs text-white/30 mb-3">Solve 3 more debugging missions</p>
-          <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-            <div className="h-full w-1/3 rounded-full bg-[#9D4EDD]/60" />
-          </div>
-        </div>
-
-        {/* Daily Challenge */}
-        <div className="rounded-xl border border-[#FFD700]/20 bg-[#FFD700]/5 p-4">
-          <p className="text-[10px] font-mono text-[#FFD700]/60 uppercase tracking-widest mb-2">Daily Challenge</p>
-          <p className="text-sm text-white font-bold mb-1">Daily Available</p>
-          <p className="text-xs text-white/40 mb-3">Earn +50 XP bonus</p>
-          <Link href="/profession/select">
-            <button className="w-full py-2 text-xs font-mono font-bold text-black bg-[#FFD700] rounded-lg hover:bg-[#FFD700]/80 transition-colors">
-              Start Challenge
-            </button>
-          </Link>
-        </div>
-
-        {/* Subscription status */}
-        {stats && (
-          <div className={`rounded-xl border p-4 ${stats.isSubscriptionActive ? "border-emerald-500/20 bg-emerald-500/5" : "border-red-500/20 bg-red-500/5"}`}>
-            <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1">Subscription</p>
-            <p className={`text-sm font-bold ${stats.isSubscriptionActive ? "text-emerald-400" : "text-red-400"}`}>
-              {stats.isSubscriptionActive ? "Active" : "Expired"}
-            </p>
-            <p className="text-xs text-white/30 mt-0.5">{stats.currentSubscription} Plan</p>
-            {!stats.isSubscriptionActive && (
-              <Link href="/user/subscription/success">
-                <button className="mt-2 w-full py-1.5 text-xs font-mono font-bold text-black bg-[#FFD700] rounded-lg hover:opacity-80 transition-opacity">Upgrade</button>
-              </Link>
-            )}
-          </div>
-        )}
-      </aside>
-    </div>
+    </DashboardShell>
   );
 }

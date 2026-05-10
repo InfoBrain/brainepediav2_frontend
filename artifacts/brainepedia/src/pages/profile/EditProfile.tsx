@@ -105,19 +105,21 @@ export default function EditProfile() {
       setLoading(true);
       let d: any = null;
 
-      // Primary: try GET /api/Profiles/{userId} (may 404 if API uses profileId)
-      const res = await api.profiles.get(userId);
+      // Primary: try GET /api/Profiles/{profileId} — profileId from auth token
+      const fetchId = authProfileId || userId;
+      const res = await api.profiles.get(fetchId);
       if (!cancelled && res.ok && res.data && typeof res.data === "object") {
         d = res.data;
       }
 
-      // Fallback: fetch all profiles and match by email (userId field is null in API)
+      // Fallback: fetch all profiles and match by email or userId
       if (!d) {
         const all = await api.profiles.search({});
         if (!cancelled && all.ok && Array.isArray(all.data)) {
           d = all.data.find((x: any) =>
             (userEmail && x.email?.toLowerCase() === userEmail.toLowerCase()) ||
-            x.userId === userId
+            x.userId === userId ||
+            x.profileId === fetchId
           ) || null;
         }
       }
@@ -203,7 +205,8 @@ export default function EditProfile() {
     if (vals.youtube) fd.append("Youtube", vals.youtube);
     if (imageFile) fd.append("ImageFile", imageFile);
 
-    const res = await api.profiles.update(userId, fd);
+    const updateId = profileId || authProfileId || userId || "";
+    const res = await api.profiles.update(updateId, fd);
     setSubmitting(false);
     if (res.ok) {
       toast({
