@@ -40,6 +40,7 @@ type Evaluation = {
 type Submission = {
   submissionId: string;
   problemNodeId?: string;
+  sessionId?: string;
   approachExplanation?: string;
   codeSnippet?: string;
   submittedAt?: string;
@@ -63,6 +64,7 @@ function normSubmission(d: any): Submission {
   return {
     submissionId: d?.submissionId || d?.id || "",
     problemNodeId: d?.problemNodeId || d?.problemNode?.problemNodeId || d?.problemNode?.id || "",
+    sessionId: d?.sessionId || d?.experienceSessionId || d?.experienceSession?.sessionId || d?.experienceSession?.id || "",
     approachExplanation: d?.approachExplanation || "",
     codeSnippet: d?.codeSnippet || "",
     submittedAt: d?.submittedAt || d?.createdAt,
@@ -174,6 +176,26 @@ export default function ResultPage() {
   const eval_ = submission?.evaluation;
   const passed = eval_?.isPassed ?? false;
   const score = eval_?.score ?? 0;
+
+  const needsSessionFallback = !passed && submission && !submission.problemNodeId && Boolean(submission.sessionId);
+  const { data: sessionData, isLoading: isSessionLoading } = useQuery({
+    queryKey: ["experienceSession", submission?.sessionId],
+    queryFn: async () => {
+      const res = await api.experienceSessions.get(submission!.sessionId!);
+      if (!res.ok) return null;
+      return res.data;
+    },
+    enabled: Boolean(needsSessionFallback),
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+
+  const resolvedProblemNodeId =
+    submission?.problemNodeId ||
+    sessionData?.problemNodeId ||
+    sessionData?.problemNode?.problemNodeId ||
+    sessionData?.problemNode?.id ||
+    "";
 
   if (isLoading) {
     return (
@@ -370,12 +392,14 @@ export default function ResultPage() {
           >
             <ArrowRight className="w-4 h-4" /> Continue Learning
           </button>
-          {!passed && submission.problemNodeId && (
+          {!passed && (
             <button
-              onClick={() => navigate(`/app/mission/${submission.problemNodeId}`)}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-white/10 text-white/50 font-mono text-sm hover:bg-white/5 hover:text-white transition-colors"
+              onClick={() => resolvedProblemNodeId ? navigate(`/app/mission/${resolvedProblemNodeId}`) : undefined}
+              disabled={isSessionLoading || !resolvedProblemNodeId}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-white/10 text-white/50 font-mono text-sm hover:bg-white/5 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <RotateCcw className="w-4 h-4" /> Try Again
+              {isSessionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+              Try Again
             </button>
           )}
           <Link href={dashPath}>
