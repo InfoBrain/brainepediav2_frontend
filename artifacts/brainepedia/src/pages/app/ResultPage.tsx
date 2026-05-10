@@ -370,7 +370,7 @@ export default function ResultPage() {
           </button>
           {!passed && (
             <button
-              onClick={() => navigate(-1 as any)}
+              onClick={() => window.history.back()}
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-white/10 text-white/50 font-mono text-sm hover:bg-white/5 hover:text-white transition-colors"
             >
               <RotateCcw className="w-4 h-4" /> Retry Mission
