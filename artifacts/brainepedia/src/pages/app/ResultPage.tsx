@@ -39,6 +39,7 @@ type Evaluation = {
 
 type Submission = {
   submissionId: string;
+  problemNodeId?: string;
   approachExplanation?: string;
   codeSnippet?: string;
   submittedAt?: string;
@@ -61,6 +62,7 @@ function normSubmission(d: any): Submission {
   const evalData = d?.evaluation || d?.evaluationResult || {};
   return {
     submissionId: d?.submissionId || d?.id || "",
+    problemNodeId: d?.problemNodeId || d?.problemNode?.problemNodeId || d?.problemNode?.id || "",
     approachExplanation: d?.approachExplanation || "",
     codeSnippet: d?.codeSnippet || "",
     submittedAt: d?.submittedAt || d?.createdAt,
@@ -368,12 +370,12 @@ export default function ResultPage() {
           >
             <ArrowRight className="w-4 h-4" /> Continue Learning
           </button>
-          {!passed && (
+          {!passed && submission.problemNodeId && (
             <button
-              onClick={() => window.history.back()}
+              onClick={() => navigate(`/app/mission/${submission.problemNodeId}`)}
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-white/10 text-white/50 font-mono text-sm hover:bg-white/5 hover:text-white transition-colors"
             >
-              <RotateCcw className="w-4 h-4" /> Retry Mission
+              <RotateCcw className="w-4 h-4" /> Try Again
             </button>
           )}
           <Link href={dashPath}>
