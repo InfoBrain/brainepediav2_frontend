@@ -42,6 +42,10 @@ import SubscriptionSuccess from "@/pages/user/SubscriptionSuccess";
 import SelectProfession from "@/pages/profession/SelectProfession";
 import DistrictMap from "@/pages/profession/DistrictMap";
 
+// App journey
+import MissionListPage from "@/pages/app/MissionListPage";
+import MissionDetailPage from "@/pages/app/MissionDetailPage";
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -130,6 +134,17 @@ function Router() {
       <Route path="/profession/:professionId">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <DistrictMap />
+        </RequireAuth>
+      </Route>
+
+      <Route path="/app/district/:districtId/missions">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <MissionListPage />
+        </RequireAuth>
+      </Route>
+      <Route path="/app/mission/:problemNodeId">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <MissionDetailPage />
         </RequireAuth>
       </Route>
 

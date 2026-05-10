@@ -1,0 +1,405 @@
+Using the Endpoint documentation https://api.brainepedia.com/swagger/index.html
+
+
+Design the Mission Selection Page where users:
+
+View all problem nodes within a selected district
+Understand each mission clearly
+See their progress (Started / Completed)
+Choose a mission to start or continue
+📄 PAGE ROUTE
+/app/district/:districtId/missions
+🔗 API INTEGRATION
+🔷 GET MISSIONS BY DISTRICT
+GET /api/ProblemNodes/by-district/{districtId}?userId={userId}
+🔷 RESPONSE STRUCTURE
+[
+  {
+    problemNodeId,
+    title,
+    context,
+    missionBrief,
+    constraints: [],
+    expectedOutcomes: [],
+    experiencePoints,
+    estimatedMinutes,
+    difficultyId,
+    districtId,
+    isStarted,
+    isCompleted
+  }
+]
+🧩 PAGE STRUCTURE
+🔷 1. HEADER SECTION
+
+Display:
+
+District Name (from previous page context)
+Breadcrumb:
+Profession > District > Missions
+Right side:
+Progress summary:
+Total Missions
+Completed Missions
+XP Available
+🔷 2. DISTRICT PROGRESS BAR
+
+Pull from district completion (if available):
+
+Show:
+👉 “You’ve completed 40% of this district”
+
+UI:
+
+Animated progress bar
+XP earned vs total (optional)
+🔷 3. MISSION LIST (CORE UI)
+❗ IMPORTANT:
+
+DO NOT use a table.
+
+Use cards or a vertical mission timeline
+
+🧩 MISSION CARD DESIGN
+
+Each mission card must display:
+
+🔹 TOP ROW
+Title (bold)
+Difficulty badge (color-coded)
+Status badge:
+State	Badge
+Not Started	"New"
+Started	"In Progress"
+Completed	"Completed"
+🔹 BODY
+Context (short preview, truncated)
+Mission Brief (1–2 lines)
+🔹 METADATA
+⏱ Estimated Time
+⭐ XP Reward
+🔹 ACTION BUTTON
+
+Dynamic:
+
+State	Button Text
+Not Started	Start Mission
+Started	Resume Mission
+Completed	View Result
+🔹 CLICK BEHAVIOR
+Clicking card OR button:
+/app/mission/:problemNodeId
+🎨 VISUAL STYLE
+Cards with hover elevation
+Smooth transitions
+Subtle glow for active missions
+Completed = green accent
+In progress = yellow
+New = neutral/blue
+🔍 4. FILTER + SORT BAR
+
+Top of list:
+
+Filters:
+Difficulty
+Status (All / Started / Completed)
+Sort:
+XP (High → Low)
+Time (Short → Long)
+🧠 UX STATES
+🔄 LOADING STATE
+
+Skeleton cards:
+
+👉 “Loading missions…”
+
+❌ EMPTY STATE
+
+If no missions:
+
+👉 “No missions available yet in this district.”
+
+⚠️ ERROR STATE
+
+👉 “Failed to load missions. Retry.”
+
+🧠 ADVANCED UX (IMPORTANT)
+🔷 SHOW PROGRESSION LOGIC
+
+If mission is locked (future feature):
+
+Show lock icon
+Disable click
+🔷 SHOW USER FLOW INTELLIGENCE
+
+If isStarted = true:
+
+👉 Highlight card
+👉 Add subtle pulse animation
+
+🔷 TOOLTIP DETAILS
+
+Hover shows:
+
+Full constraints
+Expected outcomes preview
+🧩 COMPONENT BREAKDOWN
+1. MissionListPage.tsx
+Fetch API
+Manage filters
+Render list
+2. MissionCard.tsx
+
+Props:
+
+{
+  title
+  context
+  missionBrief
+  xp
+  time
+  difficulty
+  isStarted
+  isCompleted
+}
+3. FilterBar.tsx
+4. ProgressBar.tsx
+🔁 USER FLOW CONNECTION
+
+This page connects:
+
+➡ From: District Map
+➡ To: Mission Detail Page
+
+🚀 PERFORMANCE NOTES
+Cache API using React Query
+Avoid refetch on back navigation
+Use pagination if large
+🔥 BONUS (HIGHLY RECOMMENDED)
+1. STREAK MOTIVATION
+
+Top banner:
+
+👉 “You’re on a 3-day streak 🔥”
+
+2. XP INCENTIVE
+
+Highlight:
+
+👉 “Complete all missions → Unlock Badge”
+
+3. MICRO-ANIMATIONS
+Button hover scale
+Card hover lift
+Progress bar animation
+📦 EXPECTED OUTPUT FROM REPLIT
+Fully functional mission listing page
+API integrated
+Interactive UI (not static)
+Clean UX states (loading, empty, error)
+Smooth navigation to next step
+
+
+Design a high-clarity Mission Detail Page where the user:
+
+Fully understands the problem
+Sees all requirements clearly
+Decides to start or resume a session
+Enters the “focus mode” of solving
+📄 PAGE ROUTE
+/app/mission/:problemNodeId
+🔗 API INTEGRATION
+🔷 1. GET PROBLEM NODE
+GET /api/ProblemNodes/{id}
+🔷 2. CHECK ACTIVE SESSION
+GET /api/ExperienceSessions/active/{userId}/{problemNodeId}
+🔷 3. START SESSION
+POST /api/ExperienceSessions/start
+
+Body:
+
+{
+  "userId": "string",
+  "problemNodeId": "guid"
+}
+🧩 PAGE STRUCTURE
+🔷 1. HERO HEADER
+Display:
+🧠 Mission Title
+Difficulty badge
+XP Reward
+Estimated Time
+Example:
+Fix Responsive Navbar Layout
+[Medium]   ⭐ 120 XP   ⏱ 25 mins
+🔷 2. CONTEXT SECTION (STORY MODE)
+
+This is important — it must feel real.
+
+UI:
+
+Card with soft background:
+
+📖 Context
+
+"The layout looks perfect on desktop but breaks on tablet and mobile..."
+🔷 3. MISSION BRIEF
+
+Clear instruction:
+
+🎯 Your Mission
+
+Fix the responsiveness issue using proper CSS techniques...
+🔷 4. CONSTRAINTS
+Render as checklist:
+⚠️ Constraints
+
+- Must use Flexbox or Grid
+- Avoid fixed widths
+- Maintain accessibility
+🔷 5. EXPECTED OUTCOMES
+Render as success checklist:
+✅ Expected Outcomes
+
+- Layout adapts across screen sizes
+- Navigation remains usable
+- Clean responsive structure
+🔷 6. ATTACHMENTS (OPTIONAL)
+
+If AttachmentUrl exists:
+
+Show:
+Image preview OR
+Download button
+🔷 7. SESSION STATE LOGIC (CRITICAL)
+
+You MUST check:
+
+GET active session
+🔹 CASE 1: NO ACTIVE SESSION
+
+Show:
+
+🟢 Button → Start Mission
+
+🔹 CASE 2: ACTIVE SESSION EXISTS
+
+Show:
+
+🟡 Button → Resume Mission
+
+🔹 CASE 3: ALREADY COMPLETED
+
+(From previous navigation context)
+
+Show:
+
+🔵 Button → View Submission / Result
+
+🔷 8. START SESSION FLOW
+On click:
+
+Call:
+
+POST /api/ExperienceSessions/start
+HANDLE RESPONSES
+✅ Success:
+
+Redirect:
+
+/app/session/:sessionId/solve
+❌ 403 (LIMIT REACHED)
+
+Show modal:
+
+"You’ve reached your monthly mission limit.
+Upgrade to continue."
+❌ 409 (Already exists)
+
+Show:
+
+👉 “You already have an ongoing attempt”
+
+Then:
+➡ Redirect to resume
+
+🎨 DESIGN STYLE
+Clean, focused
+Minimal distractions
+Clear hierarchy
+Comfortable reading spacing
+🧠 UX PRINCIPLES
+1. REMOVE CONFUSION
+
+Everything must answer:
+
+👉 “What exactly do I need to do?”
+
+2. BUILD CONFIDENCE
+
+Before clicking Start, user should feel:
+
+👉 “I understand this problem”
+
+3. ENCOURAGE ACTION
+
+Primary button must stand out strongly
+
+🔄 LOADING STATE
+Skeleton for text blocks
+Spinner for session check
+❌ ERROR STATE
+"Unable to load mission details"
+[Retry]
+🧩 COMPONENT BREAKDOWN
+1. MissionDetailPage.tsx
+
+Handles:
+
+Fetch problem
+Check session
+Start logic
+2. MissionHeader.tsx
+3. ContextCard.tsx
+4. ChecklistSection.tsx
+
+Reusable for:
+
+Constraints
+Expected Outcomes
+5. StartButton.tsx
+
+Handles all states
+
+🔁 USER FLOW CONNECTION
+
+➡ From: Mission List
+➡ To: Solve Page (Page 5)
+
+🚀 BONUS FEATURES (HIGHLY RECOMMENDED)
+🔷 1. DIFFICULTY COLOR SYSTEM
+Easy → Green
+Medium → Yellow
+Hard → Red
+🔷 2. ESTIMATED TIME BADGE
+
+Helps users commit
+
+🔷 3. MICROCOPY
+
+Add subtle text:
+
+👉 “You can pause and resume anytime”
+
+🔷 4. PROGRESS REMINDER
+
+If user started before:
+
+👉 “You started this mission earlier”
+
+📦 EXPECTED OUTPUT FROM REPLIT
+Fully functional mission detail page
+API integrated correctly
+Session logic handled perfectly
+Clear UX for start/resume
+Smooth navigation to solving page

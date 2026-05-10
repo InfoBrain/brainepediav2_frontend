@@ -105,7 +105,7 @@ export default function DistrictMap() {
   }, null);
 
   const handleDistrictClick = (d: District) => {
-    navigate(`/district/${d.districtId}`);
+    navigate(`/app/district/${d.districtId}/missions`);
   };
 
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";

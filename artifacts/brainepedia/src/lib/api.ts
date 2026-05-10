@@ -185,6 +185,12 @@ export const api = {
   difficulties: {
     list: () => fetchApi("/api/Difficulties"),
   },
+  experienceSessions: {
+    getActive: (userId: string, problemNodeId: string) =>
+      fetchApi(`/api/ExperienceSessions/active/${encodeURIComponent(userId)}/${encodeURIComponent(problemNodeId)}`),
+    start: (data: { userId: string; problemNodeId: string }) =>
+      fetchApi("/api/ExperienceSessions/start", { method: "POST", body: JSON.stringify(data) }),
+  },
   problemNodes: {
     byDistrict: (districtId: string, userId?: string | null) =>
       fetchApi(`/api/ProblemNodes/by-district/${encodeURIComponent(districtId)}${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
