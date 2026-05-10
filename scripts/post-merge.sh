@@ -7,7 +7,7 @@ pnpm --filter db push
 if [ -n "$GITHUB_TOKEN" ]; then
   echo "Syncing to GitHub: remote=origin branch=main ($(git rev-parse --short HEAD))"
   git -c credential.helper='!f() { echo "username=x-access-token"; echo "password='"${GITHUB_TOKEN}"'"; }; f' \
-    push origin main
+    push origin main --force
 else
   echo "ERROR: GITHUB_TOKEN is not set — GitHub sync failed" >&2
   exit 1
