@@ -5,7 +5,7 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api";
 
 const PHASES = [
-  "The Oracle is awakening…",
+  "Brainiac is awakening…",
   "Analyzing your approach…",
   "Reviewing logic structure…",
   "Evaluating best practices…",
@@ -278,7 +278,7 @@ export default function EvaluationPage() {
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            Oracle · Evaluation Engine
+            Brainiac · Evaluation Engine
           </motion.p>
           <AnimatePresence>
             {!error ? (
@@ -314,7 +314,7 @@ export default function EvaluationPage() {
             animate={{ opacity: [0.4, 0.8, 0.4] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
-            The Oracle evaluates every aspect of your solution — approach, logic, quality, and alignment with expected outcomes.
+            Brainiac evaluates every aspect of your solution — approach, logic, quality, and alignment with expected outcomes.
           </motion.p>
         )}
       </motion.div>

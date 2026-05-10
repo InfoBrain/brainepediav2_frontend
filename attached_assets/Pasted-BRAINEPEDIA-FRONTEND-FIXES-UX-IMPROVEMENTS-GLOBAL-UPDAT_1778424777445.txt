@@ -1,0 +1,1117 @@
+BRAINEPEDIA FRONTEND FIXES & UX IMPROVEMENTS (GLOBAL UPDATE)
+
+You are working on the Brainepedia Frontend (React + TypeScript + Tailwind).
+
+Apply the following 9 critical fixes and enhancements across the platform.
+
+Do NOT break existing flows. Maintain architecture consistency.
+
+✅ 1. RESUME EXPERIENCE SESSION (CRITICAL FIX)
+PROBLEM
+
+Users cannot resume previously started sessions.
+
+BACKEND ENDPOINT
+GET /api/ExperienceSessions/active/{userId}/{problemNodeId}
+IMPLEMENTATION
+On Mission Page Load:
+Call endpoint above
+If session exists:
+if (session.status === "Active") {
+   show "Resume Mission"
+} else {
+   show "Start Mission"
+}
+Resume Flow:
+
+When user clicks Resume Mission:
+
+navigate(`/session/${sessionId}`)
+
+Load:
+
+GET /api/ExperienceSessions/{id}
+
+Restore:
+
+Problem details
+Previous submissions
+Draft inputs (if any)
+✅ 2. GLOBAL TEXT REPLACEMENT (ORACLE → BRAINIAC)
+
+Replace ALL occurrences:
+
+Oracle → Brainiac
+
+Examples:
+
+"Oracle is thinking..." → "Brainiac is thinking..."
+"Ask the Oracle" → "Ask Brainiac"
+
+Search entire codebase and update UI + components.
+
+✅ 3. DEFAULT PROFESSION ICON FALLBACK
+PROBLEM
+
+Some professions have no icons.
+
+FIX
+
+Create default icon:
+
+const DEFAULT_ICON = "/assets/default-profession.png";
+Usage:
+<img
+  src={profession.iconUrl || DEFAULT_ICON}
+  onError={(e) => e.currentTarget.src = DEFAULT_ICON}
+/>
+✅ 4. SHOW REAL DIFFICULTY NAMES
+PROBLEM
+
+UI shows "Level", "Level" instead of actual names.
+
+ENDPOINT
+GET /api/Difficulties
+
+Response:
+
+{
+  "difficultyId": "...",
+  "levelName": "Medium",
+  "rankColorHex": "#FFA500"
+}
+IMPLEMENTATION
+Load difficulties globally:
+const [difficulties, setDifficulties] = useState([]);
+Map difficultyId → levelName
+const difficultyMap = Object.fromEntries(
+  difficulties.map(d => [d.difficultyId, d])
+);
+Display:
+const difficulty = difficultyMap[problem.difficultyId];
+
+<span style={{ color: difficulty.rankColorHex }}>
+  {difficulty.levelName}
+</span>
+✅ 5. GLOBAL BRAINIAC GUIDANCE WIDGET
+FEATURE
+
+Add Brainiac help assistant across ALL pages.
+
+COMPONENT
+<BrainiacWidget />
+UI
+
+Floating button (bottom-right):
+
+💡 Ask Brainiac
+MODAL
+
+Inputs:
+
+Current Approach
+Code (optional)
+API
+POST /api/Evaluations/chat-brainiac
+REQUEST
+{
+  "prompt": "...",
+ 
+}
+RESPONSE
+{
+  "response": ""
+}
+
+✅ 6. MOBILE RESPONSIVENESS FIX (MISSION + SUBMISSION PAGES)
+PROBLEM
+
+Right panel is too small on mobile.
+
+FIX
+BEFORE
+flex-row
+AFTER
+flex-col lg:flex-row
+INPUT AREA FIX
+
+Make textarea full width:
+
+<textarea className="w-full min-h-[200px]" />
+GRID FIX
+grid-cols-1 lg:grid-cols-2
+ADD:
+Padding: px-4
+Larger input fonts
+Sticky submit button (mobile)
+
+✅ 7. FIX PUBLIC PROFILE "NOT FOUND"
+PROBLEM
+
+Public profile fails to load.
+
+CHECK
+
+Ensure correct endpoint is used:
+
+GET /api/Profiles/{id}
+FIXES
+1. Ensure correct ID is passed
+/profile/{profileId}
+
+NOT userId
+
+2. Add fallback handling
+if (!profile) {
+  show "Profile not found or not available"
+}
+3. Ensure API response mapping is correct
+✅ 8. EMAIL VERIFICATION FLOW (OTP RESEND)
+PROBLEM
+
+Users with unverified email are not redirected.
+
+IMPLEMENTATION
+
+After login:
+
+if (!user.emailConfirmed) {
+   call resend OTP
+}
+API
+POST /api/Auth/resend-otp
+FLOW
+await resendOtp(email);
+
+navigate("/verify-otp", { state: { email } });
+OTP PAGE
+
+Fields:
+
+OTP input
+Resend button
+Countdown timer
+✅ 9. FIX AI PROBLEM GENERATION RESPONSE
+PROBLEM
+
+Frontend not handling updated response format.
+
+NEW RESPONSE
+{
+  "message": "Problem Nodes seeded successfully",
+  "problemNodes": { ... }
+}
+FIX
+
+Update handler:
+
+const res = await generateProblem();
+
+toast.success(res.message);
+
+setGeneratedProblem(res.problemNodes);
+UI UPDATE
+
+Show:
+
+Title
+Context
+Mission Brief
+Constraints
+Expected Outcomes
+🔥 ADDITIONAL UX IMPROVEMENTS
+GLOBAL LOADING STATES
+Buttons show spinner
+Disable actions during API calls
+TOAST FEEDBACK
+
+Use consistent notifications:
+
+toast.success("Success")
+toast.error("Something went wrong")
+ERROR HANDLING
+
+Graceful UI fallback everywhere
+
+🎯 FINAL EXPECTATION
+
+After implementation:
+
+Users can resume sessions seamlessly
+Brainiac becomes core assistant across platform
+UI becomes mobile-friendly
+AI features feel integrated and responsive
+Dashboard + missions feel like a real learning OS
+
+
+Build the following Next pages:
+
+PAGE 7: EVALUATION RESULT (XP + FEEDBACK + GROWTH)
+🎯 OBJECTIVE
+
+Design a high-impact results page where users:
+
+See their score clearly
+Understand why they passed/failed
+Get actionable feedback
+Feel rewarded (XP, progress)
+Are motivated to continue
+📄 PAGE ROUTE
+/app/submission/:submissionId/result
+🔗 API INTEGRATION
+🔷 GET SUBMISSION DETAILS
+GET /api/Submissions/{submissionId}
+🔷 RESPONSE STRUCTURE
+
+Includes:
+
+{
+  submission,
+  evaluation: {
+    score,
+    isPassed,
+    strengths,
+    weaknesses,
+    positiveFeedback,
+    improvementAreas
+  }
+}
+🧩 PAGE STRUCTURE
+🔷 1. HERO RESULT SECTION
+Display:
+🎯 Score (BIG)
+Status:
+Score	Status
+≥ 70	✅ Passed
+< 70	❌ Needs Improvement
+Example:
+Score: 82%
+✅ Mission Passed
+🎨 VISUALS
+Passed → Green glow
+Failed → Orange/red tone
+🔷 2. XP REWARD SECTION
+
+Display:
+
+⭐ +120 XP Earned
+
+If penalty applied:
+
+⚠️ -15 XP (Hints Used)
+🔷 3. MISSION SUMMARY
+Mission Title
+Difficulty
+Time spent (if tracked)
+🔷 4. STRENGTHS (WHAT USER DID WELL)
+UI:
+💪 Strengths
+
+✔ Clean structure
+✔ Good use of responsive design
+✔ Efficient logic
+🔷 5. IMPROVEMENT AREAS
+⚠️ Areas for Improvement
+
+- Improve variable naming
+- Add error handling
+🔷 6. DETAILED FEEDBACK
+
+Split into:
+
+👍 Positive Feedback
+🛠 Suggestions
+🔷 7. CODE + APPROACH REVIEW
+Tabs:
+Approach Explanation
+Code Snippet
+Display:
+Read-only editor (Monaco)
+Syntax highlighted
+🔷 8. BADGE / ACHIEVEMENT (IF ANY)
+
+If badge awarded:
+
+🏆 New Badge Unlocked: "Layout Master"
+🔷 9. ACTION BUTTONS
+PRIMARY:
+
+➡ Continue Learning
+→ Back to Missions
+
+SECONDARY:
+Retry Mission
+View Dashboard
+🧠 UX PRINCIPLES
+1. CELEBRATE SUCCESS
+
+Make passing feel:
+
+👉 Rewarding
+👉 Visible
+👉 Motivating
+
+2. EDUCATE FAILURE
+
+If failed:
+
+Do NOT discourage
+Focus on improvement
+3. MAKE FEEDBACK ACTIONABLE
+
+Avoid vague feedback
+
+🔄 CONDITIONAL UI
+🔷 PASSED
+Green highlight
+XP emphasized
+Confetti animation (optional)
+🔷 FAILED
+Softer tone
+Emphasis on learning
+
+Text:
+
+👉 “You're close. Improve and try again.”
+
+🎨 DESIGN STYLE
+Card-based layout
+Section separation
+Clear hierarchy
+Calm but rewarding
+🔄 STATES
+LOADING
+
+Skeleton UI
+
+ERROR
+"Unable to load results"
+[Retry]
+🧩 COMPONENT BREAKDOWN
+1. ResultPage.tsx
+
+Handles:
+
+Fetch submission
+Display evaluation
+2. ScoreCard.tsx
+3. FeedbackSection.tsx
+4. CodeViewer.tsx
+5. XPBanner.tsx
+🚀 BONUS FEATURES (VERY POWERFUL)
+🔷 PROGRESS IMPACT
+
+Show:
+
++20% Progress in UI Layout District
+🔷 SKILL INSIGHT
+You’re improving in:
+✔ Responsive Design
+✔ Layout Structuring
+🔷 NEXT MISSION SUGGESTION
+Recommended Next:
+"Tablet Navigation Optimization"
+🔷 SHARE BUTTON
+Share achievement (future social feature)
+📦 EXPECTED OUTPUT FROM REPLIT
+Fully functional result page
+API integrated
+Dynamic UI (pass/fail)
+Clear feedback sections
+Smooth UX
+
+
+AGE 8: USER DASHBOARD (XP • PROGRESS • ACTIVITY)
+🎯 OBJECTIVE
+
+Design a data-rich but clean dashboard where users can:
+
+See their total XP and growth
+Track district progress
+View recent activities
+Monitor streaks
+Access quick actions (continue learning)
+📄 PAGE ROUTE
+/app/dashboard
+🔗 API INTEGRATION
+🔷 1. QUICK STATS
+GET /api/Profiles/stats/{userId}
+
+Response:
+
+{
+  totalXP,
+  problemsSolvedCount,
+  dayStreak,
+  currentSubscription,
+  isSubscriptionActive
+}
+🔷 2. MAP PROGRESS
+GET /api/Profiles/map/{userId}
+
+Response:
+
+[
+  {
+    districtName,
+    districtId,
+    earnedXP,
+    totalPossibleXP,
+    percentage,
+    isMastered
+  }
+]
+🔷 3. ACTIVITY LOG
+GET /api/ActivityLogs/{userId}
+🔷 4. XP HISTORY (OPTIONAL)
+GET /api/ExperienceCredits/user/{userId}
+🧩 PAGE STRUCTURE
+🔷 1. HERO STATS SECTION
+Display in cards:
+⭐ Total XP
+🧠 Problems Solved
+🔥 Day Streak
+💎 Subscription Tier
+Example:
+⭐ 2,450 XP
+🧠 18 Missions Completed
+🔥 5 Day Streak
+💎 Architect Plan
+🎨 DESIGN
+Gradient cards
+Icons
+Slight hover animation
+🔷 2. PROGRESS MAP (DISTRICT PROGRESS)
+
+This is a core visual component
+
+UI:
+
+List or grid of districts:
+
+Each shows:
+
+District Name
+Progress bar
+% completion
+XP earned
+Example:
+UI Layout — 70% Complete
+████████░░
+IF MASTERED:
+🏆 Mastered
+🔷 3. RECENT ACTIVITY (TIMELINE)
+UI:
+
+Vertical timeline
+
+Each item:
+Activity message
+Timestamp
+Example:
+✔ Completed Mission: Responsive Navbar
+✔ Earned +120 XP
+✔ Started Mission: Grid Layout Fix
+🔷 4. XP PROGRESSION (OPTIONAL BUT POWERFUL)
+Chart:
+XP over time
+Use:
+Line chart
+🔷 5. QUICK ACTIONS
+Buttons:
+Continue Last Mission
+Explore New Missions
+View Profile
+🔷 6. MOTIVATION PANEL
+Dynamic messages:
+“You’re on a 5-day streak 🔥”
+“Complete 2 more missions to level up”
+“You’re close to mastering UI Layout”
+🔷 7. SUBSCRIPTION STATUS
+
+If inactive:
+
+👉 “Upgrade to unlock unlimited missions”
+
+If active:
+
+👉 “Your subscription is active”
+
+🎨 DESIGN STYLE
+Clean dashboard grid
+Cards with soft shadows
+Minimal clutter
+Clear hierarchy
+🔄 STATES
+LOADING
+Skeleton cards
+Chart placeholder
+EMPTY
+No activity → show message
+ERROR
+"Failed to load dashboard"
+🧩 COMPONENT BREAKDOWN
+1. DashboardPage.tsx
+2. StatsCards.tsx
+3. DistrictProgress.tsx
+4. ActivityTimeline.tsx
+5. XPChart.tsx
+🚀 BONUS FEATURES (HIGH IMPACT)
+🔷 LEVEL SYSTEM (OPTIONAL)
+
+Show:
+
+Level 5 → Next Level in 300 XP
+🔷 BADGE PREVIEW
+
+Show locked badges:
+
+👉 “Complete 3 more missions to unlock”
+
+🔷 DAILY GOAL
+Today's Goal: Complete 1 Mission
+🔷 HEATMAP (ADVANCED)
+
+GitHub-style activity grid
+
+📦 EXPECTED OUTPUT FROM REPLIT
+Fully functional dashboard
+API integrated
+Clean data visualization
+Motivational UI
+Smooth UX
+
+
+
+PAGE 9: DASHBOARD / PROGRESS HUB
+
+Build Page 9 of the Brainepedia frontend application called:
+
+Dashboard / Progress Hub
+
+This page is the user’s main command center after completing missions.
+
+The UI should feel like a futuristic gamified learning dashboard combining:
+
+GitHub profile stats
+RPG skill tree
+Duolingo streak system
+LeetCode progress dashboard
+Cyberpunk analytics panel
+
+Theme:
+
+Dark futuristic UI
+Navy/black gradient background
+Glassmorphism cards
+Neon blue/purple highlights
+Animated XP counters
+Progress rings
+Achievement cards
+
+Tech stack:
+
+React + TypeScript
+Tailwind CSS
+shadcn/ui
+React Query
+Axios
+Framer Motion
+Lucide icons
+Recharts
+
+Backend Base URL:
+https://api.brainepedia.com
+
+PAGE PURPOSE
+
+Display:
+
+User profile summary
+XP progression
+Level status
+Subscription info
+District progress map
+Badges/Trophies
+Recent activity
+XP ledger
+Quick actions
+APIs TO CONNECT
+1. Get Profile
+
+GET:
+
+/api/Profiles/{profileId}
+
+Response:
+
+{
+  "profileId":"guid",
+  "firstName":"Damola",
+  "surName":"Adepoju",
+  "middleName":"A",
+"nickName":"brain", 
+"profession":"", 
+"address":"", 
+"city":"", 
+"country":"", 
+"aboutMe":"", 
+"gender":"", 
+"dateOfBirth":"", 
+"phoneNumber":"", 
+  "email":"user@email.com",
+  "avatarUrl":"url",
+  "currentTitle":"Frontend Developer",
+  "totalXP":4200,
+  "problemsSolvedCount":32,
+  "dayStreak":8,
+  "experience":5
+}
+
+Store as:
+
+profile
+2. Quick Stats
+
+GET:
+
+/api/Profiles/stats/{userId}
+
+Response:
+
+{
+  "totalXP":4200,
+  "problemsSolvedCount":32,
+  "dayStreak":8,
+  "currentSubscription":"Architect",
+  "isSubscriptionActive":true
+}
+
+Store:
+
+quickStats
+3. Map Progress
+
+GET:
+
+/api/Profiles/map/{userId}
+
+Response:
+
+[
+  {
+    "districtName":"UI Layout",
+    "districtId":"guid",
+    "earnedXP":450,
+    "totalPossibleXP":600,
+    "percentage":75,
+    "isMastered":false
+  }
+]
+
+Store:
+
+districtProgress
+4. User Badges
+
+GET:
+
+/api/UserBadges/{userId}
+
+Response:
+
+[
+  {
+    "userBadgeId":"guid",
+    "name":"Layout Master",
+    "description":"Completed all UI Layout missions",
+    "iconUrl":"badge-url",
+    "rarity":"Epic",
+    "unlockedAt":"2026-02-10"
+  }
+]
+
+Store:
+
+badges
+5. Activity Logs
+
+GET:
+
+/api/ActivityLogs/{userId}
+
+Response:
+
+[
+  {
+    "activityLogId":1,
+    "activity":"Started Mission: Navbar Bug",
+    "dateCreated":"2026-02-10"
+  }
+]
+
+Store:
+
+activities
+6. XP Ledger
+
+GET:
+
+/api/ExperienceCredits/user/{userId}
+
+Response:
+
+[
+  {
+    "experienceCreditId":"guid",
+"userId":"guid", 
+"problemNodeId":"guid", 
+"districtId":"guid", 
+    "amount":120,
+    "reason":"Mission Completed",
+    "dateCreated":"2026-02-10"
+  }
+]
+
+Store:
+
+xpHistory
+PAGE LAYOUT
+
+Use responsive 3-column dashboard layout.
+
+Desktop:
+
+Sidebar | Main Content | Right Panel
+
+Mobile:
+
+Stack vertically.
+
+LEFT SIDEBAR
+
+Sticky navigation panel.
+
+Sections:
+
+Dashboard
+Missions
+District Map
+Badges
+XP Ledger
+Activity Logs
+Subscription
+Settings
+
+Bottom:
+
+Logout button.
+
+MAIN HEADER
+
+Top area:
+
+Display:
+
+Avatar image
+User full name
+
+Example:
+
+Damola Adepoju
+Frontend Developer
+
+Show:
+
+Level
+XP
+Streak
+XP PROGRESS CARD
+
+Large animated card.
+
+Display:
+
+Total XP
+Progress bar to next level
+Current Experience Years
+
+Example:
+
+4200 XP
+Level 8
+Verified Experience: 5 years
+
+Progress bar:
+
+4200 / 5000 XP
+
+Animated fill.
+
+STATS GRID
+
+4 cards:
+
+Problems Solved
+
+Icon: Target
+
+32 Missions
+Day Streak
+
+Icon: Flame
+
+8 Days
+Subscription
+
+Icon: Crown
+
+Architect
+
+Badge color:
+
+Initiate → gray
+Architect → blue
+Grandmaster → gold
+Active Status
+
+Green:
+
+Subscription Active
+
+Red:
+
+Expired
+DISTRICT PROGRESS SECTION
+
+Title:
+
+District Mastery
+
+Render cards for each district.
+
+Card shows:
+
+District name
+Earned XP
+Total XP
+Progress bar
+Percentage
+Mastered badge if complete
+
+Example:
+
+UI Layout
+450 / 600 XP
+75%
+
+If mastered:
+
+MASTERED
+
+gold badge.
+
+CHART SECTION
+
+Use Recharts.
+
+Render:
+
+XP Growth Chart
+
+Line chart showing XP over time.
+
+X-axis:
+
+Date
+
+Y-axis:
+
+XP gained.
+
+Use data from xpHistory.
+
+BADGES SECTION
+
+Title:
+
+Trophy Case
+
+Grid of badges.
+
+Each badge card:
+
+icon
+name
+rarity
+unlock date
+
+Example:
+
+🏆 Layout Master
+Epic
+Unlocked Feb 10
+
+Rarity colors:
+
+Common → gray
+Rare → blue
+Epic → purple
+Legendary → gold
+
+Hover animation.
+
+RECENT ACTIVITY PANEL
+
+Scrollable panel.
+
+Render activities timeline.
+
+Example:
+
+Started Mission: Navbar Bug
+Submitted Evidence
+Unlocked Badge: Layout Master
+
+Show timestamps.
+
+XP LEDGER PANEL
+
+Table:
+
+Columns:
+
+Amount
+Reason
+Date
+
+Example:
+
++120   Mission Completed
+-5     Brainiac Hint Penalty
++50    Bonus XP
+
+Positive XP:
+
+green.
+
+Negative:
+
+red.
+
+QUICK ACTION BUTTONS
+
+Buttons:
+
+Continue Learning
+
+Navigate:
+
+/professions
+View District Map
+
+Navigate:
+
+/district-map
+Start New Mission
+
+Navigate:
+
+/problem-nodes
+Upgrade Subscription
+
+Navigate:
+
+/subscription
+RIGHT PANEL
+
+Contains:
+
+Rank Card
+
+Display:
+
+Global Rank #124
+
+Mock for now.
+
+Next Achievement
+
+Display:
+
+Next Badge:
+Bug Slayer
+Solve 3 more debugging missions
+
+Progress bar.
+
+Daily Challenge
+
+Card:
+
+Daily Challenge Available
+Earn +50 XP
+
+Button:
+
+Start Challenge
+LOADING STATE
+
+Show skeleton cards.
+
+EMPTY STATES
+
+No badges:
+
+No badges yet.
+Complete missions to unlock rewards.
+
+No activity:
+
+No recent activity.
+ERROR STATE
+
+Show retry card:
+
+Failed to load dashboard
+Retry
+ANIMATIONS
+
+Use Framer Motion:
+
+counter animations
+fade in sections
+hover scaling
+glowing cards
+chart reveal
+LOCAL STORAGE
+
+Persist:
+
+userId
+profileId
+token
+SUCCESS CRITERIA
+
+User should immediately see:
+
+their growth
+achievements
+progression
+rank
+next goals
+
+This page must feel addictive and rewarding.
+
+Like:
+
+“Wow, I want to solve another mission.”
+
+Build production-ready code with clean folder structure:
+
+/pages/dashboard
+/components/dashboard
+/services/api
+/types
+
+Code should be modular and scalable.

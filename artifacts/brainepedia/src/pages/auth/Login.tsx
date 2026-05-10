@@ -73,6 +73,14 @@ export default function Login() {
     // Unwrap the nested userProfile the API returns
     const profile = res.data?.userProfile || res.data;
     const token = profile?.token || profile?.accessToken || profile?.jwt;
+
+    // Redirect to OTP if email not yet verified
+    if (profile?.emailConfirmed === false) {
+      await api.auth.resendOtp(data.email);
+      setLocation(`/auth/verify-otp?email=${encodeURIComponent(data.email)}`);
+      return;
+    }
+
     setToken(token, profile);
     setLocation(getDashboardPath());
   };

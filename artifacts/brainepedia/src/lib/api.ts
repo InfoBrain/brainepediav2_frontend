@@ -112,6 +112,9 @@ export const api = {
     create: (data: { userId: string; activity: string; performedBy?: string }) =>
       fetchApi("/api/ActivityLogs", { method: "POST", body: JSON.stringify(data) }),
   },
+  experienceCredits: {
+    forUser: (userId: string) => fetchApi(`/api/ExperienceCredits/user/${encodeURIComponent(userId)}`),
+  },
   subscriptions: {
     initialize: (data: any) => fetchApi("/api/Subscriptions/initialize", { method: "POST", body: JSON.stringify(data) }),
   },
@@ -198,10 +201,14 @@ export const api = {
   submissions: {
     submit: (formData: FormData) =>
       fetchApi("/api/Submissions/submit", { method: "POST", body: formData }),
+    get: (submissionId: string) =>
+      fetchApi(`/api/Submissions/${encodeURIComponent(submissionId)}`),
   },
   evaluations: {
     askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string; question?: string }) =>
       fetchApi("/api/Evaluations/ask-brainiac", { method: "POST", body: JSON.stringify(data) }),
+    chatBrainiac: (data: { prompt: string; context?: string }) =>
+      fetchApi("/api/Evaluations/chat-brainiac", { method: "POST", body: JSON.stringify(data) }),
     process: (submissionId: string) =>
       fetchApi(`/api/Evaluations/process/${encodeURIComponent(submissionId)}`, { method: "POST" }),
   },

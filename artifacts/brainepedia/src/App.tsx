@@ -47,6 +47,11 @@ import MissionListPage from "@/pages/app/MissionListPage";
 import MissionDetailPage from "@/pages/app/MissionDetailPage";
 import SolvePage from "@/pages/app/SolvePage";
 import EvaluationPage from "@/pages/app/EvaluationPage";
+import ResultPage from "@/pages/app/ResultPage";
+import UserProgressPage from "@/pages/app/UserProgressPage";
+
+// Global widget
+import { BrainiacWidget } from "@/components/app/BrainiacWidget";
 
 const queryClient = new QueryClient();
 
@@ -159,6 +164,16 @@ function Router() {
           <EvaluationPage />
         </RequireAuth>
       </Route>
+      <Route path="/app/submission/:submissionId/result">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <ResultPage />
+        </RequireAuth>
+      </Route>
+      <Route path="/app/dashboard">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <UserProgressPage />
+        </RequireAuth>
+      </Route>
 
       <Route component={NotFound} />
     </Switch>
@@ -172,6 +187,7 @@ function App() {
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <ForbiddenWatcher />
           <Router />
+          <BrainiacWidget />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

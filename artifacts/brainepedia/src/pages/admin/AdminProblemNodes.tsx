@@ -338,7 +338,9 @@ export default function AdminProblemNodes() {
       districtId: aiForm.districtId || selectedDistId,
       difficultyId: aiForm.difficultyId,
     });
-    setAi(s => ({ ...s, loading: false, preview: res.ok ? res.data : null }));
+    const nodeData = res.ok ? (res.data?.problemNodes || res.data) : null;
+    setAi(s => ({ ...s, loading: false, preview: nodeData }));
+    if (res.ok && res.data?.message) toast({ title: res.data.message });
     if (!res.ok) toast({ title: "AI generation failed", description: res.error, variant: "destructive" });
   }
 
