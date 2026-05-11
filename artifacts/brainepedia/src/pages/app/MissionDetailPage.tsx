@@ -20,6 +20,7 @@ import {
   Lock,
   X,
   ExternalLink,
+  TrendingUp,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
@@ -326,12 +327,19 @@ export default function MissionDetailPage() {
           )}
           <span className="text-white/60 truncate max-w-[160px]">{node?.title || "Mission"}</span>
         </nav>
-        <button
-          onClick={() => window.history.back()}
-          className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back
-        </button>
+        <div className="flex items-center gap-2">
+          <Link href="/app/dashboard">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-cyan-400/70 hover:text-cyan-400 text-xs font-mono">
+              <TrendingUp className="w-3.5 h-3.5" /> Progress
+            </Button>
+          </Link>
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back
+          </button>
+        </div>
       </header>
 
       <main className="relative z-10 flex-1 max-w-3xl mx-auto w-full px-4 md:px-8 py-10">
