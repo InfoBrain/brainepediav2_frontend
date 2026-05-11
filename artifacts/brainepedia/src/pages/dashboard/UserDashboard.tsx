@@ -411,7 +411,13 @@ export default function UserDashboard() {
                   <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Track missions, XP &amp; district completion</p>
                 </div>
               </div>
-              <span className="text-xs font-mono text-[#00D2FF] group-hover:translate-x-1 transition-transform inline-block">→</span>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-[#00D2FF]/60">Total XP</p>
+                  <p className="text-base font-bold font-mono text-[#00D2FF]">{totalXP.toLocaleString()}</p>
+                </div>
+                <span className="text-xs font-mono text-[#00D2FF] group-hover:translate-x-1 transition-transform inline-block">→</span>
+              </div>
             </Link>
           </motion.div>
 
