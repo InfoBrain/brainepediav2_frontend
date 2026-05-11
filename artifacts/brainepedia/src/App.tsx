@@ -39,6 +39,10 @@ import BadgesPage from "@/pages/user/BadgesPage";
 import ActivityFeed from "@/pages/user/ActivityFeed";
 import SubscriptionSuccess from "@/pages/user/SubscriptionSuccess";
 
+// Subscription pages
+import SubscriptionCenter from "@/pages/subscription/SubscriptionCenter";
+import VerifyPayment from "@/pages/subscription/VerifyPayment";
+
 // Profession journey
 import SelectProfession from "@/pages/profession/SelectProfession";
 import DistrictMap from "@/pages/profession/DistrictMap";
@@ -71,9 +75,19 @@ function Router() {
       <Route path="/auth/reset-password" component={ResetPassword} />
       <Route path="/auth/change-password" component={ChangePassword} />
 
+      <Route path="/user/subscription/verify">
+        <RequireAuth allow={["User"]}>
+          <VerifyPayment />
+        </RequireAuth>
+      </Route>
       <Route path="/user/subscription/success">
         <RequireAuth allow={["User"]}>
           <SubscriptionSuccess />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/subscription">
+        <RequireAuth allow={["User"]}>
+          <SubscriptionCenter />
         </RequireAuth>
       </Route>
       <Route path="/user/activity">

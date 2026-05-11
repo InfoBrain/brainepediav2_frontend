@@ -1,0 +1,424 @@
+Design and implement the complete Subscription Upgrade System for the Brainepedia frontend using the provided ASP.NET Core API endpoints.
+
+The application already has authentication and dashboard modules.
+
+Your task is to build the full subscription experience including:
+
+Subscription Plans UI
+Upgrade Modal/Page
+Paystack Checkout Flow
+Payment Verification Flow
+Active Subscription Display
+Tier Benefits Comparison
+Subscription Status Management
+Upgrade Success Experience
+Mobile Responsive UI
+Error Handling
+Brainiac AI Guidance Widgets
+🔷 TECH STACK
+
+Use:
+
+React + TypeScript
+TailwindCSS
+Shadcn UI
+Framer Motion
+Axios
+React Router
+Lucide React Icons
+
+Design style:
+
+Futuristic AI city
+Cyberpunk learning platform
+Dark mode primary
+Neon accents
+Glassmorphism cards
+Animated gradients
+Responsive mobile-first UI
+🔷 API ENDPOINTS
+Initialize Upgrade
+
+POST
+
+/api/Subscriptions/initialize-upgrade
+
+Body:
+
+{
+  "userId": "string",
+  "newTier": "Architect"
+}
+
+OR
+
+{
+  "userId": "string",
+  "newTier": "Grandmaster"
+}
+
+Response:
+
+{
+  "checkoutUrl": "https://checkout.paystack.com/..."
+}
+Verify Payment
+
+GET
+
+/api/Subscriptions/verify-payment?reference=xxxx
+
+Response:
+
+"Subscription Activated!"
+🔷 SUBSCRIPTION TIERS
+1. Initiate (Free)
+
+Features:
+
+3 missions monthly
+Limited Brainiac hints
+Basic XP progression
+Community leaderboard access
+
+Price:
+
+FREE
+
+2. Architect
+
+Price:
+
+$19.99/month
+
+Features:
+
+Unlimited missions
+Increased Brainiac hints
+Faster XP growth
+Premium district access
+Advanced evaluations
+3. Grandmaster
+
+Price:
+
+$49.99/month
+
+Features:
+
+Unlimited everything
+GPT-4o evaluations
+Unlimited Brainiac guidance
+Elite leaderboard badge
+Imperial Citizen badge
+Priority AI evaluation
+Legendary status visuals
+🔷 PAGE REQUIREMENTS
+
+Create the following flow:
+
+PAGE 1 — Subscription Center
+
+Route:
+
+/subscription
+
+Purpose:
+
+Main upgrade and plan selection page.
+
+Layout
+Header Section
+
+Show:
+
+Current subscription
+Active status
+Expiry date
+XP multiplier bonus
+Animated subscription badge
+
+Example:
+
+Current Tier: Initiate
+Status: Active
+Upgrade to unlock Architect abilities
+Subscription Cards
+
+Display 3 large animated cards.
+
+Each card contains:
+
+Tier name
+Price
+Features list
+Tier icon
+Visual rarity
+CTA button
+Card Design
+Initiate
+Blue glow
+Starter badge
+Architect
+Purple glow
+Premium badge
+Grandmaster
+Gold + neon animated glow
+Legendary animated border
+Buttons
+Current Plan
+
+Disabled button:
+
+Current Plan
+Upgrade Buttons
+Upgrade to Architect
+Upgrade to Grandmaster
+🔷 Brainiac Recommendation Widget
+
+Right side or sticky section:
+
+Animated AI assistant card.
+
+Content:
+
+Brainiac Recommendation:
+Architect Tier increases your mission access and XP growth.
+
+Use rotating AI suggestions.
+
+🔷 FEATURE COMPARISON TABLE
+
+Create comparison matrix:
+
+Feature	Initiate	Architect	Grandmaster
+
+Include:
+
+Missions/month
+AI evaluations
+Brainiac hints
+XP boost
+Leaderboards
+Premium districts
+GPT-4o support
+🔷 PAYMENT FLOW
+
+When user clicks upgrade:
+
+Step 1
+
+Open confirmation modal.
+
+Example:
+
+Upgrade to Architect?
+You will be redirected securely to Paystack.
+
+Buttons:
+
+Cancel
+Continue Payment
+Step 2
+
+Call:
+
+POST /api/Subscriptions/initialize-upgrade
+
+Request:
+
+{
+  userId,
+  newTier
+}
+Step 3
+
+Handle loading state.
+
+Show:
+
+Initializing secure payment...
+
+Use animated spinner.
+
+Step 4
+
+Redirect user to:
+
+response.checkoutUrl
+
+using:
+
+window.location.href
+🔷 PAYMENT VERIFICATION PAGE
+
+Route:
+
+/subscription/verify
+
+This page:
+
+Reads Paystack reference from query string
+Calls verification endpoint
+Shows success/failure UI
+Verification Request
+GET /api/Subscriptions/verify-payment?reference=xxx
+🔷 SUCCESS SCREEN
+
+If successful:
+
+Show:
+
+Animated success check
+Subscription activated
+Tier unlocked
+Badge unlocked (if Grandmaster)
+
+Example:
+
+Welcome to Grandmaster Tier
+Imperial Citizen Badge Unlocked
+
+Buttons:
+
+Go to Dashboard
+Start New Mission
+🔷 FAILURE SCREEN
+
+If payment verification fails:
+
+Show:
+
+Payment verification failed
+
+Buttons:
+
+Retry
+Contact Support
+🔷 SUBSCRIPTION STATE MANAGEMENT
+
+Persist:
+
+Tier
+Active status
+Expiry
+Features
+
+Use:
+
+Context API OR Zustand
+
+Store in:
+
+localStorage
+
+after successful verification.
+
+🔷 DASHBOARD INTEGRATION
+
+Update dashboard widgets automatically after upgrade:
+
+Examples:
+
+Tier badge
+XP multiplier
+Mission limits
+Brainiac hint quota
+🔷 GRANDMASTER SPECIAL EFFECTS
+
+If user tier is Grandmaster:
+
+Enable:
+
+Gold animated borders
+Premium gradients
+Crown icon
+Legendary visual effects
+Floating particles
+🔷 MOBILE RESPONSIVENESS
+
+Must fully support:
+
+Mobile
+Tablet
+Desktop
+
+Requirements:
+
+Cards stack vertically
+Payment modal responsive
+Comparison table scrollable horizontally
+Buttons full-width on mobile
+🔷 ERROR HANDLING
+
+Handle:
+
+Network failure
+Invalid payment reference
+Duplicate verification
+Unauthorized access
+API timeout
+
+Show beautiful toast notifications.
+
+🔷 LOADING STATES
+
+Create futuristic loading states:
+
+AI pulse loaders
+Brainiac thinking animation
+Neon shimmer skeletons
+🔷 ROUTES TO CREATE
+/subscription
+/subscription/verify
+🔷 COMPONENTS TO CREATE
+Core Components
+SubscriptionCard
+SubscriptionComparisonTable
+UpgradeModal
+PaymentLoader
+VerificationSuccess
+VerificationFailure
+TierBadge
+BrainiacSubscriptionGuide
+🔷 ADDITIONAL UX REQUIREMENTS
+Smart Recommendations
+
+If user is Initiate:
+
+Suggest Architect.
+
+If user frequently uses AI hints:
+
+Suggest Grandmaster.
+
+Upgrade Nudges
+
+Show upgrade prompts when:
+
+Mission limit reached
+Brainiac limit exceeded
+GPT-4o locked
+🔷 FINAL OUTPUT REQUIRED
+
+Generate:
+
+Full React pages
+Responsive UI
+Axios API services
+State management
+Payment verification logic
+Subscription store
+Reusable components
+Error handling
+Tailwind styling
+Framer Motion animations
+Route configuration
+Production-ready code structure
+
+Build the UI to feel like a premium futuristic AI learning civilization platform similar to:
+
+Duolingo gamification
+Cyberpunk city map
+AI academy
+Elite skill progression system

@@ -26,8 +26,12 @@ const RARITY_STYLE: Record<string, { border: string; text: string; bg: string }>
   rare: { border: "border-[#00D2FF]/40", text: "text-[#00D2FF]", bg: "bg-[#00D2FF]/8" },
   common: { border: "border-white/10", text: "text-white/40", bg: "bg-white/3" },
 };
-function rarityStyle(r?: string) {
-  return RARITY_STYLE[(r || "common").toLowerCase()] || RARITY_STYLE.common;
+function rarityStyle(r?: string | number) {
+  if (typeof r === "number") {
+    const keys = ["common", "rare", "epic", "legendary"];
+    return RARITY_STYLE[keys[Math.min(r, 3)] ?? "common"] || RARITY_STYLE.common;
+  }
+  return RARITY_STYLE[(String(r || "common")).toLowerCase()] || RARITY_STYLE.common;
 }
 
 const XP_LEVELS = [0, 500, 1200, 2500, 4500, 7000, 10000, 15000, 22000, 30000];

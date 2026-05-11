@@ -226,7 +226,7 @@ function SidebarContent({
           const Icon = item.icon;
           return (
             <Link
-              key={item.href}
+              key={`${item.href}__${item.label}`}
               href={item.href}
               onClick={onNavigate}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${

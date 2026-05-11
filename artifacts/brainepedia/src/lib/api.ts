@@ -117,6 +117,12 @@ export const api = {
   },
   subscriptions: {
     initialize: (data: any) => fetchApi("/api/Subscriptions/initialize", { method: "POST", body: JSON.stringify(data) }),
+    /** POST /api/Subscriptions/initialize-upgrade — body: { userId, newTier } */
+    initializeUpgrade: (data: { userId: string; newTier: string }) =>
+      fetchApi("/api/Subscriptions/initialize-upgrade", { method: "POST", body: JSON.stringify(data) }),
+    /** GET /api/Subscriptions/verify-payment?reference=xxx */
+    verifyPayment: (reference: string) =>
+      fetchApi(`/api/Subscriptions/verify-payment?reference=${encodeURIComponent(reference)}`),
   },
   admin: {
     /** Spec: GET /api/Admin/Stats — endpoint may not yet be live; returns graceful empty on 404 */
