@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Radar,
   RadarChart,
@@ -24,10 +24,12 @@ import {
   Target,
   Twitter,
   Facebook,
+  GitCompare,
+  X,
 } from "lucide-react";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
-import { getDashboardPath, getProfileId, isAuthenticated } from "@/lib/auth";
+import { getDashboardPath, getProfileId, getUserId, isAuthenticated } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
@@ -125,8 +127,14 @@ export default function ViewProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [compareOpen, setCompareOpen] = useState(false);
 
-  const isOwn = Boolean(profileIdParam) && profileIdParam === (getProfileId() ?? "");
+  const myUserId = getUserId() ?? "";
+  const myProfileId = getProfileId() ?? "";
+  const isOwn =
+    Boolean(profileIdParam) &&
+    (profileIdParam === myUserId || profileIdParam === myProfileId);
+  const canCompare = !isOwn && isAuthenticated();
 
   useEffect(() => {
     if (!profileIdParam) return;
@@ -333,7 +341,28 @@ export default function ViewProfile() {
               valueClass="text-[#A78BFA]"
             />
           </div>
+
+          {canCompare && (
+            <div className="relative mt-4 flex justify-end">
+              <Button
+                onClick={() => setCompareOpen(true)}
+                className="inline-flex items-center gap-2 bg-[#7C3AED]/20 hover:bg-[#7C3AED]/35 border border-[#7C3AED]/50 hover:border-[#7C3AED]/80 text-[#A78BFA] hover:text-white font-mono text-xs uppercase tracking-wider transition-all"
+                variant="ghost"
+              >
+                <GitCompare className="h-4 w-4" />
+                Compare with me
+              </Button>
+            </div>
+          )}
         </motion.section>
+
+        {canCompare && compareOpen && (
+          <CompareModal
+            theirProfile={profile}
+            theirName={fullName}
+            onClose={() => setCompareOpen(false)}
+          />
+        )}
 
         {/* Two-column body */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -636,4 +665,266 @@ function normDistricts(d: any): District[] {
     totalPossibleXP: Number(x.totalPossibleXP ?? 0),
     completionPercentage: Number(x.completionPercentage ?? 0),
   }));
+}
+
+type CompareStatRow = {
+  icon: React.ReactNode;
+  label: string;
+  mine: number;
+  theirs: number;
+  format: (n: number) => string;
+  higherIsBetter?: boolean;
+  mineClass: string;
+  theirsClass: string;
+};
+
+function CompareBar({
+  mine,
+  theirs,
+  mineClass,
+  theirsClass,
+}: {
+  mine: number;
+  theirs: number;
+  mineClass: string;
+  theirsClass: string;
+}) {
+  const total = mine + theirs;
+  const minePct = total === 0 ? 50 : Math.round((mine / total) * 100);
+  const theirsPct = 100 - minePct;
+  return (
+    <div className="flex h-2 rounded-full overflow-hidden w-full bg-white/5 mt-1">
+      <div
+        className={`${mineClass} transition-all duration-700`}
+        style={{ width: `${minePct}%` }}
+      />
+      <div
+        className={`${theirsClass} transition-all duration-700`}
+        style={{ width: `${theirsPct}%` }}
+      />
+    </div>
+  );
+}
+
+function CompareModal({
+  theirProfile,
+  theirName,
+  onClose,
+}: {
+  theirProfile: Profile;
+  theirName: string;
+  onClose: () => void;
+}) {
+  const [myProfile, setMyProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    const myUserId = getUserId();
+    if (!myUserId) {
+      setErr("Could not identify your profile.");
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const p = await api.profiles.get(myUserId);
+      if (cancelled) return;
+      if (p.ok && p.data && typeof p.data === "object") {
+        setMyProfile(normProfile(p.data));
+      } else {
+        const all = await api.profiles.search({});
+        if (cancelled) return;
+        if (all.ok && Array.isArray(all.data)) {
+          const found = all.data.find(
+            (x: any) => x.userId === myUserId || x.profileId === myUserId
+          );
+          if (found) {
+            setMyProfile(normProfile(found));
+          } else {
+            setErr("Your profile could not be loaded.");
+          }
+        } else {
+          setErr("Your profile could not be loaded.");
+        }
+      }
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  const myName = myProfile
+    ? [myProfile.firstName, myProfile.surName].filter(Boolean).join(" ").trim() || "You"
+    : "You";
+
+  const stats: CompareStatRow[] = myProfile
+    ? [
+        {
+          icon: <Sparkles className="h-4 w-4 text-amber-400" />,
+          label: "Total XP",
+          mine: myProfile.totalXP ?? 0,
+          theirs: theirProfile.totalXP ?? 0,
+          format: (n) => n.toLocaleString(),
+          higherIsBetter: true,
+          mineClass: "bg-amber-400",
+          theirsClass: "bg-amber-600/50",
+        },
+        {
+          icon: <Target className="h-4 w-4 text-cyan-400" />,
+          label: "Missions Solved",
+          mine: myProfile.problemsSolvedCount ?? 0,
+          theirs: theirProfile.problemsSolvedCount ?? 0,
+          format: (n) => n.toLocaleString(),
+          higherIsBetter: true,
+          mineClass: "bg-cyan-400",
+          theirsClass: "bg-cyan-700/50",
+        },
+        {
+          icon: <Flame className="h-4 w-4 text-orange-400" />,
+          label: "Day Streak",
+          mine: myProfile.dayStreak ?? 0,
+          theirs: theirProfile.dayStreak ?? 0,
+          format: (n) => `${n}d`,
+          higherIsBetter: true,
+          mineClass: "bg-orange-400",
+          theirsClass: "bg-orange-700/50",
+        },
+        {
+          icon: <Briefcase className="h-4 w-4 text-[#A78BFA]" />,
+          label: "Experience",
+          mine: myProfile.experience ?? 0,
+          theirs: theirProfile.experience ?? 0,
+          format: (n) => `${n} yr${n === 1 ? "" : "s"}`,
+          higherIsBetter: true,
+          mineClass: "bg-[#7C3AED]",
+          theirsClass: "bg-[#4C1D95]/70",
+        },
+      ]
+    : [];
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        key="compare-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      >
+        <motion.div
+          key="compare-panel"
+          initial={{ opacity: 0, scale: 0.95, y: 16 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 16 }}
+          transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          className="relative w-full max-w-lg bg-[#0d1119] border border-[#7C3AED]/30 rounded-2xl shadow-[0_0_60px_rgba(124,58,237,0.2)] overflow-hidden"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-gradient-to-r from-[#7C3AED]/10 to-transparent">
+            <div className="flex items-center gap-2 text-sm font-mono uppercase tracking-wider text-[#A78BFA]">
+              <GitCompare className="h-4 w-4" />
+              Operative Comparison
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-md text-white/40 hover:text-white hover:bg-white/10 transition"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="px-6 py-5">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <BrainiacSpinner text="Loading your profile…" />
+              </div>
+            ) : err ? (
+              <div className="py-10 text-center text-sm text-amber-400 font-mono">{err}</div>
+            ) : (
+              <>
+                {/* Column headers */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex flex-col items-start">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 mb-0.5">You</span>
+                    <span className="text-sm font-bold leading-tight max-w-[140px] truncate">{myName}</span>
+                  </div>
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-white/30">vs</div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#A78BFA] mb-0.5">Them</span>
+                    <span className="text-sm font-bold leading-tight max-w-[140px] truncate text-right">{theirName}</span>
+                  </div>
+                </div>
+
+                {/* Stat rows */}
+                <div className="space-y-5">
+                  {stats.map((s) => {
+                    const iWin = s.mine > s.theirs;
+                    const theyWin = s.theirs > s.mine;
+                    const tied = s.mine === s.theirs;
+                    return (
+                      <div key={s.label}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className={`text-base font-bold tabular-nums ${iWin ? "text-amber-400" : "text-white/70"}`}>
+                            {s.format(s.mine)}
+                            {iWin && <span className="ml-1 text-[9px] font-mono uppercase tracking-widest text-amber-400">▲</span>}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-white/40">
+                            {s.icon}
+                            {s.label}
+                            {tied && <span className="text-[9px] text-white/30">·tie</span>}
+                          </div>
+                          <div className={`text-base font-bold tabular-nums text-right ${theyWin ? "text-[#A78BFA]" : "text-white/70"}`}>
+                            {theyWin && <span className="mr-1 text-[9px] font-mono uppercase tracking-widest text-[#A78BFA]">▲</span>}
+                            {s.format(s.theirs)}
+                          </div>
+                        </div>
+                        <CompareBar
+                          mine={s.mine}
+                          theirs={s.theirs}
+                          mineClass={s.mineClass}
+                          theirsClass={s.theirsClass}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Summary verdict */}
+                {(() => {
+                  const myWins = stats.filter((s) => s.mine > s.theirs).length;
+                  const theirWins = stats.filter((s) => s.theirs > s.mine).length;
+                  let verdict = "";
+                  let verdictClass = "";
+                  if (myWins > theirWins) {
+                    verdict = `You lead in ${myWins} of ${stats.length} categories. Keep it up!`;
+                    verdictClass = "text-amber-400";
+                  } else if (theirWins > myWins) {
+                    verdict = `They lead in ${theirWins} of ${stats.length} categories. Time to grind!`;
+                    verdictClass = "text-[#A78BFA]";
+                  } else {
+                    verdict = "You're evenly matched. May the best operative win!";
+                    verdictClass = "text-cyan-400";
+                  }
+                  return (
+                    <div className={`mt-5 pt-4 border-t border-white/5 text-center text-xs font-mono ${verdictClass}`}>
+                      {verdict}
+                    </div>
+                  );
+                })()}
+              </>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
 }
