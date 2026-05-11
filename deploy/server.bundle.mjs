@@ -23603,7 +23603,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 var app = (0, import_express.default)();
-var PORT = Number(process.env.PORT ?? 3e3);
+var PORT = process.env.PORT || 3e3;
 var PUBLIC_DIR = path.join(__dirname, "public");
 app.use(import_express.default.static(PUBLIC_DIR));
 app.get("*", (_req, res) => {
