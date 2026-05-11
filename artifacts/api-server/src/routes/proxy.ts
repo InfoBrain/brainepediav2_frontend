@@ -18,6 +18,12 @@ const HOP_BY_HOP = new Set([
   "accept-encoding",
 ]);
 
+// AI endpoints can take up to 90 s; all others use a 30 s default
+const AI_PATHS = ["/ai-generate", "/seed-districts", "/generate-seed", "/ask-brainiac"];
+function timeoutForUrl(url: string): number {
+  return AI_PATHS.some(p => url.includes(p)) ? 120_000 : 30_000;
+}
+
 async function proxy(req: Request, res: Response) {
   const url = `${UPSTREAM}/api${req.url}`;
 
@@ -36,8 +42,12 @@ async function proxy(req: Request, res: Response) {
     if (!headers["content-type"]) headers["content-type"] = "application/json";
   }
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutForUrl(url));
+
   try {
-    const upstream = await fetch(url, { method, headers, body });
+    const upstream = await fetch(url, { method, headers, body, signal: controller.signal });
+    clearTimeout(timer);
 
     res.status(upstream.status);
     upstream.headers.forEach((value, key) => {
@@ -49,11 +59,13 @@ async function proxy(req: Request, res: Response) {
 
     const buf = Buffer.from(await upstream.arrayBuffer());
     res.send(buf);
-  } catch (err) {
+  } catch (err: any) {
+    clearTimeout(timer);
     req.log?.error({ err, url }, "Upstream proxy error");
+    const isTimeout = err?.name === "AbortError";
     res
-      .status(502)
-      .json({ status: "Error", message: "Upstream API unreachable." });
+      .status(isTimeout ? 504 : 502)
+      .json({ status: "Error", message: isTimeout ? "Request timed out. The AI is taking too long — please try again." : "Upstream API unreachable." });
   }
 }
 

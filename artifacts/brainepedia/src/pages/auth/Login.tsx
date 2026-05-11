@@ -67,16 +67,27 @@ export default function Login() {
     setError("");
     setSuccess("");
     const res = await api.auth.login(data);
+
     if (!res.ok) {
+      const errLower = (res.error || "").toLowerCase();
+      // API sends a non-2xx when the email hasn't been confirmed yet — redirect to OTP page
+      if (
+        errLower.includes("email not confirmed") ||
+        errLower.includes("confirm your email") ||
+        errLower.includes("otp has been sent")
+      ) {
+        setLocation(`/auth/verify-otp?email=${encodeURIComponent(data.email)}`);
+        return;
+      }
       setError(res.error || "Invalid credentials");
       return;
     }
-    
+
     // Unwrap the nested userProfile the API returns
     const profile = res.data?.userProfile || res.data;
     const token = profile?.token || profile?.accessToken || profile?.jwt;
 
-    // Redirect to OTP if email not yet verified
+    // Redirect to OTP if email not yet verified (field-level check as fallback)
     if (profile?.emailConfirmed === false) {
       await api.auth.resendOtp(data.email);
       setLocation(`/auth/verify-otp?email=${encodeURIComponent(data.email)}`);
