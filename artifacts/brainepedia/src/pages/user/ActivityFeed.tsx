@@ -21,6 +21,7 @@ import {
   Clock,
   ThumbsUp,
   AlertTriangle,
+  ArrowDownUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
@@ -242,6 +243,15 @@ const SUB_PAGE_SIZE = 10;
 
 type SubStatusFilter = "all" | "passed" | "failed";
 
+type SubSortOrder = "date-desc" | "date-asc" | "score-desc" | "xp-desc";
+
+const SORT_OPTIONS: { key: SubSortOrder; label: string }[] = [
+  { key: "date-desc", label: "Newest" },
+  { key: "date-asc", label: "Oldest" },
+  { key: "score-desc", label: "Score ↓" },
+  { key: "xp-desc", label: "XP ↓" },
+];
+
 export default function ActivityFeed() {
   const [, navigate] = useLocation();
   const userId = getUserId();
@@ -256,6 +266,7 @@ export default function ActivityFeed() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [subStatusFilter, setSubStatusFilter] = useState<SubStatusFilter>("all");
   const [subDifficultyFilter, setSubDifficultyFilter] = useState<string>("all");
+  const [subSortOrder, setSubSortOrder] = useState<SubSortOrder>("date-desc");
 
   useEffect(() => {
     if (!userId) {
@@ -293,13 +304,28 @@ export default function ActivityFeed() {
   }, [submissions]);
 
   const filteredSubs = useMemo(() => {
-    return submissions.filter((s) => {
+    const filtered = submissions.filter((s) => {
       if (subStatusFilter === "passed" && !s.isPassed) return false;
       if (subStatusFilter === "failed" && s.isPassed) return false;
       if (subDifficultyFilter !== "all" && s.difficultyName !== subDifficultyFilter) return false;
       return true;
     });
-  }, [submissions, subStatusFilter, subDifficultyFilter]);
+    return [...filtered].sort((a, b) => {
+      if (subSortOrder === "date-desc") {
+        return new Date(b.submittedAt ?? 0).getTime() - new Date(a.submittedAt ?? 0).getTime();
+      }
+      if (subSortOrder === "date-asc") {
+        return new Date(a.submittedAt ?? 0).getTime() - new Date(b.submittedAt ?? 0).getTime();
+      }
+      if (subSortOrder === "score-desc") {
+        return (b.score ?? 0) - (a.score ?? 0);
+      }
+      if (subSortOrder === "xp-desc") {
+        return (b.netXpGained ?? 0) - (a.netXpGained ?? 0);
+      }
+      return 0;
+    });
+  }, [submissions, subStatusFilter, subDifficultyFilter, subSortOrder]);
 
   const pagedSubs = useMemo(() => filteredSubs.slice(0, subPage * SUB_PAGE_SIZE), [filteredSubs, subPage]);
   const hasMoreSubs = pagedSubs.length < filteredSubs.length;
@@ -323,6 +349,11 @@ export default function ActivityFeed() {
 
   function handleSubDifficultyChange(next: string) {
     setSubDifficultyFilter(next);
+    setSubPage(1);
+  }
+
+  function handleSubSortChange(next: SubSortOrder) {
+    setSubSortOrder(next);
     setSubPage(1);
   }
 
@@ -423,6 +454,25 @@ export default function ActivityFeed() {
                   ))}
                 </div>
               )}
+
+              {/* Sort control */}
+              <div className="flex items-center gap-1.5">
+                <ArrowDownUp className="h-3 w-3 text-white/30" />
+                <span className="text-[10px] font-mono uppercase tracking-widest text-white/30 mr-0.5">Sort</span>
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => handleSubSortChange(opt.key)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors border ${
+                      subSortOrder === opt.key
+                        ? "bg-[#FFD700]/15 border-[#FFD700]/40 text-[#FFD700]"
+                        : "bg-transparent border-white/10 text-white/40 hover:text-white/70 hover:border-white/20"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
 
               {/* Active filter summary + clear */}
               {isSubFiltered && (
