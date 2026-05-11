@@ -206,6 +206,12 @@ export const api = {
     forUser: (userId: string) =>
       fetchApi(`/api/Submissions/user/${encodeURIComponent(userId)}`),
   },
+  dashboard: {
+    /** GET /api/Dashboard/stats/{userId} */
+    stats: (userId: string) => fetchApi(`/api/Dashboard/stats/${encodeURIComponent(userId)}`),
+    /** GET /api/Dashboard/leaderboard?count=N */
+    leaderboard: (count = 20) => fetchApi(`/api/Dashboard/leaderboard?count=${count}`),
+  },
   evaluations: {
     askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string; question?: string }) =>
       fetchApi("/api/Evaluations/ask-brainiac", { method: "POST", body: JSON.stringify(data) }),

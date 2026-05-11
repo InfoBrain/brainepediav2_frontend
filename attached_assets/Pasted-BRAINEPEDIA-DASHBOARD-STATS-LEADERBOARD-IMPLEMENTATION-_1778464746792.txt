@@ -1,0 +1,398 @@
+BRAINEPEDIA DASHBOARD STATS + LEADERBOARD IMPLEMENTATION
+
+You are building the Brainepedia User Dashboard using:
+
+React
+TypeScript
+TailwindCSS
+Framer Motion
+React Query
+Axios
+Recharts
+
+The backend APIs already exist.
+
+Your task is to implement:
+
+FEATURES
+Dashboard Statistics
+User Progress Summary
+Leaderboard System
+User Rank Card
+Responsive Mobile Dashboard
+Animated XP Analytics
+
+The design must feel like:
+
+Futuristic
+Gamified
+Premium
+AI-driven
+Achievement-focused
+
+Inspired by:
+
+Duolingo
+GitHub
+Linear
+Riot Games profile systems
+LeetCode ranking systems
+🔷 API ENDPOINTS
+1. USER DASHBOARD STATS
+
+GET
+
+/api/Dashboard/stats/{userId}
+
+Response:
+
+{
+  "totalDistricts": 12,
+  "claimedCount": 5,
+  "inProgressCount": 4,
+  "dayStreak": 14,
+  "problemsSolved": 48,
+  "subscription": "Architect",
+  "hasBadges": true,
+  "hasDistricts": true,
+  "totalXP": 12450
+}
+2. LEADERBOARD
+
+GET
+
+/api/Dashboard/leaderboard?count=20
+
+Response:
+
+{
+  "topUsers": [
+    {
+      "nickName": "Damola",
+      "avatarUrl": "https://...",
+      "totalXP": 15400
+    }
+  ],
+  "currentUser": {
+    "rank": 12,
+    "xp": 8400
+  }
+}
+🔥 PAGE ROUTE
+/dashboard
+🔥 DASHBOARD LAYOUT
+
+Desktop:
+
+-----------------------------------------
+Sidebar | Main Dashboard Content
+-----------------------------------------
+
+Mobile:
+
+Stack vertically
+
+🔥 SECTION 1 — HERO PROFILE HEADER
+
+Large top section
+
+Display:
+
+Avatar
+Nickname
+Subscription Tier
+Total XP
+Rank
+
+Layout:
+
+[Avatar] Damola
+Frontend Architect
+Architect Tier
+12,450 XP
+Rank #12
+🔥 SUBSCRIPTION BADGE COLORS
+
+Initiate → Gray
+Architect → Cyan
+Grandmaster → Gold
+
+Use glowing gradients.
+
+🔥 XP DISPLAY
+
+Animated count-up effect.
+
+Example:
+
+12,450 XP
+
+Use Framer Motion animation.
+
+🔥 RANK DISPLAY
+
+Show:
+
+Global Rank #12
+
+With trophy icon.
+
+🔥 SECTION 2 — QUICK STATS GRID
+
+Create responsive stat cards.
+
+CARD 1
+Problems Solved
+
+Icon: CheckCircle
+
+48
+
+Subtitle:
+
+missions completed
+CARD 2
+Claimed Districts
+
+Icon: Map
+
+5
+CARD 3
+In Progress
+
+Icon: Activity
+
+4
+CARD 4
+Day Streak
+
+Icon: Flame
+
+14 Days
+
+Orange glow animation.
+
+🔥 SECTION 3 — XP PROGRESS VISUALIZATION
+
+Create a large premium analytics card.
+
+Use:
+
+recharts
+
+Create:
+
+Circular XP Ring
+
+Show:
+
+Current XP
+XP needed for next rank
+XP LEVEL SYSTEM
+
+Calculate locally:
+
+Level = Math.floor(totalXP / 1000)
+Example
+XP: 12450
+Level: 12
+Next Level: 13000
+Progress: 45%
+🔥 SECTION 4 — DISTRICT STATUS OVERVIEW
+
+Create animated horizontal progress cards.
+
+Display:
+
+Total Districts
+Claimed Districts
+In Progress
+VISUALIZATION
+
+Progress bar:
+
+claimed / total
+
+Example:
+
+5 / 12 Districts Claimed
+COLORS
+
+Claimed → Green
+In Progress → Cyan
+Locked → Gray
+
+🔥 SECTION 5 — LEADERBOARD PANEL
+
+This is a MAJOR feature.
+
+TITLE
+Top Problem Solvers
+DISPLAY TOP USERS
+
+Render beautiful leaderboard cards.
+
+Each row contains:
+
+Rank Number
+Avatar
+Nickname
+XP
+Rank Badge
+EXAMPLE
+#1  Damola         15,400 XP
+#2  Precious       14,200 XP
+#3  Afeez          13,100 XP
+TOP 3 SPECIAL DESIGN
+
+Top 3 should have:
+
+Larger cards
+Glow effects
+Trophy icons
+
+Gold → #1
+Silver → #2
+Bronze → #3
+
+CURRENT USER RANK CARD
+
+Sticky floating card:
+
+Your Rank
+#12
+8400 XP
+IF USER IS IN TOP 20
+
+Highlight their row.
+
+🔥 SECTION 6 — ACHIEVEMENT STATUS
+
+Show dynamic achievement summary.
+
+If:
+
+hasBadges === true
+
+Show:
+
+Badge Collector Active
+
+Else:
+
+No badges unlocked yet
+🔥 SECTION 7 — EMPTY STATES
+
+If no districts:
+
+Show:
+
+Begin Your First Journey
+
+CTA Button:
+
+Explore Professions
+🔥 RESPONSIVENESS
+
+Mobile behavior:
+
+QUICK STATS
+grid-cols-2
+LEADERBOARD
+
+Scrollable horizontally.
+
+HERO SECTION
+
+Stack vertically.
+
+XP CHART
+
+Reduce size on mobile.
+
+🔥 COMPONENT STRUCTURE
+
+Create reusable components.
+
+COMPONENTS
+components/dashboard/
+
+Create:
+
+DashboardHero.tsx
+QuickStatsGrid.tsx
+XPRing.tsx
+DistrictProgress.tsx
+Leaderboard.tsx
+LeaderboardRow.tsx
+UserRankCard.tsx
+EmptyDashboard.tsx
+🔥 DATA FETCHING
+
+Use React Query.
+
+Example:
+
+const { data, isLoading } = useQuery({
+   queryKey: ['dashboardStats'],
+   queryFn: fetchDashboardStats
+})
+🔥 LOADING STATES
+
+Skeleton loaders everywhere.
+
+🔥 ERROR STATES
+
+Show elegant fallback cards.
+
+Example:
+
+Unable to load leaderboard
+🔥 ANIMATIONS
+
+Use Framer Motion.
+
+Animate:
+XP counter
+Cards fade-in
+Leaderboard slide-up
+Progress bars filling
+Hover glows
+🔥 DESIGN SYSTEM
+
+Use:
+
+Rounded 2xl cards
+Dark futuristic background
+Glassmorphism
+Cyan gradients
+Purple glow borders
+🔥 ACCESSIBILITY
+
+Ensure:
+
+Keyboard navigation
+Proper contrast
+ARIA labels
+🔥 PERFORMANCE
+
+Optimize:
+
+Memoize leaderboard rows
+Lazy load charts
+Avoid unnecessary rerenders
+🔥 FINAL EXPECTATION
+
+The dashboard should feel like:
+
+“A real-world professional intelligence operating system.”
+
+Users should instantly feel:
+
+Progress
+Competition
+Achievement
+Growth
+Motivation to continue solving missions
+
+The leaderboard should motivate users to climb rankings through solving real-world problems and earning XP.
