@@ -270,7 +270,7 @@ export default function MissionDetailPage() {
 
     if (res.ok) {
       const rd = res.data as Record<string, unknown>;
-      const sessionId = String(rd?.sessionId || rd?.id || "");
+      const sessionId = String(rd?.sessionId || rd?.experienceSessionId || rd?.id || "");
       navigate(`/app/session/${sessionId}/solve`);
       return;
     }
