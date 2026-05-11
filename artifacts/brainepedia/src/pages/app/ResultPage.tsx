@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getDashboardPath, isAuthenticated } from "@/lib/auth";
+import { useDifficulties, buildDifficultyLookup, getDifficultyStyle } from "@/hooks/useDifficulties";
 
 type Evaluation = {
   evaluationId?: string;
@@ -48,6 +49,7 @@ type Submission = {
   xpPenalty?: number;
   missionTitle?: string;
   difficultyName?: string;
+  difficultyId?: string;
   evaluation?: Evaluation;
 };
 
@@ -72,6 +74,7 @@ function normSubmission(d: any): Submission {
     xpPenalty: Number(d?.xpPenalty ?? evalData?.xpPenalty ?? 0),
     missionTitle: d?.missionTitle || d?.problemNode?.title || "Mission",
     difficultyName: d?.difficultyName || d?.problemNode?.difficultyName || "",
+    difficultyId: d?.difficultyId || d?.problemNode?.difficultyId || "",
     evaluation: {
       evaluationId: evalData?.evaluationId,
       score: Number(evalData?.score ?? 0),
@@ -160,6 +163,9 @@ export default function ResultPage() {
   const [, navigate] = useLocation();
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";
   const [codeTab, setCodeTab] = useState<"approach" | "code">("approach");
+
+  const { data: difficulties } = useDifficulties();
+  const difficultyLookup = buildDifficultyLookup(difficulties);
 
   const { data: submission, isLoading, isError, refetch } = useQuery<Submission>({
     queryKey: ["submission", submissionId],
@@ -261,9 +267,19 @@ export default function ResultPage() {
                 {passed ? "Mission Passed" : "Needs Improvement"}
               </div>
               <h1 className="text-2xl md:text-3xl font-black text-white mb-1">{submission.missionTitle}</h1>
-              {submission.difficultyName && (
-                <p className="text-xs font-mono text-white/40 mb-4">{submission.difficultyName}</p>
-              )}
+              {(submission.difficultyName || submission.difficultyId) && (() => {
+                const diffMeta = difficultyLookup[submission.difficultyId || ""];
+                const label = diffMeta?.name || submission.difficultyName;
+                const style = getDifficultyStyle(diffMeta?.rankColorHex || "");
+                return label ? (
+                  <span
+                    className="inline-flex items-center text-[11px] font-mono px-2.5 py-1 rounded-full border mb-4"
+                    style={style}
+                  >
+                    {label}
+                  </span>
+                ) : null;
+              })()}
               {!passed && (
                 <p className="text-sm text-white/50 italic">You're close. Review the feedback below and try again — you've got this.</p>
               )}

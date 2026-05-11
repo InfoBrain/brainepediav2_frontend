@@ -25,6 +25,7 @@ import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
+import { useDifficulties, buildDifficultyLookup, getDifficultyStyle } from "@/hooks/useDifficulties";
 
 type ProblemNode = {
   problemNodeId: string;
@@ -65,22 +66,13 @@ function normNode(data: any): ProblemNode {
     expectedOutcomes: parseArr(data?.expectedOutcomes),
     experiencePoints: Number(data?.experiencePoints ?? 0),
     estimatedMinutes: Number(data?.estimatedMinutes ?? 0),
-    difficultyId: data?.difficultyId || "",
+    difficultyId: data?.difficultyId || data?.difficulty?.difficultyId || data?.difficulty?.id || "",
     difficultyName: data?.difficultyName || data?.difficulty?.name || "",
     districtId: data?.districtId || "",
     attachmentUrl: data?.attachmentUrl || data?.attachment || null,
     isStarted: Boolean(data?.isStarted),
     isCompleted: Boolean(data?.isCompleted),
   };
-}
-
-function getDifficultyMeta(name: string) {
-  const lower = (name || "").toLowerCase();
-  if (lower.includes("easy") || lower.includes("beginner"))
-    return { color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/30", label: "Easy" };
-  if (lower.includes("hard") || lower.includes("expert") || lower.includes("advanced"))
-    return { color: "text-red-400", bg: "bg-red-400/10 border-red-400/30", label: "Hard" };
-  return { color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/30", label: name || "Medium" };
 }
 
 function TextSkeleton({ lines = 3 }: { lines?: number }) {
@@ -231,6 +223,9 @@ export default function MissionDetailPage() {
     retry: false,
   });
 
+  const { data: difficulties } = useDifficulties();
+  const difficultyLookup = buildDifficultyLookup(difficulties);
+
   const isCompleted = node?.isCompleted ?? false;
   const hasActiveSession = Boolean(activeSession?.sessionId);
 
@@ -294,7 +289,9 @@ export default function MissionDetailPage() {
     }
   }
 
-  const diff = getDifficultyMeta(node?.difficultyName || "");
+  const diffMeta = node ? difficultyLookup[node.difficultyId] : undefined;
+  const diffStyle = getDifficultyStyle(diffMeta?.rankColorHex || "");
+  const diffLabel = diffMeta?.name || node?.difficultyName;
 
   return (
     <div className="min-h-screen bg-[#060a10] text-white relative overflow-hidden flex flex-col">
@@ -407,9 +404,12 @@ export default function MissionDetailPage() {
                 {node.title}
               </h1>
               <div className="flex flex-wrap items-center gap-2.5">
-                {node.difficultyName && (
-                  <span className={`inline-flex items-center text-xs font-mono px-3 py-1.5 rounded-full border ${diff.bg} ${diff.color}`}>
-                    {diff.label}
+                {diffLabel && (
+                  <span
+                    className="inline-flex items-center text-xs font-mono px-3 py-1.5 rounded-full border"
+                    style={diffStyle}
+                  >
+                    {diffLabel}
                   </span>
                 )}
                 <div className="flex items-center gap-1.5 text-[#FFD700] text-sm font-mono px-3 py-1.5 rounded-full border border-[#FFD700]/20 bg-[#FFD700]/5">

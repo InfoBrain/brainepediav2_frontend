@@ -34,6 +34,7 @@ import {
 import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
+import { useDifficulties, buildDifficultyLookup, getDifficultyStyle } from "@/hooks/useDifficulties";
 
 type ProblemNode = {
   problemNodeId: string;
@@ -45,6 +46,7 @@ type ProblemNode = {
   experiencePoints: number;
   estimatedMinutes: number;
   difficultyName?: string;
+  difficultyId?: string;
   districtId?: string;
 };
 
@@ -96,15 +98,9 @@ function normProblemNode(data: any): ProblemNode {
     experiencePoints: Number(data?.experiencePoints ?? 0),
     estimatedMinutes: Number(data?.estimatedMinutes ?? 0),
     difficultyName: data?.difficultyName || data?.difficulty?.name || "",
+    difficultyId: data?.difficultyId || data?.difficulty?.difficultyId || data?.difficulty?.id || "",
     districtId: data?.districtId || "",
   };
-}
-
-function getDiffMeta(name: string) {
-  const l = (name || "").toLowerCase();
-  if (l.includes("easy") || l.includes("beginner")) return { color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/30" };
-  if (l.includes("hard") || l.includes("expert")) return { color: "text-red-400", bg: "bg-red-400/10 border-red-400/30" };
-  return { color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/30" };
 }
 
 function fileIcon(file: File) {
@@ -158,11 +154,14 @@ function CollapsibleSection({
 function MissionPanel({
   node,
   elapsed,
+  diffStyle,
+  diffLabel,
 }: {
   node: ProblemNode;
   elapsed: number;
+  diffStyle?: React.CSSProperties;
+  diffLabel?: string;
 }) {
-  const diff = getDiffMeta(node.difficultyName || "");
   const mins = Math.floor(elapsed / 60);
   const secs = elapsed % 60;
 
@@ -175,9 +174,12 @@ function MissionPanel({
         </p>
         <h2 className="text-base font-bold text-white leading-snug mb-3">{node.title}</h2>
         <div className="flex flex-wrap gap-2">
-          {node.difficultyName && (
-            <span className={`text-[11px] font-mono px-2 py-1 rounded-full border ${diff.bg} ${diff.color}`}>
-              {node.difficultyName}
+          {(diffLabel || node.difficultyName) && (
+            <span
+              className="text-[11px] font-mono px-2 py-1 rounded-full border"
+              style={diffStyle || getDifficultyStyle("")}
+            >
+              {diffLabel || node.difficultyName}
             </span>
           )}
           <span className="flex items-center gap-1 text-[11px] font-mono px-2 py-1 rounded-full border border-[#FFD700]/20 bg-[#FFD700]/5 text-[#FFD700]">
@@ -549,6 +551,13 @@ export default function SolvePage() {
 
   const node: ProblemNode | undefined = session?.problemNode || problemNode;
 
+  const { data: difficulties } = useDifficulties();
+  const difficultyLookup = buildDifficultyLookup(difficulties);
+  const nodeDifficultyId = node?.difficultyId || "";
+  const diffMeta = difficultyLookup[nodeDifficultyId];
+  const diffStyle = getDifficultyStyle(diffMeta?.rankColorHex || "");
+  const diffLabel = diffMeta?.name || node?.difficultyName || "";
+
   // File drag & drop
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -664,7 +673,7 @@ export default function SolvePage() {
       {!isLoading && !isError && (
         <div className="flex-1 flex overflow-hidden">
           {/* Left: Mission Panel */}
-          {node && <MissionPanel node={node} elapsed={elapsed} />}
+          {node && <MissionPanel node={node} elapsed={elapsed} diffStyle={diffStyle} diffLabel={diffLabel} />}
 
           {/* Right: Workspace */}
           <div className="flex-1 overflow-y-auto flex flex-col">

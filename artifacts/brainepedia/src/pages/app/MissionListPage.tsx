@@ -23,6 +23,7 @@ import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
+import { useDifficulties, buildDifficultyLookup, getDifficultyStyle, type DifficultyMeta } from "@/hooks/useDifficulties";
 
 type Mission = {
   problemNodeId: string;
@@ -51,7 +52,7 @@ function normMissions(data: any): Mission[] {
     expectedOutcomes: Array.isArray(x.expectedOutcomes) ? x.expectedOutcomes : [],
     experiencePoints: Number(x.experiencePoints ?? 0),
     estimatedMinutes: Number(x.estimatedMinutes ?? 0),
-    difficultyId: x.difficultyId || "",
+    difficultyId: x.difficultyId || x.difficulty?.difficultyId || x.difficulty?.id || "",
     difficultyName: x.difficultyName || x.difficulty?.name || "",
     districtId: x.districtId || "",
     isStarted: Boolean(x.isStarted),
@@ -66,15 +67,6 @@ function normDistrict(data: any) {
     description: data?.description || "",
     completionPercentage: Number(data?.completionPercentage ?? 0),
   };
-}
-
-function getDifficultyMeta(name: string) {
-  const lower = (name || "").toLowerCase();
-  if (lower.includes("easy") || lower.includes("beginner") || lower === "1")
-    return { color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/30", dot: "bg-emerald-400" };
-  if (lower.includes("hard") || lower.includes("expert") || lower.includes("advanced"))
-    return { color: "text-red-400", bg: "bg-red-400/10 border-red-400/30", dot: "bg-red-400" };
-  return { color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/30", dot: "bg-amber-400" };
 }
 
 function getMissionStatus(m: Mission) {
@@ -106,10 +98,11 @@ function SkeletonMissionCard({ index }: { index: number }) {
   );
 }
 
-function MissionCard({ mission, index, onClick }: { mission: Mission; index: number; onClick: () => void }) {
+function MissionCard({ mission, index, onClick, difficultyMeta }: { mission: Mission; index: number; onClick: () => void; difficultyMeta?: DifficultyMeta }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const status = getMissionStatus(mission);
-  const diff = getDifficultyMeta(mission.difficultyName || "");
+  const diffStyle = getDifficultyStyle(difficultyMeta?.rankColorHex || "");
+  const diffLabel = difficultyMeta?.name || mission.difficultyName;
 
   const isInProgress = mission.isStarted && !mission.isCompleted;
   const cardBorder = mission.isCompleted
@@ -152,10 +145,13 @@ function MissionCard({ mission, index, onClick }: { mission: Mission; index: num
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        {mission.difficultyName && (
-          <span className={`inline-flex items-center gap-1.5 text-[11px] font-mono px-2.5 py-1 rounded-full border ${diff.bg} ${diff.color}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${diff.dot}`} />
-            {mission.difficultyName}
+        {diffLabel && (
+          <span
+            className="inline-flex items-center gap-1.5 text-[11px] font-mono px-2.5 py-1 rounded-full border"
+            style={diffStyle}
+          >
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: diffStyle.color }} />
+            {diffLabel}
           </span>
         )}
         <span className={`inline-flex items-center text-[11px] font-mono px-2.5 py-1 rounded-full border ${status.bg} ${status.color}`}>
@@ -354,6 +350,9 @@ export default function MissionListPage() {
     enabled: Boolean(districtId),
     staleTime: 5 * 60 * 1000,
   });
+
+  const { data: difficulties } = useDifficulties();
+  const difficultyLookup = buildDifficultyLookup(difficulties);
 
   const total = missions?.length ?? 0;
   const completed = missions?.filter(m => m.isCompleted).length ?? 0;
@@ -564,6 +563,7 @@ export default function MissionListPage() {
                 mission={mission}
                 index={i}
                 onClick={() => navigate(`/app/mission/${mission.problemNodeId}`)}
+                difficultyMeta={difficultyLookup[mission.difficultyId]}
               />
             ))}
           </div>
