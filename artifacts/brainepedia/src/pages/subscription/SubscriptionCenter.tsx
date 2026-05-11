@@ -150,7 +150,9 @@ export default function SubscriptionCenter() {
   const handleUpgrade = async () => {
     if (!upgradeTarget || !userId) return;
     setUpgradeLoading(true);
-    const res = await api.subscriptions.initializeUpgrade({ userId, newTier: upgradeTarget });
+    const tierDef = TIERS.find(t => t.key === upgradeTarget);
+    const newTier = tierDef?.numericTier ?? 1;
+    const res = await api.subscriptions.initializeUpgrade({ userId, newTier, currency: "NGN", source: "paystack" });
     setUpgradeLoading(false);
     const data = res.data as { checkoutUrl?: string; authorization_url?: string } | null;
     const url = data?.checkoutUrl || data?.authorization_url;

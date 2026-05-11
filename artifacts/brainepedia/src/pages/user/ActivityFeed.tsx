@@ -273,6 +273,7 @@ export default function ActivityFeed() {
     api.submissions.forUser(userId).then((res) => {
       setSubLoading(false);
       if (res.ok) setSubmissions(normSubmissions(res.data));
+      else if (res.status === 404) setSubmissions([]);
       else setSubError(true);
     });
   }, [userId, navigate]);
