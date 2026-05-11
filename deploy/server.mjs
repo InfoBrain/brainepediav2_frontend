@@ -1,5 +1,4 @@
 import express from "express";
-import { createRequire } from "module";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -28,12 +27,19 @@ function timeoutForUrl(url) {
   return AI_PATHS.some((p) => url.includes(p)) ? 120_000 : 30_000;
 }
 
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+// Proxy all /api/* requests to the upstream — raw body passthrough (no body parsing)
+app.use("/api", async (req, res) => {
+  // Collect the raw request body without any parsing so multipart/FormData is preserved
+  const chunks = [];
+  for await (const chunk of req) {
+    chunks.push(chunk);
+  }
+  const rawBody = Buffer.concat(chunks);
 
-app.all(/^\/api\/(.*)/, async (req, res) => {
-  const url = `${UPSTREAM}/api/${req.params[0]}${req.url.includes("?") ? "?" + req.url.split("?")[1] : ""}`;
+  // Build the upstream URL: req.url here is relative to the /api mount point
+  const url = `${UPSTREAM}/api${req.url}`;
 
+  // Forward all headers except hop-by-hop ones
   const headers = {};
   for (const [key, value] of Object.entries(req.headers)) {
     if (value === undefined) continue;
@@ -42,18 +48,18 @@ app.all(/^\/api\/(.*)/, async (req, res) => {
   }
 
   const method = req.method.toUpperCase();
-  const hasBody = method !== "GET" && method !== "HEAD";
-  let body;
-  if (hasBody && req.body !== undefined && req.body !== null) {
-    body = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
-    if (!headers["content-type"]) headers["content-type"] = "application/json";
-  }
+  const hasBody = method !== "GET" && method !== "HEAD" && rawBody.length > 0;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutForUrl(url));
 
   try {
-    const upstream = await fetch(url, { method, headers, body, signal: controller.signal });
+    const upstream = await fetch(url, {
+      method,
+      headers,
+      body: hasBody ? rawBody : undefined,
+      signal: controller.signal,
+    });
     clearTimeout(timer);
 
     res.status(upstream.status);
@@ -81,9 +87,11 @@ app.all(/^\/api\/(.*)/, async (req, res) => {
   }
 });
 
+// Serve the built React SPA
 const PUBLIC_DIR = path.join(__dirname, "public");
 app.use(express.static(PUBLIC_DIR));
 
+// SPA fallback — return index.html for all non-file routes
 app.get("*", (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
