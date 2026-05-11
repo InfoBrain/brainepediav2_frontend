@@ -217,7 +217,7 @@ export default function MissionDetailPage() {
       const res = await api.experienceSessions.getActive(userId, problemNodeId);
       if (!res.ok || !res.data) return null;
       const d = res.data as Record<string, unknown>;
-      return { sessionId: String(d.sessionId || d.id || ""), status: String(d.status || "active") };
+      return { sessionId: String(d.sessionId || d.experienceSessionId || d.id || ""), status: String(d.status || "active") };
     },
     enabled: Boolean(userId) && Boolean(problemNodeId),
     staleTime: 30 * 1000,
@@ -228,30 +228,35 @@ export default function MissionDetailPage() {
   const difficultyLookup = buildDifficultyLookup(difficulties);
 
   const isCompleted = node?.isCompleted ?? false;
-  const hasActiveSession = Boolean(activeSession?.sessionId);
+  const hasActiveSession = Boolean(activeSession?.sessionId) && activeSession?.status !== "completed";
 
+  // For completed missions: find the latest submissionId via GET /api/Submissions/session/{sessionId}
   const {
     data: latestSubmissionId,
     isLoading: submissionLookupLoading,
   } = useQuery<string | null>({
-    queryKey: ["latest-submission", userId, problemNodeId],
+    queryKey: ["latest-submission", userId, problemNodeId, activeSession?.sessionId],
     queryFn: async () => {
       if (!userId || !problemNodeId) return null;
-      const res = await api.submissions.forUser(userId);
+      const sessionId = activeSession?.sessionId;
+      if (!sessionId) return null;
+      const res = await api.submissions.getBySession(sessionId);
       if (!res.ok) return null;
       const arr = Array.isArray(res.data)
         ? res.data
         : res.data?.submissions || res.data?.data || [];
-      const match = arr.find(
-        (s: any) =>
-          s.problemNodeId === problemNodeId ||
-          s.ProblemNodeId === problemNodeId ||
-          s.problemNode?.problemNodeId === problemNodeId ||
-          s.problemNode?.id === problemNodeId
-      );
-      return match ? String(match.submissionId || match.id || "") : null;
+      if (!arr.length) return null;
+      // Pick submission with highest score, or most recent
+      const sorted = [...arr].sort((a: any, b: any) => {
+        const aScore = Number(a?.evaluation?.score ?? a?.score ?? 0);
+        const bScore = Number(b?.evaluation?.score ?? b?.score ?? 0);
+        if (bScore !== aScore) return bScore - aScore;
+        return new Date(b?.dateCreated || 0).getTime() - new Date(a?.dateCreated || 0).getTime();
+      });
+      const best = sorted[0];
+      return String(best?.submissionId || best?.id || "");
     },
-    enabled: Boolean(userId) && Boolean(problemNodeId) && isCompleted,
+    enabled: Boolean(userId) && Boolean(problemNodeId) && isCompleted && Boolean(activeSession?.sessionId),
     staleTime: 60 * 1000,
     retry: false,
   });
@@ -284,10 +289,27 @@ export default function MissionDetailPage() {
     setStartError(res.error || "Failed to start mission. Please try again.");
   }
 
-  function handleResume() {
+  async function handleResume() {
+    if (!userId) { navigate("/auth/login"); return; }
+    setStarting(true);
+    setStartError(null);
+    // Call start — API returns existing session or creates one
+    const res = await api.experienceSessions.start({ userId, problemNodeId });
+    setStarting(false);
+
+    if (res.ok) {
+      const rd = res.data as Record<string, unknown>;
+      const sessionId = String(rd?.sessionId || rd?.experienceSessionId || rd?.id || "");
+      if (sessionId) { navigate(`/app/session/${sessionId}/solve`); return; }
+    }
+
+    // 409 = session already exists — use the cached sessionId
     if (activeSession?.sessionId) {
       navigate(`/app/session/${activeSession.sessionId}/solve`);
+      return;
     }
+
+    setStartError(res.error || "Failed to resume mission. Please try again.");
   }
 
   const diffMeta = node ? difficultyLookup[node.difficultyId] : undefined;
@@ -554,10 +576,14 @@ export default function MissionDetailPage() {
               ) : hasActiveSession ? (
                 <button
                   onClick={handleResume}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-base font-bold font-mono hover:bg-amber-500/20 hover:scale-[1.01] transition-all duration-200"
+                  disabled={starting}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-base font-bold font-mono hover:bg-amber-500/20 hover:scale-[1.01] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <RotateCcw className="w-5 h-5" />
-                  Resume Mission
+                  {starting ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Resuming…</>
+                  ) : (
+                    <><RotateCcw className="w-5 h-5" /> Resume Mission</>
+                  )}
                 </button>
               ) : (
                 <button

@@ -211,6 +211,10 @@ export const api = {
       fetchApi("/api/Submissions/submit", { method: "POST", body: formData }),
     get: (submissionId: string) =>
       fetchApi(`/api/Submissions/${encodeURIComponent(submissionId)}`),
+    /** GET /api/Submissions/session/{sessionId} — submissions for a session */
+    getBySession: (sessionId: string) =>
+      fetchApi(`/api/Submissions/session/${encodeURIComponent(sessionId)}`),
+    /** GET /api/Submissions/user/{userId} — all submissions for a user (ActivityFeed) */
     forUser: (userId: string) =>
       fetchApi(`/api/Submissions/user/${encodeURIComponent(userId)}`),
   },
@@ -227,6 +231,9 @@ export const api = {
       fetchApi("/api/Evaluations/chat-brainiac", { method: "POST", body: JSON.stringify(data) }),
     process: (submissionId: string) =>
       fetchApi(`/api/Evaluations/process/${encodeURIComponent(submissionId)}`, { method: "POST" }),
+    /** GET /api/Evaluations/results/{submissionId} — full evaluated result */
+    getResult: (submissionId: string) =>
+      fetchApi(`/api/Evaluations/results/${encodeURIComponent(submissionId)}`),
   },
   problemNodes: {
     byDistrict: (districtId: string, userId?: string | null) =>

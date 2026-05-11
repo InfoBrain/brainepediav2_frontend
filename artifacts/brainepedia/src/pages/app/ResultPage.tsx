@@ -264,11 +264,38 @@ export default function ResultPage() {
   const difficultyLookup = buildDifficultyLookup(difficulties);
 
   const { data: submission, isLoading, isError, refetch } = useQuery<Submission>({
-    queryKey: ["submission", submissionId],
+    queryKey: ["submission-result", submissionId],
     queryFn: async () => {
-      const res = await api.submissions.get(submissionId);
-      if (!res.ok) throw new Error(res.error || "Failed to load result");
-      return normSubmission(res.data);
+      // Fetch both endpoints in parallel
+      const [evalRes, subRes] = await Promise.all([
+        api.evaluations.getResult(submissionId),
+        api.submissions.get(submissionId),
+      ]);
+
+      if (!evalRes.ok && !subRes.ok) {
+        throw new Error(evalRes.error || subRes.error || "Failed to load result");
+      }
+
+      // Merge: evaluation data from evalRes (primary), submission metadata from subRes
+      const evalData = evalRes.ok ? (evalRes.data as Record<string, any>) : {};
+      const subData = subRes.ok ? (subRes.data as Record<string, any>) : {};
+
+      // Build merged object — evalRes fields are PascalCase, normSubmission handles both
+      const merged = {
+        ...subData,
+        evaluation: {
+          score: evalData?.Score ?? evalData?.score ?? subData?.evaluation?.score ?? 0,
+          isPassed: evalData?.IsPassed ?? evalData?.isPassed ?? subData?.evaluation?.isPassed ?? false,
+          strengths: evalData?.Strengths ?? evalData?.strengths ?? subData?.evaluation?.strengths ?? [],
+          weaknesses: evalData?.Weaknesses ?? evalData?.weaknesses ?? subData?.evaluation?.weaknesses ?? [],
+          positiveFeedback: evalData?.PositiveFeedback ?? evalData?.positiveFeedback ?? subData?.evaluation?.positiveFeedback ?? [],
+          improvementAreas: evalData?.ImprovementAreas ?? evalData?.improvementAreas ?? subData?.evaluation?.improvementAreas ?? [],
+          rawAiReasoning: evalData?.RawAiReasoning ?? evalData?.rawAiReasoning ?? subData?.evaluation?.rawAiReasoning ?? "",
+        },
+        missionTitle: evalData?.MissionTitle ?? evalData?.missionTitle ?? subData?.experienceSession?.problemNode?.title ?? subData?.missionTitle,
+      };
+
+      return normSubmission(merged);
     },
     enabled: Boolean(submissionId),
     staleTime: 10 * 60 * 1000,
