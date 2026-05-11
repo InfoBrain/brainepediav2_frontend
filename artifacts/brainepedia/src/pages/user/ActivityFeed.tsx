@@ -22,6 +22,8 @@ import {
   ThumbsUp,
   AlertTriangle,
   ArrowDownUp,
+  TrendingUp,
+  ChevronUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
@@ -57,6 +59,9 @@ type UserSubmission = {
   score?: number;
   feedbackSnippet?: string;
   feedbackKind?: "strength" | "weakness";
+  strengths: string[];
+  weaknesses: string[];
+  improvementAreas: string[];
 };
 
 type EventType = "badge" | "profile" | "subscription" | "xp" | "system" | "other";
@@ -164,11 +169,16 @@ function normSubmissions(d: any): UserSubmission[] {
     const strengths = parseEvalArr(evalData?.strengths);
     const weaknesses = parseEvalArr(evalData?.weaknesses);
     const positiveFeedback = parseEvalArr(evalData?.positiveFeedback);
+    const improvementAreas = parseEvalArr(
+      evalData?.improvementAreas || evalData?.areasOfImprovement || evalData?.improvements
+    );
+
+    const allStrengths = [...new Set([...strengths, ...positiveFeedback])];
 
     let feedbackSnippet: string | undefined;
     let feedbackKind: "strength" | "weakness" | undefined;
 
-    const firstStrength = strengths[0] || positiveFeedback[0];
+    const firstStrength = allStrengths[0];
     if (firstStrength) {
       feedbackSnippet = truncate(firstStrength);
       feedbackKind = "strength";
@@ -187,6 +197,9 @@ function normSubmissions(d: any): UserSubmission[] {
       score: Number(evalData?.score ?? x.score ?? 0),
       feedbackSnippet,
       feedbackKind,
+      strengths: allStrengths,
+      weaknesses,
+      improvementAreas,
     };
   }).filter((s: UserSubmission) => Boolean(s.submissionId));
 }
@@ -267,6 +280,16 @@ export default function ActivityFeed() {
   const [subStatusFilter, setSubStatusFilter] = useState<SubStatusFilter>("all");
   const [subDifficultyFilter, setSubDifficultyFilter] = useState<string>("all");
   const [subSortOrder, setSubSortOrder] = useState<SubSortOrder>("date-desc");
+  const [expandedFeedback, setExpandedFeedback] = useState<Set<string>>(new Set());
+
+  function toggleFeedback(submissionId: string) {
+    setExpandedFeedback((prev) => {
+      const next = new Set(prev);
+      if (next.has(submissionId)) next.delete(submissionId);
+      else next.add(submissionId);
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (!userId) {
@@ -533,78 +556,180 @@ export default function ActivityFeed() {
 
           {!subLoading && !subError && submissions.length > 0 && filteredSubs.length > 0 && (
             <div className="space-y-3">
-              {pagedSubs.map((sub, i) => (
+              {pagedSubs.map((sub, i) => {
+                const isExpanded = expandedFeedback.has(sub.submissionId);
+                const hasFeedback =
+                  sub.strengths.length > 0 ||
+                  sub.weaknesses.length > 0 ||
+                  sub.improvementAreas.length > 0;
+                return (
                 <motion.div
                   key={sub.submissionId}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04 }}
-                  className="rounded-xl border border-gray-800 bg-[#0d1119]/60 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 hover:border-gray-700 transition-colors"
+                  className="rounded-xl border border-gray-800 bg-[#0d1119]/60 hover:border-gray-700 transition-colors overflow-hidden"
                 >
-                  {/* Pass/fail indicator */}
-                  <div className="shrink-0">
-                    {sub.isPassed ? (
-                      <div className="h-8 w-8 rounded-full bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                      </div>
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-red-400/10 border border-red-400/30 flex items-center justify-center">
-                        <XCircle className="h-4 w-4 text-red-400" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{sub.missionTitle}</p>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
-                      {sub.difficultyName && (
-                        <span className="text-[11px] font-mono text-white/30">{sub.difficultyName}</span>
-                      )}
-                      {sub.score !== undefined && sub.score > 0 && (
-                        <span className={`text-[11px] font-mono ${sub.isPassed ? "text-emerald-400" : "text-red-400"}`}>
-                          {sub.score}%
-                        </span>
-                      )}
-                      {(sub.netXpGained ?? 0) > 0 && (
-                        <span className="text-[11px] font-mono text-[#FFD700] flex items-center gap-0.5">
-                          <Star className="h-2.5 w-2.5" />
-                          +{sub.netXpGained} XP
-                        </span>
-                      )}
-                      {sub.submittedAt && (
-                        <span className="text-[11px] font-mono text-white/25 flex items-center gap-1">
-                          <Clock className="h-2.5 w-2.5" />
-                          {formatAbsolute(sub.submittedAt)}
-                        </span>
+                  {/* Main row */}
+                  <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                    {/* Pass/fail indicator */}
+                    <div className="shrink-0">
+                      {sub.isPassed ? (
+                        <div className="h-8 w-8 rounded-full bg-emerald-400/10 border border-emerald-400/30 flex items-center justify-center">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                        </div>
+                      ) : (
+                        <div className="h-8 w-8 rounded-full bg-red-400/10 border border-red-400/30 flex items-center justify-center">
+                          <XCircle className="h-4 w-4 text-red-400" />
+                        </div>
                       )}
                     </div>
-                    {sub.feedbackSnippet && (
-                      <div className="flex items-start gap-1.5 mt-1.5">
-                        {sub.feedbackKind === "strength" ? (
-                          <ThumbsUp className="h-3 w-3 text-emerald-400/70 shrink-0 mt-0.5" />
-                        ) : (
-                          <AlertTriangle className="h-3 w-3 text-amber-400/70 shrink-0 mt-0.5" />
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{sub.missionTitle}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
+                        {sub.difficultyName && (
+                          <span className="text-[11px] font-mono text-white/30">{sub.difficultyName}</span>
                         )}
-                        <p className={`text-[11px] leading-relaxed ${
-                          sub.feedbackKind === "strength" ? "text-emerald-400/60" : "text-amber-400/60"
-                        }`}>
-                          {sub.feedbackSnippet}
-                        </p>
+                        {sub.score !== undefined && sub.score > 0 && (
+                          <span className={`text-[11px] font-mono ${sub.isPassed ? "text-emerald-400" : "text-red-400"}`}>
+                            {sub.score}%
+                          </span>
+                        )}
+                        {(sub.netXpGained ?? 0) > 0 && (
+                          <span className="text-[11px] font-mono text-[#FFD700] flex items-center gap-0.5">
+                            <Star className="h-2.5 w-2.5" />
+                            +{sub.netXpGained} XP
+                          </span>
+                        )}
+                        {sub.submittedAt && (
+                          <span className="text-[11px] font-mono text-white/25 flex items-center gap-1">
+                            <Clock className="h-2.5 w-2.5" />
+                            {formatAbsolute(sub.submittedAt)}
+                          </span>
+                        )}
                       </div>
-                    )}
+                      {sub.feedbackSnippet && !isExpanded && (
+                        <div className="flex items-start gap-1.5 mt-1.5">
+                          {sub.feedbackKind === "strength" ? (
+                            <ThumbsUp className="h-3 w-3 text-emerald-400/70 shrink-0 mt-0.5" />
+                          ) : (
+                            <AlertTriangle className="h-3 w-3 text-amber-400/70 shrink-0 mt-0.5" />
+                          )}
+                          <p className={`text-[11px] leading-relaxed ${
+                            sub.feedbackKind === "strength" ? "text-emerald-400/60" : "text-amber-400/60"
+                          }`}>
+                            {sub.feedbackSnippet}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {hasFeedback && (
+                        <button
+                          onClick={() => toggleFeedback(sub.submissionId)}
+                          aria-expanded={isExpanded}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono font-medium transition-colors whitespace-nowrap ${
+                            isExpanded
+                              ? "border-[#9D4EDD]/50 bg-[#9D4EDD]/15 text-[#9D4EDD] hover:bg-[#9D4EDD]/20"
+                              : "border-white/15 bg-white/5 text-white/50 hover:text-white/80 hover:border-white/30"
+                          }`}
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="h-3 w-3" />
+                          ) : (
+                            <ChevronDown className="h-3 w-3" />
+                          )}
+                          {isExpanded ? "Hide feedback" : "Show feedback"}
+                        </button>
+                      )}
+                      <Link
+                        href={`/app/submission/${sub.submissionId}/result`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#00D2FF]/30 bg-[#00D2FF]/8 text-[#00D2FF] text-xs font-mono font-medium hover:bg-[#00D2FF]/15 hover:border-[#00D2FF]/50 transition-colors whitespace-nowrap"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        View Result
+                      </Link>
+                    </div>
                   </div>
 
-                  {/* View Result link */}
-                  <Link
-                    href={`/app/submission/${sub.submissionId}/result`}
-                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#00D2FF]/30 bg-[#00D2FF]/8 text-[#00D2FF] text-xs font-mono font-medium hover:bg-[#00D2FF]/15 hover:border-[#00D2FF]/50 transition-colors whitespace-nowrap"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    View Result
-                  </Link>
+                  {/* Expanded feedback panel */}
+                  <AnimatePresence>
+                    {isExpanded && hasFeedback && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 pb-4 pt-1 border-t border-white/6 space-y-3">
+                          {sub.strengths.length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-1.5 mb-1.5">
+                                <ThumbsUp className="h-3 w-3 text-emerald-400" />
+                                <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400/80">
+                                  Strengths
+                                </span>
+                              </div>
+                              <ul className="space-y-1">
+                                {sub.strengths.map((s, idx) => (
+                                  <li key={idx} className="flex items-start gap-2">
+                                    <span className="mt-1.5 h-1 w-1 rounded-full bg-emerald-400/50 shrink-0" />
+                                    <p className="text-[12px] text-emerald-300/70 leading-relaxed">{s}</p>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {sub.weaknesses.length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-1.5 mb-1.5">
+                                <AlertTriangle className="h-3 w-3 text-amber-400" />
+                                <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400/80">
+                                  Weaknesses
+                                </span>
+                              </div>
+                              <ul className="space-y-1">
+                                {sub.weaknesses.map((w, idx) => (
+                                  <li key={idx} className="flex items-start gap-2">
+                                    <span className="mt-1.5 h-1 w-1 rounded-full bg-amber-400/50 shrink-0" />
+                                    <p className="text-[12px] text-amber-300/70 leading-relaxed">{w}</p>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {sub.improvementAreas.length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-1.5 mb-1.5">
+                                <TrendingUp className="h-3 w-3 text-[#00D2FF]" />
+                                <span className="text-[10px] font-mono uppercase tracking-widest text-[#00D2FF]/80">
+                                  Areas to Improve
+                                </span>
+                              </div>
+                              <ul className="space-y-1">
+                                {sub.improvementAreas.map((a, idx) => (
+                                  <li key={idx} className="flex items-start gap-2">
+                                    <span className="mt-1.5 h-1 w-1 rounded-full bg-[#00D2FF]/40 shrink-0" />
+                                    <p className="text-[12px] text-[#00D2FF]/60 leading-relaxed">{a}</p>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
-              ))}
+                );
+              })}
 
               {hasMoreSubs && (
                 <div className="flex justify-center pt-1">
