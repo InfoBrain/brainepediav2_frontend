@@ -1,46 +1,48 @@
 # Brainepedia — Self-Hosted Deployment
 
-## Requirements
+No `npm install` needed. Everything is bundled into `server.js`.
 
-- Node.js 18 or later (no `npm install` needed — everything is bundled)
+---
 
-## Start the Server
+## Option A — IIS (Windows Server) with iisnode
+
+**Requirements**: IIS + [iisnode](https://github.com/tjanczuk/iisnode) + URL Rewrite module
+
+1. Install [iisnode](https://github.com/tjanczuk/iisnode/releases) on your Windows Server
+2. Install [URL Rewrite](https://www.iis.net/downloads/microsoft/url-rewrite) module for IIS
+3. Copy the entire `brainepedia/` folder contents into your IIS site root (e.g. `C:\inetpub\wwwroot\`)
+4. The included `web.config` configures IIS to route all requests through `server.js`
+5. Set the environment variable in IIS: `PORT` = `3000` (or any free port)
+6. Restart the IIS site — the app will be live
+
+---
+
+## Option B — Standalone Node.js (Linux/Windows, behind Nginx or Apache)
+
+**Requirements**: Node.js 14 or later
 
 ```bash
-node server.mjs
+node server.js
 ```
 
 Or on a specific port:
 
 ```bash
-PORT=8080 node server.mjs
+PORT=3000 node server.js
 ```
 
 Defaults to port **3000** if `PORT` is not set.
 
-## How It Works
-
-- `server.mjs` is a fully self-contained Node.js static file server (express is bundled in — no install needed).
-- The React app calls the Brainepedia API at `https://api.brainepedia.com` directly from the browser.
-- All other routes fall back to `index.html` so client-side routing works correctly.
-
-## Deployment Steps
-
-1. Delete any old deployment files completely (do not merge — replace)
-2. Unzip this package into your server directory
-3. Run: `PORT=3000 node server.mjs`
-4. Hard-refresh your browser after deploying: `Ctrl+Shift+R`
-
-## Running with PM2 (recommended for production)
+### With PM2 (recommended for production):
 
 ```bash
 npm install -g pm2
-pm2 start server.mjs --name brainepedia
+pm2 start server.js --name brainepedia
 pm2 save
 pm2 startup
 ```
 
-## Running Behind Nginx
+### Nginx reverse proxy config:
 
 ```nginx
 server {
@@ -56,3 +58,12 @@ server {
     }
 }
 ```
+
+---
+
+## How It Works
+
+- `server.js` — self-contained Node.js server (express bundled in)
+- `public/` — built React SPA
+- The React app calls the API directly at `https://api.brainepedia.com`
+- All unknown routes return `index.html` so client-side routing works correctly
