@@ -198,6 +198,8 @@ function groupByDate(logs: ActivityLog[]): { label: string; entries: ActivityLog
 const PAGE_SIZE = 20;
 const SUB_PAGE_SIZE = 10;
 
+type SubStatusFilter = "all" | "passed" | "failed";
+
 export default function ActivityFeed() {
   const [, navigate] = useLocation();
   const userId = getUserId();
@@ -210,6 +212,8 @@ export default function ActivityFeed() {
   const [page, setPage] = useState(1);
   const [subPage, setSubPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [subStatusFilter, setSubStatusFilter] = useState<SubStatusFilter>("all");
+  const [subDifficultyFilter, setSubDifficultyFilter] = useState<string>("all");
 
   useEffect(() => {
     if (!userId) {
@@ -240,8 +244,22 @@ export default function ActivityFeed() {
   const grouped = useMemo(() => groupByDate(paged), [paged]);
   const hasMore = paged.length < filtered.length;
 
-  const pagedSubs = useMemo(() => submissions.slice(0, subPage * SUB_PAGE_SIZE), [submissions, subPage]);
-  const hasMoreSubs = pagedSubs.length < submissions.length;
+  const difficultyOptions = useMemo(() => {
+    const names = Array.from(new Set(submissions.map((s) => s.difficultyName).filter(Boolean))) as string[];
+    return names.sort();
+  }, [submissions]);
+
+  const filteredSubs = useMemo(() => {
+    return submissions.filter((s) => {
+      if (subStatusFilter === "passed" && !s.isPassed) return false;
+      if (subStatusFilter === "failed" && s.isPassed) return false;
+      if (subDifficultyFilter !== "all" && s.difficultyName !== subDifficultyFilter) return false;
+      return true;
+    });
+  }, [submissions, subStatusFilter, subDifficultyFilter]);
+
+  const pagedSubs = useMemo(() => filteredSubs.slice(0, subPage * SUB_PAGE_SIZE), [filteredSubs, subPage]);
+  const hasMoreSubs = pagedSubs.length < filteredSubs.length;
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: allLogs.length };
@@ -254,6 +272,18 @@ export default function ActivityFeed() {
     setPage(1);
     setFilterOpen(false);
   }
+
+  function handleSubStatusChange(next: SubStatusFilter) {
+    setSubStatusFilter(next);
+    setSubPage(1);
+  }
+
+  function handleSubDifficultyChange(next: string) {
+    setSubDifficultyFilter(next);
+    setSubPage(1);
+  }
+
+  const isSubFiltered = subStatusFilter !== "all" || subDifficultyFilter !== "all";
 
   const activeFilterLabel = EVENT_TYPES.find((t) => t.key === filter)?.label ?? "All Events";
 
@@ -297,7 +327,91 @@ export default function ActivityFeed() {
             </div>
           )}
 
-          {!subLoading && submissions.length > 0 && (
+          {!subLoading && !subError && submissions.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-xl border border-white/8 bg-white/3">
+              {/* Status filter */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-white/30 mr-0.5">Status</span>
+                {(["all", "passed", "failed"] as SubStatusFilter[]).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => handleSubStatusChange(s)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors border ${
+                      subStatusFilter === s
+                        ? s === "passed"
+                          ? "bg-emerald-400/15 border-emerald-400/40 text-emerald-400"
+                          : s === "failed"
+                          ? "bg-red-400/15 border-red-400/40 text-red-400"
+                          : "bg-[#00D2FF]/15 border-[#00D2FF]/40 text-[#00D2FF]"
+                        : "bg-transparent border-white/10 text-white/40 hover:text-white/70 hover:border-white/20"
+                    }`}
+                  >
+                    {s === "all" ? "All" : s === "passed" ? "Passed" : "Failed"}
+                  </button>
+                ))}
+              </div>
+
+              {/* Difficulty filter */}
+              {difficultyOptions.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-white/30 mr-0.5">Difficulty</span>
+                  <button
+                    onClick={() => handleSubDifficultyChange("all")}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors border ${
+                      subDifficultyFilter === "all"
+                        ? "bg-[#9D4EDD]/15 border-[#9D4EDD]/40 text-[#9D4EDD]"
+                        : "bg-transparent border-white/10 text-white/40 hover:text-white/70 hover:border-white/20"
+                    }`}
+                  >
+                    All
+                  </button>
+                  {difficultyOptions.map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => handleSubDifficultyChange(d)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors border ${
+                        subDifficultyFilter === d
+                          ? "bg-[#9D4EDD]/15 border-[#9D4EDD]/40 text-[#9D4EDD]"
+                          : "bg-transparent border-white/10 text-white/40 hover:text-white/70 hover:border-white/20"
+                      }`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Active filter summary + clear */}
+              {isSubFiltered && (
+                <div className="ml-auto flex items-center gap-2">
+                  <span className="text-[11px] font-mono text-white/30">
+                    {filteredSubs.length} / {submissions.length} shown
+                  </span>
+                  <button
+                    onClick={() => { handleSubStatusChange("all"); handleSubDifficultyChange("all"); }}
+                    className="text-[11px] font-mono text-[#00D2FF]/70 hover:text-[#00D2FF] transition-colors underline underline-offset-2"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!subLoading && !subError && isSubFiltered && filteredSubs.length === 0 && (
+            <div className="rounded-xl border border-dashed border-white/10 bg-white/2 px-6 py-8 text-center">
+              <Filter className="h-8 w-8 text-white/15 mx-auto mb-2" />
+              <p className="text-sm text-white/30">No missions match this filter.</p>
+              <button
+                onClick={() => { handleSubStatusChange("all"); handleSubDifficultyChange("all"); }}
+                className="mt-3 text-xs font-mono text-[#00D2FF]/70 hover:text-[#00D2FF] transition-colors underline underline-offset-2"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+
+          {!subLoading && !subError && submissions.length > 0 && filteredSubs.length > 0 && (
             <div className="space-y-3">
               {pagedSubs.map((sub, i) => (
                 <motion.div
@@ -367,7 +481,7 @@ export default function ActivityFeed() {
                     className="bg-[#0d1119] border-gray-700 text-gray-400 hover:text-white hover:border-[#00D2FF]/50 text-xs"
                   >
                     Load more
-                    <span className="ml-1.5 text-gray-600">({submissions.length - pagedSubs.length} remaining)</span>
+                    <span className="ml-1.5 text-gray-600">({filteredSubs.length - pagedSubs.length} remaining)</span>
                   </Button>
                 </div>
               )}
