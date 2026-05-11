@@ -19,6 +19,8 @@ import {
   XCircle,
   Star,
   Clock,
+  ThumbsUp,
+  AlertTriangle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
@@ -52,6 +54,8 @@ type UserSubmission = {
   netXpGained?: number;
   isPassed?: boolean;
   score?: number;
+  feedbackSnippet?: string;
+  feedbackKind?: "strength" | "weakness";
 };
 
 type EventType = "badge" | "profile" | "subscription" | "xp" | "system" | "other";
@@ -132,10 +136,46 @@ function normActivityLogs(d: any): ActivityLog[] {
   });
 }
 
+function parseEvalArr(v: any): string[] {
+  if (Array.isArray(v)) return v.map(String).filter(Boolean);
+  if (typeof v === "string") {
+    try {
+      const parsed = JSON.parse(v);
+      if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
+      if (typeof parsed === "string" && parsed) return [parsed];
+      return [];
+    } catch {
+      return v.trim() ? [v.trim()] : [];
+    }
+  }
+  return [];
+}
+
+function truncate(text: string, maxLen = 90): string {
+  if (text.length <= maxLen) return text;
+  return text.slice(0, maxLen).trimEnd() + "…";
+}
+
 function normSubmissions(d: any): UserSubmission[] {
   const arr = Array.isArray(d) ? d : d?.submissions || d?.data || [];
   return arr.map((x: any) => {
     const evalData = x.evaluation || x.evaluationResult || {};
+    const strengths = parseEvalArr(evalData?.strengths);
+    const weaknesses = parseEvalArr(evalData?.weaknesses);
+    const positiveFeedback = parseEvalArr(evalData?.positiveFeedback);
+
+    let feedbackSnippet: string | undefined;
+    let feedbackKind: "strength" | "weakness" | undefined;
+
+    const firstStrength = strengths[0] || positiveFeedback[0];
+    if (firstStrength) {
+      feedbackSnippet = truncate(firstStrength);
+      feedbackKind = "strength";
+    } else if (weaknesses[0]) {
+      feedbackSnippet = truncate(weaknesses[0]);
+      feedbackKind = "weakness";
+    }
+
     return {
       submissionId: x.submissionId || x.id || "",
       missionTitle: x.missionTitle || x.problemNode?.title || "Mission",
@@ -144,6 +184,8 @@ function normSubmissions(d: any): UserSubmission[] {
       netXpGained: Number(x.netXpGained ?? x.xpGained ?? evalData?.netXpGained ?? 0),
       isPassed: Boolean(evalData?.isPassed ?? x.isPassed),
       score: Number(evalData?.score ?? x.score ?? 0),
+      feedbackSnippet,
+      feedbackKind,
     };
   }).filter((s: UserSubmission) => Boolean(s.submissionId));
 }
@@ -459,6 +501,20 @@ export default function ActivityFeed() {
                         </span>
                       )}
                     </div>
+                    {sub.feedbackSnippet && (
+                      <div className="flex items-start gap-1.5 mt-1.5">
+                        {sub.feedbackKind === "strength" ? (
+                          <ThumbsUp className="h-3 w-3 text-emerald-400/70 shrink-0 mt-0.5" />
+                        ) : (
+                          <AlertTriangle className="h-3 w-3 text-amber-400/70 shrink-0 mt-0.5" />
+                        )}
+                        <p className={`text-[11px] leading-relaxed ${
+                          sub.feedbackKind === "strength" ? "text-emerald-400/60" : "text-amber-400/60"
+                        }`}>
+                          {sub.feedbackSnippet}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* View Result link */}
