@@ -401,6 +401,33 @@ export default function ActivityFeed() {
             </div>
           )}
 
+          {!subLoading && !subError && submissions.length > 0 && (() => {
+            const passed = submissions.filter((s) => s.isPassed).length;
+            const failed = submissions.length - passed;
+            const passRate = Math.round((passed / submissions.length) * 100);
+            return (
+              <div className="flex flex-wrap items-center gap-3 mb-4 px-4 py-3 rounded-xl border border-white/8 bg-white/3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <span className="text-sm font-semibold text-emerald-400">{passed}</span>
+                  <span className="text-xs font-mono text-white/40">passed</span>
+                </div>
+                <div className="w-px h-4 bg-white/10 shrink-0" />
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-red-400 shrink-0" />
+                  <span className="text-sm font-semibold text-red-400">{failed}</span>
+                  <span className="text-xs font-mono text-white/40">failed</span>
+                </div>
+                <div className="w-px h-4 bg-white/10 shrink-0" />
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-[#FFD700] shrink-0" />
+                  <span className="text-sm font-semibold text-[#FFD700]">{passRate}%</span>
+                  <span className="text-xs font-mono text-white/40">pass rate</span>
+                </div>
+              </div>
+            );
+          })()}
+
           {!subLoading && !subError && submissions.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-xl border border-white/8 bg-white/3">
               {/* Status filter */}
