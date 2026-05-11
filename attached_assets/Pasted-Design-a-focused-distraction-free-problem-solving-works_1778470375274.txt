@@ -1,0 +1,218 @@
+Design a focused, distraction-free problem-solving workspace where users can:
+
+Read the mission while working
+Write their solution (code + explanation)
+Attach evidence files
+Ask AI for help (Brainiac)
+Submit their work for evaluation
+📄 PAGE ROUTE
+/app/session/:sessionId/solve
+🔗 API INTEGRATION
+🔷 1. GET SESSION
+GET /api/ExperienceSessions/{id}
+🔷 2. SUBMIT WORK
+POST /api/Submissions/submit
+
+FormData:
+
+ExperienceSessionId
+ApproachExplanation
+CodeSnippet
+EvidenceFiles[]
+🔷 3. ASK AI (BRAINIAC)
+POST /api/Evaluations/ask-brainiac
+
+Body:
+
+{
+  "sessionId": "guid",
+  "userId": "string",
+  "currentApproach": "text",
+  "currentCode": "text"
+}
+🧩 PAGE LAYOUT
+⚠️ CRITICAL DESIGN RULE
+
+Use a split layout (2-column or 3-panel)
+
+🧱 LAYOUT STRUCTURE
+| LEFT PANEL (Mission) | RIGHT PANEL (Workspace) |
+🔷 LEFT PANEL (MISSION REFERENCE)
+
+Sticky panel
+
+Display:
+Title
+Difficulty
+XP
+Time
+Sections:
+📖 Context (collapsible)
+🎯 Mission Brief
+⚠️ Constraints
+✅ Expected Outcomes
+UX:
+Scrollable
+Collapsible sections
+Always accessible
+🔷 RIGHT PANEL (WORKSPACE)
+🧩 SECTION 1: APPROACH EXPLANATION
+
+Textarea:
+
+Label:
+
+👉 “Explain your approach”
+
+Placeholder:
+
+👉 “Describe how you plan to solve this problem…”
+
+🧩 SECTION 2: CODE EDITOR
+Use:
+Monaco Editor (VS Code-like)
+Features:
+Syntax highlighting
+Auto resize
+Line numbers
+Label:
+
+👉 “Your Solution (Code / Logic)”
+
+🧩 SECTION 3: FILE UPLOAD
+Upload multiple files:
+Images
+Code files
+ZIP
+UI:
+Drag & Drop zone
+Preview list
+Remove file option
+🤖 SECTION 4: BRAINIAC AI ASSISTANT
+
+This is a key differentiator
+
+🔷 UI COMPONENT
+
+Chat-style panel OR floating assistant
+
+Input:
+User types question OR clicks:
+
+👉 “Get Hint”
+
+API CALL
+POST /api/Evaluations/ask-brainiac
+RESPONSE
+{
+  response: "Try using media queries...",
+  penaltyApplied: 5
+}
+DISPLAY:
+AI message
+If penalty:
+
+⚠️ “-5 XP penalty applied”
+
+🧠 UX RULES
+Show typing animation:
+👉 “Brainiac is thinking…”
+Keep chat history (session-based)
+🔷 SECTION 5: ACTION BAR
+
+Sticky bottom bar
+
+BUTTONS:
+🔵 Submit Solution (Primary)
+⚪ Save Draft (Optional)
+🔴 Abandon Mission
+🔷 SUBMIT FLOW
+On click:
+Validate:
+Approach not empty
+Code not empty
+Call API
+SUCCESS RESPONSE
+{
+  submissionId,
+  message
+}
+REDIRECT:
+/app/submission/:submissionId/evaluating
+🔷 ABANDON FLOW
+API:
+PATCH /api/ExperienceSessions/{id}/abandon?userId=...
+Confirmation modal:
+
+👉 “Are you sure you want to abandon this mission?”
+
+🎨 UX DESIGN PRINCIPLES
+1. FOCUS MODE
+Minimal distractions
+Dark theme preferred
+Clean typography
+2. ALWAYS VISIBLE MISSION
+
+User should NEVER forget what they’re solving
+
+3. ENCOURAGE THINKING
+
+Don’t overpush AI help
+
+4. MAKE AI FEEL PREMIUM
+Smooth animation
+Smart responses
+Clear penalty feedback
+🔄 STATES
+LOADING
+Skeleton layout
+Editor disabled
+ERROR
+
+👉 “Failed to load session”
+
+EMPTY
+
+(Should never happen, but handle gracefully)
+
+🧩 COMPONENT BREAKDOWN
+1. SolvePage.tsx
+
+Handles:
+
+Fetch session
+Submit
+AI calls
+2. MissionPanel.tsx
+3. CodeEditor.tsx (Monaco)
+4. FileUploader.tsx
+5. BrainiacPanel.tsx
+6. ActionBar.tsx
+🚀 BONUS FEATURES (HIGH IMPACT)
+🔷 AUTO SAVE
+
+Save progress every few seconds
+
+🔷 TIMER
+
+Show:
+
+⏱ “Time spent: 12 mins”
+
+🔷 PROGRESS WARNING
+
+Before leaving:
+
+👉 “You have unsaved changes”
+
+🔷 XP PREVIEW
+
+👉 “Estimated XP: ~100 if passed”
+
+📦 EXPECTED OUTPUT FROM REPLIT
+Fully functional solving workspace
+Editor integrated
+AI assistant working
+Submission flow complete
+Clean, focused UX
+Smooth transitions
