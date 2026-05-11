@@ -14,12 +14,14 @@ import {
   Award,
   Briefcase,
   Crown,
+  Flame,
   Github,
   Globe,
   Linkedin,
   Pin,
   PinOff,
   Sparkles,
+  Target,
   Twitter,
   Facebook,
 } from "lucide-react";
@@ -44,6 +46,9 @@ type Profile = {
   twitter?: string;
   totalXP?: number;
   currentSubscription?: number;
+  problemsSolvedCount?: number;
+  dayStreak?: number;
+  experience?: number;
 };
 type Badge = {
   id?: string;
@@ -299,13 +304,34 @@ export default function ViewProfile() {
                 <SocialLink href={profile.facebook} icon={Facebook} label="Facebook" />
               </div>
             </div>
-            <div className="text-right shrink-0">
-              <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">Total XP</div>
-              <div className="text-3xl font-bold text-amber-400 inline-flex items-center gap-1">
-                <Sparkles className="h-5 w-5" />
-                {(profile.totalXP ?? 0).toLocaleString()}
-              </div>
-            </div>
+          </div>
+
+          {/* Stats row */}
+          <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatBadge
+              icon={<Sparkles className="h-4 w-4 text-amber-400" />}
+              label="Total XP"
+              value={(profile.totalXP ?? 0).toLocaleString()}
+              valueClass="text-amber-400"
+            />
+            <StatBadge
+              icon={<Target className="h-4 w-4 text-cyan-400" />}
+              label="Missions Solved"
+              value={(profile.problemsSolvedCount ?? 0).toLocaleString()}
+              valueClass="text-cyan-400"
+            />
+            <StatBadge
+              icon={<Flame className="h-4 w-4 text-orange-400" />}
+              label="Day Streak"
+              value={`${profile.dayStreak ?? 0}d`}
+              valueClass="text-orange-400"
+            />
+            <StatBadge
+              icon={<Briefcase className="h-4 w-4 text-[#A78BFA]" />}
+              label="Experience"
+              value={`${profile.experience ?? 0} yr${(profile.experience ?? 0) === 1 ? "" : "s"}`}
+              valueClass="text-[#A78BFA]"
+            />
           </div>
         </motion.section>
 
@@ -523,6 +549,30 @@ function SocialLink({
   );
 }
 
+function StatBadge({
+  icon,
+  label,
+  value,
+  valueClass,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/8 px-4 py-3">
+      <div className="shrink-0">{icon}</div>
+      <div className="min-w-0">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground leading-none mb-1">
+          {label}
+        </div>
+        <div className={`text-lg font-bold leading-none ${valueClass ?? ""}`}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
 function Empty({ text }: { text: string }) {
   return (
     <div className="py-10 text-center text-sm text-muted-foreground font-mono border border-dashed border-white/10 rounded-lg">
@@ -548,6 +598,9 @@ function normProfile(d: any): Profile {
     twitter: d.twitter || d.Twitter,
     totalXP: Number(d.totalXP ?? d.TotalXP ?? d.totalXp ?? 0),
     currentSubscription: Number(d.currentSubscription ?? d.CurrentSubscription ?? 0),
+    problemsSolvedCount: Number(d.problemsSolvedCount ?? d.ProblemsSolvedCount ?? d.missionsSolved ?? d.MissionsSolved ?? 0),
+    dayStreak: Number(d.dayStreak ?? d.DayStreak ?? d.streak ?? d.Streak ?? 0),
+    experience: Number(d.experience ?? d.Experience ?? d.yearsExperience ?? d.YearsExperience ?? 0),
   };
 }
 
