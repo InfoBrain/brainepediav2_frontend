@@ -409,14 +409,21 @@ export default function ResultPage() {
             <ArrowRight className="w-4 h-4" /> Continue Learning
           </button>
           {!passed && (
-            <button
-              onClick={() => resolvedProblemNodeId ? navigate(`/app/mission/${resolvedProblemNodeId}`) : undefined}
-              disabled={isSessionLoading || !resolvedProblemNodeId}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-white/10 text-white/50 font-mono text-sm hover:bg-white/5 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {isSessionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-              Try Again
-            </button>
+            <div className="flex-1 flex flex-col items-stretch gap-1">
+              <button
+                onClick={() => resolvedProblemNodeId ? navigate(`/app/mission/${resolvedProblemNodeId}`) : undefined}
+                disabled={isSessionLoading || !resolvedProblemNodeId}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-white/10 text-white/50 font-mono text-sm hover:bg-white/5 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isSessionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                Try Again
+              </button>
+              {!isSessionLoading && !resolvedProblemNodeId && (
+                <p className="text-center text-[11px] font-mono text-white/30">
+                  Mission no longer available
+                </p>
+              )}
+            </div>
           )}
           <Link href={dashPath}>
             <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-white/10 text-white/40 font-mono text-sm hover:bg-white/5 hover:text-white transition-colors">
