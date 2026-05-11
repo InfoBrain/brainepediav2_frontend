@@ -1,0 +1,176 @@
+Design a cinematic evaluation experience where:
+
+The system processes the user’s submission
+AI evaluates their work
+The user feels anticipation and engagement
+Automatically transitions to the result page
+📄 PAGE ROUTE
+/app/submission/:submissionId/evaluating
+🔗 API INTEGRATION
+🔷 TRIGGER EVALUATION
+POST /api/Evaluations/process/{submissionId}
+🔷 RESPONSE
+{
+  evaluation: {
+    score,
+    isPassed,
+    strengths: [],
+    weaknesses: [],
+    positiveFeedback: [],
+    improvementAreas: []
+  },
+  netXpGained
+}
+🧩 CORE UX CONCEPT
+❗ DO NOT SHOW RESULT IMMEDIATELY
+
+Simulate:
+
+👉 AI thinking
+👉 Deep analysis
+👉 Processing layers
+
+🎬 PAGE EXPERIENCE FLOW
+🔷 STEP 1: INITIAL STATE (0–2s)
+UI:
+Dark background
+Centered glowing orb / animation
+
+Text:
+
+"The Oracle is awakening..."
+🔷 STEP 2: ANALYSIS PHASE (2–6s)
+
+Animate multiple phases:
+
+Analyzing your approach...
+Reviewing logic structure...
+Evaluating best practices...
+Scoring your solution...
+UI Ideas:
+Progress bar OR
+Animated steps OR
+Rotating messages
+🔷 STEP 3: FINALIZING (6–8s)
+
+Text:
+
+"Finalizing your evaluation..."
+
+Add slight delay before reveal
+
+🔷 STEP 4: TRANSITION
+
+Automatically redirect to:
+
+/app/submission/:submissionId/result
+⚙️ IMPLEMENTATION LOGIC
+🔷 ON PAGE LOAD
+
+Call:
+
+POST /api/Evaluations/process/{submissionId}
+🔷 HANDLE RESPONSE
+Store result in state (or cache)
+DO NOT show immediately
+Wait for animation cycle (~6–8 seconds)
+🔷 AFTER DELAY
+
+Navigate to result page with data
+
+🎨 UI DESIGN
+🔷 VISUAL STYLE
+Dark theme (important)
+Glowing gradients
+Subtle motion
+Minimal UI
+🔷 CENTER ELEMENT
+
+Choose one:
+
+Animated orb
+Pulsing circle
+Neural network animation
+🔷 TEXT STYLE
+Large, spaced typography
+Soft fade transitions
+🔊 OPTIONAL SOUND (ADVANCED)
+Soft ambient tone
+Subtle “processing” sound
+🧠 UX PSYCHOLOGY
+1. BUILD ANTICIPATION
+
+User just submitted work → they care about result
+
+2. DELAY WITH PURPOSE
+
+Fake delay should feel meaningful
+
+3. AVOID BOREDOM
+
+Rotate messages every ~1.5s
+
+🔄 STATES
+🔷 LOADING (MAIN STATE)
+
+Custom animated experience (not spinner)
+
+🔷 ERROR STATE
+
+If API fails:
+
+"Evaluation failed. Please retry."
+[Retry Button]
+🔷 RETRY LOGIC
+
+Re-trigger:
+
+POST /process/{submissionId}
+🧩 COMPONENT STRUCTURE
+1. EvaluationPage.tsx
+
+Handles:
+
+API call
+Timer logic
+Redirect
+2. OracleAnimation.tsx
+
+Handles:
+
+Visual animation
+3. StatusTextRotator.tsx
+
+Rotates messages
+
+🚀 BONUS FEATURES (HIGHLY RECOMMENDED)
+🔷 FAKE PROGRESS BAR
+Smooth animation from 0 → 100%
+Not tied strictly to API timing
+🔷 PERSONALIZATION
+
+Use mission title:
+
+👉 “Evaluating your solution for: Responsive Navbar Fix”
+
+🔷 SMART DELAY
+Minimum delay: 5s
+If API is slow → wait for real response
+🔷 BACKGROUND PARTICLES
+
+Adds premium feel
+
+⚠️ IMPORTANT RULES
+❌ DO NOT:
+Instantly redirect
+Show raw JSON
+Use basic spinner
+✅ MUST:
+Create emotional engagement
+Feel like AI is “thinking deeply”
+📦 EXPECTED OUTPUT FROM REPLIT
+Smooth animated evaluation screen
+API integrated correctly
+Delayed transition logic working
+Error handling included
+Clean modern UI

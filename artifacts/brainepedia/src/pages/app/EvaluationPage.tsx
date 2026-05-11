@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw, Cpu } from "lucide-react";
 import { api } from "@/lib/api";
 
 const PHASES = [
@@ -156,10 +156,25 @@ export default function EvaluationPage() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
+  const [missionTitle, setMissionTitle] = useState<string | null>(null);
 
   const resultRef = useRef<any>(null);
   const startTimeRef = useRef<number>(Date.now());
   const doneRef = useRef(false);
+
+  useEffect(() => {
+    if (!submissionId) return;
+    api.submissions.get(submissionId).then(res => {
+      if (res.ok) {
+        const d = res.data as Record<string, any>;
+        const title =
+          d?.experienceSession?.problemNode?.title ||
+          d?.problemNode?.title ||
+          null;
+        if (title) setMissionTitle(String(title));
+      }
+    });
+  }, [submissionId]);
 
   async function runEvaluation() {
     setError(null);
@@ -277,6 +292,26 @@ export default function EvaluationPage() {
           >
             Brainiac · Evaluation Engine
           </motion.p>
+
+          {/* Mission title personalization */}
+          <AnimatePresence>
+            {missionTitle && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6 }}
+                className="flex items-center justify-center gap-2"
+              >
+                <Cpu className="w-3 h-3 text-[#9D4EDD]/50 shrink-0" />
+                <p className="text-[11px] font-mono text-white/35 text-center leading-snug">
+                  Evaluating your solution for:{" "}
+                  <span className="text-[#9D4EDD]/70">{missionTitle}</span>
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <AnimatePresence>
             {!error ? (
               <StatusTextRotator phase={phase} />

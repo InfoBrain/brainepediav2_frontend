@@ -221,7 +221,7 @@ export const api = {
     leaderboard: (count = 20) => fetchApi(`/api/Dashboard/leaderboard?count=${count}`),
   },
   evaluations: {
-    askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string; question?: string }) =>
+    askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string }) =>
       fetchApi("/api/Evaluations/ask-brainiac", { method: "POST", body: JSON.stringify(data) }),
     chatBrainiac: (data: { prompt: string; context?: string }) =>
       fetchApi("/api/Evaluations/chat-brainiac", { method: "POST", body: JSON.stringify(data) }),

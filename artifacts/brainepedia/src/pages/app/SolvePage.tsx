@@ -274,12 +274,15 @@ function BrainiacPanel({
     setMessages(m => [...m, { role: "user", text: q || "Give me a hint" }]);
     setThinking(true);
 
+    const contextualApproach = q
+      ? `${approach}\n\n[User question: ${q}]`
+      : approach;
+
     const res = await api.evaluations.askBrainiac({
       sessionId,
       userId,
-      currentApproach: approach,
+      currentApproach: contextualApproach,
       currentCode: code,
-      question: q,
     });
 
     setThinking(false);
@@ -601,7 +604,7 @@ export default function SolvePage() {
     fd.append("ExperienceSessionId", sessionId);
     fd.append("ApproachExplanation", approach);
     fd.append("CodeSnippet", code);
-    files.forEach(f => fd.append("EvidenceFiles[]", f.file));
+    files.forEach(f => fd.append("EvidenceFiles", f.file));
 
     const res = await api.submissions.submit(fd);
     setSubmitting(false);
