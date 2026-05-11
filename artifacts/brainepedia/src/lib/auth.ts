@@ -148,6 +148,7 @@ export function useSessionTimeout(onExpired?: () => void) {
       const msUntilExpiry = claims.exp * 1000 - Date.now();
       if (msUntilExpiry <= 0) {
         clearToken();
+        window.dispatchEvent(new Event("session-expired"));
         onExpired?.();
         return;
       }

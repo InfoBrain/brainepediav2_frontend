@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSessionTimeout } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import { ProblemPage } from "@/pages/Problem";
@@ -197,7 +198,17 @@ function Router() {
 
 function SessionGuard() {
   const [, setLocation] = useLocation();
-  useSessionTimeout(() => setLocation("/auth/login"));
+  const { toast } = useToast();
+
+  useSessionTimeout(() => {
+    toast({
+      title: "Session Expired",
+      description: "Your session has expired. Please log in again.",
+      variant: "destructive",
+    });
+    setLocation("/auth/login?reason=expired");
+  });
+
   return null;
 }
 

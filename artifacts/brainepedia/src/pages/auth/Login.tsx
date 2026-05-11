@@ -54,7 +54,9 @@ export default function Login() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("verified") === "1") {
+    if (params.get("reason") === "expired") {
+      setError("Your session has expired. Please log in again.");
+    } else if (params.get("verified") === "1") {
       setSuccess("Verified. You're cleared for entry.");
     } else if (params.get("reset") === "1") {
       setSuccess("Password reset. Log in to continue.");
