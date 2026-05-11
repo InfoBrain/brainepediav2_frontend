@@ -333,6 +333,7 @@ export default function ViewProfile() {
               label="Day Streak"
               value={`${profile.dayStreak ?? 0}d`}
               valueClass="text-orange-400"
+              streakActive={(profile.dayStreak ?? 0) > 0}
             />
             <StatBadge
               icon={<Briefcase className="h-4 w-4 text-[#A78BFA]" />}
@@ -583,15 +584,42 @@ function StatBadge({
   label,
   value,
   valueClass,
+  streakActive,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   valueClass?: string;
+  streakActive?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/8 px-4 py-3">
-      <div className="shrink-0">{icon}</div>
+    <div
+      className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${
+        streakActive
+          ? "bg-orange-500/10 border border-orange-500/30 shadow-[0_0_18px_rgba(249,115,22,0.25)]"
+          : "bg-white/5 border border-white/8"
+      }`}
+    >
+      <div className="shrink-0">
+        {streakActive ? (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: [1, 1.3, 1, 1.15, 1], opacity: 1 }}
+            transition={{
+              scale: {
+                duration: 1.2,
+                ease: "easeInOut",
+              },
+              opacity: { duration: 0.3 },
+            }}
+            style={{ filter: "drop-shadow(0 0 6px rgba(249,115,22,0.8))" }}
+          >
+            {icon}
+          </motion.div>
+        ) : (
+          icon
+        )}
+      </div>
       <div className="min-w-0">
         <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground leading-none mb-1">
           {label}
