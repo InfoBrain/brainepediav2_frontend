@@ -65,12 +65,16 @@ export default function AdminDashboard() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [s, u] = await Promise.all([api.admin.stats(), api.admin.users({})]);
+      const [s, u, xp] = await Promise.all([
+        api.admin.stats(),
+        api.admin.users({}),
+        api.admin.xpSummary(),
+      ]);
       if (cancelled) return;
-      if (s.ok) {
-        setStats(normalizeStats(s.data));
-        setNodes(normalizeNodes(s.data));
-      }
+      const baseStats = s.ok ? normalizeStats(s.data) : {};
+      const xpStats = xp.ok ? normalizeXpSummary(xp.data) : {};
+      setStats({ ...baseStats, ...xpStats });
+      if (s.ok) setNodes(normalizeNodes(s.data));
       if (u.ok) setUsers(normalizeUsers(u.data));
       setLoading(false);
     })();
@@ -145,19 +149,19 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <HealthCard
               label="Total Users"
-              value={(stats?.totalUsers ?? 0).toLocaleString()}
+              value={stats?.totalUsers != null ? stats.totalUsers.toLocaleString() : "—"}
               icon={Users}
               accent="text-[#A5B4FC]"
             />
             <HealthCard
               label="Active Subscriptions"
-              value={(stats?.activeSubscriptions ?? 0).toLocaleString()}
+              value={stats?.activeSubscriptions != null ? stats.activeSubscriptions.toLocaleString() : "—"}
               icon={TrendingUp}
               accent="text-emerald-400"
             />
             <HealthCard
               label="Total XP Awarded"
-              value={(stats?.totalXpAwarded ?? 0).toLocaleString()}
+              value={stats?.totalXpAwarded != null ? stats.totalXpAwarded.toLocaleString() : "—"}
               icon={Sparkles}
               accent="text-amber-400"
             />
@@ -402,10 +406,15 @@ function Empty({ text }: { text: string }) {
 function normalizeStats(d: any): Stats {
   if (!d || typeof d !== "object") return {};
   return {
-    totalUsers: Number(d.totalUsers ?? d.users ?? 0),
-    activeSubscriptions: Number(d.activeSubscriptions ?? d.subscriptions ?? 0),
-    totalXpAwarded: Number(d.totalXpAwarded ?? d.totalXP ?? d.xp ?? 0),
+    totalUsers: d.totalUsers ?? d.userCount ?? d.users ?? undefined,
+    activeSubscriptions: d.activeSubscriptions ?? d.subscriptionCount ?? d.subscriptions ?? undefined,
+    totalXpAwarded: d.totalXpAwarded ?? d.totalXP ?? d.xp ?? undefined,
   };
+}
+function normalizeXpSummary(d: any): Pick<Stats, "totalXpAwarded"> {
+  if (!d || typeof d !== "object") return {};
+  const val = d.totalXpAwarded ?? d.totalXP ?? d.totalCredits ?? d.total ?? undefined;
+  return val !== undefined ? { totalXpAwarded: Number(val) } : {};
 }
 function normalizeNodes(d: any): ProblemNode[] {
   const arr =
@@ -424,12 +433,12 @@ function normalizeNodes(d: any): ProblemNode[] {
   }));
 }
 function normalizeUsers(d: any): AdminUser[] {
-  const arr = Array.isArray(d) ? d : d?.users || d?.items || [];
+  const arr = Array.isArray(d) ? d : d?.users || d?.items || d?.data || [];
   if (!Array.isArray(arr)) return [];
   return arr.map((x: any) => ({
-    id: String(x.id ?? x.userId ?? Math.random()),
-    email: x.email,
-    name: x.fullName || x.name || `${x.firstName || ""} ${x.lastName || ""}`.trim(),
-    role: x.role || (Array.isArray(x.roles) ? x.roles[0] : x.roles) || "User",
-  }));
+    id: String(x.id ?? x.userId ?? x.profileId ?? Math.random()),
+    email: x.email || x.emailAddress,
+    name: x.fullName || x.name || `${x.firstName || ""} ${x.lastName || ""}`.trim() || x.username,
+    role: x.role || x.subscriptionTier || (Array.isArray(x.roles) ? x.roles[0] : x.roles) || "User",
+  })).filter((u: AdminUser) => u.id);
 }

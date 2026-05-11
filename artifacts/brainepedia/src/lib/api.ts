@@ -125,16 +125,18 @@ export const api = {
       fetchApi(`/api/Subscriptions/verify-payment?reference=${encodeURIComponent(reference)}`),
   },
   admin: {
-    /** Spec: GET /api/Admin/Stats — endpoint may not yet be live; returns graceful empty on 404 */
-    stats: () => fetchApi("/api/Admin/Stats"),
-    /** Spec: GET /api/Admin/Users?role=User|Employer — endpoint may not yet be live */
+    /** GET /api/Dashboard/stats — global system stats (totalUsers, activeSubscriptions, totalXpAwarded) */
+    stats: () => fetchApi("/api/Dashboard/stats"),
+    /** GET /api/Dashboard/users — all platform users */
     users: (params: { search?: string; role?: string } = {}) => {
       const q = new URLSearchParams();
       if (params.search) q.set("search", params.search);
       if (params.role) q.set("role", params.role);
       const qs = q.toString();
-      return fetchApi(`/api/Admin/Users${qs ? `?${qs}` : ""}`);
+      return fetchApi(`/api/Dashboard/users${qs ? `?${qs}` : ""}`);
     },
+    /** GET /api/ExperienceCredits/system-summary — total XP awarded platform-wide */
+    xpSummary: () => fetchApi("/api/ExperienceCredits/system-summary"),
   },
   professions: {
     list: () => fetchApi("/api/Professions"),
