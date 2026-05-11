@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, Link } from "wouter";
 import {
   Activity,
@@ -291,13 +291,11 @@ export default function ActivityFeed() {
     });
   }
 
-  useEffect(() => {
-    if (!userId) {
-      navigate("/login");
-      return;
-    }
+  const fetchData = useCallback(() => {
+    if (!userId) return;
     setLoading(true);
     setSubLoading(true);
+    setSubError(false);
 
     api.activityLogs.forUser(userId).then((res) => {
       setLoading(false);
@@ -310,7 +308,37 @@ export default function ActivityFeed() {
       else if (res.status === 404) setSubmissions([]);
       else setSubError(true);
     });
-  }, [userId, navigate]);
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) {
+      navigate("/login");
+      return;
+    }
+    fetchData();
+  }, [userId, navigate, fetchData]);
+
+  useEffect(() => {
+    let inFlight = false;
+
+    function refetch() {
+      if (inFlight) return;
+      inFlight = true;
+      fetchData();
+      setTimeout(() => { inFlight = false; }, 1000);
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") refetch();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", refetch);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", refetch);
+    };
+  }, [fetchData]);
 
   const filtered = useMemo(
     () => (filter === "all" ? allLogs : allLogs.filter((l) => l.type === filter)),
