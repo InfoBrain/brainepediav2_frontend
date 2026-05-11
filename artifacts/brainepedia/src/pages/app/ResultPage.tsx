@@ -23,9 +23,15 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Brain,
+  Sparkles,
+  Map,
+  Shield,
+  Gem,
+  Crown,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { getDashboardPath, isAuthenticated } from "@/lib/auth";
+import { getDashboardPath, isAuthenticated, getUserId } from "@/lib/auth";
 import { useDifficulties, buildDifficultyLookup, getDifficultyStyle } from "@/hooks/useDifficulties";
 
 type Evaluation = {
@@ -36,6 +42,7 @@ type Evaluation = {
   weaknesses: string[];
   positiveFeedback: string[];
   improvementAreas: string[];
+  rawAiReasoning?: string;
 };
 
 type Submission = {
@@ -50,7 +57,17 @@ type Submission = {
   missionTitle?: string;
   difficultyName?: string;
   difficultyId?: string;
+  districtId?: string;
   evaluation?: Evaluation;
+};
+
+type Badge = {
+  userBadgeId: string;
+  name?: string;
+  description?: string;
+  iconUrl?: string;
+  rarity?: number;
+  dateCreated?: string;
 };
 
 function parseArr(v: any): string[] {
@@ -63,18 +80,21 @@ function parseArr(v: any): string[] {
 
 function normSubmission(d: any): Submission {
   const evalData = d?.evaluation || d?.evaluationResult || {};
+  const session = d?.experienceSession || d?.session || {};
+  const pNode = d?.problemNode || session?.problemNode || {};
   return {
     submissionId: d?.submissionId || d?.id || "",
-    problemNodeId: d?.problemNodeId || d?.problemNode?.problemNodeId || d?.problemNode?.id || "",
-    sessionId: d?.sessionId || d?.experienceSessionId || d?.experienceSession?.sessionId || d?.experienceSession?.id || "",
+    problemNodeId: d?.problemNodeId || pNode?.problemNodeId || pNode?.id || "",
+    sessionId: d?.sessionId || d?.experienceSessionId || session?.sessionId || session?.experienceSessionId || session?.id || "",
     approachExplanation: d?.approachExplanation || "",
     codeSnippet: d?.codeSnippet || "",
-    submittedAt: d?.submittedAt || d?.createdAt,
+    submittedAt: d?.submittedAt || d?.createdAt || d?.dateCreated,
     netXpGained: Number(d?.netXpGained ?? d?.xpGained ?? evalData?.netXpGained ?? 0),
     xpPenalty: Number(d?.xpPenalty ?? evalData?.xpPenalty ?? 0),
-    missionTitle: d?.missionTitle || d?.problemNode?.title || "Mission",
-    difficultyName: d?.difficultyName || d?.problemNode?.difficultyName || "",
-    difficultyId: d?.difficultyId || d?.problemNode?.difficultyId || "",
+    missionTitle: d?.missionTitle || pNode?.title || d?.problemNode?.title || "Mission",
+    difficultyName: d?.difficultyName || pNode?.difficultyName || d?.problemNode?.difficultyName || "",
+    difficultyId: d?.difficultyId || pNode?.difficultyId || d?.problemNode?.difficultyId || "",
+    districtId: d?.districtId || pNode?.districtId || session?.districtId || "",
     evaluation: {
       evaluationId: evalData?.evaluationId,
       score: Number(evalData?.score ?? 0),
@@ -83,8 +103,20 @@ function normSubmission(d: any): Submission {
       weaknesses: parseArr(evalData?.weaknesses),
       positiveFeedback: parseArr(evalData?.positiveFeedback),
       improvementAreas: parseArr(evalData?.improvementAreas),
+      rawAiReasoning: evalData?.rawAiReasoning || "",
     },
   };
+}
+
+const RARITY_CONFIG: Record<number, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
+  0: { label: "Common",     color: "text-white/60",   bg: "bg-white/5",       border: "border-white/10",    icon: <Shield className="w-3.5 h-3.5" /> },
+  1: { label: "Rare",       color: "text-[#00D2FF]",  bg: "bg-[#00D2FF]/10",  border: "border-[#00D2FF]/30", icon: <Gem className="w-3.5 h-3.5" /> },
+  2: { label: "Epic",       color: "text-[#9D4EDD]",  bg: "bg-[#9D4EDD]/10",  border: "border-[#9D4EDD]/30", icon: <Sparkles className="w-3.5 h-3.5" /> },
+  3: { label: "Legendary",  color: "text-[#FFD700]",  bg: "bg-[#FFD700]/10",  border: "border-[#FFD700]/30", icon: <Crown className="w-3.5 h-3.5" /> },
+};
+
+function getRarityConfig(rarity?: number) {
+  return RARITY_CONFIG[rarity ?? 0] ?? RARITY_CONFIG[0];
 }
 
 function ConfettiPiece({ i }: { i: number }) {
@@ -104,7 +136,6 @@ function ScoreRing({ score, passed }: { score: number; passed: boolean }) {
   const radius = 54;
   const circ = 2 * Math.PI * radius;
   const stroke = (score / 100) * circ;
-
   return (
     <div className="relative flex items-center justify-center w-36 h-36">
       <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 136 136">
@@ -157,11 +188,76 @@ function CollapsibleSection({ title, icon, children, defaultOpen = true }: {
   );
 }
 
+function BadgeCard({ badge }: { badge: Badge }) {
+  const cfg = getRarityConfig(badge.rarity);
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className={`relative flex items-center gap-4 rounded-2xl border px-5 py-4 overflow-hidden ${cfg.bg} ${cfg.border}`}
+    >
+      <div className={`absolute inset-0 opacity-20 blur-2xl pointer-events-none ${cfg.bg}`} />
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${cfg.border} ${cfg.bg}`}>
+        {badge.iconUrl ? (
+          <img src={badge.iconUrl} alt={badge.name} className="w-8 h-8 object-contain" />
+        ) : (
+          <Trophy className={`w-6 h-6 ${cfg.color}`} />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className={`flex items-center gap-1.5 text-xs font-mono mb-0.5 ${cfg.color}`}>
+          {cfg.icon} {cfg.label}
+        </div>
+        <p className="text-sm font-bold text-white truncate">{badge.name || "Achievement Unlocked"}</p>
+        {badge.description && (
+          <p className="text-xs text-white/40 mt-0.5 leading-relaxed">{badge.description}</p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function SkillInsightSection({ strengths }: { strengths: string[] }) {
+  if (!strengths.length) return null;
+  const skills = strengths.slice(0, 3).map(s => {
+    const words = s.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(w => w.length > 3);
+    return words.slice(0, 3).join(" ") || s.slice(0, 30);
+  }).filter(Boolean);
+  if (!skills.length) return null;
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42 }}>
+      <div className="rounded-2xl border border-[#9D4EDD]/20 bg-[#9D4EDD]/5 px-5 py-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Brain className="w-4 h-4 text-[#9D4EDD]" />
+          <span className="text-sm font-bold font-mono text-white/80">Skill Insight</span>
+        </div>
+        <p className="text-xs font-mono text-white/40 mb-3 uppercase tracking-wider">You're improving in:</p>
+        <div className="flex flex-wrap gap-2">
+          {skills.map((skill, i) => (
+            <motion.span
+              key={i}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 * i }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-medium border border-[#9D4EDD]/30 bg-[#9D4EDD]/10 text-[#9D4EDD]"
+            >
+              <CheckCircle2 className="w-3 h-3" />
+              {skill}
+            </motion.span>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function ResultPage() {
   const params = useParams<{ submissionId: string }>();
   const submissionId = params.submissionId || "";
   const [, navigate] = useLocation();
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";
+  const userId = getUserId();
   const [codeTab, setCodeTab] = useState<"approach" | "code">("approach");
 
   const { data: difficulties } = useDifficulties();
@@ -203,6 +299,43 @@ export default function ResultPage() {
     sessionData?.problemNode?.id ||
     "";
 
+  const resolvedDistrictId =
+    submission?.districtId ||
+    sessionData?.districtId ||
+    sessionData?.problemNode?.districtId ||
+    "";
+
+  const { data: recentBadge } = useQuery<Badge | null>({
+    queryKey: ["recentBadge", userId, submission?.submittedAt],
+    queryFn: async () => {
+      if (!userId) return null;
+      const res = await api.userBadges.forUser(userId);
+      if (!res.ok) return null;
+      const badges: any[] = Array.isArray(res.data) ? res.data : (res.data?.badges || res.data?.items || []);
+      if (!badges.length) return null;
+      const submittedMs = submission?.submittedAt ? new Date(submission.submittedAt).getTime() : Date.now();
+      const windowMs = 15 * 60 * 1000;
+      const newBadge = badges
+        .filter(b => {
+          const created = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
+          return Math.abs(created - submittedMs) < windowMs || (Date.now() - created < windowMs);
+        })
+        .sort((a, b) => new Date(b.dateCreated || 0).getTime() - new Date(a.dateCreated || 0).getTime())[0];
+      if (!newBadge) return null;
+      return {
+        userBadgeId: newBadge.userBadgeId || newBadge.id || "",
+        name: newBadge.name,
+        description: newBadge.description,
+        iconUrl: newBadge.iconUrl,
+        rarity: newBadge.rarity,
+        dateCreated: newBadge.dateCreated,
+      };
+    },
+    enabled: Boolean(submission),
+    staleTime: 5 * 60 * 1000,
+    retry: 0,
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#060a10] flex items-center justify-center">
@@ -228,18 +361,15 @@ export default function ResultPage() {
 
   return (
     <div className={`min-h-screen text-white relative overflow-x-hidden ${passed ? "bg-[#060a10]" : "bg-[#080608]"}`}>
-      {/* Confetti for passed */}
       {passed && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           {Array.from({ length: 18 }, (_, i) => <ConfettiPiece key={i} i={i} />)}
         </div>
       )}
 
-      {/* Ambient glow */}
       <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full blur-[120px] pointer-events-none
         ${passed ? "bg-[#00D2FF]/5" : "bg-red-500/4"}`} />
 
-      {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-4 md:px-8 py-4 border-b border-white/5">
         <Link href={dashPath} className="flex items-center gap-1.5 text-xs font-mono text-white/30 hover:text-white transition-colors">
           <Home className="w-3.5 h-3.5" /> Dashboard
@@ -247,7 +377,8 @@ export default function ResultPage() {
         <p className="text-xs font-mono text-white/20 truncate max-w-xs">{submission.missionTitle}</p>
       </header>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-8 py-10 space-y-8">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-8 py-10 space-y-6">
+
         {/* ── HERO ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -272,16 +403,13 @@ export default function ResultPage() {
                 const label = diffMeta?.name || submission.difficultyName;
                 const style = getDifficultyStyle(diffMeta?.rankColorHex || "");
                 return label ? (
-                  <span
-                    className="inline-flex items-center text-[11px] font-mono px-2.5 py-1 rounded-full border mb-4"
-                    style={style}
-                  >
+                  <span className="inline-flex items-center text-[11px] font-mono px-2.5 py-1 rounded-full border mb-4" style={style}>
                     {label}
                   </span>
                 ) : null;
               })()}
               {!passed && (
-                <p className="text-sm text-white/50 italic">You're close. Review the feedback below and try again — you've got this.</p>
+                <p className="text-sm text-white/50 italic mt-2">You're close. Review the feedback below and try again — you've got this.</p>
               )}
             </motion.div>
           </div>
@@ -290,9 +418,11 @@ export default function ResultPage() {
         {/* ── XP BANNER ── */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-wrap gap-3">
           <div className={`flex items-center gap-2 px-5 py-3 rounded-2xl border font-mono font-bold text-sm
-            ${passed ? "border-[#FFD700]/30 bg-[#FFD700]/8 text-[#FFD700]" : "border-white/10 bg-white/3 text-white/40"}`}>
+            ${passed && (submission.netXpGained ?? 0) > 0
+              ? "border-[#FFD700]/30 bg-[#FFD700]/8 text-[#FFD700]"
+              : "border-white/10 bg-white/3 text-white/40"}`}>
             <Star className="w-4 h-4" />
-            {(submission.netXpGained ?? 0) > 0 ? `+${submission.netXpGained} XP Earned` : "0 XP Earned"}
+            {(submission.netXpGained ?? 0) > 0 ? `+${submission.netXpGained} XP Earned` : "0 XP"}
           </div>
           {(submission.xpPenalty ?? 0) > 0 && (
             <div className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-amber-400/20 bg-amber-400/5 text-amber-400 font-mono text-sm">
@@ -303,14 +433,32 @@ export default function ResultPage() {
           {submission.submittedAt && (
             <div className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-white/8 bg-white/2 text-white/30 font-mono text-sm">
               <Clock className="w-4 h-4" />
-              {new Date(submission.submittedAt).toLocaleDateString()}
+              {new Date(submission.submittedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
             </div>
           )}
         </motion.div>
 
+        {/* ── NEW BADGE UNLOCKED ── */}
+        <AnimatePresence>
+          {recentBadge && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ delay: 0.35 }}>
+              <div className="flex items-center gap-2 mb-2">
+                <Trophy className="w-4 h-4 text-[#FFD700]" />
+                <span className="text-xs font-mono font-bold text-[#FFD700] uppercase tracking-widest">New Badge Unlocked</span>
+              </div>
+              <BadgeCard badge={recentBadge} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── SKILL INSIGHT ── */}
+        {eval_?.strengths && eval_.strengths.length > 0 && (
+          <SkillInsightSection strengths={eval_.strengths} />
+        )}
+
         {/* ── STRENGTHS ── */}
         {eval_?.strengths && eval_.strengths.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.44 }}>
             <CollapsibleSection title="Strengths" icon={<Trophy className="w-4 h-4 text-emerald-400" />}>
               <ul className="space-y-2.5">
                 {eval_.strengths.map((s, i) => (
@@ -326,7 +474,7 @@ export default function ResultPage() {
 
         {/* ── POSITIVE FEEDBACK ── */}
         {eval_?.positiveFeedback && eval_.positiveFeedback.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.48 }}>
             <CollapsibleSection title="Positive Feedback" icon={<ThumbsUp className="w-4 h-4 text-[#00D2FF]" />}>
               <ul className="space-y-2.5">
                 {eval_.positiveFeedback.map((f, i) => (
@@ -341,8 +489,8 @@ export default function ResultPage() {
 
         {/* ── WEAKNESSES + IMPROVEMENTS ── */}
         {((eval_?.weaknesses?.length ?? 0) > 0 || (eval_?.improvementAreas?.length ?? 0) > 0) && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="grid md:grid-cols-2 gap-4">
-            {eval_!.weaknesses.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.52 }} className="grid md:grid-cols-2 gap-4">
+            {(eval_?.weaknesses?.length ?? 0) > 0 && (
               <CollapsibleSection title="Weaknesses" icon={<AlertTriangle className="w-4 h-4 text-amber-400" />}>
                 <ul className="space-y-2">
                   {eval_!.weaknesses.map((w, i) => (
@@ -353,7 +501,7 @@ export default function ResultPage() {
                 </ul>
               </CollapsibleSection>
             )}
-            {eval_!.improvementAreas.length > 0 && (
+            {(eval_?.improvementAreas?.length ?? 0) > 0 && (
               <CollapsibleSection title="Improvement Areas" icon={<Lightbulb className="w-4 h-4 text-[#9D4EDD]" />}>
                 <ul className="space-y-2">
                   {eval_!.improvementAreas.map((a, i) => (
@@ -369,9 +517,8 @@ export default function ResultPage() {
 
         {/* ── CODE / APPROACH VIEWER ── */}
         {(submission.approachExplanation || submission.codeSnippet) && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.56 }}>
             <CollapsibleSection title="Your Submission" icon={<Target className="w-4 h-4 text-white/40" />} defaultOpen={false}>
-              {/* Tabs */}
               <div className="flex gap-1 mb-4 p-1 bg-white/3 rounded-xl w-fit">
                 {[{ id: "approach" as const, label: "Approach" }, { id: "code" as const, label: "Code" }].map(t => (
                   <button key={t.id} onClick={() => setCodeTab(t.id)}
@@ -399,15 +546,27 @@ export default function ResultPage() {
           </motion.div>
         )}
 
+        {/* ── RAW AI REASONING ── */}
+        {eval_?.rawAiReasoning && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+            <CollapsibleSection title="AI Reasoning" icon={<Brain className="w-4 h-4 text-[#9D4EDD]/70" />} defaultOpen={false}>
+              <div className="text-xs text-white/40 leading-relaxed whitespace-pre-wrap bg-white/2 rounded-xl p-4 border border-white/5 font-mono">
+                {eval_.rawAiReasoning}
+              </div>
+            </CollapsibleSection>
+          </motion.div>
+        )}
+
         {/* ── ACTIONS ── */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}
           className="flex flex-col sm:flex-row gap-3 pt-2">
           <button
-            onClick={() => navigate(dashPath)}
+            onClick={() => navigate(resolvedDistrictId ? `/app/district/${resolvedDistrictId}/missions` : "/profession/select")}
             className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD] text-white font-bold font-mono text-sm hover:opacity-90 hover:scale-[1.02] transition-all shadow-lg shadow-[#00D2FF]/15"
           >
             <ArrowRight className="w-4 h-4" /> Continue Learning
           </button>
+
           {!passed && (
             <div className="flex-1 flex flex-col items-stretch gap-1">
               <button
@@ -419,18 +578,25 @@ export default function ResultPage() {
                 Try Again
               </button>
               {!isSessionLoading && !resolvedProblemNodeId && (
-                <p className="text-center text-[11px] font-mono text-white/30">
-                  Mission no longer available
-                </p>
+                <p className="text-center text-[11px] font-mono text-white/30">Mission no longer available</p>
               )}
             </div>
           )}
+
+          <button
+            onClick={() => navigate("/profession/select")}
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-white/10 text-white/40 font-mono text-sm hover:bg-white/5 hover:text-white transition-colors"
+          >
+            <Map className="w-4 h-4" /> Back to Map
+          </button>
+
           <Link href={dashPath}>
             <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-white/10 text-white/40 font-mono text-sm hover:bg-white/5 hover:text-white transition-colors">
               <Home className="w-4 h-4" /> Dashboard
             </button>
           </Link>
         </motion.div>
+
       </div>
     </div>
   );
