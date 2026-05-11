@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "P1MfCG8NOdNJPPGp81YSN"
+uri = "file://brainepedia-deploy.zip"
+type = "unspecified"
+title = "Brainepedia — Deployment Package"
