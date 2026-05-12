@@ -7,7 +7,8 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 
 app.use(express.static(PUBLIC_DIR));
 
-app.get("*", function (_req, res) {
+// Express 5 requires a named wildcard or regex — "/*" is no longer valid
+app.get(/.*/, function (_req, res) {
   res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
 

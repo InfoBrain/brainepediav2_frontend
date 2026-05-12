@@ -5,4 +5,4 @@ generated = []
 id = "P1MfCG8NOdNJPPGp81YSN"
 uri = "file://brainepedia-deploy.zip"
 type = "unspecified"
-title = "Brainepedia — Static IIS Deployment (No Node.js needed)"
+title = "Brainepedia — Flat Deployment Package"

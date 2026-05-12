@@ -23578,7 +23578,7 @@ var app = express();
 var PORT = process.env.PORT || 3e3;
 var PUBLIC_DIR = path.join(__dirname, "public");
 app.use(express.static(PUBLIC_DIR));
-app.get("*", function(_req, res) {
+app.get(/.*/, function(_req, res) {
   res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
 app.listen(PORT, function() {
