@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { LogOut, Menu, X, MessageCircle, Sparkles } from "lucide-react";
 import { clearToken, getUser } from "@/lib/auth";
@@ -79,7 +79,13 @@ export function DashboardShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const t = themeMap[theme];
-  const user = getUser();
+  const [user, setUser] = useState(getUser);
+
+  useEffect(() => {
+    const handleAuthChange = () => setUser(getUser());
+    window.addEventListener("auth-change", handleAuthChange);
+    return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, []);
 
   const requestLogout = () => setLogoutOpen(true);
 

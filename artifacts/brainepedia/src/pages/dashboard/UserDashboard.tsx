@@ -149,6 +149,23 @@ export default function UserDashboard() {
   const newBadgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    const handleAuthChange = () => {
+      const updatedUser = getUser();
+      if (updatedUser) {
+        setProfile(prev => prev ? {
+          ...prev,
+          firstName: updatedUser.firstName || prev.firstName,
+          surName: updatedUser.surName || updatedUser.lastName || prev.surName,
+          avatarUrl: updatedUser.avatarUrl || prev.avatarUrl,
+          imageUrl: updatedUser.imageUrl || prev.imageUrl,
+        } : prev);
+      }
+    };
+    window.addEventListener("auth-change", handleAuthChange);
+    return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, []);
+
+  useEffect(() => {
     if (!userId) { navigate("/login"); return; }
 
     if (user) {
