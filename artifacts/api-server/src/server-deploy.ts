@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
+import { Readable } from "node:stream";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,40 +31,41 @@ function timeoutForUrl(url: string): number {
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// ── API proxy ──────────────────────────────────────────────────────────────
+// ── API proxy ───────────────────────────────────────────────────────────────
+// Raw stream passthrough — no body parsing so multipart/form-data is preserved
 app.all("/api/*", async (req, res) => {
   const url = `${UPSTREAM}${req.url}`;
 
   const headers: Record<string, string> = {};
   for (const [key, value] of Object.entries(req.headers)) {
-    if (value === undefined) continue;
+    if (!value) continue;
     if (HOP_BY_HOP.has(key.toLowerCase())) continue;
     headers[key] = Array.isArray(value) ? value.join(", ") : String(value);
   }
 
   const method = req.method.toUpperCase();
   const hasBody = method !== "GET" && method !== "HEAD";
-  let body: string | undefined;
-  if (hasBody && req.body !== undefined && req.body !== null) {
-    body = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
-    if (!headers["content-type"]) headers["content-type"] = "application/json";
-  }
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutForUrl(url));
 
   try {
-    const upstream = await fetch(url, { method, headers, body, signal: controller.signal });
+    const upstream = await fetch(url, {
+      method,
+      headers,
+      // Pipe the raw incoming stream directly — preserves JSON, multipart, etc.
+      body: hasBody ? (Readable.toWeb(req) as ReadableStream) : undefined,
+      signal: controller.signal,
+      // @ts-ignore — Node 18+ requires duplex:"half" for streaming request bodies
+      duplex: "half",
+    });
     clearTimeout(timer);
 
     res.status(upstream.status);
     upstream.headers.forEach((value, key) => {
       const k = key.toLowerCase();
-      if (HOP_BY_HOP.has(k)) return;
-      if (k === "content-encoding") return;
+      if (HOP_BY_HOP.has(k) || k === "content-encoding") return;
       res.setHeader(key, value);
     });
 
@@ -78,21 +80,36 @@ app.all("/api/*", async (req, res) => {
   }
 });
 
-// ── Static frontend ────────────────────────────────────────────────────────
+// ── Static frontend ─────────────────────────────────────────────────────────
+// All frontend files live alongside server.js (flat — no public/ subfolder)
 const staticDir = path.resolve(__dirname);
 const indexHtml = path.join(staticDir, "index.html");
+
 if (existsSync(indexHtml)) {
-  app.use(express.static(staticDir, { maxAge: "1d", index: false }));
-  // SPA fallback
+  app.use(
+    express.static(staticDir, {
+      maxAge: "1d",
+      index: false,
+      // Don't serve server.js or pino workers as static files
+      setHeaders: (_res, filePath) => {
+        if (path.extname(filePath) === ".mjs" || path.basename(filePath) === "server.js") {
+          _res.status(403).end();
+        }
+      },
+    })
+  );
+  // SPA fallback — all non-API, non-asset routes serve index.html
   app.get("*", (_req, res) => {
     res.sendFile(indexHtml);
   });
 } else {
-  app.get("/", (_req, res) => res.json({ status: "OK", note: "index.html not found alongside server.js" }));
+  app.get("/", (_req, res) =>
+    res.json({ status: "OK", note: "index.html not found alongside server.js" })
+  );
 }
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Brainepedia server running on port ${PORT}`);
   console.log(`API proxy → ${UPSTREAM}`);
   console.log(`Static files → ${staticDir}`);
 });
