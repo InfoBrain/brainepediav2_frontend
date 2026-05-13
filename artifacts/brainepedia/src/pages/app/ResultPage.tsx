@@ -266,21 +266,60 @@ export default function ResultPage() {
   const { data: submission, isLoading, isError, refetch } = useQuery<Submission>({
     queryKey: ["submission-result", submissionId],
     queryFn: async () => {
-      // Fetch both endpoints in parallel
-      const [evalRes, subRes] = await Promise.all([
-        api.evaluations.getResult(submissionId),
-        api.submissions.get(submissionId),
-      ]);
+      // Step 1: fetch submission to get sessionId and metadata
+      const subRes = await api.submissions.get(submissionId);
+      if (!subRes.ok) throw new Error(subRes.error || "Failed to load submission");
+      const subData = subRes.data as Record<string, any>;
 
-      if (!evalRes.ok && !subRes.ok) {
-        throw new Error(evalRes.error || subRes.error || "Failed to load result");
+      // Step 2: resolve sessionId — try cached process result first (written by EvaluationPage)
+      let cachedEvalData: Record<string, any> | null = null;
+      let sessionId = "";
+      try {
+        const raw = sessionStorage.getItem(`eval_result_${submissionId}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const age = Date.now() - (parsed.ts || 0);
+          if (age < 30 * 60 * 1000) {
+            cachedEvalData = parsed.data as Record<string, any>;
+            if (parsed.sessionId) sessionId = String(parsed.sessionId);
+          }
+        }
+      } catch { /* ignore */ }
+
+      // If no cached sessionId, derive from submission payload
+      if (!sessionId) {
+        sessionId =
+          subData?.experienceSession?.experienceSessionId ||
+          subData?.experienceSession?.sessionId ||
+          subData?.experienceSession?.id ||
+          subData?.experienceSessionId ||
+          subData?.sessionId ||
+          "";
       }
 
-      // Merge: evaluation data from evalRes (primary), submission metadata from subRes
-      const evalData = evalRes.ok ? (evalRes.data as Record<string, any>) : {};
-      const subData = subRes.ok ? (subRes.data as Record<string, any>) : {};
+      // Step 3: fetch evaluation by sessionId (only if we don't have fresh cached data)
+      let evalData: Record<string, any> = {};
+      if (cachedEvalData) {
+        // Use data from POST /api/Evaluations/process response
+        const fd = cachedEvalData as Record<string, any>;
+        evalData = {
+          Score: fd?.Score ?? fd?.score,
+          IsPassed: fd?.IsPassed ?? fd?.isPassed,
+          Strengths: fd?.Feedback?.Strengths ?? fd?.Strengths ?? fd?.strengths ?? [],
+          Weaknesses: fd?.Feedback?.Weaknesses ?? fd?.Weaknesses ?? fd?.weaknesses ?? [],
+          PositiveFeedback: fd?.Feedback?.PositiveFeedback ?? fd?.PositiveFeedback ?? fd?.positiveFeedback ?? [],
+          ImprovementAreas: fd?.Feedback?.ImprovementAreas ?? fd?.ImprovementAreas ?? fd?.improvementAreas ?? [],
+          RawAiReasoning: fd?.RawAiReasoning ?? fd?.rawAiReasoning ?? "",
+          MissionTitle: fd?.MissionTitle ?? fd?.missionTitle,
+        };
+      } else if (sessionId) {
+        const evalRes = await api.evaluations.getResult(sessionId);
+        if (evalRes.ok) {
+          evalData = evalRes.data as Record<string, any>;
+        }
+      }
 
-      // Build merged object — evalRes fields are PascalCase, normSubmission handles both
+      // Step 4: merge into a single normalised submission object
       const merged = {
         ...subData,
         evaluation: {
@@ -292,6 +331,7 @@ export default function ResultPage() {
           improvementAreas: evalData?.ImprovementAreas ?? evalData?.improvementAreas ?? subData?.evaluation?.improvementAreas ?? [],
           rawAiReasoning: evalData?.RawAiReasoning ?? evalData?.rawAiReasoning ?? subData?.evaluation?.rawAiReasoning ?? "",
         },
+        netXpGained: evalData?.NetXpGained ?? evalData?.netXpGained ?? subData?.netXpGained ?? subData?.evaluation?.netXpGained ?? 0,
         missionTitle: evalData?.MissionTitle ?? evalData?.missionTitle ?? subData?.experienceSession?.problemNode?.title ?? subData?.missionTitle,
       };
 

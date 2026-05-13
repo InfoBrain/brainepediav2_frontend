@@ -166,7 +166,7 @@ function MissionPanel({
   const secs = elapsed % 60;
 
   return (
-    <aside className="w-[340px] flex-shrink-0 h-full overflow-y-auto bg-[#080c12] border-r border-white/8 flex flex-col">
+    <aside className="w-full h-full overflow-y-auto bg-[#080c12] border-r border-white/8 flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#080c12]/95 backdrop-blur border-b border-white/5 px-4 py-4">
         <p className="text-[10px] font-mono text-[#00D2FF] tracking-[0.3em] uppercase mb-1 flex items-center gap-1">
@@ -506,6 +506,7 @@ export default function SolvePage() {
   const [isDragging, setIsDragging] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [unsaved, setUnsaved] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"mission" | "workspace">("workspace");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Timer
@@ -640,12 +641,35 @@ export default function SolvePage() {
           <ArrowLeft className="w-3.5 h-3.5" />
         </button>
         <span className="text-xs font-mono text-white/20">|</span>
-        <span className="text-xs font-mono text-white/40 truncate max-w-xs">{node?.title || "Mission Workspace"}</span>
+        <span className="text-xs font-mono text-white/40 truncate max-w-[140px] sm:max-w-xs">{node?.title || "Mission Workspace"}</span>
         {unsaved && (
           <span className="flex items-center gap-1 text-[10px] font-mono text-amber-400/60 ml-auto">
             <Save className="w-3 h-3" /> Unsaved
           </span>
         )}
+        {/* Mobile tab switcher */}
+        <div className="md:hidden ml-auto flex items-center gap-1 rounded-lg border border-white/10 bg-white/3 p-0.5">
+          <button
+            onClick={() => setMobileTab("mission")}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-mono transition-all duration-200 ${
+              mobileTab === "mission"
+                ? "bg-[#00D2FF]/20 text-[#00D2FF] border border-[#00D2FF]/30"
+                : "text-white/30 hover:text-white/60"
+            }`}
+          >
+            Mission
+          </button>
+          <button
+            onClick={() => setMobileTab("workspace")}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-mono transition-all duration-200 ${
+              mobileTab === "workspace"
+                ? "bg-[#9D4EDD]/20 text-[#9D4EDD] border border-[#9D4EDD]/30"
+                : "text-white/30 hover:text-white/60"
+            }`}
+          >
+            Workspace
+          </button>
+        </div>
       </header>
 
       {/* ─── LOADING ─── */}
@@ -675,12 +699,16 @@ export default function SolvePage() {
       {/* ─── WORKSPACE ─── */}
       {!isLoading && !isError && (
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Mission Panel */}
-          {node && <MissionPanel node={node} elapsed={elapsed} diffStyle={diffStyle} diffLabel={diffLabel} />}
+          {/* Left: Mission Panel — always visible on desktop; shown on mobile only when mobileTab === "mission" */}
+          {node && (
+            <div className={`${mobileTab === "mission" ? "flex" : "hidden"} md:flex w-full md:w-[340px] flex-shrink-0`}>
+              <MissionPanel node={node} elapsed={elapsed} diffStyle={diffStyle} diffLabel={diffLabel} />
+            </div>
+          )}
 
-          {/* Right: Workspace */}
-          <div className="flex-1 overflow-y-auto flex flex-col">
-            <div className="flex-1 px-6 py-6 space-y-6 max-w-4xl w-full mx-auto">
+          {/* Right: Workspace — always visible on desktop; shown on mobile only when mobileTab === "workspace" */}
+          <div className={`${mobileTab === "workspace" ? "flex" : "hidden"} md:flex flex-1 overflow-y-auto flex-col`}>
+            <div className="flex-1 px-4 md:px-6 py-6 space-y-6 max-w-4xl w-full mx-auto">
 
               {/* 1. Approach Explanation */}
               <section>

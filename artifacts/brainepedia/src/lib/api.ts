@@ -91,8 +91,8 @@ export const api = {
     },
     create: (formData: FormData) =>
       fetchApi("/api/Profiles", { method: "POST", body: formData }),
-    update: (profileId: string, formData: FormData) =>
-      fetchApi(`/api/Profiles/edit/${encodeURIComponent(profileId)}`, { method: "POST", body: formData }),
+    update: (profileId: string, userId: string, formData: FormData) =>
+      fetchApi(`/api/Profiles/edit/${encodeURIComponent(profileId)}?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
   },
   userProgresses: {
     /** Legacy alias kept for any remaining callers */
@@ -231,9 +231,9 @@ export const api = {
       fetchApi("/api/Evaluations/chat-brainiac", { method: "POST", body: JSON.stringify(data) }),
     process: (submissionId: string) =>
       fetchApi(`/api/Evaluations/process/${encodeURIComponent(submissionId)}`, { method: "POST" }),
-    /** GET /api/Evaluations/results/{submissionId} — full evaluated result */
-    getResult: (submissionId: string) =>
-      fetchApi(`/api/Evaluations/results/${encodeURIComponent(submissionId)}`),
+    /** GET /api/Evaluations/results/{sessionId} — full evaluated result by session ID */
+    getResult: (sessionId: string) =>
+      fetchApi(`/api/Evaluations/results/${encodeURIComponent(sessionId)}`),
   },
   problemNodes: {
     byDistrict: (districtId: string, userId?: string | null) =>

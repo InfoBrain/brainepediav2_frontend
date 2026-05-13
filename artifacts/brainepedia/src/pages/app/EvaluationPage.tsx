@@ -161,6 +161,7 @@ export default function EvaluationPage() {
   const resultRef = useRef<any>(null);
   const startTimeRef = useRef<number>(Date.now());
   const doneRef = useRef(false);
+  const sessionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!submissionId) return;
@@ -172,6 +173,14 @@ export default function EvaluationPage() {
           d?.problemNode?.title ||
           null;
         if (title) setMissionTitle(String(title));
+        const sid =
+          d?.experienceSession?.experienceSessionId ||
+          d?.experienceSession?.sessionId ||
+          d?.experienceSession?.id ||
+          d?.experienceSessionId ||
+          d?.sessionId ||
+          null;
+        if (sid) sessionIdRef.current = String(sid);
       }
     });
   }, [submissionId]);
@@ -186,6 +195,12 @@ export default function EvaluationPage() {
 
     if (res.ok) {
       resultRef.current = res.data;
+      try {
+        sessionStorage.setItem(
+          `eval_result_${submissionId}`,
+          JSON.stringify({ data: res.data, sessionId: sessionIdRef.current, ts: Date.now() })
+        );
+      } catch { /* quota exceeded — ignore */ }
     } else {
       // Show error only after minimum animation has had some time
       const elapsed = Date.now() - startTimeRef.current;

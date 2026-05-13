@@ -206,7 +206,7 @@ export default function EditProfile() {
     if (imageFile) fd.append("ImageFile", imageFile);
 
     const updateId = profileId || authProfileId || userId || "";
-    const res = await api.profiles.update(updateId, fd);
+    const res = await api.profiles.update(updateId, userId!, fd);
     setSubmitting(false);
     if (res.ok) {
       toast({
