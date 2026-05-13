@@ -79,19 +79,20 @@ app.all("/api/*", async (req, res) => {
 });
 
 // ── Static frontend ────────────────────────────────────────────────────────
-const publicDir = path.resolve(__dirname, "public");
-if (existsSync(publicDir)) {
-  app.use(express.static(publicDir, { maxAge: "1d", index: false }));
+const staticDir = path.resolve(__dirname);
+const indexHtml = path.join(staticDir, "index.html");
+if (existsSync(indexHtml)) {
+  app.use(express.static(staticDir, { maxAge: "1d", index: false }));
   // SPA fallback
   app.get("*", (_req, res) => {
-    res.sendFile(path.join(publicDir, "index.html"));
+    res.sendFile(indexHtml);
   });
 } else {
-  app.get("/", (_req, res) => res.json({ status: "OK", note: "public/ folder not found" }));
+  app.get("/", (_req, res) => res.json({ status: "OK", note: "index.html not found alongside server.js" }));
 }
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API proxy → ${UPSTREAM}`);
-  console.log(`Static files → ${publicDir}`);
+  console.log(`Static files → ${staticDir}`);
 });
