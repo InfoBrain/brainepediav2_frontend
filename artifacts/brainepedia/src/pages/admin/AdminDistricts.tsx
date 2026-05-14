@@ -135,7 +135,7 @@ export default function AdminDistricts() {
   }, [selectedProfessionId, loadDistricts]);
 
   useEffect(() => {
-    if (!userId) navigate("/login");
+    if (!userId) navigate("/auth/login");
   }, [userId, navigate]);
 
   function setField<K extends keyof DistrictForm>(k: K, v: DistrictForm[K]) {
@@ -202,7 +202,7 @@ export default function AdminDistricts() {
       toast({ title: "Please select a profession", variant: "destructive" });
       return;
     }
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     setSaving(true);
     const fd = new FormData();
     fd.append("Name", form.name.trim());
@@ -227,7 +227,7 @@ export default function AdminDistricts() {
 
   async function handleDelete() {
     if (!deleteState.open) return;
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     setDeleting(true);
     const res = await api.districts.delete(deleteState.district.id, userId);
     setDeleting(false);

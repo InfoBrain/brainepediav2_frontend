@@ -56,7 +56,7 @@ export default function SubscriptionSuccess() {
     }
 
     if (!userId) {
-      navigate("/login");
+      navigate("/auth/login");
       return () => {
         cancelled = true;
         if (timerRef.current) clearTimeout(timerRef.current);

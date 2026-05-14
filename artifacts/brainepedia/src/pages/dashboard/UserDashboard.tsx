@@ -12,6 +12,7 @@ import { XPRing } from "@/components/dashboard/XPRing";
 import { Leaderboard, type LeaderboardUser, type CurrentUserRank } from "@/components/dashboard/Leaderboard";
 import { api } from "@/lib/api";
 import { getUser, getUserId, getProfileId } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -128,6 +129,7 @@ const BADGE_MILESTONES: BadgeMilestone[] = [
 
 /* ─── Component ──────────────────────────────────────────────────────────── */
 export default function UserDashboard() {
+  usePageTitle("Dashboard");
   const [, navigate] = useLocation();
   const userId = getUserId();
   const profileId = getProfileId();
@@ -166,7 +168,7 @@ export default function UserDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
 
     if (user) {
       setProfile(prev => prev ?? {

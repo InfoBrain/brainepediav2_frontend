@@ -1,0 +1,277 @@
+Build a complete production-readiness and stabilization update across the entire Brainepedia frontend application. Perform a full audit of all pages, API integrations, layouts, authentication flows, responsiveness, metadata, navigation consistency, and state management.
+
+The application must now behave like a polished live SaaS platform.
+
+GLOBAL APPLICATION FINALIZATION TASK
+1. AUTHORIZATION + USER CONTEXT FIX
+
+Scan all pages, hooks, services, stores, and API requests.
+
+Requirements
+Every authenticated endpoint must automatically attach:
+JWT Bearer token
+Logged-in userId
+Remove any hardcoded user IDs from the application.
+Create a centralized authenticated API client:
+axiosInstance.ts
+Automatically inject token from localStorage/session/auth context
+Automatically inject userId where required
+Handle:
+401 Unauthorized
+403 Forbidden
+Expired token
+Missing token
+Redirect unauthorized users to Login page.
+Preserve intended route after login.
+Required Fixes
+
+Endpoints requiring userId include:
+
+Dashboard
+Profiles
+Experience Sessions
+Submissions
+Evaluations
+Activity Logs
+XP Credits
+Leaderboard
+User Badges
+Subscriptions
+Public Profile
+Progress APIs
+2. REMOVE HARDCODED VALUES
+
+Scan entire project and remove:
+
+Hardcoded XP values
+Hardcoded percentages
+Hardcoded counts
+Hardcoded leaderboard positions
+Hardcoded district progress
+Hardcoded mission states
+Hardcoded subscription status
+Hardcoded user names
+Hardcoded profile avatars
+
+All data must come dynamically from APIs.
+
+3. PUBLIC PROFILE FIXES
+
+Fix the “View Public Profile” page.
+
+Requirements
+Correctly fetch profile by profileId/userId
+Show:
+Avatar
+Name
+Profession
+Bio/About
+XP
+Rank
+Districts mastered
+Missions completed
+Subscription tier
+Social links
+Badges earned
+IMPORTANT
+
+Currently badges are not showing.
+
+Integrate:
+GET /api/UserBadges/{userId}
+
+Display badges beautifully with:
+
+badge icon
+rarity color
+title
+unlock date
+
+Handle:
+
+empty state
+loading state
+private profile fallback
+4. GLOBAL META + SEO CONFIGURATION
+
+Add dynamic metadata to all pages.
+
+Include:
+title
+description
+keywords
+og:image
+og:title
+og:description
+twitter meta tags
+favicon
+author = “InfoBrain Technologies”
+
+Use React Helmet or Next.js metadata depending on stack.
+
+Dynamic Examples
+
+Mission Page:
+
+“Solve Algorithm Missions | Brainepedia”
+
+District Page:
+
+“Foundation & Logic District | Brainepedia”
+
+Profile Page:
+
+“Brain’s Imperial Profile | Brainepedia”
+5. MENU + NAVIGATION CONSISTENCY FIX
+
+Audit all navigation menus.
+
+Fix:
+inconsistent active states
+different spacing/padding
+mobile nav glitches
+duplicated menu items
+broken links
+route mismatches
+inconsistent icons
+improper hover states
+Standardize:
+sidebar
+top navbar
+mobile drawer
+profile dropdown
+admin navigation
+breadcrumb behavior
+
+Use a centralized navigation config file.
+
+6. RESPONSIVENESS FINALIZATION
+
+Perform a full responsive audit.
+
+Ensure:
+mobile friendly
+tablet friendly
+ultra-wide desktop optimized
+Fix especially:
+Mission activity page
+Submission page
+Evaluation page
+Dashboard cards
+Leaderboard table
+District map
+AI feedback sections
+Requirements
+No overflow issues
+No compressed text areas
+No hidden buttons
+No overlapping cards
+Responsive grids
+Responsive typography
+Proper spacing on all breakpoints
+7. LOADING + ERROR STATES
+
+Every API page must support:
+
+skeleton loaders
+retry state
+empty state
+network error state
+timeout state
+
+Create reusable components:
+
+LoadingCard
+EmptyState
+ErrorState
+RetryButton
+8. APPLICATION-WIDE BRAINIAC GUIDANCE SYSTEM
+
+Add Brainiac tips/help widgets globally.
+
+Requirements
+Floating Brainiac helper
+Context-aware guidance
+AI hints for missions
+onboarding tips
+district help
+XP explanations
+subscription guidance
+
+Should appear intelligently across:
+
+dashboard
+mission pages
+submissions
+evaluation pages
+district pages
+9. PERFORMANCE OPTIMIZATION
+
+Optimize:
+
+API requests
+unnecessary re-renders
+repeated fetches
+image loading
+caching
+
+Implement:
+
+lazy loading
+route splitting
+memoization
+React Query/SWR caching
+optimized avatar/image rendering
+10. FINAL PRODUCTION POLISH
+
+Add:
+
+smooth transitions
+polished animations
+hover effects
+modern futuristic styling
+accessibility improvements
+keyboard navigation
+aria labels
+proper semantic HTML
+11. APPLICATION HEALTH CHECK
+
+Perform a final automated audit.
+
+Validate:
+all routes work
+no 404 issues on refresh
+all buttons functional
+all forms submit correctly
+all API calls mapped correctly
+all pages render without console errors
+no undefined/null crashes
+all protected routes secured
+12. FINAL QA CHECKLIST
+
+Before completion ensure:
+
+No TypeScript errors
+No ESLint warnings
+No console errors
+No broken images
+No hydration errors
+No duplicate API calls
+No invalid routes
+No unhandled promise rejections
+EXPECTED RESULT
+
+The final application should feel like a fully polished production AI-powered gamified learning platform with:
+
+enterprise-grade UX
+futuristic UI
+stable APIs
+proper auth handling
+responsive layouts
+dynamic data everywhere
+complete leaderboard
+functioning profiles
+functioning badges
+optimized dashboard
+production-ready navigation
+smooth live deployment experience

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 import { useDifficulties, buildDifficultyLookup, getDifficultyStyle, type DifficultyMeta } from "@/hooks/useDifficulties";
@@ -324,6 +325,7 @@ export default function MissionListPage() {
   const districtId = params.districtId || "";
   const [, navigate] = useLocation();
   const userId = getUserId();
+  usePageTitle("Missions");
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");

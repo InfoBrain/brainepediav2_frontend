@@ -92,7 +92,7 @@ export default function AdminProfessions() {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    if (!userId) navigate("/login");
+    if (!userId) navigate("/auth/login");
   }, [userId, navigate]);
 
   // Cycle loading messages
@@ -120,7 +120,7 @@ export default function AdminProfessions() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) { toast({ title: "Name is required", variant: "destructive" }); return; }
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     setSaving(true);
     let res;
     if (modal.open && modal.mode === "edit") {
@@ -151,7 +151,7 @@ export default function AdminProfessions() {
 
   async function handleDelete() {
     if (!deleteState.open) return;
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     setDeleting(true);
     const res = await api.professions.delete(deleteState.profession.id, userId);
     setDeleting(false);

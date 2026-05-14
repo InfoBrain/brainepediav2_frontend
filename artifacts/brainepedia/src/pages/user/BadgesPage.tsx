@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -153,6 +154,7 @@ function BadgeCard({ badge, index }: { badge: Badge; index: number }) {
 }
 
 export default function BadgesPage() {
+  usePageTitle("My Badges");
   const [, navigate] = useLocation();
   const userId = getUserId();
   const [badges, setBadges] = useState<Badge[]>([]);
@@ -161,7 +163,7 @@ export default function BadgesPage() {
   useEffect(() => {
     if (!userId) {
       setLoading(false);
-      navigate("/login");
+      navigate("/auth/login");
       return;
     }
     (async () => {

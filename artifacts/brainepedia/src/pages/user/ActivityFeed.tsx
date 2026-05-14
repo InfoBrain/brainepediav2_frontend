@@ -29,6 +29,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 
 const nav: NavItem[] = [
@@ -266,6 +267,7 @@ const SORT_OPTIONS: { key: SubSortOrder; label: string }[] = [
 ];
 
 export default function ActivityFeed() {
+  usePageTitle("Activity Feed");
   const [, navigate] = useLocation();
   const userId = getUserId();
   const [allLogs, setAllLogs] = useState<ActivityLog[]>([]);
@@ -312,7 +314,7 @@ export default function ActivityFeed() {
 
   useEffect(() => {
     if (!userId) {
-      navigate("/login");
+      navigate("/auth/login");
       return;
     }
     fetchData();

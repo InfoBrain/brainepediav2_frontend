@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
@@ -216,6 +217,7 @@ export default function MissionDetailPage() {
   const problemNodeId = params.problemNodeId || "";
   const [, navigate] = useLocation();
   const userId = getUserId();
+  usePageTitle("Mission");
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";
 
   const [starting, setStarting] = useState(false);

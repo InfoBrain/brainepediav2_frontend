@@ -13,6 +13,7 @@ import {
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 import { api } from "@/lib/api";
 import { getUserId, getUser } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type Stats = { totalXP: number; problemsSolvedCount: number; dayStreak: number; currentSubscription: string; isSubscriptionActive: boolean };
 type DistrictProgress = { districtName: string; districtId: string; earnedXP: number; totalPossibleXP: number; percentage: number; isMastered: boolean };
@@ -75,6 +76,7 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
 }
 
 export default function UserProgressPage() {
+  usePageTitle("Progress");
   const [, navigate] = useLocation();
   const userId = getUserId() || "";
 

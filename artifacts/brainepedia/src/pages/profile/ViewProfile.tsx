@@ -30,6 +30,7 @@ import {
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
 import { getDashboardPath, getProfileId, getUserId, isAuthenticated } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
@@ -122,6 +123,10 @@ export default function ViewProfile() {
   const params = useParams<{ userId: string }>();
   const profileIdParam = params.userId ?? "";
   const [profile, setProfile] = useState<Profile | null>(null);
+  const profileTitle = profile
+    ? `${[profile.firstName, profile.surName].filter(Boolean).join(" ") || "Operative"}'s Profile`
+    : "Public Profile";
+  usePageTitle(profileTitle);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [loading, setLoading] = useState(true);

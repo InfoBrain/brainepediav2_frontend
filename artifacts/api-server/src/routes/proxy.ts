@@ -61,8 +61,14 @@ async function proxy(req: Request, res: Response) {
       const k = key.toLowerCase();
       if (HOP_BY_HOP.has(k)) return;
       if (k === "content-encoding") return;
+      if (k === "etag") return;
+      if (k === "last-modified") return;
       res.setHeader(key, value);
     });
+    // Prevent Express/browser from caching proxy responses and issuing 304s,
+    // which would cause fetchApi to see an empty body and return ok: false.
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.removeHeader("ETag");
 
     const buf = Buffer.from(await upstream.arrayBuffer());
     res.send(buf);

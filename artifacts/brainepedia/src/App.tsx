@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -64,6 +65,12 @@ import { BrainiacWidget } from "@/components/app/BrainiacWidget";
 
 const queryClient = new QueryClient();
 
+function LegacyRedirect({ to }: { to: string }) {
+  const [, setLocation] = useLocation();
+  useEffect(() => { setLocation(to, { replace: true }); }, [to, setLocation]);
+  return null;
+}
+
 function Router() {
   return (
     <Switch>
@@ -71,7 +78,15 @@ function Router() {
       <Route path="/problem" component={ProblemPage} />
       <Route path="/solution" component={SolutionPage} />
       <Route path="/how-it-works" component={HowItWorksPage} />
-      
+
+      {/* Legacy auth aliases — many pages navigate("/login") without the /auth/ prefix */}
+      <Route path="/login"><LegacyRedirect to="/auth/login" /></Route>
+      <Route path="/register"><LegacyRedirect to="/auth/register" /></Route>
+      <Route path="/forgot-password"><LegacyRedirect to="/auth/forgot-password" /></Route>
+      <Route path="/reset-password"><LegacyRedirect to="/auth/reset-password" /></Route>
+      <Route path="/verify-otp"><LegacyRedirect to="/auth/verify-otp" /></Route>
+      <Route path="/change-password"><LegacyRedirect to="/auth/change-password" /></Route>
+
       <Route path="/auth/login" component={Login} />
       <Route path="/auth/register" component={Register} />
       <Route path="/auth/verify-otp" component={VerifyOtp} />

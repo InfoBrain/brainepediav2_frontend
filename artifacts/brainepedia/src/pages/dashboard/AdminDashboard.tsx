@@ -18,6 +18,7 @@ import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardSh
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -46,6 +47,7 @@ type ProblemNode = {
 type AdminUser = { id: string; email?: string; name?: string; role?: string };
 
 export default function AdminDashboard() {
+  usePageTitle("Admin Dashboard");
   const [, navigate] = useLocation();
   const userId = getUserId();
   const [stats, setStats] = useState<Stats | null>(null);
@@ -92,7 +94,7 @@ export default function AdminDashboard() {
   }, [search, roleFilter]);
 
   useEffect(() => {
-    if (!userId) navigate("/login");
+    if (!userId) navigate("/auth/login");
   }, [userId, navigate]);
 
   const filteredUsers = useMemo(() => users, [users]);
@@ -118,7 +120,7 @@ export default function AdminDashboard() {
 
   const saveEdit = async () => {
     if (!editing) return;
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     setSavingNode(true);
     const fd = new FormData();
     fd.append("multiplier", String(editing.multiplier));

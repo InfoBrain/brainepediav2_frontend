@@ -7,6 +7,7 @@ import { ProfessionCard, type Profession } from "@/components/profession/Profess
 import { SkeletonCard } from "@/components/profession/SkeletonCard";
 import { api } from "@/lib/api";
 import { isAuthenticated } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
@@ -26,6 +27,7 @@ function saveSelectedProfession(p: Profession) {
 }
 
 export default function SelectProfession() {
+  usePageTitle("Choose Your Path");
   const [, navigate] = useLocation();
   const [selected, setSelected] = useState<string | null>(() => getSelectedProfession()?.id ?? null);
   const [search, setSearch] = useState("");

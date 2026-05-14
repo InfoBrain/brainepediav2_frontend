@@ -22,7 +22,7 @@ export default function VerifyPayment() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     let cancelled = false;
 
     const scheduleRedirect = (ms: number) => {

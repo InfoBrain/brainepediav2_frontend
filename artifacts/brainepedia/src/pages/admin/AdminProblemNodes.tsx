@@ -236,7 +236,7 @@ export default function AdminProblemNodes() {
   useEffect(() => { loadNodes(selectedDistId); }, [selectedDistId, loadNodes]);
 
   useEffect(() => {
-    if (!userId) navigate("/login");
+    if (!userId) navigate("/auth/login");
   }, [userId, navigate]);
 
   function setField<K extends keyof NodeForm>(k: K, v: NodeForm[K]) {
@@ -283,7 +283,7 @@ export default function AdminProblemNodes() {
       toast({ title: "Title is required", variant: "destructive" });
       return;
     }
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     setSaving(true);
     const fd = new FormData();
     fd.append("Title", form.title.trim());
@@ -313,7 +313,7 @@ export default function AdminProblemNodes() {
 
   async function handleDelete() {
     if (!deleteState.open) return;
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     setDeleting(true);
     const res = await api.problemNodes.delete(deleteState.node.id, userId);
     setDeleting(false);
@@ -331,7 +331,7 @@ export default function AdminProblemNodes() {
       toast({ title: "Topic is required", variant: "destructive" });
       return;
     }
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     setAi(s => ({ ...s, loading: true, preview: null }));
     const res = await api.problemNodes.aiGenerate(userId, {
       topic: aiForm.topic,
@@ -351,7 +351,7 @@ export default function AdminProblemNodes() {
 
   async function saveAiPreview() {
     if (!ai.preview) return;
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     const p = ai.preview;
     const parseArray = (v: any): string[] => {
       if (Array.isArray(v)) return v.map(String);

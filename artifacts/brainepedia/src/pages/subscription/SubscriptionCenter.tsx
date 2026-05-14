@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -120,6 +121,7 @@ const BRAINIAC_TIPS = [
 
 /* ─── Component ──────────────────────────────────────────────────────────── */
 export default function SubscriptionCenter() {
+  usePageTitle("Subscription");
   const [, navigate] = useLocation();
   const userId = getUserId();
   const { toast } = useToast();
@@ -131,7 +133,7 @@ export default function SubscriptionCenter() {
   const [tipIndex, setTipIndex] = useState(0);
 
   useEffect(() => {
-    if (!userId) { navigate("/login"); return; }
+    if (!userId) { navigate("/auth/login"); return; }
     (async () => {
       const res = await api.profiles.stats(userId);
       if (res.ok && res.data) {

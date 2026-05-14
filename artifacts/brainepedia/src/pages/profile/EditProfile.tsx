@@ -127,7 +127,7 @@ export default function EditProfile() {
 
   useEffect(() => {
     if (!userId) {
-      navigate("/login");
+      navigate("/auth/login");
       return;
     }
     const userEmail = authUser?.email || "";
