@@ -98,8 +98,10 @@ if (existsSync(indexHtml)) {
       },
     })
   );
-  // SPA fallback — all non-API, non-asset routes serve index.html
-  app.get("*", (_req, res) => {
+  // SPA fallback — serves index.html for every non-API, non-asset request.
+  // Uses app.use() (no path arg) so it works in Express 4 and 5 without
+  // relying on the path-to-regexp "*" wildcard that was removed in v8.
+  app.use((_req, res) => {
     res.sendFile(indexHtml);
   });
 } else {
