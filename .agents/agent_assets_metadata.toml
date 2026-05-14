@@ -5,7 +5,7 @@ generated = []
 id = "P1MfCG8NOdNJPPGp81YSN"
 uri = "file://brainepedia-deploy.zip"
 type = "unspecified"
-title = "Brainepedia — Windows Shared Hosting Deploy Package"
+title = "Brainepedia — Full Deployment Package"
 
 [[outputs]]
 id = "gC1gJju_G_fkS_YWvNAgi"
