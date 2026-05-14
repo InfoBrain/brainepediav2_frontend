@@ -351,7 +351,7 @@ export default function UserProgressPage() {
                 { label: "Continue Learning", href: "/profession/select", color: "from-[#00D2FF] to-[#9D4EDD]", text: "text-white" },
                 { label: "District Map", href: "/profession/select", color: "from-transparent to-transparent", text: "text-white/60" },
                 { label: "Start Mission", href: "/profession/select", color: "from-transparent to-transparent", text: "text-white/60" },
-                { label: "Upgrade Plan", href: "/user/subscription/success", color: "from-[#FFD700]/20 to-[#FFD700]/5", text: "text-[#FFD700]" },
+                { label: "Upgrade Plan", href: "/user/subscription", color: "from-[#FFD700]/20 to-[#FFD700]/5", text: "text-[#FFD700]" },
               ].map(a => (
                 <Link key={a.label} href={a.href}>
                   <button className={`w-full py-3 px-4 rounded-xl text-xs font-bold font-mono bg-gradient-to-br ${a.color} ${a.text} border border-white/10 hover:border-white/20 hover:scale-[1.03] transition-all text-center`}>

@@ -391,18 +391,21 @@ export default function UserDashboard() {
   const handleUpgrade = async () => {
     if (!userId) return;
     setUpgradeLoading(true);
-    const targetTier = subName === "Architect" ? "Grandmaster" : "Architect";
+    const targetTierName = subName === "Architect" ? "Grandmaster" : "Architect";
+    /* Use numeric tier values to match the subscription page's working flow */
+    const TIER_NUMS: Record<string, number> = { Initiate: 0, Architect: 1, Grandmaster: 2 };
+    const newTier = TIER_NUMS[targetTierName] ?? 1;
     const res = await api.subscriptions.initializeUpgrade({
       userId,
-      newTier: targetTier,
+      newTier,
       currency: "NGN",
-      source: "",
+      source: "paystack",
     });
     setUpgradeLoading(false);
     const data = res.data as { checkoutUrl?: string; authorization_url?: string } | null;
     const url = data?.checkoutUrl || data?.authorization_url;
     if (res.ok && url) {
-      api.activityLogs.create({ userId, activity: `Initiated subscription upgrade to ${targetTier} tier` });
+      api.activityLogs.create({ userId, activity: `Initiated subscription upgrade to ${targetTierName} tier` });
       window.location.href = url;
     } else if (res.ok) {
       toast({ title: "Payment initialised", description: "Check your email or dashboard for the payment link." });

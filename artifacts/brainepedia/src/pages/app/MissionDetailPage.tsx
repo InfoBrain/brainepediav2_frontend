@@ -25,6 +25,7 @@ import {
 import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 import { useDifficulties, buildDifficultyLookup, getDifficultyStyle } from "@/hooks/useDifficulties";
 
@@ -90,7 +91,34 @@ function TextSkeleton({ lines = 3 }: { lines?: number }) {
   );
 }
 
-function UpgradeModal({ onClose }: { onClose: () => void }) {
+function UpgradeModal({ onClose, userId }: { onClose: () => void; userId: string | null }) {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!userId) return;
+    setLoading(true);
+    const res = await api.subscriptions.initializeUpgrade({
+      userId,
+      newTier: 1,        // Architect (numeric, same as subscription page)
+      currency: "NGN",
+      source: "paystack",
+    });
+    setLoading(false);
+    const data = res.data as { checkoutUrl?: string; authorization_url?: string } | null;
+    const url = data?.checkoutUrl || data?.authorization_url;
+    if (res.ok && url) {
+      onClose();
+      window.location.href = url;
+    } else {
+      toast({
+        title: "Upgrade failed",
+        description: res.error || "Could not start the payment. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -108,6 +136,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"
+          disabled={loading}
         >
           <X className="w-4 h-4" />
         </button>
@@ -115,21 +144,25 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
           <Lock className="w-6 h-6 text-[#9D4EDD]" />
         </div>
         <h3 className="text-lg font-bold text-white mb-2">Mission Limit Reached</h3>
-        <p className="text-sm text-white/50 mb-5 leading-relaxed">
+        <p className="text-sm text-white/50 mb-1 leading-relaxed">
           You've reached your monthly mission limit.
-          Upgrade your plan to continue solving missions.
+          Upgrade to Architect to continue solving missions.
         </p>
-        <Link href="/user/subscription/success">
-          <button
-            onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#9D4EDD] to-[#00D2FF] text-white text-sm font-bold font-mono hover:opacity-90 transition-opacity"
-          >
-            Upgrade Plan
-          </button>
-        </Link>
+        <p className="text-xs text-[#9D4EDD]/80 font-mono mb-5">$19.99 / month</p>
+        <button
+          onClick={handleUpgrade}
+          disabled={loading}
+          className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#9D4EDD] to-[#00D2FF] text-white text-sm font-bold font-mono hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {loading
+            ? <><Loader2 className="w-4 h-4 animate-spin" /> Preparing…</>
+            : "Upgrade to Architect — $19.99/mo"
+          }
+        </button>
         <button
           onClick={onClose}
-          className="w-full mt-2 py-2 text-xs font-mono text-white/30 hover:text-white/60 transition-colors"
+          disabled={loading}
+          className="w-full mt-2 py-2 text-xs font-mono text-white/30 hover:text-white/60 transition-colors disabled:opacity-40"
         >
           Maybe later
         </button>
@@ -609,7 +642,7 @@ export default function MissionDetailPage() {
 
       {/* Upgrade modal */}
       <AnimatePresence>
-        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
+        {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} userId={userId} />}
       </AnimatePresence>
     </div>
   );
