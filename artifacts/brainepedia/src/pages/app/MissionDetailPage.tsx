@@ -555,24 +555,26 @@ export default function MissionDetailPage() {
                 You can pause and resume anytime
               </p>
 
-              {sessionLoading || (isCompleted && submissionLookupLoading) ? (
+              {sessionLoading ? (
                 <div className="flex items-center justify-center py-3">
                   <Loader2 className="w-5 h-5 text-[#00D2FF] animate-spin" />
                 </div>
               ) : isCompleted ? (
-                <button
-                  onClick={() => {
-                    if (latestSubmissionId) {
-                      navigate(`/app/submission/${latestSubmissionId}/result`);
-                    } else {
-                      navigate("/user/activity");
-                    }
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-base font-bold font-mono hover:bg-emerald-500/20 transition-all duration-200"
-                >
-                  <Eye className="w-5 h-5" />
-                  View Result
-                </button>
+                <div className="space-y-3">
+                  {/* Completed banner */}
+                  <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/8 text-emerald-400 text-sm font-mono">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Mission Completed — this mission has been evaluated
+                  </div>
+                  {/* View Result CTA */}
+                  <button
+                    onClick={() => navigate(`/missions/node-results/${problemNodeId}`)}
+                    className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-base font-bold font-mono hover:bg-emerald-500/20 transition-all duration-200 shadow-[0_0_20px_rgba(16,185,129,0.08)]"
+                  >
+                    <Eye className="w-5 h-5" />
+                    View My Result
+                  </button>
+                </div>
               ) : hasActiveSession ? (
                 <button
                   onClick={handleResume}

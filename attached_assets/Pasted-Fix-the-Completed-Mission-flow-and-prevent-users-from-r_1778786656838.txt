@@ -1,0 +1,157 @@
+Fix the Completed Mission flow and prevent users from restarting already completed missions.
+
+Current Problems:
+
+When a user clicks:
+View Result
+
+on a completed mission card, the app incorrectly navigates to the Mission Details / Start Mission page instead of the Evaluation Result page.
+
+Users can still start missions that are already completed and passed.
+Mission cards are not correctly distinguishing:
+New missions
+In Progress missions
+Completed missions
+
+Backend API Update
+
+Use the updated endpoint correctly:
+
+GET /api/Evaluations/node-results/{problemNodeId}
+
+This endpoint already returns:
+
+Score
+IsPassed
+Feedback
+AI reasoning
+Mission title
+
+Fix frontend integration to consume this endpoint properly.
+
+Frontend Fix Requirements
+
+PART 1 — FIX "VIEW RESULT" BUTTON
+
+When mission status is:
+Completed
+
+the CTA button must:
+
+NOT navigate to mission start page
+Navigate directly to:
+/missions/results/:problemNodeId
+Fetch result data using:
+GET /api/Evaluations/node-results/{problemNodeId}
+Build a dedicated Result View page showing:
+Mission title
+Score
+Pass/Fail state
+Positive feedback
+Improvement areas
+Strengths
+Weaknesses
+Brainiac reasoning
+XP earned
+Add:
+"Mission Completed" success badge
+Futuristic XP animation
+Return to District button
+Mobile responsive layout required.
+
+PART 2 — PREVENT RESTARTING COMPLETED MISSIONS
+
+If user already completed and passed a mission:
+Disable Start Mission button
+Replace with:
+Mission Completed
+
+OR:
+
+View Result
+User should NOT be able to create another active session for a completed mission.
+Add frontend guard:
+Before starting a session:
+Check if evaluation exists and IsPassed = true
+Add backend validation in:
+POST /api/ExperienceSessions/start
+
+Logic:
+If user already has:
+
+Evaluated session
+Passed evaluation
+Same ProblemNodeId
+
+Return:
+
+{
+  "message": "Mission already completed."
+}
+
+and prevent new session creation.
+
+PART 3 — FIX MISSION STATUS LOGIC
+
+Mission cards should correctly display:
+
+NEW
+No session exists
+IN PROGRESS
+Active session exists
+SUBMITTED
+Waiting for evaluation
+COMPLETED
+Evaluation exists AND IsPassed = true
+FAILED / RETRY
+Evaluation exists AND IsPassed = false
+
+PART 4 — UPDATE MISSION CARD ACTION BUTTONS
+
+NEW:
+
+Start Mission
+
+IN PROGRESS:
+
+Resume Mission
+
+SUBMITTED:
+
+Evaluation Pending
+
+COMPLETED:
+
+View Result
+
+FAILED:
+
+Retry Mission
+
+PART 5 — UI IMPROVEMENTS
+
+Add proper mission status colors:
+Blue → New
+Orange → In Progress
+Purple → Submitted
+Green → Completed
+Red → Failed
+Add completed glow effects.
+Add XP earned badge on completed missions.
+Improve loading states.
+Ensure mobile responsiveness.
+Add toast notifications:
+Mission already completed
+Redirecting to results
+Evaluation pending
+Remove all navigation bugs causing incorrect routing.
+
+Goal:
+
+Completed missions should:
+
+Open result pages correctly
+Never restart accidentally
+Show proper status
+Protect against duplicate completion attempts
+Provide a smooth user experience.

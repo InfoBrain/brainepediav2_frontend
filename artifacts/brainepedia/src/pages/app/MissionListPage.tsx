@@ -562,7 +562,11 @@ export default function MissionListPage() {
                 key={mission.problemNodeId}
                 mission={mission}
                 index={i}
-                onClick={() => navigate(`/app/mission/${mission.problemNodeId}`)}
+                onClick={() =>
+                  mission.isCompleted
+                    ? navigate(`/missions/node-results/${mission.problemNodeId}`)
+                    : navigate(`/app/mission/${mission.problemNodeId}`)
+                }
                 difficultyMeta={difficultyLookup[mission.difficultyId]}
               />
             ))}

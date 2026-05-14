@@ -234,6 +234,9 @@ export const api = {
     /** GET /api/Evaluations/results/{sessionId} — full evaluated result by session ID */
     getResult: (sessionId: string) =>
       fetchApi(`/api/Evaluations/results/${encodeURIComponent(sessionId)}`),
+    /** GET /api/Evaluations/node-results/{problemNodeId} — result by problem node (for completed missions) */
+    getNodeResult: (problemNodeId: string) =>
+      fetchApi(`/api/Evaluations/node-results/${encodeURIComponent(problemNodeId)}`),
   },
   problemNodes: {
     byDistrict: (districtId: string, userId?: string | null) =>
