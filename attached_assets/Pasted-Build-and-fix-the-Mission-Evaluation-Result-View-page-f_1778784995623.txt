@@ -1,0 +1,328 @@
+Build and fix the Mission Evaluation Result View page for the Brainepedia frontend.
+
+Current Issues:
+
+Result page does not properly update after AI evaluation
+Users sometimes remain stuck on loading
+Evaluation results are not refreshing correctly
+Mission completion flow feels incomplete
+UI does not reflect XP rewards and mission completion clearly
+
+Use the updated ASP.NET Core endpoints below.
+
+API ENDPOINTS
+1. Process Evaluation
+
+POST
+
+/api/Evaluations/process/{submissionId}
+
+Successful Response:
+
+{
+  "evaluationId": "guid",
+  "score": 92,
+  "isPassed": true,
+  "feedback": {
+    "positiveFeedback": "Excellent architecture",
+    "improvementAreas": "Improve validation",
+    "strengths": "Strong structure",
+    "weaknesses": "Minor optimization issues"
+  },
+  "netXpGained": 240,
+  "missionTitle": "Authentication Fortress"
+}
+2. Get Evaluation Result by Session
+
+GET
+
+/api/Evaluations/results/{sessionId}
+
+Response:
+
+{
+  "score": 92,
+  "isPassed": true,
+  "positiveFeedback": "Excellent work",
+  "improvementAreas": "Improve optimization",
+  "strengths": "Architecture",
+  "weaknesses": "Performance edge cases",
+  "rawAiReasoning": "Detailed AI reasoning...",
+  "missionTitle": "Authentication Fortress"
+}
+REQUIRED FLOW
+
+When a user submits a mission:
+
+Submission succeeds
+Redirect user to Evaluation Processing Screen
+Trigger:
+POST /api/Evaluations/process/{submissionId}
+Show Brainiac AI evaluating animation
+When complete:
+Redirect automatically to:
+/mission/results/{sessionId}
+Fetch final evaluation results
+Display complete mission outcome beautifully
+PAGE TO FIX
+
+Route:
+
+/mission/results/:sessionId
+REQUIRED UI DESIGN
+
+Design a futuristic AI evaluation result page.
+
+Theme:
+
+Cyberpunk
+AI academy
+Futuristic dashboard
+Neon gradients
+Glassmorphism cards
+Dark mode
+
+Use:
+
+React + TypeScript
+TailwindCSS
+Framer Motion
+Shadcn UI
+SECTION 1 — RESULT HEADER
+
+Display:
+
+Mission Title
+Completion Status
+Score %
+XP earned
+Mission badge
+Difficulty tag
+
+Examples:
+
+Mission Complete
+Authentication Fortress
+Score: 92%
++240 XP Earned
+SECTION 2 — PASS / FAIL VISUAL
+
+If passed:
+
+Green neon success UI
+Celebration animation
+XP particles
+“Mission Cleared”
+
+If failed:
+
+Red/orange warning UI
+Retry guidance
+“Mission Failed”
+Encouraging Brainiac message
+SECTION 3 — AI FEEDBACK PANELS
+
+Create 4 futuristic cards:
+
+Strengths
+Weaknesses
+Positive Feedback
+Improvement Areas
+
+Each card should:
+
+Animate into view
+Have glowing borders
+Be responsive
+SECTION 4 — BRAINIAC ANALYSIS
+
+Display:
+
+Brainiac Deep Analysis
+
+Use:
+
+RawAiReasoning
+Expand/collapse section
+AI terminal style display
+Typing animation effect
+SECTION 5 — XP REWARD PANEL
+
+Show:
+
+XP earned
+XP progress bar
+Total XP after completion
+Next rank progress
+
+Include:
+
+Animated XP gain effect
+Floating XP particles
+SECTION 6 — NEXT ACTIONS
+
+Buttons:
+
+Retry Mission
+Back to District
+Continue Journey
+Dashboard
+View Leaderboard
+SECTION 7 — MISSION STATUS TRACKER
+
+Top progress tracker:
+
+Mission Started
+Submission Sent
+Brainiac Evaluated
+XP Awarded
+Mission Completed
+
+All steps animated.
+
+EVALUATION PROCESSING SCREEN
+
+Create loading screen route:
+
+/mission/evaluating/:submissionId/:sessionId
+
+This page should:
+
+Trigger evaluation API automatically
+Poll evaluation state if needed
+Show:
+Brainiac thinking animation
+AI neural network effects
+Rotating mission analysis messages
+
+Examples:
+
+Brainiac is analyzing your architecture...
+Validating mission constraints...
+Computing XP rewards...
+Evaluating problem-solving patterns...
+IMPORTANT FIXES
+1. AUTO REDIRECTION
+
+After evaluation completes:
+Automatically redirect to:
+
+/mission/results/{sessionId}
+2. HANDLE FAILED REQUESTS
+
+If evaluation API fails:
+
+Retry automatically
+Show retry button
+Prevent blank screen
+3. FIX STALE DATA
+
+Always fetch fresh evaluation results when:
+
+Page loads
+User refreshes
+User returns later
+
+Never rely only on local state.
+
+4. HANDLE NO EVALUATION FOUND
+
+If endpoint returns:
+
+No evaluation found for this mission session.
+
+Show:
+
+“Evaluation still processing”
+Retry polling every 5 seconds
+5. MOBILE RESPONSIVENESS
+
+Fix mobile issues:
+
+Full-width cards
+Proper textarea sizing
+Responsive layouts
+Buttons stack vertically
+No compressed content
+CREATE THESE COMPONENTS
+EvaluationLoader
+MissionResultHeader
+FeedbackCard
+BrainiacAnalysisPanel
+XpRewardCard
+MissionStatusTimeline
+MissionResultActions
+MissionResultPage
+UX IMPROVEMENTS
+Brainiac Personality
+
+Replace all “Oracle” wording with:
+
+Brainiac
+
+Examples:
+
+Brainiac Analysis
+Brainiac Evaluation Complete
+Brainiac Feedback
+SMART FEEDBACK COLORS
+
+Strengths:
+
+Green
+
+Weaknesses:
+
+Orange
+
+Improvements:
+
+Yellow
+
+AI Reasoning:
+
+Blue/Purple neon
+ANIMATIONS
+
+Add:
+
+XP count-up animation
+Score radial animation
+Card reveal animation
+AI pulse effects
+Mission completion confetti
+Brainiac neural network background
+API SERVICE REQUIREMENTS
+
+Create:
+
+evaluationService.ts
+
+Methods:
+
+processEvaluation(submissionId)
+getEvaluationBySession(sessionId)
+
+Handle:
+
+Loading
+Retries
+Errors
+Unauthorized responses
+FINAL GOAL
+
+The mission flow should feel cinematic and complete:
+
+Submit Work
+→ Brainiac Evaluates
+→ XP Earned
+→ AI Feedback
+→ Progress Updated
+→ Continue Journey
+
+The experience should feel like:
+
+AI-powered coding academy
+futuristic mission command center
+premium gamified learning platform
+elite hacker progression system

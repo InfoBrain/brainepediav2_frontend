@@ -614,7 +614,7 @@ export default function SolvePage() {
       const rd = res.data as Record<string, unknown>;
       const submissionId = String(rd?.submissionId || rd?.id || "");
       setUnsaved(false);
-      navigate(`/app/submission/${submissionId}/evaluating`);
+      navigate(`/mission/evaluating/${submissionId}/${sessionId}`);
     } else {
       setSubmitError(res.error || "Submission failed. Please try again.");
     }

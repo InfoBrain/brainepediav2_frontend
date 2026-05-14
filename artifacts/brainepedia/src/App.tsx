@@ -54,6 +54,8 @@ import MissionDetailPage from "@/pages/app/MissionDetailPage";
 import SolvePage from "@/pages/app/SolvePage";
 import EvaluationPage from "@/pages/app/EvaluationPage";
 import ResultPage from "@/pages/app/ResultPage";
+import MissionEvaluatingPage from "@/pages/app/MissionEvaluatingPage";
+import MissionResultPage from "@/pages/app/MissionResultPage";
 import UserProgressPage from "@/pages/app/UserProgressPage";
 
 // Global widget
@@ -183,6 +185,16 @@ function Router() {
       <Route path="/app/submission/:submissionId/result">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <ResultPage />
+        </RequireAuth>
+      </Route>
+      <Route path="/mission/evaluating/:submissionId/:sessionId">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <MissionEvaluatingPage />
+        </RequireAuth>
+      </Route>
+      <Route path="/mission/results/:sessionId">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <MissionResultPage />
         </RequireAuth>
       </Route>
       <Route path="/app/dashboard">
