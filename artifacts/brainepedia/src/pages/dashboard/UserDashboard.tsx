@@ -314,26 +314,42 @@ export default function UserDashboard() {
     setLeaderboardLoading(false);
   };
 
-  /* Refresh leaderboard whenever a mission evaluation completes */
+  const refreshDistricts = async () => {
+    if (!userId) return;
+    const m = await api.profiles.map(userId);
+    if (m.ok) setDistricts(normDistricts(m.data));
+  };
+
+  /* Refresh leaderboard + districts whenever a mission evaluation completes */
   useEffect(() => {
-    const handler = () => { refreshLeaderboard(); };
+    const handler = () => {
+      refreshLeaderboard();
+      refreshDistricts();
+    };
     window.addEventListener("brainepedia:evaluation-complete", handler);
     return () => window.removeEventListener("brainepedia:evaluation-complete", handler);
-  }, []);
+  }, [userId]);
 
   const handleUpgrade = async () => {
+    if (!userId) return;
     setUpgradeLoading(true);
-    const callbackUrl = `${window.location.origin}${import.meta.env.BASE_URL}user/subscription/success`;
-    const res = await api.subscriptions.initialize({ tier: "Architect", callbackUrl, redirectUrl: callbackUrl });
+    const targetTier = subName === "Architect" ? "Grandmaster" : "Architect";
+    const res = await api.subscriptions.initializeUpgrade({
+      userId,
+      newTier: targetTier,
+      currency: "NGN",
+      source: "",
+    });
     setUpgradeLoading(false);
     const data = res.data as { checkoutUrl?: string; authorization_url?: string } | null;
     const url = data?.checkoutUrl || data?.authorization_url;
-    if (res.ok) {
-      if (userId) api.activityLogs.create({ userId, activity: "Initiated subscription upgrade to Architect tier" });
-      if (url) window.location.href = url;
-      else toast({ title: "Subscription initialised", description: "Check your dashboard for updated status." });
+    if (res.ok && url) {
+      api.activityLogs.create({ userId, activity: `Initiated subscription upgrade to ${targetTier} tier` });
+      window.location.href = url;
+    } else if (res.ok) {
+      toast({ title: "Payment initialised", description: "Check your email or dashboard for the payment link." });
     } else {
-      toast({ title: "Upgrade failed", description: res.error || "Couldn't start the upgrade. Please try again.", variant: "destructive" });
+      toast({ title: "Upgrade failed", description: res.error || "Payment initialization failed. Please try again.", variant: "destructive" });
     }
   };
 
@@ -647,21 +663,63 @@ export default function UserDashboard() {
                 : <HexGrid districts={districts} />
               }
             </div>
-            <div className="bg-gradient-to-br from-[#7C3AED]/15 to-[#0d1119] border border-[#7C3AED]/30 rounded-2xl p-6 shadow-[0_0_15px_rgba(168,85,247,0.5)] flex flex-col">
-              <Crown className="h-6 w-6 text-amber-400 mb-3" />
-              <h3 className="text-lg font-bold mb-1">Ascend to Architect</h3>
-              <p className="text-sm text-muted-foreground mb-5 flex-1">
-                Unlock advanced missions, premium badges, and priority Brainiac access.
-              </p>
-              <Button className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold shadow-[0_0_15px_rgba(168,85,247,0.5)]"
-                onClick={handleUpgrade} disabled={upgradeLoading}>
-                {upgradeLoading ? "Preparing…" : "Upgrade — $19/mo"}
-              </Button>
-              <Link href={(profileId || userId) ? `/profile/${encodeURIComponent(profileId || userId || "")}` : "/"}
-                className="block mt-3 text-center text-xs font-mono text-muted-foreground hover:text-amber-400 transition-colors">
-                View your public profile →
-              </Link>
-            </div>
+            {subName === "Grandmaster" ? (
+              /* Already max tier — show status card */
+              <div className="bg-gradient-to-br from-[#FFD700]/10 to-[#0d1119] border border-[#FFD700]/35 rounded-2xl p-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] flex flex-col">
+                <Crown className="h-6 w-6 text-[#FFD700] mb-3" />
+                <h3 className="text-lg font-bold text-[#FFD700] mb-1">Imperial Citizen</h3>
+                <p className="text-sm text-white/40 mb-5 flex-1">
+                  You hold Grandmaster status. Unlimited missions, GPT-4o evaluations, and elite leaderboard badge are all active.
+                </p>
+                <Link href="/user/subscription"
+                  className="block text-center text-xs font-mono uppercase tracking-wider text-[#FFD700]/60 hover:text-[#FFD700] transition-colors border border-[#FFD700]/20 rounded-lg py-2.5">
+                  Manage Subscription →
+                </Link>
+              </div>
+            ) : (
+              /* Upgrade card — shows next tier */
+              <div className={`bg-gradient-to-br rounded-2xl p-6 flex flex-col ${
+                subName === "Architect"
+                  ? "from-[#FFD700]/10 to-[#0d1119] border border-[#FFD700]/30 shadow-[0_0_18px_rgba(255,215,0,0.12)]"
+                  : "from-[#7C3AED]/15 to-[#0d1119] border border-[#7C3AED]/30 shadow-[0_0_15px_rgba(124,58,237,0.2)]"
+              }`}>
+                {subName === "Architect"
+                  ? <Crown className="h-6 w-6 text-[#FFD700] mb-3" />
+                  : <Crown className="h-6 w-6 text-amber-400 mb-3" />
+                }
+                <h3 className="text-lg font-bold mb-1">
+                  {subName === "Architect" ? "Ascend to Grandmaster" : "Ascend to Architect"}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-5 flex-1">
+                  {subName === "Architect"
+                    ? "Unlock GPT-4o evaluations, unlimited Brainiac guidance, and elite leaderboard status."
+                    : "Unlock advanced missions, premium badges, and priority Brainiac access."}
+                </p>
+                <Button
+                  className={`w-full font-bold ${
+                    subName === "Architect"
+                      ? "bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-black shadow-[0_0_14px_rgba(255,215,0,0.3)]"
+                      : "bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_14px_rgba(124,58,237,0.3)]"
+                  }`}
+                  onClick={handleUpgrade}
+                  disabled={upgradeLoading}
+                >
+                  {upgradeLoading
+                    ? "Preparing…"
+                    : subName === "Architect"
+                    ? "Upgrade — $49.99/mo"
+                    : "Upgrade — $19.99/mo"}
+                </Button>
+                <Link href="/user/subscription"
+                  className="block mt-3 text-center text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400 transition-colors">
+                  View all plans →
+                </Link>
+                <Link href={(profileId || userId) ? `/profile/${encodeURIComponent(profileId || userId || "")}` : "/"}
+                  className="block mt-1.5 text-center text-[10px] font-mono text-muted-foreground/50 hover:text-amber-400 transition-colors">
+                  View public profile →
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* ── ACTIVITY ── */}
@@ -725,24 +783,91 @@ function StatTile({ label, value, accent, icon: Icon }: { label: string; value: 
   );
 }
 
+function DistrictProgressRing({ pct, size = 56 }: { pct: number; size?: number }) {
+  const r = (size - 8) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
+  const tier = pct >= 75 ? "gold" : pct >= 35 ? "purple" : "slate";
+  const stroke = tier === "gold" ? "#FFD700" : tier === "purple" ? "#A78BFA" : "#475569";
+  const glow = tier === "gold"
+    ? "drop-shadow(0 0 6px rgba(255,215,0,0.7))"
+    : tier === "purple"
+    ? "drop-shadow(0 0 5px rgba(167,139,250,0.6))"
+    : "none";
+  return (
+    <svg width={size} height={size} className="shrink-0" style={{ filter: glow }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={6} />
+      <motion.circle
+        cx={size / 2} cy={size / 2} r={r} fill="none"
+        stroke={stroke} strokeWidth={6}
+        strokeLinecap="round"
+        strokeDasharray={circ}
+        initial={{ strokeDashoffset: circ }}
+        animate={{ strokeDashoffset: circ - dash }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+      />
+      <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle"
+        fontSize="11" fontWeight="700" fontFamily="monospace" fill={stroke}>
+        {Math.round(pct)}%
+      </text>
+    </svg>
+  );
+}
+
 function HexGrid({ districts }: { districts: District[] }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-3">
+    <div className="space-y-3">
       {districts.slice(0, 12).map((d, i) => {
         const pct = Math.max(0, Math.min(100, d.completionPercentage));
-        const tier = pct >= 75 ? "high" : pct >= 35 ? "mid" : "low";
-        const ringColor = tier === "high" ? "from-amber-400 to-amber-600" : tier === "mid" ? "from-[#A78BFA] to-[#7C3AED]" : "from-slate-500 to-slate-700";
-        const glow = tier === "high" ? "shadow-[0_0_18px_rgba(255,215,0,0.55)]" : tier === "mid" ? "shadow-[0_0_15px_rgba(168,85,247,0.5)]" : "shadow-none";
+        const tier = pct >= 75 ? "gold" : pct >= 35 ? "purple" : "slate";
+        const barColor = tier === "gold" ? "bg-amber-400" : tier === "purple" ? "bg-[#A78BFA]" : "bg-slate-600";
+        const borderColor = tier === "gold" ? "border-[#FFD700]/25" : tier === "purple" ? "border-[#A78BFA]/20" : "border-white/6";
+        const glowClass = tier === "gold"
+          ? "hover:shadow-[0_0_18px_rgba(255,215,0,0.15)]"
+          : tier === "purple"
+          ? "hover:shadow-[0_0_14px_rgba(167,139,250,0.15)]"
+          : "";
+        const xpText = tier === "gold" ? "text-amber-400" : tier === "purple" ? "text-[#A78BFA]" : "text-white/40";
+
         return (
-          <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }} whileHover={{ scale: 1.04 }} className="relative group">
-            <div className={`hex-cell bg-gradient-to-br ${ringColor} p-[2px] ${glow} cursor-pointer`} style={{ clipPath: "polygon(25% 5%, 75% 5%, 98% 50%, 75% 95%, 25% 95%, 2% 50%)" }}>
-              <div className="bg-[#0A0E14] h-full w-full p-3 flex flex-col items-center justify-center text-center" style={{ clipPath: "polygon(25% 5%, 75% 5%, 98% 50%, 75% 95%, 25% 95%, 2% 50%)" }}>
-                <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground truncate max-w-full px-1">{d.districtName}</div>
-                <div className="text-2xl font-bold text-amber-400 mt-1">{Math.round(pct)}%</div>
-                <div className="text-[10px] font-mono text-muted-foreground mt-0.5">{d.earnedXP.toLocaleString()} / {d.totalPossibleXP.toLocaleString()}</div>
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.04, duration: 0.35 }}
+            className={`flex items-center gap-4 rounded-xl border ${borderColor} bg-[#0A0E14] px-4 py-3 transition-shadow ${glowClass}`}
+          >
+            <DistrictProgressRing pct={pct} />
+
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">{d.districtName}</p>
+              <div className="mt-1.5 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full ${barColor}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 1.2, ease: "easeOut", delay: i * 0.04 + 0.1 }}
+                />
               </div>
             </div>
-            <style>{`.hex-cell{aspect-ratio:1/1.05}`}</style>
+
+            <div className="text-right shrink-0">
+              {d.totalPossibleXP > 0 ? (
+                <>
+                  <p className={`text-sm font-bold font-mono ${xpText}`}>
+                    {d.earnedXP.toLocaleString()}
+                  </p>
+                  <p className="text-[10px] font-mono text-white/20">
+                    / {d.totalPossibleXP.toLocaleString()} XP
+                  </p>
+                </>
+              ) : (
+                <p className={`text-sm font-bold font-mono ${xpText}`}>
+                  {d.earnedXP > 0 ? `${d.earnedXP.toLocaleString()} XP` : "—"}
+                </p>
+              )}
+            </div>
           </motion.div>
         );
       })}
@@ -807,12 +932,27 @@ function normDashStats(d: any): DashboardStats {
 }
 function normDistricts(d: any): District[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.districts) ? d.districts : [];
-  return arr.map((x: any) => ({
-    districtName: x.districtName || x.name || "District",
-    earnedXP: Number(x.earnedXP ?? x.earned ?? 0),
-    totalPossibleXP: Number(x.totalPossibleXP ?? x.total ?? 0),
-    completionPercentage: Number(x.completionPercentage ?? x.percent ?? 0),
-  }));
+  return arr.map((x: any) => {
+    const earnedXP = Number(x.earnedXP ?? x.earned ?? x.xp ?? x.totalXP ?? 0);
+    const totalPossibleXP = Number(x.totalPossibleXP ?? x.total ?? x.totalXp ?? x.maxXP ?? 0);
+    /* Backend may not return completionPercentage — compute it from XP ratio */
+    const computedPct = totalPossibleXP > 0
+      ? Math.min(100, Math.max(0, (earnedXP / totalPossibleXP) * 100))
+      : 0;
+    const completionPercentage = x.completionPercentage != null
+      ? Math.min(100, Math.max(0, Number(x.completionPercentage)))
+      : x.percent != null
+      ? Math.min(100, Math.max(0, Number(x.percent)))
+      : x.completionPercent != null
+      ? Math.min(100, Math.max(0, Number(x.completionPercent)))
+      : computedPct;
+    return {
+      districtName: x.districtName || x.name || x.title || "District",
+      earnedXP,
+      totalPossibleXP,
+      completionPercentage,
+    };
+  });
 }
 function normActivity(d: any): ActivityLog[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.logs) ? d.logs : [];

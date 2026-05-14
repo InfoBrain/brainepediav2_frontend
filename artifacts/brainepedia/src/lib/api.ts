@@ -118,7 +118,7 @@ export const api = {
   subscriptions: {
     initialize: (data: any) => fetchApi("/api/Subscriptions/initialize", { method: "POST", body: JSON.stringify(data) }),
     /** POST /api/Subscriptions/initialize-upgrade — body: { userId, newTier, currency, source } */
-    initializeUpgrade: (data: { userId: string; newTier: number; currency: string; source: string }) =>
+    initializeUpgrade: (data: { userId: string; newTier: string | number; currency: string; source: string }) =>
       fetchApi("/api/Subscriptions/initialize-upgrade", { method: "POST", body: JSON.stringify(data) }),
     /** GET /api/Subscriptions/verify-payment?reference=xxx */
     verifyPayment: (reference: string) =>
