@@ -247,7 +247,7 @@ export default function NodeResultPage() {
     if (!problemNodeId) return;
     setLoading(true);
     setError(null);
-    const res = await api.evaluations.getNodeResult(problemNodeId);
+    const res = await api.evaluations.getNodeResult(problemNodeId, userId);
     setLoading(false);
     if (res.ok && res.data) {
       setResult(normNodeResult(res.data));
