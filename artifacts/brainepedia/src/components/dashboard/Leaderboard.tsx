@@ -164,8 +164,8 @@ export function Leaderboard({ topUsers, currentUser, loading }: LeaderboardProps
   /* Determine if current user is already visible in the displayed list */
   const isCurrentInTopList = topUsers.some(u => u.isCurrentUser);
 
-  /* Show sticky "Your Position" only when user is outside the displayed list */
-  const showYourPosition = currentUser && currentUser.rank > 0 && !isCurrentInTopList;
+  /* Show sticky "Your Position" when user is outside the displayed list (rank 0 = unranked but still show XP) */
+  const showYourPosition = currentUser && !isCurrentInTopList && (currentUser.rank > 0 || currentUser.xp > 0);
 
   return (
     <div className="space-y-4">
@@ -213,7 +213,7 @@ export function Leaderboard({ topUsers, currentUser, loading }: LeaderboardProps
                   {user.nickName}
                 </p>
                 <p className={`text-xs font-black font-mono ${cfg.text}`}>
-                  {user.totalXP > 0 ? fmtXP(user.totalXP) : "—"}
+                  {fmtXP(user.totalXP)}
                 </p>
               </div>
             </motion.div>
@@ -249,7 +249,7 @@ export function Leaderboard({ topUsers, currentUser, loading }: LeaderboardProps
                 </p>
 
                 <p className={`text-xs font-bold font-mono shrink-0 ${isMe ? "text-[#FFD700]" : "text-[#00D2FF]"}`}>
-                  {user.totalXP > 0 ? fmtXP(user.totalXP) : "—"}
+                  {fmtXP(user.totalXP)}
                 </p>
 
                 {isMe && <YouBadge />}

@@ -277,32 +277,90 @@ export default function UserDashboard() {
     if (!lb.ok || !lb.data) return;
     const d = lb.data as any;
 
-    /* Map topUsers — preserve rank and isCurrentUser from backend */
-    const users: LeaderboardUser[] = Array.isArray(d.topUsers)
-      ? d.topUsers.map((u: any, i: number) => ({
-          rank: Number(u.rank ?? i + 1),
-          nickName: u.nickName || u.name || "Operative",
-          avatarUrl: u.avatarUrl || null,
-          totalXP: Number(u.totalXP ?? u.xp ?? u.totalXp ?? 0),
-          isCurrentUser: Boolean(u.isCurrentUser),
-        }))
-      : [];
+    /* Support both camelCase and PascalCase top-level keys */
+    const rawList: any[] = Array.isArray(d.topUsers)
+      ? d.topUsers
+      : Array.isArray(d.TopUsers)
+        ? d.TopUsers
+        : [];
+
+    /* Resolve current user's nickName from profile state (available via closure) */
+    const myNickName: string | null = (profile as any)?.nickName || null;
+
+    /* Map entries — handle every known casing variant for each field */
+    const users: LeaderboardUser[] = rawList.map((u: any, i: number) => {
+      const mappedNick = u.nickName || u.NickName || u.name || u.Name || u.userName || u.UserName || null;
+      const isMe = Boolean(
+        u.isCurrentUser ??
+        u.IsCurrentUser ??
+        (myNickName && mappedNick && mappedNick === myNickName)
+      );
+      return {
+        rank: Number(u.rank ?? u.Rank ?? i + 1),
+        nickName: mappedNick || "Operative",
+        avatarUrl: u.avatarUrl || u.AvatarUrl || null,
+        totalXP: Number(
+          u.totalXP    ??
+          u.TotalXP    ??
+          u.totalXp    ??
+          u.TotalXp    ??
+          u.xp         ??
+          u.Xp         ??
+          u.xPoints    ??
+          u.XPoints    ??
+          u.experiencePoints ??
+          u.ExperiencePoints ??
+          0
+        ),
+        isCurrentUser: isMe,
+      };
+    });
     setTopUsers(users);
 
-    /* currentUser object — also carry nickName/avatarUrl for sticky banner */
-    if (d.currentUser) {
+    /* currentUser block — support camelCase + PascalCase */
+    const cu: any = d.currentUser ?? d.CurrentUser ?? null;
+    /* Also use profile stats as fallback XP source */
+    const myXP = Number(
+      (stats as any)?.totalXP ??
+      (dashStats as any)?.totalXP ??
+      0
+    );
+
+    if (cu) {
       const meInList = users.find(u => u.isCurrentUser);
       setCurrentUserRank({
-        rank: Number(d.currentUser.rank ?? d.currentUser.Rank ?? 0),
-        xp: Number(d.currentUser.xp ?? d.currentUser.Xp ?? d.currentUser.totalXP ?? meInList?.totalXP ?? 0),
-        nickName: d.currentUser.nickName || meInList?.nickName,
-        avatarUrl: d.currentUser.avatarUrl || meInList?.avatarUrl,
+        rank: Number(cu.rank ?? cu.Rank ?? meInList?.rank ?? 0),
+        xp: Number(
+          cu.xp       ??
+          cu.Xp       ??
+          cu.totalXP  ??
+          cu.TotalXP  ??
+          cu.totalXp  ??
+          cu.TotalXp  ??
+          cu.xPoints  ??
+          cu.XPoints  ??
+          cu.experiencePoints ??
+          cu.ExperiencePoints ??
+          meInList?.totalXP   ??
+          myXP
+        ),
+        nickName: cu.nickName || cu.NickName || cu.name || cu.Name || meInList?.nickName,
+        avatarUrl: cu.avatarUrl || cu.AvatarUrl || meInList?.avatarUrl,
       });
     } else {
-      /* Derive from topUsers if currentUser block is missing */
+      /* Derive from topUsers list if currentUser block absent */
       const meInList = users.find(u => u.isCurrentUser);
       if (meInList) {
-        setCurrentUserRank({ rank: meInList.rank, xp: meInList.totalXP, nickName: meInList.nickName, avatarUrl: meInList.avatarUrl });
+        /* Use stats XP if the leaderboard entry has 0 (might be stale) */
+        setCurrentUserRank({
+          rank: meInList.rank,
+          xp: meInList.totalXP || myXP,
+          nickName: meInList.nickName,
+          avatarUrl: meInList.avatarUrl,
+        });
+      } else if (myNickName && myXP > 0) {
+        /* Current user not in top list — show their position from stats */
+        setCurrentUserRank({ rank: 0, xp: myXP, nickName: myNickName });
       }
     }
   };

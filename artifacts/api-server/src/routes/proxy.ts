@@ -16,6 +16,13 @@ const HOP_BY_HOP = new Set([
   "upgrade",
   "content-length",
   "accept-encoding",
+  // Strip conditional headers so the upstream always returns a full 200 body
+  // instead of 304 Not Modified (which fetchApi treats as an error).
+  "if-none-match",
+  "if-modified-since",
+  "if-match",
+  "if-unmodified-since",
+  "if-range",
 ]);
 
 // AI endpoints can take up to 90 s; all others use a 30 s default
