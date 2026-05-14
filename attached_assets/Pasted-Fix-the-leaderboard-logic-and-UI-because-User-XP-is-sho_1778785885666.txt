@@ -1,0 +1,103 @@
+Fix the leaderboard logic and UI because:
+
+User XP is showing 0 XP even after completing missions.
+Current logged-in user rank is not highlighted correctly.
+Current user position is not appearing on the leaderboard.
+Some users show empty/incorrect XP values.
+Logged-in user should always appear even if not in Top 20.
+
+Backend Fix (.NET API)
+
+Update the /api/Dashboard/leaderboard endpoint.
+
+Current issue:
+XP calculation is using:
+
+ec.UserId.ToString() == p.UserId
+
+but:
+
+ExperienceCredit.UserId is Guid
+Profile.UserId is string
+
+This causes incorrect XP aggregation.
+
+Fix Requirements:
+
+Properly parse Profile.UserId to Guid before comparison.
+Return:
+Rank
+NickName
+AvatarUrl
+TotalXP
+IsCurrentUser
+Ensure leaderboard ranking is calculated globally for ALL users.
+Ensure current logged-in user appears even if outside Top 20.
+Sort strictly by XP descending.
+Exclude users with null profiles.
+Return a clean response structure.
+
+Replace leaderboard logic with a proper grouped query.
+
+Expected API response:
+
+{
+  "topUsers": [
+    {
+      "rank": 1,
+      "nickName": "Brain",
+      "avatarUrl": "...",
+      "totalXP": 5200,
+      "isCurrentUser": true
+    }
+  ],
+  "currentUser": {
+    "rank": 9,
+    "xp": 1200
+  }
+}
+
+Frontend Fix
+
+Update the leaderboard UI.
+
+Requirements:
+
+Show:
+Rank number
+Avatar
+Nickname
+XP gained
+"You" badge for current user
+Highlight current user row with special border/glow.
+If current user is outside Top 20:
+Show a separate sticky section:
+Your Position
+#45 — 1,240 XP
+Fix XP rendering issue.
+XP should never display 0 XP unless truly zero.
+Add loading skeleton.
+Add fallback avatar if AvatarUrl is null.
+Mobile responsive layout.
+Add proper empty state:
+"No leaderboard data available yet."
+Format XP properly:
+1,250 XP
+Ensure leaderboard refreshes automatically after:
+Mission evaluation
+XP award
+Session completion
+Use authenticated user token correctly when fetching leaderboard.
+Debug and fix any issue where:
+Current user rank is undefined
+Current user is not marked
+XP aggregation fails
+
+Goal:
+The leaderboard should correctly display:
+
+Actual XP earned
+Accurate ranking
+Logged-in user position
+Highlighted current user
+Proper leaderboard ordering.

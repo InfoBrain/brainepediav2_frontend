@@ -559,6 +559,7 @@ export default function MissionResultPage() {
     if (res.ok && res.data) {
       setEvalData(buildEvalData(res.data, cachedXp, cachedTitle));
       setIsPolling(false);
+      window.dispatchEvent(new CustomEvent("brainepedia:evaluation-complete"));
     } else if (res.notFound) {
       setIsPolling(true);
     } else {

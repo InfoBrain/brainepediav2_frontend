@@ -205,16 +205,7 @@ export default function UserDashboard() {
       }
 
       // Leaderboard
-      if (lb.ok && lb.data) {
-        const d = lb.data as any;
-        const users: LeaderboardUser[] = Array.isArray(d.topUsers)
-          ? d.topUsers.map((u: any) => ({ nickName: u.nickName || u.name || "Operative", avatarUrl: u.avatarUrl || null, totalXP: Number(u.totalXP ?? 0) }))
-          : [];
-        setTopUsers(users);
-        if (d.currentUser) {
-          setCurrentUserRank({ rank: Number(d.currentUser.rank ?? 0), xp: Number(d.currentUser.xp ?? 0) });
-        }
-      }
+      applyLeaderboard(lb);
       setLeaderboardLoading(false);
 
       // Profile
@@ -280,6 +271,55 @@ export default function UserDashboard() {
       if (newBadgeTimerRef.current) clearTimeout(newBadgeTimerRef.current);
     };
   }, [userId]);
+
+  /* ── Leaderboard helpers ── */
+  const applyLeaderboard = (lb: Awaited<ReturnType<typeof api.dashboard.leaderboard>>) => {
+    if (!lb.ok || !lb.data) return;
+    const d = lb.data as any;
+
+    /* Map topUsers — preserve rank and isCurrentUser from backend */
+    const users: LeaderboardUser[] = Array.isArray(d.topUsers)
+      ? d.topUsers.map((u: any, i: number) => ({
+          rank: Number(u.rank ?? i + 1),
+          nickName: u.nickName || u.name || "Operative",
+          avatarUrl: u.avatarUrl || null,
+          totalXP: Number(u.totalXP ?? u.xp ?? u.totalXp ?? 0),
+          isCurrentUser: Boolean(u.isCurrentUser),
+        }))
+      : [];
+    setTopUsers(users);
+
+    /* currentUser object — also carry nickName/avatarUrl for sticky banner */
+    if (d.currentUser) {
+      const meInList = users.find(u => u.isCurrentUser);
+      setCurrentUserRank({
+        rank: Number(d.currentUser.rank ?? d.currentUser.Rank ?? 0),
+        xp: Number(d.currentUser.xp ?? d.currentUser.Xp ?? d.currentUser.totalXP ?? meInList?.totalXP ?? 0),
+        nickName: d.currentUser.nickName || meInList?.nickName,
+        avatarUrl: d.currentUser.avatarUrl || meInList?.avatarUrl,
+      });
+    } else {
+      /* Derive from topUsers if currentUser block is missing */
+      const meInList = users.find(u => u.isCurrentUser);
+      if (meInList) {
+        setCurrentUserRank({ rank: meInList.rank, xp: meInList.totalXP, nickName: meInList.nickName, avatarUrl: meInList.avatarUrl });
+      }
+    }
+  };
+
+  const refreshLeaderboard = async () => {
+    setLeaderboardLoading(true);
+    const lb = await api.dashboard.leaderboard(20);
+    applyLeaderboard(lb);
+    setLeaderboardLoading(false);
+  };
+
+  /* Refresh leaderboard whenever a mission evaluation completes */
+  useEffect(() => {
+    const handler = () => { refreshLeaderboard(); };
+    window.addEventListener("brainepedia:evaluation-complete", handler);
+    return () => window.removeEventListener("brainepedia:evaluation-complete", handler);
+  }, []);
 
   const handleUpgrade = async () => {
     setUpgradeLoading(true);
