@@ -3,12 +3,15 @@ import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
-import { Readable } from "node:stream";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const UPSTREAM = "https://api.brainepedia.com";
-const PORT = Number(process.env.PORT || 8080);
+
+// iisnode (SmarterASP.NET / Windows shared hosting) passes a named pipe path
+// as PORT (e.g. \\.\pipe\abc123), NOT a TCP port number.
+// Node's http.listen() accepts both numbers and pipe strings — do NOT cast to Number().
+const PORT: string | number = process.env.PORT || 8080;
 
 const HOP_BY_HOP = new Set([
   "host",
@@ -22,6 +25,11 @@ const HOP_BY_HOP = new Set([
   "upgrade",
   "content-length",
   "accept-encoding",
+  "if-none-match",
+  "if-modified-since",
+  "if-match",
+  "if-unmodified-since",
+  "if-range",
 ]);
 
 const AI_PATHS = ["/ai-generate", "/seed-districts", "/generate-seed", "/ask-brainiac", "/process/"];
@@ -32,9 +40,11 @@ function timeoutForUrl(url: string): number {
 const app = express();
 app.use(cors());
 
-// ── API proxy ───────────────────────────────────────────────────────────────
-// Raw stream passthrough — no body parsing so multipart/form-data is preserved
-app.all("/api/*", async (req, res) => {
+// ── API proxy ────────────────────────────────────────────────────────────────
+// Use a regex so this works in both Express 4 and Express 5 (path-to-regexp v8
+// removed support for bare "/*" wildcards).
+// req.url retains the full "/api/..." path which is forwarded to UPSTREAM as-is.
+app.all(/^\/api(\/.*)?$/, async (req, res) => {
   const url = `${UPSTREAM}${req.url}`;
 
   const headers: Record<string, string> = {};
@@ -47,6 +57,18 @@ app.all("/api/*", async (req, res) => {
   const method = req.method.toUpperCase();
   const hasBody = method !== "GET" && method !== "HEAD";
 
+  // Buffer the request body in a Node-version-agnostic way (avoids Readable.toWeb
+  // compatibility issues on older Node.js runtimes used by some shared hosts).
+  let bodyBuffer: Buffer | undefined;
+  if (hasBody) {
+    bodyBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      req.on("data", (chunk: Buffer) => chunks.push(chunk));
+      req.on("end", () => resolve(Buffer.concat(chunks)));
+      req.on("error", reject);
+    });
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutForUrl(url));
 
@@ -54,11 +76,8 @@ app.all("/api/*", async (req, res) => {
     const upstream = await fetch(url, {
       method,
       headers,
-      // Pipe the raw incoming stream directly — preserves JSON, multipart, etc.
-      body: hasBody ? (Readable.toWeb(req) as ReadableStream) : undefined,
+      body: hasBody && bodyBuffer && bodyBuffer.length > 0 ? bodyBuffer : undefined,
       signal: controller.signal,
-      // @ts-ignore — Node 18+ requires duplex:"half" for streaming request bodies
-      duplex: "half",
     });
     clearTimeout(timer);
 
@@ -68,6 +87,10 @@ app.all("/api/*", async (req, res) => {
       if (HOP_BY_HOP.has(k) || k === "content-encoding") return;
       res.setHeader(key, value);
     });
+    // Always return fresh responses — no 304 caching on proxied API calls
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.removeHeader("ETag");
+    res.removeHeader("Last-Modified");
 
     const buf = Buffer.from(await upstream.arrayBuffer());
     res.send(buf);
@@ -76,12 +99,17 @@ app.all("/api/*", async (req, res) => {
     const isTimeout = err?.name === "AbortError";
     res
       .status(isTimeout ? 504 : 502)
-      .json({ status: "Error", message: isTimeout ? "Request timed out." : "Upstream API unreachable." });
+      .json({
+        status: "Error",
+        message: isTimeout
+          ? "Request timed out. Please try again."
+          : "Upstream API unreachable.",
+      });
   }
 });
 
-// ── Static frontend ─────────────────────────────────────────────────────────
-// All frontend files live alongside server.js (flat — no public/ subfolder)
+// ── Static frontend ──────────────────────────────────────────────────────────
+// All frontend files live alongside server.js in the same flat directory.
 const staticDir = path.resolve(__dirname);
 const indexHtml = path.join(staticDir, "index.html");
 
@@ -90,17 +118,19 @@ if (existsSync(indexHtml)) {
     express.static(staticDir, {
       maxAge: "1d",
       index: false,
-      // Don't serve server.js or pino workers as static files
       setHeaders: (_res, filePath) => {
-        if (path.extname(filePath) === ".mjs" || path.basename(filePath) === "server.js") {
-          _res.status(403).end();
+        const ext = path.extname(filePath);
+        const base = path.basename(filePath);
+        // Block direct access to server files
+        if (ext === ".mjs" || base === "server.js" || base === "web.config" || base === "package.json") {
+          _res.statusCode = 403;
+          _res.end();
         }
       },
     })
   );
-  // SPA fallback — serves index.html for every non-API, non-asset request.
-  // Uses app.use() (no path arg) so it works in Express 4 and 5 without
-  // relying on the path-to-regexp "*" wildcard that was removed in v8.
+
+  // SPA fallback — every non-API, non-asset path serves index.html
   app.use((_req, res) => {
     res.sendFile(indexHtml);
   });
@@ -110,8 +140,10 @@ if (existsSync(indexHtml)) {
   );
 }
 
+// ── Start ────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`Brainepedia server running on port ${PORT}`);
-  console.log(`API proxy → ${UPSTREAM}`);
-  console.log(`Static files → ${staticDir}`);
+  console.log(`Brainepedia server running`);
+  console.log(`PORT  → ${PORT}`);
+  console.log(`API   → ${UPSTREAM}`);
+  console.log(`Files → ${staticDir}`);
 });
