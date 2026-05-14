@@ -5,7 +5,7 @@ generated = []
 id = "P1MfCG8NOdNJPPGp81YSN"
 uri = "file://brainepedia-deploy.zip"
 type = "unspecified"
-title = "brainepedia-deploy.zip (flat root, iisnode-ready)"
+title = "brainepedia-deploy.zip (flat root, iisnode-ready — with session fix)"
 
 [[outputs]]
 id = "gC1gJju_G_fkS_YWvNAgi"
