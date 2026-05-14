@@ -24,6 +24,10 @@ async function fetchApi<T = any>(endpoint: string, options: RequestInit = {}): P
   const token = getToken();
   if (token && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
+    // IIS on Windows shared hosting (iisnode) sometimes strips the Authorization
+    // header before passing the request to Node.js. We send the token in a
+    // custom header too so the proxy can restore it if needed.
+    headers["X-Token"] = `Bearer ${token}`;
   }
 
   try {
@@ -40,7 +44,15 @@ async function fetchApi<T = any>(endpoint: string, options: RequestInit = {}): P
 
     if (!response.ok) {
       let errorMsg = "Something went wrong. Please try again.";
-      if (response.status === 403) {
+      if (response.status === 401) {
+        // Session expired or token rejected — clear credentials and signal the app
+        // to redirect to login. We do NOT immediately redirect here because some
+        // callers handle the error themselves (e.g. public profile pages).
+        const { clearToken } = await import("./auth");
+        clearToken();
+        window.dispatchEvent(new CustomEvent("api-unauthorized"));
+        errorMsg = "Your session has expired. Please log in again.";
+      } else if (response.status === 403) {
         errorMsg = "Access restricted. Upgrade your subscription to unlock this District.";
       } else if (response.status === 404) {
         errorMsg = "The requested resource was not found. Please try again.";

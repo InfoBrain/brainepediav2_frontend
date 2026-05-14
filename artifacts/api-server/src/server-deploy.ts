@@ -54,6 +54,18 @@ app.all(/^\/api(\/.*)?$/, async (req, res) => {
     headers[key] = Array.isArray(value) ? value.join(", ") : String(value);
   }
 
+  // IIS on Windows shared hosting (iisnode) strips the standard Authorization
+  // header before passing the request to Node.js when Windows/Basic
+  // authentication is active at the IIS level. As a fallback the frontend also
+  // sends the token in the custom X-Token header. If Authorization was stripped
+  // by IIS but X-Token survived, restore Authorization so the upstream .NET API
+  // receives the Bearer token it expects.
+  if (!headers["authorization"] && headers["x-token"]) {
+    headers["authorization"] = headers["x-token"];
+  }
+  // Always remove the custom header so it does not reach the upstream API.
+  delete headers["x-token"];
+
   const method = req.method.toUpperCase();
   const hasBody = method !== "GET" && method !== "HEAD";
 
