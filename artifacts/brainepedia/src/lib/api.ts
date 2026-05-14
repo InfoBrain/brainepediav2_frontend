@@ -42,8 +42,14 @@ async function fetchApi<T = any>(endpoint: string, options: RequestInit = {}): P
       let errorMsg = "Something went wrong. Please try again.";
       if (response.status === 403) {
         errorMsg = "Access restricted. Upgrade your subscription to unlock this District.";
-      } else if (typeof data === "string" && data) errorMsg = data;
-      else if (data && typeof data === "object") {
+      } else if (response.status === 404) {
+        errorMsg = "The requested resource was not found. Please try again.";
+      } else if (response.status >= 500) {
+        errorMsg = "Server error. Please try again later.";
+      } else if (typeof data === "string" && data) {
+        const isHtml = data.trimStart().startsWith("<") || /<!doctype/i.test(data);
+        errorMsg = isHtml ? `Request failed (${response.status}). Please try again.` : data;
+      } else if (data && typeof data === "object") {
         if (data.message) errorMsg = data.message;
         else if (data.error) errorMsg = data.error;
         else if (data.title) errorMsg = data.title;
