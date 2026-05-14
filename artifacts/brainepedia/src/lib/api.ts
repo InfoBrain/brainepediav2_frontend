@@ -9,14 +9,19 @@ export type ApiResult<T = any> = {
   status?: number;
 };
 
-async function fetchApi<T = any>(endpoint: string, options: RequestInit = {}): Promise<ApiResult<T>> {
+type FetchApiOptions = RequestInit & {
+  suppressUnauthorized?: boolean;
+};
+
+async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}): Promise<ApiResult<T>> {
+  const { suppressUnauthorized, ...fetchOptions } = options;
   const headers: Record<string, string> = {
-    ...((options.headers as any) || {}),
+    ...((fetchOptions.headers as any) || {}),
   };
 
-  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  const isFormData = typeof FormData !== "undefined" && fetchOptions.body instanceof FormData;
 
-  if (options.body && !headers["Content-Type"] && !isFormData) {
+  if (fetchOptions.body && !headers["Content-Type"] && !isFormData) {
     headers["Content-Type"] = "application/json";
   }
   if (isFormData) delete headers["Content-Type"];
@@ -32,7 +37,7 @@ async function fetchApi<T = any>(endpoint: string, options: RequestInit = {}): P
 
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
+      ...fetchOptions,
       headers,
     });
 
@@ -46,11 +51,14 @@ async function fetchApi<T = any>(endpoint: string, options: RequestInit = {}): P
       let errorMsg = "Something went wrong. Please try again.";
       if (response.status === 401) {
         // Session expired or token rejected — clear credentials and signal the app
-        // to redirect to login. We do NOT immediately redirect here because some
-        // callers handle the error themselves (e.g. public profile pages).
+        // to redirect to login. Callers that pass suppressUnauthorized (e.g. optional
+        // authenticated features on public pages) skip the redirect so the page
+        // can degrade gracefully rather than booting the user to /login.
         const { clearToken } = await import("./auth");
         clearToken();
-        window.dispatchEvent(new CustomEvent("api-unauthorized"));
+        if (!suppressUnauthorized) {
+          window.dispatchEvent(new CustomEvent("api-unauthorized"));
+        }
         errorMsg = "Your session has expired. Please log in again.";
       } else if (response.status === 403) {
         errorMsg = "Access restricted. Upgrade your subscription to unlock this District.";
@@ -114,14 +122,16 @@ export const api = {
   },
   userProgresses: {
     /** Legacy alias kept for any remaining callers */
-    map: (userId: string) => fetchApi(`/api/Profiles/map/${encodeURIComponent(userId)}`),
+    map: (userId: string, opts?: { suppressUnauthorized?: boolean }) =>
+      fetchApi(`/api/Profiles/map/${encodeURIComponent(userId)}`, { suppressUnauthorized: opts?.suppressUnauthorized }),
   },
   userBadges: {
     /**
      * Real route: GET /api/UserBadges/{userId}  (NOT /user/{userId})
      * rarity field is an int: 0=Common, 1=Rare, 2=Epic, 3=Legendary
      */
-    forUser: (userId: string) => fetchApi(`/api/UserBadges/${encodeURIComponent(userId)}`),
+    forUser: (userId: string, opts?: { suppressUnauthorized?: boolean }) =>
+      fetchApi(`/api/UserBadges/${encodeURIComponent(userId)}`, { suppressUnauthorized: opts?.suppressUnauthorized }),
     award: (data: { userId: string; name: string; description?: string; rarity?: number; iconUrl?: string }) =>
       fetchApi("/api/UserBadges/award", { method: "POST", body: JSON.stringify(data) }),
   },

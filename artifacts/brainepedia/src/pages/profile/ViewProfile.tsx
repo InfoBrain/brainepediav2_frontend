@@ -193,8 +193,8 @@ export default function ViewProfile() {
         profileIdParam;
 
       const [b, m] = await Promise.all([
-        api.userBadges.forUser(actualUserId),
-        api.userProgresses.map(actualUserId),
+        api.userBadges.forUser(actualUserId, { suppressUnauthorized: true }),
+        api.userProgresses.map(actualUserId, { suppressUnauthorized: true }),
       ]);
 
       if (!cancelled) {

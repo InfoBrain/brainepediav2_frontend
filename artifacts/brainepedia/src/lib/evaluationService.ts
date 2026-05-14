@@ -57,6 +57,11 @@ export async function processEvaluation(
       return { ok: true, data: res.data as ProcessResult };
     }
 
+    if (res.status === 401) {
+      console.log(`[evaluationService] processEvaluation got 401 — session expired, not retrying`);
+      return { ok: false, error: "Your session has expired. Please log in again." };
+    }
+
     if (attempt < maxRetries) {
       const delay = 2000 * (attempt + 1);
       console.log(`[evaluationService] retrying in ${delay}ms…`);
@@ -93,6 +98,11 @@ export async function getEvaluationBySession(
         return { ok: false, notFound: true, error: "Evaluation still processing…" };
       }
       return { ok: true, data: res.data as EvaluationResult };
+    }
+
+    if (res.status === 401) {
+      console.log(`[evaluationService] getEvaluationBySession got 401 — session expired, not retrying`);
+      return { ok: false, error: "Your session has expired. Please log in again." };
     }
 
     if (isNotFoundResponse(res)) {
