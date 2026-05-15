@@ -23878,6 +23878,9 @@ app.all(/^\/api(\/.*)?$/, async (req, res) => {
       req.on("end", () => resolve(Buffer.concat(chunks)));
       req.on("error", reject);
     });
+    if (bodyBuffer && bodyBuffer.length > 0) {
+      headers["content-length"] = String(bodyBuffer.length);
+    }
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutForUrl(url));
