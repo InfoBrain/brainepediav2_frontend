@@ -614,26 +614,6 @@ export default function UserDashboard() {
             </motion.div>
           </div>
 
-          {/* ── LEADERBOARD ── */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            className="bg-[#0d1119] border border-white/6 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-[#FFD700]" /> Top Problem Solvers
-                </h2>
-                <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider mt-0.5">Global leaderboard · Keep climbing</p>
-              </div>
-              {rank && (
-                <div className="text-right">
-                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider">Your Rank</p>
-                  <p className="text-2xl font-black text-[#FFD700] font-mono">#{rank}</p>
-                </div>
-              )}
-            </div>
-            <Leaderboard topUsers={topUsers} currentUser={currentUserRank} loading={leaderboardLoading} />
-          </motion.div>
-
           {/* ── ACHIEVEMENT STATUS ── */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
             className={`flex items-center gap-4 rounded-xl border p-4 ${hasBadges ? "border-[#FFD700]/25 bg-[#FFD700]/5" : "border-white/8 bg-[#0d1117]"}`}>

@@ -74,7 +74,9 @@ const RARITY_CONFIG: Record<
 };
 
 function normBadges(d: any): Badge[] {
-  const arr = Array.isArray(d) ? d : d?.badges || [];
+  const arr = Array.isArray(d)
+    ? d
+    : d?.badges || d?.data || d?.items || d?.result || d?.results || d?.$values || [];
   return arr.map((x: any) => {
     let rarity = 0;
     if (typeof x.rarity === "number") {

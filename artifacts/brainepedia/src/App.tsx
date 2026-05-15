@@ -62,6 +62,7 @@ import UserProgressPage from "@/pages/app/UserProgressPage";
 
 // Global widget
 import { BrainiacWidget } from "@/components/app/BrainiacWidget";
+import { OnboardingGuide } from "@/components/app/OnboardingGuide";
 
 const queryClient = new QueryClient();
 
@@ -254,6 +255,7 @@ function App() {
           <ForbiddenWatcher />
           <Router />
           <BrainiacWidget />
+          <OnboardingGuide />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

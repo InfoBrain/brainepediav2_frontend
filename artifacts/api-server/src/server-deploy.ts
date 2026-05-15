@@ -79,6 +79,12 @@ app.all(/^\/api(\/.*)?$/, async (req, res) => {
       req.on("end", () => resolve(Buffer.concat(chunks)));
       req.on("error", reject);
     });
+    // Re-add content-length from the actual buffered size so the upstream
+    // server (ASP.NET) can correctly parse multipart/form-data bodies with
+    // file uploads (the hop-by-hop strip removed the original value).
+    if (bodyBuffer && bodyBuffer.length > 0) {
+      headers["content-length"] = String(bodyBuffer.length);
+    }
   }
 
   const controller = new AbortController();

@@ -27,29 +27,43 @@ export function BrainiacWidget() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating toggle button — icon-only to minimise footprint */}
       <motion.button
         onClick={() => setOpen(o => !o)}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-[#9D4EDD] to-[#00D2FF] text-white text-sm font-bold font-mono shadow-2xl shadow-[#9D4EDD]/30"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.92 }}
+        title={open ? "Close Brainiac" : "Ask Brainiac"}
+        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-[#9D4EDD] to-[#00D2FF] text-white shadow-2xl shadow-[#9D4EDD]/30 transition-all"
+        style={{ boxShadow: open ? "0 0 0 3px rgba(157,78,221,0.35), 0 8px 24px rgba(157,78,221,0.35)" : undefined }}
       >
-        <Sparkles className="w-4 h-4" />
-        Ask Brainiac
-        {messages.length > 0 && (
-          <span className="bg-white/20 rounded-full px-1.5 py-0.5 text-[10px]">{messages.length}</span>
+        <AnimatePresence mode="wait" initial={false}>
+          {open ? (
+            <motion.span key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <X className="w-5 h-5" />
+            </motion.span>
+          ) : (
+            <motion.span key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <Sparkles className="w-5 h-5" />
+            </motion.span>
+          )}
+        </AnimatePresence>
+        {/* Unread badge */}
+        {!open && messages.length > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-[#FFD700] text-black text-[10px] font-black flex items-center justify-center px-1">
+            {messages.length}
+          </span>
         )}
       </motion.button>
 
-      {/* Chat modal */}
+      {/* Chat panel */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 16, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            exit={{ opacity: 0, y: 16, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-20 right-6 z-50 w-[340px] rounded-2xl border border-[#9D4EDD]/25 bg-[#0a0d16] shadow-2xl overflow-hidden"
+            className="fixed bottom-[76px] right-6 z-50 w-[340px] rounded-2xl border border-[#9D4EDD]/25 bg-[#0a0d16] shadow-2xl overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#9D4EDD]/15 bg-[#0d1020]">
@@ -62,7 +76,7 @@ export function BrainiacWidget() {
                   <p className="text-[10px] text-[#9D4EDD]/60 font-mono">AI Learning Assistant</p>
                 </div>
               </div>
-              <button onClick={() => setOpen(false)} className="text-white/30 hover:text-white transition-colors">
+              <button onClick={() => setOpen(false)} className="text-white/30 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5" title="Close">
                 <X className="w-4 h-4" />
               </button>
             </div>
