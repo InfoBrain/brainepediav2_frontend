@@ -291,7 +291,7 @@ brainepedia-release/
    (e.g. \`C:\\inetpub\\wwwroot\\brainepedia\\\`)
 4. In IIS Manager → Site → Application Settings, add:
    - \`PORT\` = the named pipe path provided by iisnode (leave blank to use default)
-   - Or set \`PORT=3000\` for a plain TCP listener (not recommended with iisnode)
+   - Or set \`PORT=8080\` for a plain TCP listener (not recommended with iisnode)
 5. The included \`web.config\` configures URL Rewrite to route all traffic through \`server.js\`
 6. Restart the IIS Application Pool — the app will be live
 
@@ -302,8 +302,8 @@ brainepedia-release/
 **Requirements**: Node.js 18 or later
 
 \`\`\`bash
-# Start on default port 3000
-PORT=3000 node server.js
+# Start on default port 8080
+PORT=8080 node server.js
 
 # Or let it use the PORT env var set by your process manager / platform
 node server.js
@@ -326,7 +326,7 @@ server {
     server_name yourdomain.com;
 
     location / {
-        proxy_pass         http://localhost:3000;
+        proxy_pass         http://localhost:8080;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade $http_upgrade;
         proxy_set_header   Connection 'upgrade';
@@ -344,7 +344,7 @@ server {
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| \`PORT\`  | \`3000\` | TCP port (or named pipe string for iisnode) |
+| \`PORT\`  | \`8080\` | TCP port (or named pipe string for iisnode) |
 | \`NODE_ENV\` | \`production\` | Runtime environment |
 
 ---

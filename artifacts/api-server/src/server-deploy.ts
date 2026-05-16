@@ -1,10 +1,11 @@
 import express from "express";
 import cors from "cors";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// process.argv[1] is the path of the executed script/bundle — works in both
+// ESM and CJS contexts (avoids import.meta.url which esbuild nullifies in CJS).
+const serverDir = path.dirname(path.resolve(process.argv[1]));
 
 const UPSTREAM = "https://api.brainepedia.com";
 
@@ -127,8 +128,8 @@ app.all(/^\/api(\/.*)?$/, async (req, res) => {
 });
 
 // ── Static frontend ──────────────────────────────────────────────────────────
-// All frontend files live alongside server.js in the same flat directory.
-const staticDir = path.resolve(__dirname);
+// Frontend assets live in the public/ subdirectory next to server.js.
+const staticDir = path.join(serverDir, "public");
 const indexHtml = path.join(staticDir, "index.html");
 
 if (existsSync(indexHtml)) {
