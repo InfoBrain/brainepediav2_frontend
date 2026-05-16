@@ -81,3 +81,23 @@ Standalone React+Vite SPA for the Brainepedia v2 marketing team. Runs on port 50
 - `xlsx` (SheetJS) for Excel export
 - Lucide React icons
 - No external router (single-page, view state in App.tsx)
+
+## User Preferences
+
+### Deployment Build
+- Always use `node build-release.mjs` to produce the deployment package at `brainepedia-release/`
+- Deployment structure is always **flat** (no `public/` subdirectory) — all files at the root:
+  ```
+  assets/                  Vite JS + CSS assets
+  favicon.png / favicon.svg
+  index.html
+  opengraph.jpg
+  package.json
+  pino-file.mjs
+  pino-pretty.mjs
+  pino-worker.mjs
+  server.js                Express proxy + SPA server (iisnode entry)
+  thread-stream-worker.mjs
+  web.config
+  ```
+- Always Node.js + iisnode deployment (CJS bundle via esbuild, pino workers renamed to `.mjs`)

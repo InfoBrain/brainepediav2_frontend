@@ -3,20 +3,25 @@
  * -----------------
  * Full release build for the Brainepedia Node.js + IIS deployment package.
  *
- * Outputs a self-contained folder at ./brainepedia-release/ containing:
- *   server.js   — Bundled Express proxy + static-file server (iisnode entry point)
- *   public/     — Built React SPA (Vite output)
- *   web.config  — IIS URL Rewrite + iisnode configuration
- *   README.md   — Deployment instructions
+ * Outputs a self-contained flat folder at ./brainepedia-release/ containing:
+ *
+ *   assets/                  — Built React SPA JS/CSS assets
+ *   favicon.png              — App favicon (PNG)
+ *   favicon.svg              — App favicon (SVG)
+ *   index.html               — React SPA entry point
+ *   opengraph.jpg            — OG image
+ *   package.json             — Node version hint (no deps needed)
+ *   pino-file.mjs            — Pino file transport worker
+ *   pino-pretty.mjs          — Pino pretty-print worker
+ *   pino-worker.mjs          — Pino core worker
+ *   server.js                — Bundled Express proxy + static-file server (iisnode entry)
+ *   thread-stream-worker.mjs — Thread-stream worker
+ *   web.config               — IIS URL Rewrite + iisnode configuration
  *
  * Usage:
  *   node build-release.mjs              # full build
  *   node build-release.mjs --server     # server bundle only (skip Vite)
  *   node build-release.mjs --frontend   # Vite build only (skip server bundle)
- *
- * Requires:
- *   - pnpm workspaces set up (`pnpm install` at repo root)
- *   - Node.js 18+
  */
 
 import { createRequire } from "node:module";
@@ -24,7 +29,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
-import { rm, cp, copyFile, mkdir, writeFile, readFile } from "node:fs/promises";
+import { rm, cp, copyFile, mkdir, writeFile, rename, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { execSync } from "node:child_process";
 
@@ -42,6 +47,16 @@ const onlyFrontend = args.includes("--frontend");
 const buildServer = !onlyFrontend;
 const buildFrontend = !onlyServer;
 
+// Pino worker files esbuild generates as .js — rename them to .mjs after build.
+// server-deploy.ts does not import pino, so server.js has no references to
+// these files and renaming is safe.
+const PINO_WORKERS = [
+  "pino-worker.js",
+  "pino-file.js",
+  "pino-pretty.js",
+  "thread-stream-worker.js",
+];
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function banner(msg) {
@@ -56,6 +71,16 @@ function run(cmd, cwd = ROOT) {
   execSync(cmd, { cwd, stdio: "inherit", env: { ...process.env } });
 }
 
+// ── Step 0: Clean the release folder ─────────────────────────────────────────
+
+async function cleanRelease() {
+  if (existsSync(RELEASE_DIR)) {
+    await rm(RELEASE_DIR, { recursive: true, force: true });
+    console.log(`✓ Cleaned ${RELEASE_DIR}`);
+  }
+  await mkdir(RELEASE_DIR, { recursive: true });
+}
+
 // ── Step 1: Build the React frontend with Vite ────────────────────────────────
 
 async function buildFrontendStep() {
@@ -65,8 +90,6 @@ async function buildFrontendStep() {
     await rm(FRONTEND_DIST, { recursive: true, force: true });
   }
 
-  // Vite requires PORT (dev server) and BASE_PATH even for production builds
-  // because vite.config.ts reads them at config-load time.
   run(
     `PORT=3000 BASE_PATH=/ pnpm --filter @workspace/brainepedia run build`,
     ROOT
@@ -79,30 +102,29 @@ async function buildFrontendStep() {
   console.log(`\x1b[32m✓ Frontend built → ${FRONTEND_DIST}\x1b[0m`);
 }
 
-// ── Step 2: Bundle server.js with esbuild ─────────────────────────────────────
+// ── Step 2: Bundle server.js + pino workers with esbuild ──────────────────────
 
 async function buildServerStep() {
-  banner("Step 2/3 · esbuild — Bundling Express server");
+  banner("Step 2/3 · esbuild — Bundling Express server + pino workers");
 
-  const outFile = path.join(RELEASE_DIR, "server.js");
-
-  // Remove old bundle first so there are no stale artefacts
-  if (existsSync(outFile)) {
-    await rm(outFile, { force: true });
-  }
+  // esbuild-plugin-pino calls globalThis.require('pino') at plugin init time.
+  // Temporarily point require at api-server's node_modules so pino resolves.
+  const rootRequire = globalThis.require;
+  globalThis.require = createRequire(path.join(API_SRC, "package.json"));
 
   await esbuild({
-    entryPoints: [path.join(API_SRC, "src/server-deploy.ts")],
+    // Named entry point so the output is server.js (not server-deploy.js)
+    entryPoints: { server: path.join(API_SRC, "src/server-deploy.ts") },
+    // Resolve imports from api-server (where pino and express live)
+    absWorkingDir: API_SRC,
     platform: "node",
     bundle: true,
-    // CJS output is the safest for iisnode — avoids ESM loader quirks on
-    // Windows shared hosting where the Node version may be older.
+    // CJS output — safest for iisnode on Windows shared hosting
     format: "cjs",
-    outfile: outFile,
+    outdir: RELEASE_DIR,
     logLevel: "info",
-    minify: false, // Keep readable for debugging on the server
+    minify: false,
     sourcemap: false,
-    // Externals: native addons and packages that can't be bundled
     external: [
       "*.node",
       "sharp",
@@ -129,9 +151,25 @@ async function buildServerStep() {
     define: {
       "process.env.NODE_ENV": '"production"',
     },
+    plugins: [
+      esbuildPluginPino({ transports: ["pino-pretty"] }),
+    ],
   });
 
-  console.log(`\x1b[32m✓ Server bundled → ${outFile}\x1b[0m`);
+  globalThis.require = rootRequire;
+
+  // Rename pino workers from .js → .mjs (they are ESM workers by nature)
+  for (const file of PINO_WORKERS) {
+    const src = path.join(RELEASE_DIR, file);
+    const dest = path.join(RELEASE_DIR, file.replace(".js", ".mjs"));
+    if (existsSync(src)) {
+      await rename(src, dest);
+      console.log(`  ${file} → ${path.basename(dest)}`);
+    }
+  }
+
+  console.log(`\x1b[32m✓ Server bundled → ${RELEASE_DIR}/server.js\x1b[0m`);
+  console.log(`\x1b[32m✓ Pino workers   → pino-*.mjs + thread-stream-worker.mjs\x1b[0m`);
 }
 
 // ── Step 3: Assemble the release folder ───────────────────────────────────────
@@ -139,17 +177,21 @@ async function buildServerStep() {
 async function assembleRelease() {
   banner("Step 3/3 · Assembling release package");
 
-  // Ensure release dir exists
-  await mkdir(RELEASE_DIR, { recursive: true });
-
-  // ── 3a. Copy Vite build output into public/ ──────────────────────────────
+  // ── 3a. Copy Vite output flat into the release root ──────────────────────
+  // Flat layout: assets/, index.html, favicon.png, favicon.svg, opengraph.jpg
+  // No public/ subdirectory — matches the standard iisnode deployment layout.
   if (buildFrontend) {
-    const publicDir = path.join(RELEASE_DIR, "public");
-    if (existsSync(publicDir)) {
-      await rm(publicDir, { recursive: true, force: true });
+    const entries = await readdir(FRONTEND_DIST, { withFileTypes: true });
+    for (const entry of entries) {
+      const src = path.join(FRONTEND_DIST, entry.name);
+      const dest = path.join(RELEASE_DIR, entry.name);
+      if (entry.isDirectory()) {
+        await cp(src, dest, { recursive: true });
+      } else {
+        await copyFile(src, dest);
+      }
     }
-    await cp(FRONTEND_DIST, publicDir, { recursive: true });
-    console.log(`✓ Frontend assets → ${publicDir}`);
+    console.log(`✓ Frontend assets → ${RELEASE_DIR}/ (flat)`);
   }
 
   // ── 3b. Write web.config ─────────────────────────────────────────────────
@@ -170,10 +212,9 @@ async function assembleRelease() {
           <action type="None" />
         </rule>
 
-        <!-- Static assets: served by Node but bypass the rewrite so Express
-             express.static() can handle them with proper cache headers -->
+        <!-- Static assets folder — Express serves these via express.static() -->
         <rule name="static-assets" stopProcessing="true">
-          <match url="^public/.*" />
+          <match url="^assets/.*" />
           <action type="Rewrite" url="server.js" />
         </rule>
 
@@ -201,9 +242,9 @@ async function assembleRelease() {
     />
 
     <!--
-      Disable Windows / Basic / Digest authentication at the IIS level so that
-      the Authorization header is NOT consumed by IIS before the request
-      reaches the iisnode handler. Anonymous Authentication must stay enabled.
+      Disable Windows / Basic / Digest authentication so the Authorization
+      header is NOT consumed by IIS before reaching the iisnode handler.
+      Anonymous Authentication must stay enabled.
       JWT validation is performed by the upstream .NET API (api.brainepedia.com).
     -->
     <security>
@@ -216,8 +257,7 @@ async function assembleRelease() {
     </security>
 
     <!--
-      Prevent direct browser access to server internals.
-      Add extra paths here if you place sensitive files in the site root.
+      Block direct browser access to server internals and worker files.
     -->
     <security>
       <requestFiltering>
@@ -231,6 +271,7 @@ async function assembleRelease() {
         <denyUrlSequences>
           <add sequence="web.config" />
           <add sequence="package.json" />
+          <add sequence="server.js" />
         </denyUrlSequences>
       </requestFiltering>
     </security>
@@ -257,114 +298,6 @@ async function assembleRelease() {
     "utf8"
   );
   console.log(`✓ package.json written`);
-
-  // ── 3d. Write README ──────────────────────────────────────────────────────
-  const readme = `# Brainepedia — Self-Hosted Deployment
-
-No \`npm install\` needed. Everything (Express, cors, etc.) is bundled into \`server.js\`.
-
----
-
-## Folder structure
-
-\`\`\`
-brainepedia-release/
-  server.js        ← Entry point for iisnode / Node.js
-  web.config       ← IIS URL Rewrite + iisnode configuration
-  package.json     ← Node version hint (no deps needed)
-  public/          ← Built React SPA (Vite output)
-    index.html
-    assets/
-    favicon.png
-    ...
-\`\`\`
-
----
-
-## Option A — IIS (Windows Server) with iisnode
-
-**Requirements**: IIS + [iisnode](https://github.com/tjanczuk/iisnode) + URL Rewrite module
-
-1. Install [iisnode](https://github.com/tjanczuk/iisnode/releases) on your Windows Server
-2. Install the [URL Rewrite](https://www.iis.net/downloads/microsoft/url-rewrite) IIS module
-3. Copy the entire \`brainepedia-release/\` folder contents into your IIS site root  
-   (e.g. \`C:\\inetpub\\wwwroot\\brainepedia\\\`)
-4. In IIS Manager → Site → Application Settings, add:
-   - \`PORT\` = the named pipe path provided by iisnode (leave blank to use default)
-   - Or set \`PORT=8080\` for a plain TCP listener (not recommended with iisnode)
-5. The included \`web.config\` configures URL Rewrite to route all traffic through \`server.js\`
-6. Restart the IIS Application Pool — the app will be live
-
----
-
-## Option B — Standalone Node.js (Linux / Windows)
-
-**Requirements**: Node.js 18 or later
-
-\`\`\`bash
-# Start on default port 8080
-PORT=8080 node server.js
-
-# Or let it use the PORT env var set by your process manager / platform
-node server.js
-\`\`\`
-
-### With PM2 (recommended for production)
-
-\`\`\`bash
-npm install -g pm2
-pm2 start server.js --name brainepedia --env production
-pm2 save
-pm2 startup
-\`\`\`
-
-### Nginx reverse proxy
-
-\`\`\`nginx
-server {
-    listen 80;
-    server_name yourdomain.com;
-
-    location / {
-        proxy_pass         http://localhost:8080;
-        proxy_http_version 1.1;
-        proxy_set_header   Upgrade $http_upgrade;
-        proxy_set_header   Connection 'upgrade';
-        proxy_set_header   Host $host;
-        proxy_set_header   X-Real-IP $remote_addr;
-        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-\`\`\`
-
----
-
-## Environment variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| \`PORT\`  | \`8080\` | TCP port (or named pipe string for iisnode) |
-| \`NODE_ENV\` | \`production\` | Runtime environment |
-
----
-
-## How it works
-
-- \`server.js\` — self-contained Express server bundled with esbuild (no \`node_modules\` needed)
-- Proxies all \`/api/*\` requests to \`https://api.brainepedia.com\`
-- Serves \`public/\` as static assets (with 1-day cache headers)
-- Returns \`public/index.html\` for all unknown routes (client-side SPA routing)
-- Automatically restores the \`Authorization\` header from \`X-Token\` fallback  
-  (workaround for iisnode on shared Windows hosting that strips the auth header)
-
----
-
-Built with Node.js ${process.version} · esbuild · Vite · Express 5
-`;
-
-  await writeFile(path.join(RELEASE_DIR, "README.md"), readme, "utf8");
-  console.log(`✓ README.md written`);
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -375,13 +308,27 @@ async function main() {
   console.log(`Out  : ${RELEASE_DIR}`);
   console.log(`Tasks: ${[buildFrontend && "frontend", buildServer && "server"].filter(Boolean).join(", ")}`);
 
+  await cleanRelease();
   if (buildFrontend) await buildFrontendStep();
   if (buildServer) await buildServerStep();
   await assembleRelease();
 
   banner("Build complete");
   console.log(`\x1b[32mRelease folder: ${RELEASE_DIR}\x1b[0m`);
-  console.log(`\nDeploy instructions: ${path.join(RELEASE_DIR, "README.md")}\n`);
+  console.log(`
+Flat deployment structure:
+  assets/                  Vite JS + CSS assets
+  favicon.png / .svg       Favicons
+  index.html               React SPA entry point
+  opengraph.jpg            OG image
+  package.json             Node version hint (engines.node >=18)
+  pino-file.mjs            Pino file transport worker
+  pino-pretty.mjs          Pino pretty-print worker
+  pino-worker.mjs          Pino core worker
+  server.js                Express proxy + SPA server (iisnode entry point)
+  thread-stream-worker.mjs Thread-stream worker
+  web.config               IIS URL Rewrite + iisnode config
+`);
 }
 
 main().catch((err) => {

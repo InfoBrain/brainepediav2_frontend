@@ -128,8 +128,8 @@ app.all(/^\/api(\/.*)?$/, async (req, res) => {
 });
 
 // ── Static frontend ──────────────────────────────────────────────────────────
-// Frontend assets live in the public/ subdirectory next to server.js.
-const staticDir = path.join(serverDir, "public");
+// Frontend assets live alongside server.js (flat deployment structure).
+const staticDir = serverDir;
 const indexHtml = path.join(staticDir, "index.html");
 
 if (existsSync(indexHtml)) {
@@ -140,8 +140,14 @@ if (existsSync(indexHtml)) {
       setHeaders: (_res, filePath) => {
         const ext = path.extname(filePath);
         const base = path.basename(filePath);
-        // Block direct access to server files
-        if (ext === ".mjs" || base === "server.js" || base === "web.config" || base === "package.json") {
+        // Block direct access to server internals
+        if (
+          ext === ".mjs" ||
+          ext === ".ts" ||
+          base === "server.js" ||
+          base === "web.config" ||
+          base === "package.json"
+        ) {
           _res.statusCode = 403;
           _res.end();
         }
