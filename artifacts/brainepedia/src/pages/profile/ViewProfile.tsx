@@ -186,10 +186,16 @@ export default function ViewProfile() {
 
       if (cancelled || !profileData) return;
 
+      // Profile endpoint sometimes returns userId: null — resolve the real
+      // userId via auth when viewing own profile, otherwise scan known fields.
       const actualUserId: string =
         profileData.userId ||
         profileData.UserId ||
+        profileData.ownerId ||
+        profileData.OwnerId ||
+        profileData.accountId ||
         profileData.id ||
+        (isOwn ? myUserId : null) ||
         profileIdParam;
 
       const [b, m] = await Promise.all([
