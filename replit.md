@@ -61,3 +61,23 @@ React+Vite SPA with dark cyber-imperial theme (cyan `#00D2FF` / gold `#FFD700` /
 - **AdminProfessions**: "Generate with AI" modal with count picker, animated loading messages, preview list, Accept All/Regenerate
 - **AdminDistricts**: "Generate with AI" button triggers `POST /Districts/seed-districts/{professionId}` with animated overlay
 - **AdminProblemNodes**: "Generate with AI" side panel with rich preview (title, context, mission brief, constraints list, expected outcomes list, XP/time badges), Regenerate + Save actions
+
+## Content Calendar App (`artifacts/content-calendar`)
+
+Standalone React+Vite SPA for the Brainepedia v2 marketing team. Runs on port 5000 (main workflow).
+
+### Features
+- **Dashboard**: stats cards, posts by platform bar charts, content pillar breakdown, status overview, content format mix, upcoming content panel
+- **Calendar Table**: spreadsheet-style editable table with all 16 columns (date, day, campaign, pillar, platform, type, hook, caption, CTA, hashtags, media, designer, status, time, priority, link, notes), drag-and-drop row reorder, column visibility toggle, search + filters (status/platform/pillar), duplicate/delete rows
+- **Monthly View**: calendar grid with per-day post dots, click to see day details, navigate months
+- **AI Assistant**: template-based content generator for hooks, captions, CTAs, hashtag packs, campaign names by pillar/platform/type; "Add to Calendar" prefills the edit modal
+- **Generate Monthly Calendar**: modal to auto-create a full month of draft posts by frequency and campaign goals
+- **Export**: Excel (.xlsx with freeze row, auto-filter, column widths, summary sheet) and CSV download, print view
+- **Data**: 40 preloaded June 2026 entries covering Beta Launch, Career Transformation, AI Learning, Experience Elevator, and more
+- **Persistence**: localStorage key `brainepedia-calendar-v2`
+
+### Stack
+- React 19 + Vite + Tailwind v4 (no config file)
+- `xlsx` (SheetJS) for Excel export
+- Lucide React icons
+- No external router (single-page, view state in App.tsx)

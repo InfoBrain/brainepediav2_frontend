@@ -1,0 +1,167 @@
+Create a modern web-based Content Calendar Management System for Brainepedia v2 with the ability to generate, manage, edit, and download content plans as Excel (.xlsx) files.
+
+About the Brand:
+Brainepedia is an AI-powered gamified learning and professional experience elevation platform that helps users gain practical experience, build portfolios, receive AI mentorship, complete projects, and improve employability through an Experience Elevator system.
+
+Platform URLs:
+v1: https://brainepedia.com
+v2: https://demo.brainepedia.com
+
+Objective:
+Build a responsive dashboard where the marketing team can plan, organize, track, and export social media content calendars for Brainepedia v2 campaigns.
+
+Core Features Required:
+
+1. Dashboard Overview
+
+* Total posts planned
+* Posts per platform
+* Weekly content progress
+* Upcoming campaigns
+* Content approval status
+* Analytics placeholders
+
+2. Content Calendar Table
+   Create a spreadsheet-style table with editable columns:
+
+* Date
+* Day
+* Campaign Name
+* Content Pillar
+* Platform
+* Content Type
+* Topic/Hook
+* Caption
+* CTA
+* Hashtags
+* Media Type
+* Designer Assigned
+* Status
+* Publishing Time
+* Link
+* Notes
+
+3. Preloaded Content Pillars
+   Include predefined pillars:
+
+* Career Transformation
+* AI Learning
+* Experience Elevator
+* Student Success Stories
+* Productivity
+* Portfolio Building
+* Tech Skills
+* Gamification
+* Motivation
+* Tutorials
+* Community Engagement
+* Beta Launch
+* Testimonials
+
+4. Supported Platforms
+   Include:
+
+* Instagram
+* TikTok
+* LinkedIn
+* X (Twitter)
+* YouTube
+* Facebook
+* WhatsApp Channel
+
+5. Content Type Options
+
+* Reel
+* Carousel
+* Static Post
+* Story
+* Tweet
+* Thread
+* Video
+* Blog
+* Poll
+* Announcement
+* Testimonial
+
+6. Export Features
+
+* Download as Excel (.xlsx)
+* Download as CSV
+* Print-friendly version
+* Auto-format Excel sheets professionally
+* Include filters in exported Excel
+* Freeze top row in Excel
+* Auto-adjust column widths
+
+7. Smart Features
+
+* Color-coded statuses
+* Drag-and-drop scheduling
+* Search and filtering
+* Monthly calendar view
+* Weekly planner view
+* Duplicate content row
+* Auto-generate posting days
+* Content priority tags
+
+8. AI Content Assistant Section
+   Add a section that can generate:
+
+* Viral hooks
+* Caption ideas
+* CTA suggestions
+* Hashtag suggestions
+* Campaign ideas
+  based on selected content pillar.
+
+9. Branding
+   Use a futuristic AI/gamified design style inspired by:
+
+* Duolingo
+* Notion
+* Linear
+* Discord
+* Modern EdTech dashboards
+
+Brand Colors:
+
+* Blue
+* White
+* Dark navy
+* Soft gradients
+
+10. Sample Data
+    Prepopulate the calendar with 30 days of Brainepedia v2 marketing content ideas including:
+
+* Launch campaigns
+* Beta tester promotions
+* AI mentorship promotions
+* Experience Elevator campaigns
+* Student engagement content
+* Career growth content
+* Short-form video ideas
+* LinkedIn professional posts
+
+11. Technical Requirements
+
+* Use React frontend
+* Use Tailwind CSS
+* Use a clean dashboard layout
+* Use XLSX library for Excel export
+* Store data locally using localStorage
+* Responsive for desktop and mobile
+* Include loading animations
+* Include toast notifications
+
+12. Additional Requirement
+    Add a “Generate Monthly Calendar” button that automatically creates a full monthly content schedule based on selected campaign goals and posting frequency.
+
+Ensure the final app allows users to:
+
+* Create content calendars easily
+* Edit entries
+* Save content plans
+* Export professionally formatted Excel sheets
+* Manage marketing workflow efficiently
+
+The UI should feel premium, modern, futuristic, and startup-quality.
