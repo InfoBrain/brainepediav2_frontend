@@ -12,3 +12,9 @@ id = "gC1gJju_G_fkS_YWvNAgi"
 uri = "file://brainepedia-dist.zip"
 type = "unspecified"
 title = "Brainepedia — Production Build (dist.zip)"
+
+[[outputs]]
+id = "RvCE5c0p2UaOyLXtscmNj"
+uri = "file://brainepedia-release.tar.gz"
+type = "unspecified"
+title = "brainepedia-release.tar.gz — IIS/Node.js Deployment Package"
