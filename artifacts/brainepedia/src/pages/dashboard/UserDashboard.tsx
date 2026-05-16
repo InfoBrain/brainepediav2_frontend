@@ -192,7 +192,7 @@ export default function UserDashboard() {
         api.profiles.get(pid),
         api.userBadges.forUser(userId),
         api.dashboard.stats(userId),
-        api.dashboard.leaderboard(20),
+        api.dashboard.leaderboard(userId, 20),
       ]);
       if (cancelled) return;
 
@@ -369,7 +369,7 @@ export default function UserDashboard() {
 
   const refreshLeaderboard = async () => {
     setLeaderboardLoading(true);
-    const lb = await api.dashboard.leaderboard(20);
+    const lb = await api.dashboard.leaderboard(userId, 20);
     applyLeaderboard(lb);
     setLeaderboardLoading(false);
   };

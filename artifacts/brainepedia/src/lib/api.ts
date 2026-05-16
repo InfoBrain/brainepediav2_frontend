@@ -249,8 +249,8 @@ export const api = {
   dashboard: {
     /** GET /api/Dashboard/stats/{userId} */
     stats: (userId: string) => fetchApi(`/api/Dashboard/stats/${encodeURIComponent(userId)}`),
-    /** GET /api/Dashboard/leaderboard?count=N */
-    leaderboard: (count = 20) => fetchApi(`/api/Dashboard/leaderboard?count=${count}`),
+    /** GET /api/Dashboard/leaderboard?userId=&count=N */
+    leaderboard: (userId: string, count = 20) => fetchApi(`/api/Dashboard/leaderboard?userId=${encodeURIComponent(userId)}&count=${count}`),
   },
   evaluations: {
     askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string }) =>
