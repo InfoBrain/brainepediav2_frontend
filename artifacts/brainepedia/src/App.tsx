@@ -10,6 +10,8 @@ import Home from "@/pages/Home";
 import { ProblemPage } from "@/pages/Problem";
 import { SolutionPage } from "@/pages/Solution";
 import { HowItWorksPage } from "@/pages/HowItWorks";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import Terms from "@/pages/Terms";
 
 // Auth pages
 import Login from "@/pages/auth/Login";
@@ -79,6 +81,8 @@ function Router() {
       <Route path="/problem" component={ProblemPage} />
       <Route path="/solution" component={SolutionPage} />
       <Route path="/how-it-works" component={HowItWorksPage} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={Terms} />
 
       {/* Legacy auth aliases — many pages navigate("/login") without the /auth/ prefix */}
       <Route path="/login"><LegacyRedirect to="/auth/login" /></Route>

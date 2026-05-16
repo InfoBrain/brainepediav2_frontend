@@ -8,6 +8,7 @@ import { Professions } from "@/components/landing/Professions";
 import { XPLedger } from "@/components/landing/XPLedger";
 import { Pricing } from "@/components/landing/Pricing";
 import { FinalCTA } from "@/components/landing/FinalCTA";
+import { FAQ } from "@/components/landing/FAQ";
 import { Footer } from "@/components/landing/Footer";
 
 export default function Home() {
@@ -23,6 +24,7 @@ export default function Home() {
         <Professions />
         <XPLedger />
         <Pricing />
+        <FAQ />
         <FinalCTA />
       </main>
       <Footer />
