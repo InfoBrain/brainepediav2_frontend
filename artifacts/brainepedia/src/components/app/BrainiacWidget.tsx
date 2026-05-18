@@ -10,12 +10,12 @@ type Message = {
   isEscalated?: boolean;
 };
 
-function extractText(data: unknown): string {
+function extractText(data: unknown, depth = 0): string {
   if (!data) return "";
   let obj = data;
   if (typeof obj === "string") {
     const trimmed = obj.trim();
-    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    if ((trimmed.startsWith("{") || trimmed.startsWith("[")) && depth < 4) {
       try { obj = JSON.parse(trimmed); } catch { return trimmed; }
     } else {
       return trimmed;
@@ -30,8 +30,15 @@ function extractText(data: unknown): string {
     d.text ?? d.Text ??
     d.content ?? d.Content ??
     null;
-  if (typeof raw === "string") return raw.trim();
-  return JSON.stringify(obj);
+  if (raw === null || raw === undefined) return "";
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if ((trimmed.startsWith("{") || trimmed.startsWith("[")) && depth < 4) {
+      return extractText(trimmed, depth + 1);
+    }
+    return trimmed;
+  }
+  return extractText(raw, depth + 1);
 }
 
 function FormattedText({ text }: { text: string }) {
