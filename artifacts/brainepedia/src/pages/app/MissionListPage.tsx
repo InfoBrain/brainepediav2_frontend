@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -330,6 +330,7 @@ export default function MissionListPage() {
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("xp-desc");
+  const [completedOverrides, setCompletedOverrides] = useState<Set<string>>(new Set());
 
   const { data: missions, isLoading: missionsLoading, isError: missionsError, refetch } = useQuery<Mission[]>({
     queryKey: ["missions-by-district", districtId, userId],
@@ -342,6 +343,33 @@ export default function MissionListPage() {
     staleTime: 2 * 60 * 1000,
     retry: 1,
   });
+
+  /* Silently check in-progress missions for an existing evaluation result.
+     The backend sometimes fails to flip isCompleted after a successful evaluation.
+     If getNodeResult returns data, we override isCompleted locally so the UI
+     shows "View Result" instead of "Resume Mission". */
+  useEffect(() => {
+    if (!missions || !userId) return;
+    const inProgress = missions.filter(m => m.isStarted && !m.isCompleted);
+    if (inProgress.length === 0) return;
+    let cancelled = false;
+    Promise.all(
+      inProgress.map(async (m) => {
+        try {
+          const res = await api.evaluations.getNodeResult(m.problemNodeId, userId);
+          if (!cancelled && res.ok && res.data) return m.problemNodeId;
+        } catch { /* ignore */ }
+        return null;
+      })
+    ).then(results => {
+      if (cancelled) return;
+      const ids = results.filter((id): id is string => Boolean(id));
+      if (ids.length > 0) {
+        setCompletedOverrides(prev => new Set([...prev, ...ids]));
+      }
+    });
+    return () => { cancelled = true; };
+  }, [missions, userId]);
 
   const { data: district } = useQuery({
     queryKey: ["district-detail", districtId],
@@ -356,21 +384,30 @@ export default function MissionListPage() {
   const { data: difficulties } = useDifficulties();
   const difficultyLookup = buildDifficultyLookup(difficulties);
 
-  const total = missions?.length ?? 0;
-  const completed = missions?.filter(m => m.isCompleted).length ?? 0;
-  const started = missions?.filter(m => m.isStarted && !m.isCompleted).length ?? 0;
-  const totalXp = missions?.reduce((s, m) => s + m.experiencePoints, 0) ?? 0;
+  /* Merge backend data with local completion overrides */
+  const effectiveMissions = useMemo(() => {
+    if (!missions) return missions;
+    if (completedOverrides.size === 0) return missions;
+    return missions.map(m =>
+      completedOverrides.has(m.problemNodeId) ? { ...m, isCompleted: true } : m
+    );
+  }, [missions, completedOverrides]);
+
+  const total = effectiveMissions?.length ?? 0;
+  const completed = effectiveMissions?.filter(m => m.isCompleted).length ?? 0;
+  const started = effectiveMissions?.filter(m => m.isStarted && !m.isCompleted).length ?? 0;
+  const totalXp = effectiveMissions?.reduce((s, m) => s + m.experiencePoints, 0) ?? 0;
 
   const filtered = useMemo(() => {
-    if (!missions) return [];
-    let list = [...missions];
+    if (!effectiveMissions) return [];
+    let list = [...effectiveMissions];
     if (statusFilter === "new") list = list.filter(m => !m.isStarted && !m.isCompleted);
     else if (statusFilter === "started") list = list.filter(m => m.isStarted && !m.isCompleted);
     else if (statusFilter === "completed") list = list.filter(m => m.isCompleted);
     if (sortKey === "xp-desc") list.sort((a, b) => b.experiencePoints - a.experiencePoints);
     else if (sortKey === "time-asc") list.sort((a, b) => a.estimatedMinutes - b.estimatedMinutes);
     return list;
-  }, [missions, statusFilter, sortKey]);
+  }, [effectiveMissions, statusFilter, sortKey]);
 
   return (
     <div className="min-h-screen bg-[#060a10] text-white relative overflow-hidden flex flex-col">
