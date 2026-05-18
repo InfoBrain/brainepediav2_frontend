@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -93,8 +93,42 @@ export default function DistrictMap() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch per-district user progress from the profile map
+  const { data: progressMap } = useQuery<Record<string, { completionPercentage: number; isMastered: boolean }>>({
+    queryKey: ["profile-map-districts", userId],
+    queryFn: async () => {
+      const res = await api.profiles.map(userId!);
+      if (!res.ok || !Array.isArray(res.data)) return {};
+      const lookup: Record<string, { completionPercentage: number; isMastered: boolean }> = {};
+      for (const d of res.data as any[]) {
+        const id: string = d.districtId || d.id || "";
+        if (!id) continue;
+        const isMastered = Boolean(d.isMastered ?? d.mastered);
+        const pct = isMastered
+          ? 100
+          : Math.min(100, Math.max(0,
+              Number(d.completionPercentage ?? d.percentage ?? d.percent ?? d.completion ?? 0)
+            ));
+        lookup[id] = { completionPercentage: pct, isMastered };
+      }
+      return lookup;
+    },
+    enabled: Boolean(userId),
+    staleTime: 2 * 60 * 1000,
+  });
+
   const profName = data?.name || (fallbackProf as { name?: string } | null)?.name || "Profession";
-  const districts = data?.districts ?? [];
+
+  // Merge API district list with user-specific progress
+  const districts = useMemo(() => {
+    const raw = data?.districts ?? [];
+    if (!progressMap || Object.keys(progressMap).length === 0) return raw;
+    return raw.map(d => {
+      const p = progressMap[d.districtId];
+      if (!p) return d;
+      return { ...d, completionPercentage: p.completionPercentage };
+    });
+  }, [data, progressMap]);
 
   // Find the recommended district (lowest non-zero completion, or first unstarted)
   const recommended = districts.reduce<District | null>((best, d) => {
