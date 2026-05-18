@@ -8,8 +8,81 @@ type Message = {
   role: "user" | "ai";
   text: string;
   isEscalated?: boolean;
-  timestamp?: string;
 };
+
+function extractText(data: unknown): string {
+  if (!data) return "";
+  let obj = data;
+  if (typeof obj === "string") {
+    const trimmed = obj.trim();
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try { obj = JSON.parse(trimmed); } catch { return trimmed; }
+    } else {
+      return trimmed;
+    }
+  }
+  if (typeof obj !== "object" || obj === null) return String(obj);
+  const d = obj as Record<string, unknown>;
+  const raw =
+    d.Reply ?? d.reply ??
+    d.response ?? d.Response ??
+    d.message ?? d.Message ??
+    d.text ?? d.Text ??
+    d.content ?? d.Content ??
+    null;
+  if (typeof raw === "string") return raw.trim();
+  return JSON.stringify(obj);
+}
+
+function FormattedText({ text }: { text: string }) {
+  const paragraphs = text.split(/\n{2,}/).filter(Boolean);
+  return (
+    <div className="space-y-2">
+      {paragraphs.map((para, pi) => {
+        const lines = para.split("\n");
+        const isBulletBlock = lines.every(l => /^[-*•]\s/.test(l.trim()) || l.trim() === "");
+        if (isBulletBlock) {
+          return (
+            <ul key={pi} className="list-none space-y-0.5 pl-1">
+              {lines.filter(l => l.trim()).map((line, li) => (
+                <li key={li} className="flex gap-1.5 items-start">
+                  <span className="text-[#9D4EDD] mt-[3px] shrink-0">▸</span>
+                  <span>{renderInline(line.replace(/^[-*•]\s*/, ""))}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={pi} className="leading-relaxed">
+            {lines.map((line, li) => (
+              <span key={li}>
+                {renderInline(line)}
+                {li < lines.length - 1 && <br />}
+              </span>
+            ))}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+function renderInline(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push(text.slice(last, match.index));
+    if (match[1]) parts.push(<strong key={match.index} className="text-white/90 font-semibold">{match[1]}</strong>);
+    else if (match[2]) parts.push(<em key={match.index} className="text-white/70 italic">{match[2]}</em>);
+    else if (match[3]) parts.push(<code key={match.index} className="px-1 py-0.5 rounded bg-[#9D4EDD]/15 text-[#9D4EDD] font-mono text-[10px]">{match[3]}</code>);
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
 
 export function BrainiacWidget() {
   const [open, setOpen] = useState(false);
@@ -33,12 +106,10 @@ export function BrainiacWidget() {
     setThinking(true);
     try {
       const res = await api.evaluations.chatBrainiac({ prompt }, userId);
-      type BrainiacResult = { Reply?: string; reply?: string; response?: string; message?: string; IsEscalated?: boolean; isEscalated?: boolean; Timestamp?: string; timestamp?: string };
-      const d = res.data as BrainiacResult | null;
-      const text = d?.Reply ?? d?.reply ?? d?.response ?? d?.message ?? "I'm here to help. Could you rephrase your question?";
+      const text = extractText(res.data) || "I'm here to help. Could you rephrase your question?";
+      const d = res.data as Record<string, unknown> | null;
       const isEscalated = Boolean(d?.IsEscalated ?? d?.isEscalated ?? false);
-      const timestamp = d?.Timestamp ?? d?.timestamp;
-      setMessages(m => [...m, { role: "ai", text, isEscalated, timestamp }]);
+      setMessages(m => [...m, { role: "ai", text, isEscalated }]);
     } catch {
       setMessages(m => [...m, { role: "ai", text: "Brainiac support modules are undergoing maintenance. Please try again shortly." }]);
     } finally {
@@ -102,7 +173,7 @@ export function BrainiacWidget() {
             </div>
 
             {/* Messages */}
-            <div ref={scrollRef} className="h-64 overflow-y-auto px-4 py-3 space-y-3">
+            <div ref={scrollRef} className="h-72 overflow-y-auto px-4 py-3 space-y-3">
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full gap-2">
                   <Bot className="w-8 h-8 text-[#9D4EDD]/20" />
@@ -120,8 +191,10 @@ export function BrainiacWidget() {
                   </div>
                   <div className="flex flex-col gap-1 max-w-[80%]">
                     <div className={`text-xs leading-relaxed rounded-xl px-3 py-2
-                      ${m.role === "user" ? "bg-[#00D2FF]/10 text-white/70 rounded-tr-sm" : "bg-[#9D4EDD]/10 text-white/70 rounded-tl-sm"}`}>
-                      {m.text}
+                      ${m.role === "user"
+                        ? "bg-[#00D2FF]/10 text-white/70 rounded-tr-sm"
+                        : "bg-[#9D4EDD]/10 text-white/60 rounded-tl-sm"}`}>
+                      {m.role === "ai" ? <FormattedText text={m.text} /> : m.text}
                     </div>
                     {m.isEscalated && (
                       <motion.div
@@ -142,8 +215,8 @@ export function BrainiacWidget() {
                   <div className="flex items-center gap-1 px-3 py-2 rounded-xl rounded-tl-sm bg-[#9D4EDD]/10">
                     <span className="text-xs text-white/30 font-mono italic">Thinking</span>
                     <span className="flex gap-0.5 ml-1">
-                      {[0, 1, 2].map(i => (
-                        <motion.span key={i} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+                      {[0, 1, 2].map(j => (
+                        <motion.span key={j} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.2, repeat: Infinity, delay: j * 0.2 }}
                           className="w-1 h-1 rounded-full bg-[#9D4EDD]" />
                       ))}
                     </span>
