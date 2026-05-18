@@ -104,6 +104,12 @@ function Router() {
           <VerifyPayment />
         </RequireAuth>
       </Route>
+      {/* Paystack callback — trxref and reference are read directly by VerifyPayment */}
+      <Route path="/payment/callback">
+        <RequireAuth allow={["User"]}>
+          <VerifyPayment />
+        </RequireAuth>
+      </Route>
       <Route path="/user/subscription/success">
         <RequireAuth allow={["User"]}>
           <SubscriptionSuccess />
