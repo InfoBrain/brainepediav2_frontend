@@ -123,9 +123,14 @@ async function buildServerStep() {
     format: "cjs",
     outdir: RELEASE_DIR,
     logLevel: "info",
-    minify: false,
+    minify: true,
+    treeShaking: true,
     sourcemap: false,
     external: [
+      // Runtime packages — resolved from node_modules in the release folder
+      "express",
+      "cors",
+      // Native addons — never bundleable
       "*.node",
       "sharp",
       "better-sqlite3",
@@ -283,7 +288,21 @@ async function assembleRelease() {
   await writeFile(path.join(RELEASE_DIR, "web.config"), webConfig, "utf8");
   console.log(`✓ web.config written`);
 
-  // ── 3c. Write minimal package.json (Node version hint for iisnode) ─────────
+  // ── 3c. Write package.json with runtime deps (express + cors) ──────────────
+  // express and cors are externalised from the esbuild bundle so iisnode
+  // resolves them from node_modules at runtime.  Exact versions are read from
+  // the workspace so the release always matches what was bundled against.
+  const expressVer = JSON.parse(
+    await import("node:fs").then(fs => fs.promises.readFile(
+      path.join(API_SRC, "node_modules/express/package.json"), "utf8"
+    ))
+  ).version;
+  const corsVer = JSON.parse(
+    await import("node:fs").then(fs => fs.promises.readFile(
+      path.join(API_SRC, "node_modules/cors/package.json"), "utf8"
+    ))
+  ).version;
+
   const pkgJson = {
     name: "brainepedia-server",
     version: "2.0.0",
@@ -291,13 +310,23 @@ async function assembleRelease() {
     main: "server.js",
     engines: { node: ">=18.0.0" },
     private: true,
+    dependencies: {
+      express: `^${expressVer}`,
+      cors: `^${corsVer}`,
+    },
   };
   await writeFile(
     path.join(RELEASE_DIR, "package.json"),
     JSON.stringify(pkgJson, null, 2) + "\n",
     "utf8"
   );
-  console.log(`✓ package.json written`);
+  console.log(`✓ package.json written (express@${expressVer}, cors@${corsVer})`);
+
+  // Install runtime deps into the release folder so node_modules is present
+  // for iisnode to resolve express and cors at startup.
+  console.log(`  Installing runtime deps in release folder…`);
+  run(`npm install --omit=dev --no-audit --no-fund --prefer-offline`, RELEASE_DIR);
+  console.log(`✓ node_modules installed → ${RELEASE_DIR}/node_modules`);
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
