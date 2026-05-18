@@ -344,13 +344,13 @@ export default function MissionListPage() {
     retry: 1,
   });
 
-  /* Silently check in-progress missions for an existing evaluation result.
-     The backend sometimes fails to flip isCompleted after a successful evaluation.
-     If getNodeResult returns data, we override isCompleted locally so the UI
-     shows "View Result" instead of "Resume Mission". */
+  /* Silently check ALL non-completed missions for an existing evaluation result.
+     The backend sometimes fails to flip isStarted/isCompleted after a successful
+     evaluation. If getNodeResult returns data we override isCompleted locally so
+     the UI shows the correct "Completed" state regardless of backend field state. */
   useEffect(() => {
     if (!missions || !userId) return;
-    const inProgress = missions.filter(m => m.isStarted && !m.isCompleted);
+    const inProgress = missions.filter(m => !m.isCompleted);
     if (inProgress.length === 0) return;
     let cancelled = false;
     Promise.all(

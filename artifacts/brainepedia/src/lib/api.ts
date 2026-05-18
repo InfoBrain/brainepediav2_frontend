@@ -255,8 +255,8 @@ export const api = {
   evaluations: {
     askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string }) =>
       fetchApi("/api/Evaluations/ask-brainiac", { method: "POST", body: JSON.stringify(data) }),
-    chatBrainiac: (data: { prompt: string; context?: string }) =>
-      fetchApi("/api/Evaluations/chat-brainiac", { method: "POST", body: JSON.stringify(data) }),
+    chatBrainiac: (data: { prompt: string; context?: string }, userId?: string | null) =>
+      fetchApi(`/api/Evaluations/chat-brainaic${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`, { method: "POST", body: JSON.stringify(data) }),
     process: (submissionId: string) =>
       fetchApi(`/api/Evaluations/process/${encodeURIComponent(submissionId)}`, { method: "POST" }),
     /** GET /api/Evaluations/results/{sessionId} — full evaluated result by session ID */
