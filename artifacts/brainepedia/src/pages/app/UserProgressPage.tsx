@@ -49,7 +49,7 @@ const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
   { href: "/profession/select", label: "Choose Path", icon: Compass },
-  { href: "/profession/select", label: "Imperial Map", icon: Map },
+  { href: "/user/map", label: "Imperial Map", icon: Map },
   { href: "/profile/edit", label: "My Profile", icon: User },
   { href: "/user/badges", label: "My Badges", icon: Trophy },
   { href: "/user/activity", label: "Activity Feed", icon: Activity },
@@ -148,7 +148,17 @@ export default function UserProgressPage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const lvData = getLevel(stats?.totalXP ?? 0);
+  /* Use zero-state fallback so the page always renders something,
+     even when the API fails or the user has no data yet. */
+  const displayStats: Stats = stats ?? {
+    totalXP: 0,
+    problemsSolvedCount: 0,
+    dayStreak: 0,
+    currentSubscription: "Initiate",
+    isSubscriptionActive: false,
+  };
+
+  const lvData = getLevel(displayStats.totalXP);
 
   const chartData = (() => {
     if (!xpHistory?.length) return [];
@@ -160,8 +170,8 @@ export default function UserProgressPage() {
     return Object.entries(byDay).sort(([a], [b]) => a.localeCompare(b)).slice(-14).map(([date, xp]) => ({ date: date.slice(5), xp }));
   })();
 
-  const subColor = (sub: string) => {
-    const s = (sub || "").toLowerCase();
+  const subColor = (sub: string | number | unknown) => {
+    const s = String(sub ?? "").toLowerCase();
     if (s.includes("grand")) return "text-[#FFD700]";
     if (s.includes("arch")) return "text-[#00D2FF]";
     return "text-white/40";
@@ -176,14 +186,14 @@ export default function UserProgressPage() {
           {/* XP Progress Card */}
           {statsLoading ? (
             <div className="h-32 rounded-2xl bg-white/3 animate-pulse" />
-          ) : stats && (
+          ) : (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="relative rounded-2xl border border-[#00D2FF]/15 bg-gradient-to-br from-[#00D2FF]/5 to-[#9D4EDD]/5 p-6 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00D2FF]/3 via-transparent to-[#9D4EDD]/3" />
               <div className="relative flex flex-col sm:flex-row sm:items-center gap-6">
                 <div>
                   <p className="text-[10px] font-mono text-[#00D2FF]/60 tracking-[0.3em] uppercase mb-1">Level {lvData.level}</p>
                   <motion.p className="text-4xl font-black font-mono text-white" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-                    {stats.totalXP.toLocaleString()} XP
+                    {displayStats.totalXP.toLocaleString()} XP
                   </motion.p>
                   <p className="text-xs font-mono text-white/30 mt-1">Next level at {lvData.next.toLocaleString()} XP</p>
                 </div>
@@ -196,7 +206,7 @@ export default function UserProgressPage() {
                     <motion.div className="h-full rounded-full bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD]"
                       initial={{ width: 0 }} animate={{ width: `${lvData.pct}%` }} transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }} />
                   </div>
-                  <p className="text-[10px] font-mono text-white/20">{stats.totalXP - lvData.current} / {lvData.next - lvData.current} XP to next level</p>
+                  <p className="text-[10px] font-mono text-white/20">{displayStats.totalXP - lvData.current} / {lvData.next - lvData.current} XP to next level</p>
                 </div>
               </div>
             </motion.div>
@@ -207,12 +217,12 @@ export default function UserProgressPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[1,2,3,4].map(i => <div key={i} className="h-28 rounded-2xl bg-white/3 animate-pulse" />)}
             </div>
-          ) : stats && (
+          ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard icon={<Target className="w-5 h-5" />} label="Missions" value={stats.problemsSolvedCount} sub="Completed" color="text-[#00D2FF]" />
-              <StatCard icon={<Flame className="w-5 h-5" />} label="Streak" value={`${stats.dayStreak}d`} sub="Day streak" color="text-orange-400" />
-              <StatCard icon={<Crown className="w-5 h-5" />} label="Plan" value={stats.currentSubscription} sub={stats.isSubscriptionActive ? "Active" : "Expired"} color={subColor(stats.currentSubscription)} />
-              <StatCard icon={<Star className="w-5 h-5" />} label="Total XP" value={stats.totalXP.toLocaleString()} sub={`Level ${lvData.level}`} color="text-[#FFD700]" />
+              <StatCard icon={<Target className="w-5 h-5" />} label="Missions" value={displayStats.problemsSolvedCount} sub="Completed" color="text-[#00D2FF]" />
+              <StatCard icon={<Flame className="w-5 h-5" />} label="Streak" value={`${displayStats.dayStreak}d`} sub="Day streak" color="text-orange-400" />
+              <StatCard icon={<Crown className="w-5 h-5" />} label="Plan" value={displayStats.currentSubscription} sub={displayStats.isSubscriptionActive ? "Active" : "Expired"} color={subColor(displayStats.currentSubscription)} />
+              <StatCard icon={<Star className="w-5 h-5" />} label="Total XP" value={displayStats.totalXP.toLocaleString()} sub={`Level ${lvData.level}`} color="text-[#FFD700]" />
             </div>
           )}
 
@@ -396,20 +406,18 @@ export default function UserProgressPage() {
             </Link>
           </div>
 
-          {stats && (
-            <div className={`rounded-xl border p-4 ${stats.isSubscriptionActive ? "border-emerald-500/20 bg-emerald-500/5" : "border-red-500/20 bg-red-500/5"}`}>
-              <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1">Subscription</p>
-              <p className={`text-sm font-bold ${stats.isSubscriptionActive ? "text-emerald-400" : "text-red-400"}`}>
-                {stats.isSubscriptionActive ? "Active" : "Expired"}
-              </p>
-              <p className="text-xs text-white/30 mt-0.5">{stats.currentSubscription} Plan</p>
-              {!stats.isSubscriptionActive && (
-                <Link href="/user/subscription/success">
-                  <button className="mt-2 w-full py-1.5 text-xs font-mono font-bold text-black bg-[#FFD700] rounded-lg hover:opacity-80 transition-opacity">Upgrade</button>
-                </Link>
-              )}
-            </div>
-          )}
+          <div className={`rounded-xl border p-4 ${displayStats.isSubscriptionActive ? "border-emerald-500/20 bg-emerald-500/5" : "border-red-500/20 bg-red-500/5"}`}>
+            <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1">Subscription</p>
+            <p className={`text-sm font-bold ${displayStats.isSubscriptionActive ? "text-emerald-400" : "text-red-400"}`}>
+              {displayStats.isSubscriptionActive ? "Active" : "Expired"}
+            </p>
+            <p className="text-xs text-white/30 mt-0.5">{displayStats.currentSubscription} Plan</p>
+            {!displayStats.isSubscriptionActive && (
+              <Link href="/user/subscription/success">
+                <button className="mt-2 w-full py-1.5 text-xs font-mono font-bold text-black bg-[#FFD700] rounded-lg hover:opacity-80 transition-opacity">Upgrade</button>
+              </Link>
+            )}
+          </div>
         </aside>
       </div>
     </DashboardShell>

@@ -100,9 +100,9 @@ function parseRole(raw: unknown): "GlobalAdmin" | "Employer" | "User" {
 }
 
 export function getUserId(): string | null {
-  // 1. Try profile stored in localStorage
+  // 1. Try profile stored in localStorage (cover both camelCase and PascalCase field names)
   const u = getUser()?.userProfile ?? getUser();
-  const profileId = u?.userId || u?.id || u?.Id;
+  const profileId = u?.userId || u?.UserId || u?.id || u?.Id || u?.user_id || u?.uid;
   if (profileId) return profileId;
 
   // 2. Fall back to JWT uid / sub claim
