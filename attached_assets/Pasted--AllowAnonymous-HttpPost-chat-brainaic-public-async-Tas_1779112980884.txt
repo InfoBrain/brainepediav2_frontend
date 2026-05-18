@@ -1,0 +1,77 @@
+[AllowAnonymous]
+[HttpPost("chat-brainaic")]
+public async Task<IActionResult> ChatWithBrainiac([FromBody] BrainiacChatRequest message, string userId)
+{
+  
+    // 1. Fetch user context to personalize the email escalation if needed
+    var userProfile = await _context.Profile.FirstOrDefaultAsync(p => p.UserId == userId) ?? null;
+    var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "unknown@brainepedia.com";
+    var displayName = userProfile?.FullName ?? "Brainepedia User";
+
+    // 2. Expand system prompt to include the Support Desk Agent capabilities
+    string systemPersonaPrompt =
+        "You are Brainiac, the wise Oracle advisor and Support Agent of the Brainepedia ecosystem. Everything about Version 2 of Brainepedia is at https://demo.brainepedia.com.\n\n" +
+        "YOUR DOMAIN IS STRICTLY BOUNDED TO:\n" +
+        "1. Brainepedia guidance & System Support (explaining districts, nodes, mechanics, XP rewards, or platform features).\n" +
+        "2. Professional Career Development (engineering guidance, architectural pathways, leveling up).\n\n" +
+        "SUPPORT PROTOCOL:\n" +
+        "- Actively troubleshoot user issues and suggest logical solutions (e.g., clearing cache, checking subscription status, verifying endpoints).\n" +
+        "- If the user's issue cannot be resolved through automated advice (e.g., account lockouts, payment failures needing database intervention, persistent backend bugs), or if they explicitly ask for human support, you MUST trigger an escalation.\n" +
+        "- TO ESCALATE: You must include the exact token '[TRIGGER_ESC_EMAIL]' anywhere within your final response text. Tell the user politely that you are raising a support ticket to the human operations team.\n\n" +
+        "GUARDRAILS: Politely reject any topics outside of platform support, Brainepedia mechanics, or career progression.\n\n\n" +$"{message.Prompt}";
+
+    try
+    {
+        // 3. Call OpenAI Wrapper
+        string responseText = await _aiService.ChatBrainiac(systemPersonaPrompt);
+
+        bool emailSent = false;
+
+        // 4. Check if the AI determined it cannot solve the problem and appended the escalation token
+        if (responseText.Contains("[TRIGGER_ESC_EMAIL]"))
+        {
+            // Clean up the token from the user-facing response message
+            responseText = responseText.Replace("[TRIGGER_ESC_EMAIL]", "").Trim();
+
+            // Format Email Metadata parameters
+            var recipients = "support@brainepedia.com";
+            var senders = "noreply@brainepedia.com";
+            string emailSubject = $"[Escalated Support Ticket] Issue from {displayName}";
+
+            string emailMsg = $@"
+            <h3>Brainepedia Automated Support Escalation</h3>
+            <p><strong>User ID:</strong> {userId}</p>
+            <p><strong>Name:</strong> {displayName}</p>
+            <p><strong>Registered Email:</strong> {userEmail}</p>
+            <hr />
+            <p><strong>User's Last Message:</strong> {message.Prompt}</p>
+            <p><strong>Brainiac's Assessment/Hand-off:</strong> {responseText}</p>
+            <hr />
+            <p><em>This ticket was generated automatically by Brainiac when manual support thresholds were crossed.</em></p>";
+
+            try
+            {
+                // 5. Fire external utility mail execution handler
+                Utility.SendEmail(recipients, senders, displayName, emailSubject, emailMsg);
+                emailSent = true;
+            }
+            catch (Exception mailEx)
+            {
+                // Fail silently regarding the UI, log the error so the user doesn't get an Error 500
+                // Add a system note to the response text instead
+                responseText += "\n\n(Note: Brainiac encountered a connection issue dispatching the email, but your issue context has been registered.)";
+            }
+        }
+
+        return Ok(new BrainiacChatResponse
+        {
+            Reply = responseText,
+            IsEscalated = emailSent,
+            Timestamp = DateTime.UtcNow
+        });
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, "Brainiac support modules are undergoing maintenance. Please try again shortly.");
+    }
+}
