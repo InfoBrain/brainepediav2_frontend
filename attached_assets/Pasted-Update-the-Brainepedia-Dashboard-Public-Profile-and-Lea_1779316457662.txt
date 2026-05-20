@@ -1,0 +1,226 @@
+Update the Brainepedia Dashboard, Public Profile, and Leaderboard system to fully integrate the new Verified Experience (VX) architecture and professional identity system.
+
+OBJECTIVE
+Implement a modern professional identity experience powered by:
+
+* Verified Experience Years (VX)
+* Professional Rank Titles
+* Public Shareable Dossier Profiles
+* Recruiter-Friendly Public Profile Pages
+* Clickable Leaderboard Profiles
+
+BACKEND ENDPOINTS TO USE
+
+1. VERIFIED EXPERIENCE ENDPOINT
+   GET /api/Profiles/professional-identity?userId={userId}
+
+Response:
+{
+"fullName": "",
+"avatarUrl": "",
+"activeProfession": "",
+"totalAccumulatedXp": 0,
+"verifiedExperienceYears": 0,
+"professionalTitle": "",
+"displayString": ""
+}
+
+2. PUBLIC PROFILE ENDPOINT
+   GET /api/Profiles/user-public-profile?userId={userId}
+
+Response contains:
+
+* DisplayName
+* ProfilePictureUrl
+* ActiveProfession
+* ProfessionalTitle
+* TotalXp
+* VerifiedExperienceYears
+* GlobalLeaderboardRank
+* EarnedBadges[]
+* CompletedMissions[]
+
+1. VERIFIED EXPERIENCE CARD
+   Create a premium VX identity card at the top of the dashboard.
+
+Display:
+
+* Avatar
+* Full Name
+* Active Profession
+* Professional Title
+* VX Years
+* Total XP
+* Global Rank
+
+Example:
+"Backend Engineer — Specialist Tier (VX-2)"
+"4.2 Years of Verified Experience"
+
+Design:
+
+* Futuristic professional badge style
+* Blue/cyan gradient
+* Glassmorphism card
+* Premium gamified feel
+* Mobile responsive
+
+2. EXPERIENCE PROGRESSION VISUAL
+   Add:
+
+* Circular VX progression indicator
+* XP progress bar
+* Next tier requirement
+* Dynamic rank badge
+
+3. SHARE DOSSIER FEATURE
+   Add:
+
+* “Copy Public Profile Link”
+* “Share Profile”
+* “Open Public Dossier”
+
+Public URL format:
+https://demo.brainepedia.com/public-profile/{userId}
+
+When clicked:
+
+* Copy to clipboard
+* Show success toast
+* Support mobile sharing API
+
+4. PROFESSIONAL IDENTITY SECTION
+   Display:
+
+* Active profession
+* Verified years
+* Current professional rank
+* Total missions completed
+* Badge count
+* Leaderboard ranking
+
+Create a professional recruiter-friendly public dossier page.
+
+ROUTE
+/public-profile/:userId
+
+FETCH DATA FROM:
+GET /api/Profile/user-public-profile?userId={userId}
+
+DISPLAY SECTIONS
+
+1. HERO SECTION
+   Show:
+
+* Avatar
+* Full name
+* Professional title
+* Verified experience years
+* Total XP
+* Global rank
+
+2. PROFESSIONAL OVERVIEW
+   Display:
+
+* Active profession
+* VX years
+* Experience rank
+* Mission completion stats
+
+3. BADGES SECTION
+   Render earned badges beautifully:
+
+* Name
+* Description
+* Rarity
+* Badge glow based on rarity
+
+4. COMPLETED MISSIONS
+   Show:
+
+* Mission title
+* District name
+* Score
+* Completion date
+
+5. SHARE OPTIONS
+   Buttons:
+
+* Copy public dossier link
+* Share to LinkedIn
+* Share to X/Twitter
+* Download profile summary PDF (frontend only placeholder)
+
+6. EMPTY STATES
+   If no badges or missions:
+
+* Show elegant placeholder UI
+
+UPDATE THE LEADERBOARD SO EACH USER CARD IS CLICKABLE.
+
+When clicked:
+Open:
+https://demo.brainepedia.com/public-profile/{userId}
+
+Leaderboard cards must show:
+
+* Avatar
+* Nickname
+* Professional title
+* Verified experience years
+* XP
+* Rank position
+
+Add hover animations and premium styling.
+
+1. Ensure leaderboard endpoint includes:
+
+* userId
+* professionalTitle
+* verifiedExperienceYears
+
+2. Add fallback avatar image if AvatarUrl is null.
+
+3. Handle loading and skeleton states.
+
+4. Ensure all pages are fully mobile responsive.
+
+5. Use proper authorization tokens where required.
+
+6. Add SEO meta tags:
+
+* title
+* description
+* og:image
+* keywords
+* author = InfoBrain
+
+7. Use consistent futuristic styling across:
+
+* dashboard
+* leaderboard
+* profile pages
+
+Frontend:
+
+* React + TypeScript
+* TailwindCSS
+* Framer Motion
+* React Router
+
+Use:
+
+* Toast notifications
+* Copy-to-clipboard utility
+* Loading skeletons
+* Responsive cards
+* Dark futuristic UI
+
+FINAL OBJECTIVE
+Transform Brainepedia into a professional AI-powered gamified career identity platform where users can showcase:
+
+* verified experience,
+* professional growth,
+* earned skills,
+* rankings,
+* and mission achievements publicly to recruiters and social media.

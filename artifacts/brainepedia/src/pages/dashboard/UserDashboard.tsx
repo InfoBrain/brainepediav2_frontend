@@ -396,6 +396,7 @@ export default function UserDashboard() {
   };
 
   const refreshLeaderboard = async () => {
+    if (!userId) return;
     setLeaderboardLoading(true);
     const lb = await api.dashboard.leaderboard(userId, 20);
     applyLeaderboard(lb);
@@ -600,6 +601,34 @@ export default function UserDashboard() {
                       <ExternalLink className="w-3.5 h-3.5" /> Open Public Dossier
                     </a>
                   </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── FALLBACK SHARE STRIP (always visible when VX card is hidden) ── */}
+          {!(vxIdentity && (vxIdentity.professionalTitle || vxIdentity.activeProfession || vxIdentity.verifiedExperienceYears > 0)) && userId && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+              className="relative overflow-hidden rounded-2xl border border-[#00D2FF]/15 bg-gradient-to-r from-[#00D2FF]/4 via-[#0d1119] to-[#9D4EDD]/4 p-4 sm:p-5">
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#00D2FF]/8 border border-[#00D2FF]/20 shrink-0">
+                    <Shield className="w-5 h-5 text-[#00D2FF]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-mono text-[#00D2FF]/60 uppercase tracking-[0.25em] mb-0.5">Your Public Dossier</p>
+                    <p className="text-sm text-white/70">Share your verified profile with recruiters and on social media.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                  <button onClick={handleCopyProfileLink}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#00D2FF]/8 border border-[#00D2FF]/20 text-[#00D2FF] text-xs font-mono hover:bg-[#00D2FF]/15 transition-all whitespace-nowrap">
+                    <Link2 className="w-3.5 h-3.5" /> Copy Profile Link
+                  </button>
+                  <a href={`/public-profile/${userId}`} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/4 border border-white/8 text-white/50 text-xs font-mono hover:bg-white/8 hover:text-white/80 transition-all whitespace-nowrap">
+                    <ExternalLink className="w-3.5 h-3.5" /> Open Public Profile
+                  </a>
                 </div>
               </div>
             </motion.div>
