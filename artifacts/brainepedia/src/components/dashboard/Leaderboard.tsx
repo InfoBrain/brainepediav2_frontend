@@ -243,7 +243,7 @@ export function Leaderboard({ topUsers, currentUser, loading, onUserClick }: Lea
 
       {/* ── Ranks 4+ ── */}
       {rest.length > 0 && (
-        <div className="rounded-xl border border-white/8 bg-[#0d1117] divide-y divide-white/5 overflow-hidden">
+        <div className="rounded-xl border border-white/8 bg-[#0d1117] divide-y divide-white/5 overflow-hidden max-h-[380px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
           {rest.map((user, i) => {
             const isMe = Boolean(user.isCurrentUser);
             const clickable = Boolean(user.userId && onUserClick);

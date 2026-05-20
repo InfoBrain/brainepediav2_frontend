@@ -727,9 +727,8 @@ export default function UserDashboard() {
                 </div>
               )}
             </div>
-            {/* Pass only top 3 — zero-XP entries beyond that are suppressed */}
             <Leaderboard
-              topUsers={topUsers.filter(u => u.totalXP > 0).slice(0, 3)}
+              topUsers={topUsers.filter(u => u.totalXP > 0)}
               currentUser={currentUserRank}
               loading={leaderboardLoading}
               onUserClick={(uid) => navigate(`/public-profile/${uid}`)}
