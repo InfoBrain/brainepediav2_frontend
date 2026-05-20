@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown,
   User as UserIcon, LayoutDashboard, Compass, TrendingUp, CheckCircle2,
-  Medal, Star, Zap,
+  Medal, Star, Zap, Share2, Link2, ExternalLink, Shield,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
@@ -65,6 +65,15 @@ type Profile = {
 };
 type BadgeMilestone = { name: string; description: string; rarity: number; check: (s: Stats) => boolean };
 type EarnedBadge = { name: string; description: string; rarityKey: string; isNew?: boolean };
+type VXIdentity = {
+  fullName: string;
+  avatarUrl: string | null;
+  activeProfession: string;
+  totalAccumulatedXp: number;
+  verifiedExperienceYears: number;
+  professionalTitle: string;
+  displayString: string;
+};
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Grandmaster" };
@@ -145,6 +154,7 @@ export default function UserDashboard() {
   const [currentUserRank, setCurrentUserRank] = useState<CurrentUserRank | null>(null);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [vxIdentity, setVxIdentity] = useState<VXIdentity | null>(null);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [earnedBadges, setEarnedBadges] = useState<EarnedBadge[]>([]);
   const [newBadges, setNewBadges] = useState<EarnedBadge[]>([]);
@@ -185,7 +195,7 @@ export default function UserDashboard() {
       setLeaderboardLoading(true);
 
       const pid = getProfileId() || userId;
-      const [s, m, a, pDirect, b, ds, lb] = await Promise.all([
+      const [s, m, a, pDirect, b, ds, lb, vi] = await Promise.all([
         api.profiles.stats(userId),
         api.profiles.map(userId),
         api.activityLogs.forUser(userId),
@@ -193,6 +203,7 @@ export default function UserDashboard() {
         api.userBadges.forUser(userId),
         api.dashboard.stats(userId),
         api.dashboard.leaderboard(userId, 20),
+        api.identity.professionalIdentity(userId),
       ]);
       if (cancelled) return;
 
@@ -204,6 +215,20 @@ export default function UserDashboard() {
       // Dashboard stats (richer endpoint)
       if (ds.ok && ds.data && typeof ds.data === "object") {
         setDashStats(normDashStats(ds.data));
+      }
+
+      // VX professional identity
+      if (vi.ok && vi.data && typeof vi.data === "object") {
+        const v = vi.data as any;
+        setVxIdentity({
+          fullName: v.fullName || v.FullName || "",
+          avatarUrl: v.avatarUrl || v.AvatarUrl || null,
+          activeProfession: v.activeProfession || v.ActiveProfession || "",
+          totalAccumulatedXp: Number(v.totalAccumulatedXp ?? v.TotalAccumulatedXp ?? 0),
+          verifiedExperienceYears: Number(v.verifiedExperienceYears ?? v.VerifiedExperienceYears ?? 0),
+          professionalTitle: v.professionalTitle || v.ProfessionalTitle || "",
+          displayString: v.displayString || v.DisplayString || "",
+        });
       }
 
       // Leaderboard
@@ -315,6 +340,9 @@ export default function UserDashboard() {
           0
         ),
         isCurrentUser: isMe,
+        userId: u.userId || u.UserId || u.id || u.Id || null,
+        professionalTitle: u.professionalTitle || u.ProfessionalTitle || null,
+        verifiedExperienceYears: Number(u.verifiedExperienceYears ?? u.VerifiedExperienceYears ?? 0),
       };
     });
     setTopUsers(users);
@@ -416,6 +444,16 @@ export default function UserDashboard() {
     }
   };
 
+  const handleCopyProfileLink = () => {
+    const url = `https://demo.brainepedia.com/public-profile/${userId}`;
+    if (navigator.share) {
+      navigator.share({ title: "My Brainepedia Dossier", url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).catch(() => {});
+      toast({ title: "Link copied!", description: "Your public dossier link has been copied to clipboard." });
+    }
+  };
+
   /* Derived values */
   const totalXP    = dashStats?.totalXP ?? stats?.totalXP ?? 0;
   const dayStreak  = dashStats?.dayStreak ?? stats?.dayStreak ?? 0;
@@ -508,6 +546,64 @@ export default function UserDashboard() {
               </Link>
             </div>
           </motion.div>
+
+          {/* ── VX IDENTITY CARD ── */}
+          {vxIdentity && (vxIdentity.professionalTitle || vxIdentity.activeProfession || vxIdentity.verifiedExperienceYears > 0) && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+              className="relative overflow-hidden rounded-2xl border border-[#00D2FF]/20 bg-gradient-to-r from-[#00D2FF]/5 via-[#0d1119] to-[#9D4EDD]/5 p-5 sm:p-6">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00D2FF]/4 via-transparent to-[#9D4EDD]/4 pointer-events-none" />
+              <div className="absolute inset-0 opacity-[0.025] pointer-events-none"
+                style={{ backgroundImage: "linear-gradient(rgba(0,210,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,255,1) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                {/* Identity */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-3.5 h-3.5 text-[#00D2FF]/50" />
+                    <p className="text-[10px] font-mono text-[#00D2FF]/50 uppercase tracking-[0.25em]">Verified Career Identity</p>
+                  </div>
+                  {vxIdentity.displayString ? (
+                    <p className="text-base sm:text-lg font-bold text-white">{vxIdentity.displayString}</p>
+                  ) : (
+                    <p className="text-base sm:text-lg font-bold text-white">
+                      {vxIdentity.activeProfession}
+                      {vxIdentity.professionalTitle && ` — ${vxIdentity.professionalTitle}`}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    {vxIdentity.verifiedExperienceYears > 0 && (
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#00D2FF]/30 bg-[#00D2FF]/8 text-[#00D2FF] text-sm font-black font-mono shadow-[0_0_12px_rgba(0,210,255,0.12)]">
+                        <Shield className="w-3.5 h-3.5" /> VX-{vxIdentity.verifiedExperienceYears.toFixed(1)}
+                      </span>
+                    )}
+                    {vxIdentity.verifiedExperienceYears > 0 && (
+                      <span className="text-sm text-white/40 font-mono">
+                        {vxIdentity.verifiedExperienceYears.toFixed(1)} years of Verified Experience
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {/* Stats + actions */}
+                <div className="flex items-center gap-3 sm:gap-4 shrink-0 flex-wrap">
+                  {vxIdentity.totalAccumulatedXp > 0 && (
+                    <div className="text-center px-3 py-2 rounded-xl border border-[#FFD700]/15 bg-[#FFD700]/5">
+                      <p className="text-[10px] font-mono text-[#FFD700]/50 uppercase tracking-wider">Total XP</p>
+                      <p className="text-lg font-black font-mono text-[#FFD700]">{vxIdentity.totalAccumulatedXp.toLocaleString()}</p>
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <button onClick={handleCopyProfileLink}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#00D2FF]/8 border border-[#00D2FF]/20 text-[#00D2FF] text-xs font-mono hover:bg-[#00D2FF]/15 transition-all whitespace-nowrap">
+                      <Link2 className="w-3.5 h-3.5" /> Copy Dossier Link
+                    </button>
+                    <a href={`/public-profile/${userId}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/4 border border-white/8 text-white/40 text-xs font-mono hover:bg-white/8 hover:text-white/70 transition-all whitespace-nowrap">
+                      <ExternalLink className="w-3.5 h-3.5" /> Open Public Dossier
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* ── QUICK STATS GRID ── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -636,6 +732,7 @@ export default function UserDashboard() {
               topUsers={topUsers.filter(u => u.totalXP > 0).slice(0, 3)}
               currentUser={currentUserRank}
               loading={leaderboardLoading}
+              onUserClick={(uid) => navigate(`/public-profile/${uid}`)}
             />
           </motion.div>
 

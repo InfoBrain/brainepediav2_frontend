@@ -266,6 +266,14 @@ export const api = {
     getNodeResult: (problemNodeId: string, userId?: string | null) =>
       fetchApi(`/api/Evaluations/node-results/${encodeURIComponent(problemNodeId)}${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
   },
+  identity: {
+    /** GET /api/Profile/professional-identity?userId= */
+    professionalIdentity: (userId: string) =>
+      fetchApi(`/api/Profile/professional-identity?userId=${encodeURIComponent(userId)}`),
+    /** GET /api/Profile/user-public-profile?userId= */
+    publicProfile: (userId: string) =>
+      fetchApi(`/api/Profile/user-public-profile?userId=${encodeURIComponent(userId)}`),
+  },
   problemNodes: {
     byDistrict: (districtId: string, userId?: string | null) =>
       fetchApi(`/api/ProblemNodes/by-district/${encodeURIComponent(districtId)}${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),

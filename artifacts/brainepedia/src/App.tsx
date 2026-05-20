@@ -62,6 +62,9 @@ import MissionResultPage from "@/pages/app/MissionResultPage";
 import NodeResultPage from "@/pages/app/NodeResultPage";
 import UserProgressPage from "@/pages/app/UserProgressPage";
 
+// Public pages
+import PublicProfilePage from "@/pages/public/PublicProfilePage";
+
 // Global widget
 import { BrainiacWidget } from "@/components/app/BrainiacWidget";
 import { OnboardingGuide } from "@/components/app/OnboardingGuide";
@@ -234,6 +237,8 @@ function Router() {
           <UserProgressPage />
         </RequireAuth>
       </Route>
+
+      <Route path="/public-profile/:userId" component={PublicProfilePage} />
 
       <Route component={NotFound} />
     </Switch>
