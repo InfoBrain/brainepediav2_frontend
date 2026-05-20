@@ -267,12 +267,12 @@ export const api = {
       fetchApi(`/api/Evaluations/node-results/${encodeURIComponent(problemNodeId)}${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
   },
   identity: {
-    /** GET /api/Profile/professional-identity?userId= */
+    /** GET /api/Profiles/professional-identity?userId= */
     professionalIdentity: (userId: string) =>
-      fetchApi(`/api/Profile/professional-identity?userId=${encodeURIComponent(userId)}`),
-    /** GET /api/Profile/user-public-profile?userId= */
+      fetchApi(`/api/Profiles/professional-identity?userId=${encodeURIComponent(userId)}`),
+    /** GET /api/Profiles/user-public-profile?userId= */
     publicProfile: (userId: string) =>
-      fetchApi(`/api/Profile/user-public-profile?userId=${encodeURIComponent(userId)}`),
+      fetchApi(`/api/Profiles/user-public-profile?userId=${encodeURIComponent(userId)}`),
   },
   problemNodes: {
     byDistrict: (districtId: string, userId?: string | null) =>

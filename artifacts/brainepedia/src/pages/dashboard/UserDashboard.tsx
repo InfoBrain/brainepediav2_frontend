@@ -445,7 +445,7 @@ export default function UserDashboard() {
   };
 
   const handleCopyProfileLink = () => {
-    const url = `https://demo.brainepedia.com/public-profile/${userId}`;
+    const url = `${window.location.origin}/public-profile/${userId}`;
     if (navigator.share) {
       navigator.share({ title: "My Brainepedia Dossier", url }).catch(() => {});
     } else {

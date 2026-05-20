@@ -124,7 +124,7 @@ export default function PublicProfilePage() {
   const badges     = profile?.EarnedBadges ?? profile?.earnedBadges ?? [];
   const missions   = profile?.CompletedMissions ?? profile?.completedMissions ?? [];
 
-  const publicUrl  = `https://demo.brainepedia.com/public-profile/${userId}`;
+  const publicUrl  = `${window.location.origin}/public-profile/${userId}`;
 
   /* ── SEO ── */
   useEffect(() => {
