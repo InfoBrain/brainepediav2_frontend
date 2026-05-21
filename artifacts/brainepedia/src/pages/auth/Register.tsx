@@ -54,10 +54,10 @@ export default function Register() {
   };
 
   return (
-    <AuthLayout quote="Step into the gates.">
+    <AuthLayout quote="Start your journey.">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Become an Operator.</h1>
-        <p className="text-muted-foreground">Create an account and earn your first VX.</p>
+        <h1 className="text-3xl font-bold mb-2">Create your account.</h1>
+        <p className="text-muted-foreground">Join Brainepedia and start learning today.</p>
       </div>
 
       <AuthBanner type="error" message={error} />
@@ -78,7 +78,7 @@ export default function Register() {
 
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="operator@domain.com" {...register("email")} />
+          <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
           {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
         </div>
 
@@ -122,7 +122,7 @@ export default function Register() {
 
         <Button type="submit" className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] mt-4" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {isSubmitting ? "Initializing..." : "Create Account"}
+          {isSubmitting ? "Creating account..." : "Create Account"}
         </Button>
       </form>
 
@@ -130,7 +130,7 @@ export default function Register() {
 
       <div className="mt-6 text-center text-sm">
         <Link href="/auth/login" className="text-muted-foreground hover:text-primary transition-colors">
-          Already an operator? <span className="font-bold text-primary">Log in →</span>
+          Already have an account? <span className="font-bold text-primary">Log in →</span>
         </Link>
       </div>
     </AuthLayout>

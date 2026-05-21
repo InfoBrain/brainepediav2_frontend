@@ -46,7 +46,7 @@ export function AuthLayout({ children, quote }: AuthLayoutProps) {
 
         <div className="relative z-10 mt-auto">
           <p className="font-mono text-xs text-muted-foreground opacity-60">
-            OPERATOR_TERMINAL // SECURE_SESSION
+            Secure login · Brainepedia
           </p>
         </div>
       </div>

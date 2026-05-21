@@ -58,7 +58,7 @@ export default function Login() {
     if (params.get("reason") === "expired") {
       setError("Your session has expired. Please log in again.");
     } else if (params.get("verified") === "1") {
-      setSuccess("Verified. You're cleared for entry.");
+      setSuccess("Email verified. You can now sign in.");
     } else if (params.get("reset") === "1") {
       setSuccess("Password reset. Log in to continue.");
     }
@@ -100,10 +100,10 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout quote="Welcome back, operator.">
+    <AuthLayout quote="Welcome back.">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Re-enter the City.</h1>
-        <p className="text-muted-foreground">Authenticate to resume your operator session.</p>
+        <h1 className="text-3xl font-bold mb-2">Welcome back.</h1>
+        <p className="text-muted-foreground">Sign in to your account to continue.</p>
       </div>
 
       <AuthBanner type="error" message={error} />
@@ -112,7 +112,7 @@ export default function Login() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="operator@domain.com" {...register("email")} />
+          <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
           {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
         </div>
 
@@ -149,7 +149,7 @@ export default function Login() {
         </div>
         <div>
           <Link href="/auth/register" className="text-muted-foreground hover:text-primary transition-colors">
-            New here? <span className="font-bold text-primary">Become an operator →</span>
+            New here? <span className="font-bold text-primary">Create an account →</span>
           </Link>
         </div>
       </div>
