@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import {
-  LayoutDashboard,
-  Users,
   Database,
   Sparkles,
   Loader2,
@@ -11,10 +9,10 @@ import {
   Save,
   X,
   TrendingUp,
-  BookOpen,
-  MapPin,
+  Users,
 } from "lucide-react";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { ADMIN_NAV } from "@/lib/adminNav";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
@@ -23,14 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 
-const nav: NavItem[] = [
-  { href: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/professions", label: "Professions", icon: BookOpen },
-  { href: "/admin/districts", label: "Districts", icon: MapPin },
-  { href: "/admin/problem-nodes", label: "Problem Nodes", icon: Database },
-  { href: "/admin/seed", label: "AI Seed Tool", icon: Sparkles },
-  { href: "/admin/users", label: "User Audit", icon: Users },
-];
 
 type Stats = {
   totalUsers?: number;
@@ -138,7 +128,7 @@ export default function AdminDashboard() {
 
   return (
     <DashboardShell
-      nav={nav}
+      nav={ADMIN_NAV}
       title="Architect's Console"
       subtitle="// admin.global.system"
       theme="admin"

@@ -1,37 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import {
-  LayoutDashboard,
-  Users,
-  Database,
-  Sparkles,
   Loader2,
   Pencil,
   Trash2,
   Plus,
   X,
   Upload,
-  BookOpen,
-  MapPin,
   Wand2,
   CheckCircle2,
+  MapPin,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
-const nav: NavItem[] = [
-  { href: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/professions", label: "Professions", icon: BookOpen },
-  { href: "/admin/districts", label: "Districts", icon: MapPin },
-  { href: "/admin/problem-nodes", label: "Problem Nodes", icon: Database },
-  { href: "/admin/seed", label: "AI Seed Tool", icon: Sparkles },
-  { href: "/admin/users", label: "User Audit", icon: Users },
-];
 
 type Profession = { id: string; name: string };
 type District = {
@@ -241,7 +229,7 @@ export default function AdminDistricts() {
   }
 
   return (
-    <DashboardShell nav={nav} title="Districts">
+    <DashboardShell nav={ADMIN_NAV} title="Districts">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

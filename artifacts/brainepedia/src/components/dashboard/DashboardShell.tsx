@@ -21,6 +21,7 @@ export type NavItem = {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  section?: string;
 };
 
 type Theme = "user" | "admin" | "employer";
@@ -227,23 +228,31 @@ function SidebarContent({
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        {nav.map((item) => {
+        {nav.map((item, i) => {
           const active = location === item.href || location.startsWith(item.href + "/");
           const Icon = item.icon;
+          const showSectionHeader =
+            !!item.section && (i === 0 || nav[i - 1].section !== item.section);
           return (
-            <Link
-              key={`${item.href}__${item.label}`}
-              href={item.href}
-              onClick={onNavigate}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
-                active
-                  ? `${theme.accent} ${theme.accentText} ${theme.accentBorder} border`
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
-              }`}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{item.label}</span>
-            </Link>
+            <div key={`${item.href}__${item.label}`}>
+              {showSectionHeader && (
+                <div className="px-3 pt-4 pb-1.5 text-[9px] uppercase tracking-[0.18em] font-mono text-muted-foreground/50 select-none">
+                  {item.section}
+                </div>
+              )}
+              <Link
+                href={item.href}
+                onClick={onNavigate}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
+                  active
+                    ? `${theme.accent} ${theme.accentText} ${theme.accentBorder} border`
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            </div>
           );
         })}
       </nav>

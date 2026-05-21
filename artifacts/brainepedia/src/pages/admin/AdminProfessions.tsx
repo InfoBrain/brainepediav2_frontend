@@ -1,38 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import {
-  LayoutDashboard,
-  Users,
-  Database,
-  Sparkles,
   Loader2,
   Pencil,
   Trash2,
   Plus,
   X,
   Upload,
-  BookOpen,
-  MapPin,
   RefreshCw,
   CheckCircle2,
   Wand2,
+  BookOpen,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
-const nav: NavItem[] = [
-  { href: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/professions", label: "Professions", icon: BookOpen },
-  { href: "/admin/districts", label: "Districts", icon: MapPin },
-  { href: "/admin/problem-nodes", label: "Problem Nodes", icon: Database },
-  { href: "/admin/seed", label: "AI Seed Tool", icon: Sparkles },
-  { href: "/admin/users", label: "User Audit", icon: Users },
-];
 
 type Profession = { id: string; name: string; iconUrl?: string };
 type ModalState = { open: false } | { open: true; mode: "create" } | { open: true; mode: "edit"; profession: Profession };
@@ -194,7 +183,7 @@ export default function AdminProfessions() {
   }
 
   return (
-    <DashboardShell nav={nav} title="Professions">
+    <DashboardShell nav={ADMIN_NAV} title="Professions">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">

@@ -1,0 +1,333 @@
+Build a complete Admin User Management module for the Brainepedia Admin Portal.
+
+OBJECTIVE
+
+Allow administrators to:
+
+* View all platform users
+* Search/filter users
+* Paginate user records
+* View detailed user profile information
+* View public professional dossier/profile
+* Reset individual user passwords
+* Manage users professionally from a modern responsive admin dashboard
+
+Use the existing API endpoints below.
+
+---
+
+# API ENDPOINTS
+
+## 1. GET ALL USERS
+
+Endpoint:
+
+```txt
+GET /api/Profiles
+```
+
+This endpoint returns all profiles.
+
+Use this endpoint to populate the admin users table.
+
+---
+
+## 2. GET USER PROFILE DETAILS
+
+Endpoint:
+
+```txt
+GET /api/Profiles/{id}
+```
+
+Where:
+
+* `{id}` = ProfileId
+
+Use this to load internal detailed profile information.
+
+---
+
+## 3. GET USER PUBLIC DOSSIER
+
+Endpoint:
+
+```txt
+GET /api/Profiles/user-public-profile?userId=
+```
+
+Use:
+
+* userId from the selected profile
+
+This endpoint returns:
+
+* professional title
+* verified experience
+* badges
+* completed tasks
+* leaderboard rank
+* XP
+* public professional profile
+
+Use this for the Public Dossier/Profile tab.
+
+---
+
+## 4. RESET USER PASSWORD
+
+Endpoint:
+
+```txt
+GET /api/Account/reset_user_password?email={email}&userId={adminUserId}
+```
+
+IMPORTANT:
+
+* Pass the selected user's email
+* Pass the currently logged in admin userId
+
+After successful reset:
+
+* Show success notification
+* Inform admin that a temporary password email has been sent
+
+---
+
+# REQUIRED ADMIN MENU
+
+Add a new sidebar menu:
+
+```txt
+User Management
+```
+
+Submenus:
+
+* All Users
+* User Profiles
+* Public Dossiers
+
+Use modern professional admin UI.
+
+---
+
+# USERS TABLE PAGE
+
+Create a modern responsive data table.
+
+Columns:
+
+* Avatar
+* Full Name
+* Email
+* Gender
+* Profession
+* XP
+* Current Title
+* Date Joined
+* Actions
+
+Features:
+
+* Pagination
+* Search
+* Filter by profession
+* Sort by XP
+* Responsive mobile layout
+* Loading skeletons
+* Empty state UI
+
+---
+
+# ACTION BUTTONS
+
+Each row must contain:
+
+## 1. View Profile
+
+Navigates to:
+
+```txt
+/admin/users/{profileId}
+```
+
+Loads:
+
+```txt
+GET /api/Profiles/{id}
+```
+
+---
+
+## 2. View Public Dossier
+
+Opens:
+
+```txt
+/admin/users/public/{userId}
+```
+
+OR opens in new tab.
+
+Loads:
+
+```txt
+GET /api/Profiles/user-public-profile?userId=
+```
+
+---
+
+## 3. Reset Password
+
+Show confirmation modal:
+
+```txt
+Reset this user's password?
+A temporary password will be generated and emailed to the user.
+```
+
+On confirm:
+Call:
+
+```txt
+GET /api/Account/reset_user_password
+```
+
+Show:
+
+* success toast
+* error handling
+* loading spinner
+
+---
+
+# USER PROFILE DETAILS PAGE
+
+Display:
+
+* Full Name
+* Avatar
+* Email
+* Phone Number
+* Profession
+* About Me
+* Address
+* Country
+* Gender
+* XP
+* Current Title
+* Problems Solved
+* Day Streak
+* Date Joined
+
+Design:
+
+* modern card layout
+* responsive tabs
+* professional admin appearance
+
+Tabs:
+
+* Overview
+* Activity
+* Public Dossier
+* Security
+
+---
+
+# PUBLIC DOSSIER PAGE
+
+Display professional public profile beautifully.
+
+Include:
+
+* avatar
+* professional title
+* verified experience years
+* total XP
+* leaderboard rank
+* earned badges
+* completed challenges/tasks
+* achievement cards
+
+Add:
+
+* Copy Public Profile Link
+* Open Public Profile
+* Share buttons
+
+Design should resemble:
+
+* modern LinkedIn portfolio
+* AI-powered career profile
+* gamified professional résumé
+
+---
+
+# SECURITY & AUTHORIZATION
+
+IMPORTANT:
+
+* All admin pages require authentication
+* Use JWT token
+* Pass Authorization Bearer token in requests
+* Handle unauthorized sessions gracefully
+
+---
+
+# UI/UX REQUIREMENTS
+
+Use:
+
+* modern admin dashboard design
+* responsive layout
+* smooth transitions
+* clean typography
+* pagination controls
+* reusable modal components
+* reusable API service layer
+
+Maintain Brainepedia terminology updates:
+
+* simple professional wording
+* no overly RPG/system language
+
+---
+
+# ERROR HANDLING
+
+Handle:
+
+* failed requests
+* missing profiles
+* network errors
+* unauthorized requests
+* loading states
+* empty states
+
+---
+
+# PERFORMANCE
+
+Optimize:
+
+* table rendering
+* pagination
+* lazy loading
+* API requests
+* caching where appropriate
+
+---
+
+# FINAL RESULT
+
+The Admin Portal should now have a fully functional professional User Management System where admins can:
+
+* manage all users
+* inspect profiles
+* view professional public dossiers
+* reset passwords
+* monitor user activity professionally
+
+Ensure everything is production-ready, responsive, and consistent with the Brainepedia design system.

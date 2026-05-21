@@ -96,6 +96,17 @@ export const api = {
     resendOtp: (email: string) => fetchApi(`/api/Account/resend_otp?email=${encodeURIComponent(email)}`, { method: "GET" }),
     changePassword: (data: any) => fetchApi("/api/Account/change_password", { method: "POST", body: JSON.stringify(data) }),
   },
+  account: {
+    /**
+     * GET /api/Account/reset_user_password?email={email}&userId={adminUserId}
+     * Generates a temporary password and emails it to the user.
+     */
+    resetUserPassword: (email: string, adminUserId: string) =>
+      fetchApi(
+        `/api/Account/reset_user_password?email=${encodeURIComponent(email)}&userId=${encodeURIComponent(adminUserId)}`,
+        { method: "GET" }
+      ),
+  },
   profiles: {
     /**
      * GET /api/Profiles/{userId} — may 404 if no profile; use search() + client filter as fallback.

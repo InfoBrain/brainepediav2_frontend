@@ -34,6 +34,11 @@ import AdminProfessions from "@/pages/admin/AdminProfessions";
 import AdminDistricts from "@/pages/admin/AdminDistricts";
 import AdminProblemNodes from "@/pages/admin/AdminProblemNodes";
 
+// Admin user management pages
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminUserProfile from "@/pages/admin/AdminUserProfile";
+import AdminUserDossier from "@/pages/admin/AdminUserDossier";
+
 // Profile pages
 import ViewProfile from "@/pages/profile/ViewProfile";
 import EditProfile from "@/pages/profile/EditProfile";
@@ -158,6 +163,31 @@ function Router() {
       <Route path="/admin/problem-nodes">
         <RequireAuth allow={["GlobalAdmin"]}>
           <AdminProblemNodes />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/users/public/:userId">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminUserDossier />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/users/:profileId">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminUserProfile />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/users">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminUsers />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/user-profiles">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminUsers />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/public-dossiers">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminUsers />
         </RequireAuth>
       </Route>
       <Route path="/admin/:rest*">
