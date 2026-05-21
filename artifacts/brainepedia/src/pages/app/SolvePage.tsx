@@ -522,13 +522,35 @@ function BrainiacPanel({
     setThinking(false);
     if (res.ok) {
       const d = res.data as Record<string, unknown>;
+
+      function extractHint(val: unknown): string {
+        if (!val) return "";
+        if (typeof val === "string") return val.trim();
+        if (typeof val === "object" && val !== null) {
+          const obj = val as Record<string, unknown>;
+          const hint = obj.hint ?? obj.text ?? obj.message ?? obj.content ?? obj.response;
+          if (typeof hint === "string") return hint.trim();
+          const nested = Object.values(obj).find(v => typeof v === "string");
+          if (typeof nested === "string") return nested.trim();
+        }
+        return "";
+      }
+
+      const hint =
+        extractHint(d?.response) ||
+        extractHint(d?.message) ||
+        extractHint(d?.hint) ||
+        "Brainiac could not generate guidance right now.";
+
+      const penaltyRaw = d?.penaltyApplied ?? d?.PenaltyApplied ?? d?.penalty ?? 0;
+
       setMessages(m => [...m, {
         role: "ai",
-        text: String(d?.response || d?.message || "I'm here to help. Keep thinking through the problem!"),
-        penalty: Number(d?.penaltyApplied) || 0,
+        text: hint,
+        penalty: Number(penaltyRaw) || 0,
       }]);
     } else {
-      setMessages(m => [...m, { role: "ai", text: "I couldn't connect right now. Try again in a moment." }]);
+      setMessages(m => [...m, { role: "ai", text: "Brainiac could not generate guidance right now." }]);
     }
   }
 
@@ -586,10 +608,10 @@ function BrainiacPanel({
                     {m.role === "user" ? "U" : "AI"}
                   </div>
                   <div className="flex flex-col gap-1 max-w-[80%]">
-                    <div className={`text-xs leading-relaxed rounded-xl px-3 py-2
+                    <div className={`text-xs leading-relaxed rounded-xl px-3 py-2 whitespace-pre-wrap break-words
                       ${m.role === "user"
                         ? "bg-[#00D2FF]/10 text-white/70 rounded-tr-sm"
-                        : "bg-[#9D4EDD]/10 text-white/70 rounded-tl-sm"}`}>
+                        : "bg-[#9D4EDD]/10 text-white/80 rounded-tl-sm"}`}>
                       {m.text}
                     </div>
                     {m.penalty && m.penalty > 0 && (
