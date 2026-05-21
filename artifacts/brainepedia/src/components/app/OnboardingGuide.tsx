@@ -22,14 +22,14 @@ const USER_STEPS: Step[] = [
   },
   {
     title: "Choose Your Profession",
-    body: "Start by selecting a profession. This unlocks your personalised Imperial Map filled with districts to conquer.",
+    body: "Start by selecting a profession. This unlocks your personalised Learning Map filled with districts to explore.",
     icon: <Map className="w-6 h-6 text-[#9D4EDD]" />,
     cta: "Select Profession",
     href: "/profession/select",
   },
   {
     title: "Conquer Districts",
-    body: "Each district contains problem nodes — real-world coding challenges. Solve them to earn XP and climb the ranks.",
+    body: "Each district contains challenges — real-world problems to solve. Complete them to earn XP and climb the ranks.",
     icon: <Sparkles className="w-6 h-6 text-[#FFD700]" />,
   },
   {

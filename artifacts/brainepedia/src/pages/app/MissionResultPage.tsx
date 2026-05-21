@@ -27,11 +27,11 @@ function toLines(v: any): string[] {
 
 /* ── Timeline ── */
 const TIMELINE = [
-  { label: "Mission Started", icon: Flag },
+  { label: "Challenge Started", icon: Flag },
   { label: "Submission Sent", icon: Send },
   { label: "Brainiac Evaluated", icon: Brain },
   { label: "XP Awarded", icon: Zap },
-  { label: "Mission Complete", icon: Award },
+  { label: "Challenge Complete", icon: Award },
 ];
 
 function MissionStatusTimeline({ passed }: { passed: boolean }) {
@@ -349,7 +349,7 @@ function XpRewardCard({ xp, passed }: { xp: number; passed: boolean }) {
 
         <div className="flex-1">
           <p className="text-[11px] font-mono text-white/30 uppercase tracking-widest mb-1">
-            {passed ? "XP Earned This Mission" : "No XP Awarded"}
+            {passed ? "XP Earned This Challenge" : "No XP Awarded"}
           </p>
           <motion.p
             className="text-4xl font-black font-mono"
@@ -432,7 +432,7 @@ function MissionResultActions({
           className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-white/10 text-white/50 font-mono text-sm hover:bg-white/5 hover:text-white transition-all"
         >
           <RotateCcw className="w-4 h-4" />
-          {passed ? "Retry Mission" : "Retry Mission"}
+          {passed ? "Retry Challenge" : "Retry Challenge"}
         </button>
 
         {/* Back to District */}

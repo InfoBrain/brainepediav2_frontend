@@ -7,13 +7,13 @@ import { api } from "@/lib/api";
 
 const PHASES = [
   "Brainiac is analyzing your architecture…",
-  "Validating mission constraints…",
+  "Validating task requirements…",
   "Evaluating problem-solving patterns…",
   "Computing XP rewards…",
   "Cross-referencing expected outcomes…",
-  "Measuring code quality & structure…",
+  "Measuring quality & structure…",
   "Scanning for edge case coverage…",
-  "Finalizing your mission score…",
+  "Finalizing your score…",
 ];
 
 const MIN_MS = 7500;

@@ -62,7 +62,7 @@ function normNode(data: any): ProblemNode {
   };
   return {
     problemNodeId: data?.problemNodeId || data?.id || data?.nodeId || "",
-    title: data?.title || data?.name || "Untitled Mission",
+    title: data?.title || data?.name || "Untitled Challenge",
     context: data?.context || "",
     missionBrief: data?.missionBrief || "",
     constraints: parseArr(data?.constraints),
@@ -144,10 +144,10 @@ function UpgradeModal({ onClose, userId }: { onClose: () => void; userId: string
         <div className="w-12 h-12 rounded-full bg-[#9D4EDD]/20 border border-[#9D4EDD]/40 flex items-center justify-center mx-auto mb-4">
           <Lock className="w-6 h-6 text-[#9D4EDD]" />
         </div>
-        <h3 className="text-lg font-bold text-white mb-2">Mission Limit Reached</h3>
+        <h3 className="text-lg font-bold text-white mb-2">Challenge Limit Reached</h3>
         <p className="text-sm text-white/50 mb-1 leading-relaxed">
-          You've reached your monthly mission limit.
-          Upgrade to Architect to continue solving missions.
+          You've reached your monthly challenge limit.
+          Upgrade to Architect to continue solving challenges.
         </p>
         <p className="text-xs text-[#9D4EDD]/80 font-mono mb-5">$19.99 / month</p>
         <button
@@ -217,7 +217,7 @@ export default function MissionDetailPage() {
   const problemNodeId = params.problemNodeId || "";
   const [, navigate] = useLocation();
   const userId = getUserId();
-  usePageTitle("Mission");
+  usePageTitle("Challenge");
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";
 
   const [starting, setStarting] = useState(false);
@@ -233,7 +233,7 @@ export default function MissionDetailPage() {
     queryKey: ["problem-node", problemNodeId],
     queryFn: async () => {
       const res = await api.problemNodes.get(problemNodeId);
-      if (!res.ok) throw new Error(res.error || "Failed to load mission");
+      if (!res.ok) throw new Error(res.error || "Failed to load challenge");
       return normNode(res.data);
     },
     enabled: Boolean(problemNodeId),
@@ -321,7 +321,7 @@ export default function MissionDetailPage() {
       return;
     }
 
-    setStartError(res.error || "Failed to start mission. Please try again.");
+    setStartError(res.error || "Failed to start challenge. Please try again.");
   }
 
   async function handleResume() {
@@ -344,7 +344,7 @@ export default function MissionDetailPage() {
       return;
     }
 
-    setStartError(res.error || "Failed to resume mission. Please try again.");
+    setStartError(res.error || "Failed to resume challenge. Please try again.");
   }
 
   const diffMeta = node ? difficultyLookup[node.difficultyId] : undefined;
@@ -377,12 +377,12 @@ export default function MissionDetailPage() {
           {node?.districtId && (
             <>
               <Link href={`/app/district/${node.districtId}/missions`} className="hover:text-white/60 transition-colors">
-                Missions
+                Challenges
               </Link>
               <span>/</span>
             </>
           )}
-          <span className="text-white/60 truncate max-w-[160px]">{node?.title || "Mission"}</span>
+          <span className="text-white/60 truncate max-w-[160px]">{node?.title || "Challenge"}</span>
         </nav>
         <div className="flex items-center gap-2">
           <Link href="/app/dashboard">
@@ -428,7 +428,7 @@ export default function MissionDetailPage() {
             className="flex flex-col items-center gap-4 py-24 text-center"
           >
             <AlertCircle className="w-12 h-12 text-red-400/60" />
-            <p className="text-white/50 font-mono text-sm">Unable to load mission details</p>
+            <p className="text-white/50 font-mono text-sm">Unable to load challenge details</p>
             <Button
               variant="outline"
               size="sm"
@@ -456,14 +456,14 @@ export default function MissionDetailPage() {
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-400/20 bg-amber-400/5 text-xs font-mono text-amber-400"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                You started this mission earlier — pick up where you left off.
+                You started this challenge earlier — pick up where you left off.
               </motion.div>
             )}
 
             {/* Hero header */}
             <div className="space-y-3">
               <p className="text-[10px] font-mono text-[#00D2FF] tracking-[0.3em] uppercase">
-                <Target className="w-3 h-3 inline mr-1" />Mission Brief
+                <Target className="w-3 h-3 inline mr-1" />Task Overview
               </p>
               <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
                 {node.title}
@@ -516,7 +516,7 @@ export default function MissionDetailPage() {
               >
                 <div className="flex items-center gap-2 mb-3">
                   <Target className="w-4 h-4 text-[#9D4EDD]" />
-                  <h3 className="text-xs font-mono text-[#9D4EDD]/80 uppercase tracking-widest">Your Mission</h3>
+                  <h3 className="text-xs font-mono text-[#9D4EDD]/80 uppercase tracking-widest">Your Task</h3>
                 </div>
                 <p className="text-white/80 text-sm leading-relaxed font-sans">{node.missionBrief}</p>
               </motion.div>
@@ -599,7 +599,7 @@ export default function MissionDetailPage() {
                   {/* Completed banner */}
                   <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/8 text-emerald-400 text-sm font-mono">
                     <CheckCircle2 className="w-4 h-4" />
-                    Mission Completed — this mission has been evaluated
+                    Challenge Completed — this challenge has been evaluated
                   </div>
                   {/* View Result CTA */}
                   <button
@@ -619,7 +619,7 @@ export default function MissionDetailPage() {
                   {starting ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> Resuming…</>
                   ) : (
-                    <><RotateCcw className="w-5 h-5" /> Resume Mission</>
+                    <><RotateCcw className="w-5 h-5" /> Resume Challenge</>
                   )}
                 </button>
               ) : (
@@ -631,7 +631,7 @@ export default function MissionDetailPage() {
                   {starting ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> Starting…</>
                   ) : (
-                    <><Play className="w-5 h-5" /> Start Mission</>
+                    <><Play className="w-5 h-5" /> Start Challenge</>
                   )}
                 </button>
               )}

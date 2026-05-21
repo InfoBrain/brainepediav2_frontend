@@ -90,7 +90,7 @@ function normProblemNode(data: any): ProblemNode {
   };
   return {
     problemNodeId: data?.problemNodeId || data?.id || "",
-    title: data?.title || "Untitled Mission",
+    title: data?.title || "Untitled Challenge",
     context: data?.context || "",
     missionBrief: data?.missionBrief || "",
     constraints: parseArr(data?.constraints),
@@ -212,7 +212,7 @@ function MissionPanel({
           </CollapsibleSection>
         )}
         {node.missionBrief && (
-          <CollapsibleSection icon={<Target className="w-3.5 h-3.5" />} title="Mission Brief">
+          <CollapsibleSection icon={<Target className="w-3.5 h-3.5" />} title="Task Overview">
             <p className="text-xs text-white/60 leading-relaxed">{node.missionBrief}</p>
           </CollapsibleSection>
         )}

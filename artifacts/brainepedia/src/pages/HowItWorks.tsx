@@ -27,11 +27,11 @@ export function HowItWorksPage() {
     {
       icon: MapPin,
       title: "Enter a District",
-      def: "Districts are themed problem zones inside the Imperial City.",
+      def: "Districts are themed challenge zones within the platform.",
       expand:
-        "Districts cluster missions by domain — Payments, Distributed Systems, Litigation, Cardiology, Checkout UX. Entry-level districts are open to Initiates. Specialized districts unlock with rank.",
+        "Districts cluster challenges by domain — Payments, Distributed Systems, Litigation, Cardiology, Checkout UX. Entry-level districts are open to Initiates. Specialized districts unlock with rank.",
       example:
-        "Anya enters the Payments District. Five active missions are available, each with its own brief.",
+        "Anya enters the Payments District. Five active challenges are available, each with its own overview.",
     },
     {
       icon: Target,
@@ -150,7 +150,7 @@ export function HowItWorksPage() {
           </div>
         </section>
 
-        {/* Mission Brief Anatomy */}
+        {/* Challenge Overview Anatomy */}
         <section className="container mx-auto px-4 mb-32">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -159,15 +159,15 @@ export function HowItWorksPage() {
             className="max-w-4xl mx-auto"
           >
             <div className="text-center mb-12">
-              <div className="font-mono text-sm text-accent mb-4">// ANATOMY OF A MISSION</div>
-              <h2 className="text-4xl font-bold">What a mission brief actually contains.</h2>
+              <div className="font-mono text-sm text-accent mb-4">// ANATOMY OF A CHALLENGE</div>
+              <h2 className="text-4xl font-bold">What a challenge overview actually contains.</h2>
             </div>
 
             <div className="bg-card border border-border/50 rounded-2xl overflow-hidden font-mono text-sm">
               <div className="border-b border-border/50 px-6 py-4 flex items-center justify-between bg-background/50">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-muted-foreground">MISSION_BRIEF // PAYMENTS_DISTRICT // PMT_4471</span>
+                  <span className="text-muted-foreground">CHALLENGE_OVERVIEW // PAYMENTS_DISTRICT // PMT_4471</span>
                 </div>
                 <span className="text-accent">ACTIVE</span>
               </div>
@@ -320,7 +320,7 @@ export function HowItWorksPage() {
                   size="lg"
                   className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-[0_0_20px_rgba(0,210,255,0.3)]"
                 >
-                  Enter the Imperial City →
+                  Get Started →
                 </Button>
               </Link>
             </div>

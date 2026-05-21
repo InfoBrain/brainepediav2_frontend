@@ -13,7 +13,7 @@ export function Pricing() {
       desc: "Step into the gates.",
       features: [
         "Limited to Entry-Level districts",
-        "3 active missions per month",
+        "3 active challenges per month",
         "Basic Pass / Fail evaluation",
         "50MB total for file uploads via FileService"
       ],
@@ -27,10 +27,10 @@ export function Pricing() {
       desc: "Build a verified career.",
       features: [
         "Full access to all professional districts",
-        "Unlimited active missions",
+        "Unlimited active challenges",
         "Detailed technical breakdown and optimization suggestions",
         "Priority submission processing",
-        "Imperial City leaderboard ranking",
+        "Leaderboard ranking",
         "2GB for high-fidelity project assets",
         "Verified Badges for LinkedIn"
       ],
@@ -47,7 +47,7 @@ export function Pricing() {
         "Custom districts for corporate training",
         "Verification badges for LinkedIn",
         "Team performance analytics",
-        "Private \"Problem Nodes\" created by your organization",
+        "Private challenges created by your organization",
         "Direct API access for custom integration"
       ],
       button: "Deploy Your Team",

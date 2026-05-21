@@ -1,0 +1,186 @@
+Update the entire Brainepedia platform UI/UX terminology system to make the platform easier for non-technical and general users to understand while still maintaining a modern AI-powered gamified learning experience.
+
+OBJECTIVE
+
+Current user feedback shows that several terminologies are:
+
+* too technical,
+* too RPG/game-like,
+* too futuristic,
+* confusing for non-tech users,
+* and difficult for users outside software/engineering professions.
+
+The platform must now support broader professions including:
+
+* Marketing
+* Business
+* Finance
+* Education
+* Design
+* Media
+* Healthcare
+* Sales
+* Administration
+* General professional learning
+
+Adjust all interface wording to become:
+
+* simple,
+* friendly,
+* professional,
+* intuitive,
+* globally understandable,
+  while still keeping:
+* gamification,
+* progression,
+* achievements,
+* rankings,
+* AI-powered learning.
+
+Replace complex RPG/system words with simpler professional-friendly words.
+
+OLD → NEW
+
+"Imperial District" → "Expert District"
+"District Claim" → "District Completion"
+"Problem Node" → "Challenge"
+"Mission" → "Task"
+"Mission Brief" → "Task Overview"
+"Oracle" → "Brainiac AI"
+"RPG Progression" → "Learning Progress"
+"Experience Session" → "Learning Session"
+"Start Solving" → "Start Challenge"
+"Submission" → "Task Submission"
+"Imperial Citizen" → "Elite Member"
+"System Rank" → "Professional Rank"
+"Claimed Districts" → "Completed Districts"
+"Mission Control" → "Learning Hub"
+"Codex" → "Learning Guide"
+"System Intelligence" → "AI Assistant"
+
+REMOVE ALL TERMINOLOGIES LIKE:
+
+* SYSTEM.INIT
+* RECRUITMENT_PROTOCOL
+* EXECUTION_SEQUENCE
+* RPG
+* IMPERIAL
+* COMMAND_CENTER
+* ELITE_OPERATIVE
+* SYSTEM GENERATED LABELS
+
+Replace them with clean modern wording.
+
+1. Make all page titles human-friendly.
+
+Examples:
+OLD:
+"SYSTEM.INIT: RECRUITMENT_PROTOCOL"
+
+NEW:
+"Choose Your Profession"
+
+OLD:
+"ENTER THE IMPERIAL DISTRICT"
+
+NEW:
+"Explore Learning Districts"
+
+2. Simplify all buttons.
+
+Examples:
+OLD:
+"INITIALIZE SESSION"
+
+NEW:
+"Start Learning"
+
+OLD:
+"EXECUTE MISSION"
+
+NEW:
+"Begin Task"
+
+3. Add small helper descriptions under headings.
+
+Example:
+"Complete challenges, gain experience, and grow your professional skills."
+
+Do NOT remove:
+
+* XP
+* streaks
+* badges
+* leaderboard
+* progress tracking
+* achievements
+* rankings
+
+BUT present them in a professional learning style instead of a hardcore RPG style.
+
+The platform should feel like:
+
+* LinkedIn Learning + Duolingo + AI Career Growth
+  NOT:
+* a sci-fi RPG game.
+
+Maintain:
+
+* futuristic UI
+* glassmorphism
+* gradients
+* smooth animations
+* premium modern interface
+
+BUT reduce:
+
+* military/sci-fi wording
+* terminal/system language
+* overly complex labels
+
+Tone should be:
+
+* motivational
+* educational
+* professional
+* modern
+* clean
+* globally understandable
+
+1. Scan ALL PAGES and replace inconsistent terminology globally.
+
+2. Ensure mobile responsiveness remains intact.
+
+3. Update:
+
+* navbar
+* sidebars
+* dashboard
+* leaderboard
+* subscriptions
+* profile pages
+* mission pages
+* AI pages
+* admin pages
+
+4. Keep the AI branding:
+   "Brainiac AI"
+
+5. Add contextual onboarding hints for first-time users.
+
+Example:
+"Challenges help you practice real-world professional skills."
+
+Transform Brainepedia into a globally understandable AI-powered gamified professional growth platform suitable for:
+
+* students,
+* professionals,
+* creatives,
+* business users,
+* and non-technical learners.
+
+The experience should feel:
+simple,
+engaging,
+professional,
+and rewarding.

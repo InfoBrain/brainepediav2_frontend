@@ -114,7 +114,7 @@ export default function PublicProfilePage() {
   const [copied, setCopied] = useState(false);
 
   /* resolve helper fields */
-  const name       = profile?.DisplayName || profile?.displayName || "Brainepedia Operative";
+  const name       = profile?.DisplayName || profile?.displayName || "Brainepedia Member";
   const avatarUrl  = profile?.ProfilePictureUrl || profile?.profilePictureUrl || null;
   const profession = profile?.ActiveProfession || profile?.activeProfession || "";
   const title      = profile?.ProfessionalTitle || profile?.professionalTitle || "";
@@ -285,7 +285,7 @@ export default function PublicProfilePage() {
               { label: "Verified Exp.", value: vxYears > 0 ? `${vxYears.toFixed(1)} yrs` : "—", icon: <Shield className="w-4 h-4" />, color: "text-[#00D2FF]" },
               { label: "Total XP", value: totalXP > 0 ? totalXP.toLocaleString() : "—", icon: <Zap className="w-4 h-4" />, color: "text-[#FFD700]" },
               { label: "Global Rank", value: rankNum > 0 ? `#${rankNum}` : "—", icon: <Medal className="w-4 h-4" />, color: "text-[#FFD700]" },
-              { label: "Missions Done", value: missions.length > 0 ? missions.length : "—", icon: <Target className="w-4 h-4" />, color: "text-[#9D4EDD]" },
+              { label: "Challenges Done", value: missions.length > 0 ? missions.length : "—", icon: <Target className="w-4 h-4" />, color: "text-[#9D4EDD]" },
               { label: "Badges Earned", value: badges.length > 0 ? badges.length : "—", icon: <Award className="w-4 h-4" />, color: "text-[#9D4EDD]" },
               { label: "Professional Title", value: title || "—", icon: <BookOpen className="w-4 h-4" />, color: "text-white/50" },
               { label: "Rank Title", value: title || (vxYears > 3 ? "Senior" : vxYears > 1 ? "Mid-Level" : vxYears > 0 ? "Junior" : "—"), icon: <Trophy className="w-4 h-4" />, color: "text-white/50" },
@@ -344,19 +344,19 @@ export default function PublicProfilePage() {
         {/* ── COMPLETED MISSIONS ── */}
         <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <h2 className="text-xs font-mono text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <Target className="w-3.5 h-3.5 text-[#9D4EDD]" /> Completed Missions
+            <Target className="w-3.5 h-3.5 text-[#9D4EDD]" /> Completed Challenges
             <span className="text-[#9D4EDD]/50">{missions.length > 0 ? `(${missions.length})` : ""}</span>
           </h2>
           {missions.length === 0 ? (
             <div className="rounded-xl border border-white/6 bg-[#0d1119] p-10 text-center">
               <Target className="w-10 h-10 text-white/8 mx-auto mb-3" />
-              <p className="text-sm text-white/20 font-mono">No missions completed yet.</p>
-              <p className="text-xs text-white/10 font-mono mt-1">Completed missions will appear here once the operative has solved their first problem node.</p>
+              <p className="text-sm text-white/20 font-mono">No challenges completed yet.</p>
+              <p className="text-xs text-white/10 font-mono mt-1">Completed challenges will appear here once the user completes their first challenge.</p>
             </div>
           ) : (
             <div className="rounded-xl border border-white/6 bg-[#0d1119] divide-y divide-white/5 overflow-hidden">
               {missions.slice(0, 20).map((m, i) => {
-                const mTitle = m.missionTitle || m.MissionTitle || m.title || m.Title || "Mission";
+                const mTitle = m.missionTitle || m.MissionTitle || m.title || m.Title || "Challenge";
                 const dName  = m.districtName  || m.DistrictName  || "";
                 const score  = m.score ?? m.Score ?? 0;
                 const date   = m.completionDate || m.CompletionDate || m.completedAt || "";

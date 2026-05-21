@@ -35,7 +35,7 @@ import { Button } from "@/components/ui/button";
 const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/profession/select", label: "Choose Path", icon: Compass },
-  { href: "/user/map", label: "Imperial Map", icon: Map },
+  { href: "/user/map", label: "Learning Map", icon: Map },
   { href: "/profile/edit", label: "My Profile", icon: UserIcon },
   { href: "/user/badges", label: "My Badges", icon: Trophy },
   { href: "/user/activity", label: "Activity Feed", icon: Activity },
@@ -449,8 +449,8 @@ export default function ActivityFeed() {
           {!subLoading && !subError && submissions.length === 0 && (
             <div className="rounded-xl border border-dashed border-white/10 bg-white/2 px-6 py-8 text-center">
               <Zap className="h-8 w-8 text-white/15 mx-auto mb-2" />
-              <p className="text-sm text-white/30">No mission submissions yet.</p>
-              <p className="text-xs text-white/20 mt-1">Complete missions to see your results here.</p>
+              <p className="text-sm text-white/30">No challenge submissions yet.</p>
+              <p className="text-xs text-white/20 mt-1">Complete challenges to see your results here.</p>
             </div>
           )}
 
@@ -574,7 +574,7 @@ export default function ActivityFeed() {
           {!subLoading && !subError && isSubFiltered && filteredSubs.length === 0 && (
             <div className="rounded-xl border border-dashed border-white/10 bg-white/2 px-6 py-8 text-center">
               <Filter className="h-8 w-8 text-white/15 mx-auto mb-2" />
-              <p className="text-sm text-white/30">No missions match this filter.</p>
+              <p className="text-sm text-white/30">No challenges match this filter.</p>
               <button
                 onClick={() => { handleSubStatusChange("all"); handleSubDifficultyChange("all"); }}
                 className="mt-3 text-xs font-mono text-[#00D2FF]/70 hover:text-[#00D2FF] transition-colors underline underline-offset-2"

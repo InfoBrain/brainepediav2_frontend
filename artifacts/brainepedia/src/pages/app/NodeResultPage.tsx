@@ -33,7 +33,7 @@ function normNodeResult(d: any): NodeResult {
     return [];
   };
   return {
-    missionTitle: d?.missionTitle || d?.MissionTitle || d?.title || d?.Title || "Mission",
+    missionTitle: d?.missionTitle || d?.MissionTitle || d?.title || d?.Title || "Challenge",
     score: Math.min(100, Math.max(0, Number(d?.score ?? d?.Score ?? 0))),
     isPassed: Boolean(d?.isPassed ?? d?.IsPassed ?? false),
     positiveFeedback: toArr(d?.positiveFeedback ?? d?.PositiveFeedback),
@@ -107,8 +107,8 @@ function ScoreRing({ score, isPassed }: { score: number; isPassed: boolean }) {
           : "bg-red-500/15 border-red-500/40 text-red-400"
       }`}>
         {isPassed
-          ? <><CheckCircle2 className="w-4 h-4" /> MISSION PASSED</>
-          : <><XCircle className="w-4 h-4" /> MISSION FAILED</>
+          ? <><CheckCircle2 className="w-4 h-4" /> CHALLENGE PASSED</>
+          : <><XCircle className="w-4 h-4" /> CHALLENGE FAILED</>
         }
       </div>
     </div>
@@ -269,7 +269,7 @@ export default function NodeResultPage() {
             <div className="absolute inset-0 rounded-full animate-ping bg-[#00D2FF]/10" />
             <Loader2 className="relative w-12 h-12 text-[#00D2FF] animate-spin" />
           </div>
-          <p className="text-sm font-mono text-white/40 uppercase tracking-widest">Loading mission result…</p>
+          <p className="text-sm font-mono text-white/40 uppercase tracking-widest">Loading challenge result…</p>
         </div>
       </div>
     );
@@ -361,7 +361,7 @@ export default function NodeResultPage() {
                   : "bg-amber-500/10 border-amber-500/30 text-amber-400"
               }`}>
                 <Trophy className="w-3.5 h-3.5" />
-                {isPassed ? "Mission Completed" : "Attempt Evaluated"}
+                {isPassed ? "Challenge Completed" : "Attempt Evaluated"}
               </div>
             </motion.div>
 
@@ -433,7 +433,7 @@ export default function NodeResultPage() {
                 className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl border border-amber-500/30 bg-amber-500/8 text-amber-400 hover:bg-amber-500/15 text-sm font-semibold font-mono transition-all"
               >
                 <RotateCcw className="w-4 h-4" />
-                Retry Mission
+                Retry Challenge
               </button>
             )}
             {isPassed && (
@@ -442,7 +442,7 @@ export default function NodeResultPage() {
                 className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/8 text-emerald-400 hover:bg-emerald-500/15 text-sm font-semibold font-mono transition-all"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                Next Mission
+                Next Challenge
               </button>
             )}
           </motion.div>

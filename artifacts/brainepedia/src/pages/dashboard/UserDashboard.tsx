@@ -20,7 +20,7 @@ const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
   { href: "/profession/select", label: "Choose Path", icon: Compass },
-  { href: "/user/map", label: "Imperial Map", icon: Map },
+  { href: "/user/map", label: "Learning Map", icon: Map },
   { href: "/profile/edit", label: "My Profile", icon: UserIcon },
   { href: "/user/badges", label: "My Badges", icon: Trophy },
   { href: "/user/activity", label: "Activity Feed", icon: Activity },
@@ -324,7 +324,7 @@ export default function UserDashboard() {
       );
       return {
         rank: Number(u.rank ?? u.Rank ?? i + 1),
-        nickName: mappedNick || "Operative",
+        nickName: mappedNick || "Member",
         avatarUrl: u.avatarUrl || u.AvatarUrl || null,
         totalXP: Number(
           u.totalXP    ??
@@ -470,10 +470,10 @@ export default function UserDashboard() {
   const rank       = currentUserRank?.rank ?? null;
 
   const displayName = profile
-    ? `${profile.firstName || ""} ${profile.surName || profile.lastName || ""}`.trim() || user?.firstName || user?.email || "Operative"
-    : user?.firstName ? `${user.firstName} ${user?.lastName || ""}`.trim() : user?.email || "Operative";
+    ? `${profile.firstName || ""} ${profile.surName || profile.lastName || ""}`.trim() || user?.firstName || user?.email || "Member"
+    : user?.firstName ? `${user.firstName} ${user?.lastName || ""}`.trim() : user?.email || "Member";
   const nickName    = profile?.nickName || displayName;
-  const displayTitle= profile?.currentTitle || "Brainepedia Operative";
+  const displayTitle= profile?.currentTitle || "Brainepedia Member";
   const avatarUrl   = profile?.avatarUrl || profile?.imageUrl || null;
   const initial     = displayName.charAt(0).toUpperCase();
 
@@ -502,7 +502,7 @@ export default function UserDashboard() {
   );
 
   return (
-    <DashboardShell nav={nav} title="Command Center" subtitle="// imperial.dashboard" headerRight={headerRight} theme="user" showBrainiac>
+    <DashboardShell nav={nav} title="Learning Hub" subtitle="// your progress" headerRight={headerRight} theme="user" showBrainiac>
       {loading ? <BrainiacSpinner /> : (
         <div className="space-y-6 max-w-6xl">
 
@@ -637,8 +637,8 @@ export default function UserDashboard() {
           {/* ── QUICK STATS GRID ── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Problems Solved", value: solved, icon: CheckCircle2, accent: "text-[#00D2FF]", glow: "from-[#00D2FF]/10" },
-              { label: "Claimed Districts", value: claimedDist, icon: Map, accent: "text-emerald-400", glow: "from-emerald-400/10" },
+              { label: "Challenges Solved", value: solved, icon: CheckCircle2, accent: "text-[#00D2FF]", glow: "from-[#00D2FF]/10" },
+              { label: "Completed Districts", value: claimedDist, icon: Map, accent: "text-emerald-400", glow: "from-emerald-400/10" },
               { label: "In Progress", value: inProgDist, icon: Activity, accent: "text-[#A78BFA]", glow: "from-[#A78BFA]/10" },
               { label: "Day Streak", value: `${dayStreak}d`, icon: Flame, accent: "text-orange-400", glow: "from-orange-400/10", streak: true },
             ].map((card, i) => (
@@ -669,7 +669,7 @@ export default function UserDashboard() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">View Full Progress</p>
-                  <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Track missions, XP &amp; district completion</p>
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Track challenges, XP &amp; district completion</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -732,7 +732,7 @@ export default function UserDashboard() {
                   ))}
                   <Link href="/profession/select"
                     className="block mt-3 text-center text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400 transition-colors border border-dashed border-white/10 rounded-lg py-2.5">
-                    View Imperial Map →
+                    View Learning Map →
                   </Link>
                 </div>
               )}
@@ -777,7 +777,7 @@ export default function UserDashboard() {
               <p className="text-xs text-white/30 font-mono">
                 {hasBadges
                   ? `${earnedBadges.length} badge${earnedBadges.length !== 1 ? "s" : ""} earned — keep going`
-                  : "Complete missions to unlock your first achievement"}
+                  : "Complete challenges to unlock your first achievement"}
               </p>
             </div>
             <Link href="/user/badges" className="ml-auto text-[10px] font-mono uppercase tracking-wider text-white/30 hover:text-amber-400 transition-colors shrink-0">
@@ -846,13 +846,13 @@ export default function UserDashboard() {
             <div className="lg:col-span-2 bg-[#0d1119] border border-white/6 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-bold text-amber-400">Imperial Map</h2>
+                  <h2 className="text-lg font-bold text-amber-400">Learning Map</h2>
                   <p className="text-xs text-muted-foreground font-mono">Districts under your conquest</p>
                 </div>
                 <Map className="h-5 w-5 text-amber-400" />
               </div>
               {districts.length === 0
-                ? <EmptyState label="No districts mapped yet. Start a mission to claim territory." cta="Begin Your First Journey" href="/profession/select" />
+                ? <EmptyState label="No districts mapped yet. Start a challenge to begin." cta="Begin Your First Journey" href="/profession/select" />
                 : <HexGrid districts={districts} />
               }
             </div>
@@ -860,9 +860,9 @@ export default function UserDashboard() {
               /* Already max tier — show status card */
               <div className="bg-gradient-to-br from-[#FFD700]/10 to-[#0d1119] border border-[#FFD700]/35 rounded-2xl p-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] flex flex-col">
                 <Crown className="h-6 w-6 text-[#FFD700] mb-3" />
-                <h3 className="text-lg font-bold text-[#FFD700] mb-1">Imperial Citizen</h3>
+                <h3 className="text-lg font-bold text-[#FFD700] mb-1">Elite Member</h3>
                 <p className="text-sm text-white/40 mb-5 flex-1">
-                  You hold Grandmaster status. Unlimited missions, GPT-4o evaluations, and elite leaderboard badge are all active.
+                  You hold Grandmaster status. Unlimited challenges, GPT-4o evaluations, and elite leaderboard badge are all active.
                 </p>
                 <Link href="/user/subscription"
                   className="block text-center text-xs font-mono uppercase tracking-wider text-[#FFD700]/60 hover:text-[#FFD700] transition-colors border border-[#FFD700]/20 rounded-lg py-2.5">
@@ -920,7 +920,7 @@ export default function UserDashboard() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-lg font-bold text-amber-400">Recent Activity</h2>
-                <p className="text-xs text-muted-foreground font-mono">Imperial timeline</p>
+                <p className="text-xs text-muted-foreground font-mono">Activity timeline</p>
               </div>
               <Activity className="h-5 w-5 text-[#A78BFA]" />
             </div>

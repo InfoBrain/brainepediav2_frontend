@@ -34,7 +34,7 @@ const nav: NavItem[] = [
   { href: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/professions", label: "Professions", icon: BookOpen },
   { href: "/admin/districts", label: "Districts", icon: MapPin },
-  { href: "/admin/problem-nodes", label: "Problem Nodes", icon: Database },
+  { href: "/admin/problem-nodes", label: "Challenges", icon: Database },
   { href: "/admin/seed", label: "AI Seed Tool", icon: Sparkles },
   { href: "/admin/users", label: "User Audit", icon: Users },
 ];
@@ -383,13 +383,13 @@ export default function AdminProblemNodes() {
   const diffName = (id: string) => difficulties.find(d => d.id === id)?.name || id;
 
   return (
-    <DashboardShell nav={nav} title="Problem Nodes">
+    <DashboardShell nav={nav} title="Challenges">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-white">Problem Nodes</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Manage challenges and missions within districts</p>
+            <h1 className="text-2xl font-bold text-white">Challenges</h1>
+            <p className="text-sm text-gray-400 mt-0.5">Manage challenges within districts</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -582,9 +582,9 @@ export default function AdminProblemNodes() {
                   />
                 </div>
 
-                {/* Mission Brief */}
+                {/* Task Overview */}
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1.5">Mission Brief</label>
+                  <label className="block text-sm text-gray-400 mb-1.5">Task Overview</label>
                   <textarea
                     value={form.missionBrief}
                     onChange={e => setField("missionBrief", e.target.value)}
@@ -832,10 +832,10 @@ export default function AdminProblemNodes() {
                         <p className="text-gray-400 text-xs leading-relaxed">{ai.preview.context}</p>
                       )}
 
-                      {/* Mission Brief */}
+                      {/* Task Overview */}
                       {ai.preview.missionBrief && (
                         <div className="border-l-2 border-[#9D4EDD]/50 pl-3">
-                          <p className="text-[10px] text-[#9D4EDD] font-mono uppercase tracking-wider mb-1">Mission Brief</p>
+                          <p className="text-[10px] text-[#9D4EDD] font-mono uppercase tracking-wider mb-1">Task Overview</p>
                           <p className="text-xs text-gray-300 leading-relaxed">{ai.preview.missionBrief}</p>
                         </div>
                       )}

@@ -22,7 +22,7 @@ export function Hero() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-mono mb-6">
             <Terminal className="w-4 h-4" />
-            <span>SYSTEM.INIT: RECRUITMENT_PROTOCOL</span>
+            <span>Verified Career Platform</span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
@@ -33,12 +33,12 @@ export function Hero() {
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl">
-            The world's first AI-driven career RPG. Solve real-world missions. Earn Verified Experience (VX) that recruiters trust.
+            The world's first AI-driven career platform. Solve real-world challenges. Earn Verified Experience (VX) that recruiters trust.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/auth/register" className={cn(buttonVariants({ size: "lg" }), "h-14 px-8 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_rgba(0,210,255,0.4)] border border-primary")}>
-              Enter the Imperial City
+              Get Started
             </Link>
             <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-bold border-border/50 hover:bg-white/5">
               Watch Brainiac in Action
@@ -62,7 +62,7 @@ export function Hero() {
                   <span className="font-mono text-sm font-bold text-primary">OP-7</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-foreground leading-none">OPERATOR STATUS</h3>
+                  <h3 className="font-bold text-foreground leading-none">MEMBER STATUS</h3>
                   <span className="font-mono text-xs text-primary">LEVEL 42 ARCHITECT</span>
                 </div>
               </div>
@@ -87,7 +87,7 @@ export function Hero() {
 
               <div className="grid grid-cols-2 gap-4 pt-4">
                 <div className="p-3 rounded bg-background/50 border border-border/50">
-                  <div className="text-xs text-muted-foreground font-mono mb-1">MISSIONS_CLEARED</div>
+                  <div className="text-xs text-muted-foreground font-mono mb-1">CHALLENGES_CLEARED</div>
                   <div className="text-2xl font-bold text-foreground">128</div>
                 </div>
                 <div className="p-3 rounded bg-accent/5 border border-accent/20">

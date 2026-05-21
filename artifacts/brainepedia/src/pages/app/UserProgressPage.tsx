@@ -49,7 +49,7 @@ const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
   { href: "/profession/select", label: "Choose Path", icon: Compass },
-  { href: "/user/map", label: "Imperial Map", icon: Map },
+  { href: "/user/map", label: "Learning Map", icon: Map },
   { href: "/profile/edit", label: "My Profile", icon: User },
   { href: "/user/badges", label: "My Badges", icon: Trophy },
   { href: "/user/activity", label: "Activity Feed", icon: Activity },
@@ -178,7 +178,7 @@ export default function UserProgressPage() {
   };
 
   return (
-    <DashboardShell nav={nav} title="Progress" subtitle="// mission.stats">
+    <DashboardShell nav={nav} title="Progress" subtitle="// your progress">
       <div className="flex gap-6 max-w-6xl">
         {/* Main content */}
         <div className="flex-1 min-w-0 space-y-8">
@@ -236,7 +236,7 @@ export default function UserProgressPage() {
             {distLoading ? (
               <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 rounded-xl bg-white/3 animate-pulse" />)}</div>
             ) : !districts?.length ? (
-              <div className="text-center py-8 text-white/20 text-sm font-mono">No district data yet. Start a mission to begin.</div>
+              <div className="text-center py-8 text-white/20 text-sm font-mono">No district data yet. Start a challenge to begin.</div>
             ) : (
               <div className="space-y-3">
                 {districts.map((d, i) => (
@@ -291,7 +291,7 @@ export default function UserProgressPage() {
             {!badges?.length ? (
               <div className="rounded-2xl border border-white/8 bg-[#0d1117] p-8 text-center">
                 <Lock className="w-8 h-8 text-white/10 mx-auto mb-2" />
-                <p className="text-sm text-white/20 font-mono">No badges yet. Complete missions to unlock rewards.</p>
+                <p className="text-sm text-white/20 font-mono">No badges yet. Complete challenges to unlock rewards.</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -362,7 +362,7 @@ export default function UserProgressPage() {
               {[
                 { label: "Continue Learning", href: "/profession/select", color: "from-[#00D2FF] to-[#9D4EDD]", text: "text-white" },
                 { label: "District Map", href: "/profession/select", color: "from-transparent to-transparent", text: "text-white/60" },
-                { label: "Start Mission", href: "/profession/select", color: "from-transparent to-transparent", text: "text-white/60" },
+                { label: "Start Challenge", href: "/profession/select", color: "from-transparent to-transparent", text: "text-white/60" },
                 { label: "Upgrade Plan", href: "/user/subscription", color: "from-[#FFD700]/20 to-[#FFD700]/5", text: "text-[#FFD700]" },
               ].map(a => (
                 <Link key={a.label} href={a.href}>

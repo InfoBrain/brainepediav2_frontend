@@ -46,7 +46,7 @@ function normMissions(data: any): Mission[] {
   const arr = Array.isArray(data) ? data : data?.data || [];
   return arr.map((x: any) => ({
     problemNodeId: x.problemNodeId || x.id || x.nodeId || "",
-    title: x.title || x.name || "Untitled Mission",
+    title: x.title || x.name || "Untitled Challenge",
     context: x.context || "",
     missionBrief: x.missionBrief || "",
     constraints: Array.isArray(x.constraints) ? x.constraints : [],
@@ -200,9 +200,9 @@ function MissionCard({ mission, index, onClick, difficultyMeta }: { mission: Mis
         {mission.isCompleted ? (
           <><Eye className="w-4 h-4" /> View Result</>
         ) : isInProgress ? (
-          <><RotateCcw className="w-4 h-4" /> Resume Mission</>
+          <><RotateCcw className="w-4 h-4" /> Resume Challenge</>
         ) : (
-          <><Play className="w-4 h-4" /> Start Mission</>
+          <><Play className="w-4 h-4" /> Start Challenge</>
         )}
       </button>
 
@@ -325,7 +325,7 @@ export default function MissionListPage() {
   const districtId = params.districtId || "";
   const [, navigate] = useLocation();
   const userId = getUserId();
-  usePageTitle("Missions");
+  usePageTitle("Challenges");
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -336,7 +336,7 @@ export default function MissionListPage() {
     queryKey: ["missions-by-district", districtId, userId],
     queryFn: async () => {
       const res = await api.problemNodes.byDistrict(districtId, userId);
-      if (!res.ok) throw new Error(res.error || "Failed to load missions");
+      if (!res.ok) throw new Error(res.error || "Failed to load challenges");
       return normMissions(res.data);
     },
     enabled: Boolean(districtId),
@@ -467,10 +467,10 @@ export default function MissionListPage() {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <p className="text-[10px] font-mono text-[#00D2FF] tracking-[0.3em] uppercase mb-1">
-                <Target className="w-3 h-3 inline mr-1" />Missions
+                <Target className="w-3 h-3 inline mr-1" />Challenges
               </p>
               <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-cyan-100 to-purple-200 bg-clip-text text-transparent">
-                {district?.name || "District Missions"}
+                {district?.name || "District Challenges"}
               </h1>
               {district?.description && (
                 <p className="text-white/40 text-sm font-sans mt-2 max-w-lg">{district.description}</p>
@@ -568,9 +568,9 @@ export default function MissionListPage() {
           >
             <Target className="w-14 h-14 text-white/10" />
             <p className="text-white/40 font-mono text-sm max-w-xs">
-              No missions available yet in this district.
+              No challenges available yet in this district.
               <br />
-              Check back soon — missions are being crafted.
+              Check back soon — challenges are being crafted.
             </p>
           </motion.div>
         )}
@@ -583,7 +583,7 @@ export default function MissionListPage() {
             className="flex flex-col items-center gap-4 py-16 text-center"
           >
             <Target className="w-10 h-10 text-white/10" />
-            <p className="text-white/40 font-mono text-sm">No missions match the current filter.</p>
+            <p className="text-white/40 font-mono text-sm">No challenges match the current filter.</p>
             <button
               onClick={() => setStatusFilter("all")}
               className="text-xs font-mono text-[#00D2FF] hover:underline"

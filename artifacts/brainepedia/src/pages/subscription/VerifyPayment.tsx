@@ -124,13 +124,13 @@ export default function VerifyPayment() {
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
                 className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/30">
                 <Crown className="h-4 w-4 text-[#FFD700]" />
-                <span className="text-sm font-bold text-[#FFD700]">Imperial Citizen Badge Unlocked</span>
+                <span className="text-sm font-bold text-[#FFD700]">Elite Member Badge Unlocked</span>
               </motion.div>
             )}
             <p className="text-sm text-white/40">
               {tierName === "Grandmaster"
                 ? "GPT-4o evaluations, unlimited Brainiac guidance, and elite status are now active."
-                : "Unlimited missions, enhanced Brainiac hints, and premium district access are now unlocked."}
+                : "Unlimited challenges, enhanced Brainiac hints, and premium district access are now unlocked."}
             </p>
             <div className="flex flex-col gap-3 pt-2">
               <Button onClick={() => navigate("/user/dashboard")}

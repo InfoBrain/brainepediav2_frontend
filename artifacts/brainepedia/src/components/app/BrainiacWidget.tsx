@@ -171,7 +171,7 @@ export function BrainiacWidget() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-white font-mono">Brainiac</p>
-                  <p className="text-[10px] text-[#9D4EDD]/60 font-mono">Oracle Advisor &amp; Support</p>
+                  <p className="text-[10px] text-[#9D4EDD]/60 font-mono">Brainiac AI Advisor</p>
                 </div>
               </div>
               <button onClick={() => setOpen(false)} className="text-white/30 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5" title="Close">
@@ -185,7 +185,7 @@ export function BrainiacWidget() {
                 <div className="flex flex-col items-center justify-center h-full gap-2">
                   <Bot className="w-8 h-8 text-[#9D4EDD]/20" />
                   <p className="text-xs text-white/20 font-mono text-center max-w-[200px]">
-                    Ask about Brainepedia, your missions, or career progression.
+                    Ask about Brainepedia, your challenges, or career progression.
                   </p>
                 </div>
               )}

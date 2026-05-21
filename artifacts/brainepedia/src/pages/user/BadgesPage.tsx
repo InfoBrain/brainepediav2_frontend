@@ -19,7 +19,7 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 
 const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/user/map", label: "Imperial Map", icon: Map },
+  { href: "/user/map", label: "Learning Map", icon: Map },
   { href: "/profile/edit", label: "My Profile", icon: UserIcon },
   { href: "/user/badges", label: "My Badges", icon: Trophy },
   { href: "/user/activity", label: "Activity Feed", icon: Activity },

@@ -5,8 +5,8 @@ import { Link } from "wouter";
 export function HowItWorks() {
   const steps = [
     { icon: UserPlus, title: "Choose a Profession", desc: "Select your track. Software Engineer, Legal Counsel, Product Architect." },
-    { icon: MapPin, title: "Enter a District", desc: "Navigate the Imperial City. Each district holds specialized challenges." },
-    { icon: Target, title: "Solve Missions", desc: "No tutorials. Just raw problem-solving based on real-world scenarios." },
+    { icon: MapPin, title: "Enter a District", desc: "Navigate the platform. Each district holds specialized challenges." },
+    { icon: Target, title: "Solve Challenges", desc: "No tutorials. Just raw problem-solving based on real-world scenarios." },
     { icon: UploadCloud, title: "Submit Evidence", desc: "Push your code, upload your brief, or present your design." },
     { icon: Cpu, title: "AI Evaluates", desc: "Brainiac analyzes your submission for logic, edge cases, and efficiency." },
     { icon: Award, title: "Earn XP + VX", desc: "Rank up. Gain Verified Experience that proves you can execute." }
@@ -18,7 +18,7 @@ export function HowItWorks() {
         <div className="text-center max-w-3xl mx-auto mb-20">
           <h2 className="text-4xl font-bold mb-6">The Game Loop</h2>
           <p className="text-xl text-muted-foreground">
-            How operators build their legacy in the Imperial City.
+            How professionals build their verified career record.
           </p>
         </div>
 

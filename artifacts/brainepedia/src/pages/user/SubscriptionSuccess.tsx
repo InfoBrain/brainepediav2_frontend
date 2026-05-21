@@ -146,7 +146,7 @@ export default function SubscriptionSuccess() {
               className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold shadow-[0_0_15px_rgba(255,215,0,0.4)]"
               onClick={() => navigate("/user/dashboard")}
             >
-              Return to Command Center <ArrowRight className="ml-2 h-4 w-4" />
+              Return to Learning Hub <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </>
         )}

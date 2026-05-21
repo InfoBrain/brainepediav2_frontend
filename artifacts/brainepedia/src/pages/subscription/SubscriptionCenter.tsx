@@ -18,7 +18,7 @@ const nav: NavItem[] = [
   { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
   { href: "/profession/select", label: "Choose Path", icon: Compass },
-  { href: "/profession/select", label: "Imperial Map", icon: Map },
+  { href: "/profession/select", label: "Learning Map", icon: Map },
   { href: "/profile/edit", label: "My Profile", icon: UserIcon },
   { href: "/user/badges", label: "My Badges", icon: Trophy },
   { href: "/user/activity", label: "Activity Feed", icon: Activity },
@@ -47,7 +47,7 @@ const TIERS = [
       { label: "Limited Brainiac hints", included: true },
       { label: "Basic XP progression", included: true },
       { label: "Community leaderboard access", included: true },
-      { label: "Unlimited missions", included: false },
+      { label: "Unlimited challenges", included: false },
       { label: "Premium district access", included: false },
       { label: "GPT-4o evaluations", included: false },
     ],
@@ -66,7 +66,7 @@ const TIERS = [
     headerBg: "from-[#7C3AED]/20 to-[#4C1D95]/20",
     iconColor: "text-[#A78BFA]",
     features: [
-      { label: "Unlimited missions", included: true },
+      { label: "Unlimited challenges", included: true },
       { label: "Increased Brainiac hints", included: true },
       { label: "Faster XP growth", included: true },
       { label: "Premium district access", included: true },
@@ -82,7 +82,7 @@ const TIERS = [
     price: "$49.99",
     priceNote: "per month",
     icon: Crown,
-    tagline: "Imperial Citizen status",
+    tagline: "Elite Member status",
     color: "border-[#FFD700]/50",
     glow: "shadow-[0_0_35px_rgba(255,215,0,0.35)]",
     badge: "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/40",
@@ -94,7 +94,7 @@ const TIERS = [
       { label: "GPT-4o evaluations", included: true },
       { label: "Unlimited Brainiac guidance", included: true },
       { label: "Elite leaderboard badge", included: true },
-      { label: "Imperial Citizen badge", included: true },
+      { label: "Elite Member badge", included: true },
       { label: "Priority AI evaluation", included: true },
       { label: "Legendary status visuals", included: true },
     ],
@@ -102,7 +102,7 @@ const TIERS = [
 ];
 
 const COMPARISON_FEATURES = [
-  { label: "Missions / month", initiate: "3", architect: "Unlimited", grandmaster: "Unlimited" },
+  { label: "Challenges / month", initiate: "3", architect: "Unlimited", grandmaster: "Unlimited" },
   { label: "AI evaluations", initiate: "Basic", architect: "Advanced", grandmaster: "GPT-4o" },
   { label: "Brainiac hints", initiate: "Limited", architect: "More", grandmaster: "Unlimited" },
   { label: "XP boost", initiate: "1×", architect: "1.5×", grandmaster: "2×" },
@@ -112,10 +112,10 @@ const COMPARISON_FEATURES = [
 ];
 
 const BRAINIAC_TIPS = [
-  "Architect Tier increases your mission access and XP growth by 50% — a solid investment for active learners.",
-  "Grandmaster unlocks GPT-4o evaluations — the most accurate feedback in the empire.",
-  "Upgrading to Architect removes the monthly mission cap and opens premium districts.",
-  "Imperial Citizens (Grandmaster) receive priority AI evaluation and legendary visual effects.",
+  "Architect Tier increases your challenge access and XP growth by 50% — a solid investment for active learners.",
+  "Grandmaster unlocks GPT-4o evaluations — the most accurate feedback available.",
+  "Upgrading to Architect removes the monthly challenge cap and opens premium districts.",
+  "Grandmaster members receive priority AI evaluation and legendary visual effects.",
   "The XP boost from Architect or Grandmaster accelerates your climb to the top of the leaderboard.",
 ];
 
@@ -245,9 +245,9 @@ export default function SubscriptionCenter() {
                 }`}>{currentTierName}</h2>
                 <p className="text-sm text-white/40 mt-0.5">
                   {currentTierName === "Grandmaster"
-                    ? "You hold Imperial Citizen status. Unlimited access across all systems."
+                    ? "You hold Elite Member status. Unlimited access across all systems."
                     : currentTierName === "Architect"
-                    ? "Advanced mission access and enhanced Brainiac guidance active."
+                    ? "Advanced challenge access and enhanced Brainiac guidance active."
                     : "Upgrade to unlock Architect or Grandmaster abilities."}
                 </p>
               </div>
