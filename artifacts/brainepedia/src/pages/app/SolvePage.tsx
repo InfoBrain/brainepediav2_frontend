@@ -19,7 +19,6 @@ import {
   X,
   Send,
   Bot,
-  Home,
   ArrowLeft,
   Timer,
   Paperclip,
@@ -30,6 +29,17 @@ import {
   TriangleAlert,
   Save,
   Flag,
+  Bold,
+  Italic,
+  Underline,
+  List,
+  ListOrdered,
+  Link2,
+  Type,
+  Code2,
+  AlignLeft,
+  Heading1,
+  Heading2,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
@@ -69,6 +79,40 @@ type UploadedFile = {
   id: string;
   file: File;
   preview?: string;
+};
+
+type SolutionMode = "prose" | "code";
+
+const LANGUAGES = [
+  { value: "javascript", label: "JavaScript" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "python", label: "Python" },
+  { value: "java", label: "Java" },
+  { value: "csharp", label: "C#" },
+  { value: "cpp", label: "C++" },
+  { value: "go", label: "Go" },
+  { value: "rust", label: "Rust" },
+  { value: "sql", label: "SQL" },
+  { value: "html", label: "HTML" },
+  { value: "css", label: "CSS" },
+  { value: "markdown", label: "Markdown" },
+  { value: "json", label: "JSON" },
+  { value: "plaintext", label: "Plain Text" },
+];
+
+const BRAINIAC_TIPS: Record<SolutionMode, string[]> = {
+  prose: [
+    "Provide a clear, practical solution with real-world reasoning and structured thinking.",
+    "Use headings to organise your response and bullet points for key insights.",
+    "Support your ideas with examples and explain the reasoning behind your decisions.",
+    "Address the constraints directly and show how your solution handles each one.",
+  ],
+  code: [
+    "Write clean, well-commented code — explain your reasoning inline.",
+    "Consider edge cases and document how your solution handles them.",
+    "Structure your code for readability: clear variable names, logical flow.",
+    "Add a brief comment block at the top explaining your overall approach.",
+  ],
 };
 
 function normSession(data: any): SessionData {
@@ -150,6 +194,202 @@ function CollapsibleSection({
   );
 }
 
+// ─── RICH TEXT EDITOR ──────────────────────────────────────────────────────
+function RichTextEditor({
+  editorRef,
+  onInput,
+}: {
+  editorRef: React.RefObject<HTMLDivElement | null>;
+  onInput: () => void;
+}) {
+  const [isEmpty, setIsEmpty] = useState(true);
+
+  function exec(cmd: string, value?: string) {
+    document.execCommand(cmd, false, value ?? undefined);
+    editorRef.current?.focus();
+    setIsEmpty(!editorRef.current?.innerText?.trim());
+    onInput();
+  }
+
+  function handleInput() {
+    setIsEmpty(!editorRef.current?.innerText?.trim());
+    onInput();
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+    document.execCommand("insertText", false, text);
+    setIsEmpty(!editorRef.current?.innerText?.trim());
+    onInput();
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "b" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); exec("bold"); }
+    if (e.key === "i" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); exec("italic"); }
+    if (e.key === "u" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); exec("underline"); }
+  }
+
+  const toolbarBtn = "p-1.5 rounded hover:bg-white/10 text-white/50 hover:text-white transition-colors";
+
+  return (
+    <div className="rounded-xl overflow-hidden border border-white/10 bg-[#0d1117]">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-white/8 bg-[#0a0e18]">
+        <button onMouseDown={e => { e.preventDefault(); exec("bold"); }} className={toolbarBtn} title="Bold (Ctrl+B)">
+          <Bold className="w-3.5 h-3.5" />
+        </button>
+        <button onMouseDown={e => { e.preventDefault(); exec("italic"); }} className={toolbarBtn} title="Italic (Ctrl+I)">
+          <Italic className="w-3.5 h-3.5" />
+        </button>
+        <button onMouseDown={e => { e.preventDefault(); exec("underline"); }} className={toolbarBtn} title="Underline (Ctrl+U)">
+          <Underline className="w-3.5 h-3.5" />
+        </button>
+        <div className="w-px h-4 bg-white/10 mx-1" />
+        <button
+          onMouseDown={e => { e.preventDefault(); exec("formatBlock", "<h2>"); }}
+          className={toolbarBtn}
+          title="Heading 1"
+        >
+          <Heading1 className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onMouseDown={e => { e.preventDefault(); exec("formatBlock", "<h3>"); }}
+          className={toolbarBtn}
+          title="Heading 2"
+        >
+          <Heading2 className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onMouseDown={e => { e.preventDefault(); exec("formatBlock", "<p>"); }}
+          className={toolbarBtn}
+          title="Paragraph"
+        >
+          <AlignLeft className="w-3.5 h-3.5" />
+        </button>
+        <div className="w-px h-4 bg-white/10 mx-1" />
+        <button onMouseDown={e => { e.preventDefault(); exec("insertUnorderedList"); }} className={toolbarBtn} title="Bullet List">
+          <List className="w-3.5 h-3.5" />
+        </button>
+        <button onMouseDown={e => { e.preventDefault(); exec("insertOrderedList"); }} className={toolbarBtn} title="Numbered List">
+          <ListOrdered className="w-3.5 h-3.5" />
+        </button>
+        <div className="w-px h-4 bg-white/10 mx-1" />
+        <button
+          onMouseDown={e => {
+            e.preventDefault();
+            const url = window.prompt("Enter URL:");
+            if (url) exec("createLink", url);
+          }}
+          className={toolbarBtn}
+          title="Insert Link"
+        >
+          <Link2 className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onMouseDown={e => {
+            e.preventDefault();
+            if (editorRef.current) {
+              editorRef.current.innerHTML = "";
+              setIsEmpty(true);
+              onInput();
+            }
+          }}
+          className="ml-auto p-1.5 rounded hover:bg-red-400/10 text-white/20 hover:text-red-400 transition-colors"
+          title="Clear"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      </div>
+
+      {/* Editor area */}
+      <div className="relative min-h-[280px] sm:min-h-[320px]">
+        {isEmpty && (
+          <p className="absolute top-4 left-4 text-sm text-white/20 pointer-events-none select-none font-sans leading-relaxed">
+            Explain your approach, ideas, analysis, or professional solution here…
+          </p>
+        )}
+        <div
+          ref={editorRef as React.RefObject<HTMLDivElement>}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={handleInput}
+          onPaste={handlePaste}
+          onKeyDown={handleKeyDown}
+          className="min-h-[280px] sm:min-h-[320px] px-4 py-4 text-sm text-white/80 outline-none leading-relaxed font-sans
+            [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-white [&_h2]:mt-4 [&_h2]:mb-2
+            [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-white/90 [&_h3]:mt-3 [&_h3]:mb-1
+            [&_ul]:list-disc [&_ul]:ml-5 [&_ul]:my-2 [&_ul]:space-y-1
+            [&_ol]:list-decimal [&_ol]:ml-5 [&_ol]:my-2 [&_ol]:space-y-1
+            [&_a]:text-[#00D2FF] [&_a]:underline
+            [&_strong]:text-white [&_em]:text-white/70
+            [&_p]:mb-2"
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── BRAINIAC AI TIP ───────────────────────────────────────────────────────
+function BrainiacAITip({ mode }: { mode: SolutionMode }) {
+  const [tipIndex] = useState(() => Math.floor(Math.random() * BRAINIAC_TIPS[mode].length));
+  const tip = BRAINIAC_TIPS[mode][tipIndex];
+
+  return (
+    <motion.div
+      key={mode}
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="flex items-start gap-3 px-4 py-3 rounded-xl border border-[#9D4EDD]/20 bg-[#9D4EDD]/5"
+    >
+      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#9D4EDD]/20 border border-[#9D4EDD]/30 flex items-center justify-center mt-0.5">
+        <Sparkles className="w-3 h-3 text-[#9D4EDD]" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-mono text-[#9D4EDD]/70 uppercase tracking-widest mb-1">Brainiac AI Tip</p>
+        <p className="text-xs text-white/50 leading-relaxed">{tip}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── SOLUTION MODE TOGGLE ──────────────────────────────────────────────────
+function SolutionModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: SolutionMode;
+  onChange: (m: SolutionMode) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 p-1 rounded-xl bg-white/4 border border-white/8 w-fit">
+      <button
+        onClick={() => onChange("prose")}
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 ${
+          mode === "prose"
+            ? "bg-[#00D2FF]/15 border border-[#00D2FF]/30 text-[#00D2FF] shadow-sm"
+            : "text-white/40 hover:text-white/70 border border-transparent"
+        }`}
+      >
+        <AlignLeft className="w-3.5 h-3.5" />
+        Professional Response
+      </button>
+      <button
+        onClick={() => onChange("code")}
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 ${
+          mode === "code"
+            ? "bg-[#FFD700]/10 border border-[#FFD700]/25 text-[#FFD700] shadow-sm"
+            : "text-white/40 hover:text-white/70 border border-transparent"
+        }`}
+      >
+        <Code2 className="w-3.5 h-3.5" />
+        Code Solution
+      </button>
+    </div>
+  );
+}
+
 // ─── MISSION LEFT PANEL ────────────────────────────────────────────────────
 function MissionPanel({
   node,
@@ -167,7 +407,6 @@ function MissionPanel({
 
   return (
     <aside className="w-full h-full overflow-y-auto bg-[#080c12] border-r border-white/8 flex flex-col">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-[#080c12]/95 backdrop-blur border-b border-white/5 px-4 py-4">
         <p className="text-[10px] font-mono text-[#00D2FF] tracking-[0.3em] uppercase mb-1 flex items-center gap-1">
           <Target className="w-3 h-3" /> Mission
@@ -192,19 +431,16 @@ function MissionPanel({
           )}
         </div>
 
-        {/* Live timer */}
         <div className="mt-3 flex items-center gap-1.5 text-xs font-mono text-white/30">
           <Timer className="w-3.5 h-3.5" />
           <span>Time: {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}</span>
         </div>
 
-        {/* XP preview */}
         <div className="mt-2 text-[10px] font-mono text-purple-400/60">
           Estimated XP: ~{node.experiencePoints} if passed
         </div>
       </div>
 
-      {/* Sections */}
       <div className="flex-1">
         {node.context && (
           <CollapsibleSection icon={<BookOpen className="w-3.5 h-3.5" />} title="Context">
@@ -245,7 +481,7 @@ function MissionPanel({
   );
 }
 
-// ─── BRAINIAC PANEL ────────────────────────────────────────────────────────
+// ─── BRAINIAC AI CHAT PANEL ────────────────────────────────────────────────
 function BrainiacPanel({
   sessionId,
   userId,
@@ -274,9 +510,7 @@ function BrainiacPanel({
     setMessages(m => [...m, { role: "user", text: q || "Give me a hint" }]);
     setThinking(true);
 
-    const contextualApproach = q
-      ? `${approach}\n\n[User question: ${q}]`
-      : approach;
+    const contextualApproach = q ? `${approach}\n\n[User question: ${q}]` : approach;
 
     const res = await api.evaluations.askBrainiac({
       sessionId,
@@ -300,7 +534,6 @@ function BrainiacPanel({
 
   return (
     <>
-      {/* Toggle button */}
       <button
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#9D4EDD]/30 bg-[#9D4EDD]/10 text-[#9D4EDD] text-sm font-mono hover:bg-[#9D4EDD]/20 transition-all"
@@ -312,7 +545,6 @@ function BrainiacPanel({
         )}
       </button>
 
-      {/* Panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -322,7 +554,6 @@ function BrainiacPanel({
             transition={{ duration: 0.2 }}
             className="mt-4 rounded-2xl border border-[#9D4EDD]/25 bg-[#0d1020] overflow-hidden"
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#9D4EDD]/15">
               <div className="flex items-center gap-2">
                 <Bot className="w-4 h-4 text-[#9D4EDD]" />
@@ -334,7 +565,6 @@ function BrainiacPanel({
               </button>
             </div>
 
-            {/* Messages */}
             <div className="h-56 overflow-y-auto px-4 py-3 space-y-3">
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
@@ -355,7 +585,7 @@ function BrainiacPanel({
                     ${m.role === "user" ? "bg-[#00D2FF]/20 text-[#00D2FF]" : "bg-[#9D4EDD]/20 text-[#9D4EDD]"}`}>
                     {m.role === "user" ? "U" : "AI"}
                   </div>
-                  <div className={`flex flex-col gap-1 max-w-[80%]`}>
+                  <div className="flex flex-col gap-1 max-w-[80%]">
                     <div className={`text-xs leading-relaxed rounded-xl px-3 py-2
                       ${m.role === "user"
                         ? "bg-[#00D2FF]/10 text-white/70 rounded-tr-sm"
@@ -371,11 +601,7 @@ function BrainiacPanel({
                 </motion.div>
               ))}
               {thinking && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex gap-2 items-center"
-                >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-2 items-center">
                   <div className="w-6 h-6 rounded-full bg-[#9D4EDD]/20 flex items-center justify-center text-[10px] text-[#9D4EDD] font-bold">AI</div>
                   <div className="flex items-center gap-1 px-3 py-2 rounded-xl rounded-tl-sm bg-[#9D4EDD]/10">
                     <span className="text-xs text-white/40 font-mono italic">Brainiac is thinking</span>
@@ -395,7 +621,6 @@ function BrainiacPanel({
               <div ref={bottomRef} />
             </div>
 
-            {/* Quick actions */}
             <div className="px-4 pb-2 flex gap-2">
               <button
                 onClick={() => ask("Give me a hint without revealing the full answer")}
@@ -413,7 +638,6 @@ function BrainiacPanel({
               </button>
             </div>
 
-            {/* Input */}
             <div className="px-4 pb-4 flex gap-2">
               <input
                 value={input}
@@ -496,8 +720,10 @@ export default function SolvePage() {
   const [, navigate] = useLocation();
   const userId = getUserId() || "";
 
+  const [solutionMode, setSolutionMode] = useState<SolutionMode>("prose");
   const [approach, setApproach] = useState("");
-  const [code, setCode] = useState("// Write your solution here...\n");
+  const [code, setCode] = useState("// Write your code solution here...\n");
+  const [language, setLanguage] = useState("javascript");
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -507,15 +733,15 @@ export default function SolvePage() {
   const [elapsed, setElapsed] = useState(0);
   const [unsaved, setUnsaved] = useState(false);
   const [mobileTab, setMobileTab] = useState<"mission" | "workspace">("workspace");
+
+  const richEditorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Timer
   useEffect(() => {
     const t = setInterval(() => setElapsed(e => e + 1), 1000);
     return () => clearInterval(t);
   }, []);
 
-  // Unsaved changes warning
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (unsaved) { e.preventDefault(); e.returnValue = ""; }
@@ -524,9 +750,8 @@ export default function SolvePage() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [unsaved]);
 
-  // Auto-save indicator
   useEffect(() => {
-    if (approach || code !== "// Write your solution here...\n") setUnsaved(true);
+    if (approach || code !== "// Write your code solution here...\n") setUnsaved(true);
   }, [approach, code]);
 
   const { data: session, isLoading, isError, refetch } = useQuery<SessionData>({
@@ -541,7 +766,6 @@ export default function SolvePage() {
     retry: 1,
   });
 
-  // Fetch problem node if not bundled in session
   const { data: problemNode } = useQuery<ProblemNode>({
     queryKey: ["problem-node-for-session", session?.problemNodeId],
     queryFn: async () => {
@@ -562,7 +786,6 @@ export default function SolvePage() {
   const diffStyle = getDifficultyStyle(diffMeta?.rankColorHex || "");
   const diffLabel = diffMeta?.name || node?.difficultyName || "";
 
-  // File drag & drop
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -589,22 +812,36 @@ export default function SolvePage() {
   }
 
   async function handleSubmit() {
-    if (!approach.trim()) {
-      setSubmitError("Please explain your approach before submitting.");
-      return;
-    }
-    if (code.trim() === "// Write your solution here..." || !code.trim()) {
-      setSubmitError("Please write your solution code before submitting.");
-      return;
+    setSubmitError(null);
+
+    if (solutionMode === "prose") {
+      const textContent = richEditorRef.current?.innerText?.trim() || "";
+      if (!textContent) {
+        setSubmitError("Please write your solution before submitting.");
+        return;
+      }
+    } else {
+      const codeVal = code.trim();
+      if (!codeVal || codeVal === "// Write your code solution here...") {
+        setSubmitError("Please write your code solution before submitting.");
+        return;
+      }
     }
 
     setSubmitting(true);
-    setSubmitError(null);
 
     const fd = new FormData();
     fd.append("ExperienceSessionId", sessionId);
-    fd.append("ApproachExplanation", approach);
-    fd.append("CodeSnippet", code);
+
+    if (solutionMode === "prose") {
+      const html = richEditorRef.current?.innerHTML || "";
+      fd.append("ApproachExplanation", html);
+      fd.append("CodeSnippet", "");
+    } else {
+      fd.append("ApproachExplanation", approach);
+      fd.append("CodeSnippet", code);
+    }
+
     files.forEach(f => fd.append("EvidenceFiles", f.file));
 
     const res = await api.submissions.submit(fd);
@@ -643,7 +880,7 @@ export default function SolvePage() {
         <span className="text-xs font-mono text-white/20">|</span>
         <span className="text-xs font-mono text-white/40 truncate max-w-[140px] sm:max-w-xs">{node?.title || "Mission Workspace"}</span>
         {unsaved && (
-          <span className="flex items-center gap-1 text-[10px] font-mono text-amber-400/60 ml-auto">
+          <span className="flex items-center gap-1 text-[10px] font-mono text-amber-400/60 ml-auto mr-2 sm:mr-0">
             <Save className="w-3 h-3" /> Unsaved
           </span>
         )}
@@ -699,76 +936,129 @@ export default function SolvePage() {
       {/* ─── WORKSPACE ─── */}
       {!isLoading && !isError && (
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Mission Panel — always visible on desktop; shown on mobile only when mobileTab === "mission" */}
+          {/* Left: Mission Panel */}
           {node && (
             <div className={`${mobileTab === "mission" ? "flex" : "hidden"} md:flex w-full md:w-[340px] flex-shrink-0`}>
               <MissionPanel node={node} elapsed={elapsed} diffStyle={diffStyle} diffLabel={diffLabel} />
             </div>
           )}
 
-          {/* Right: Workspace — always visible on desktop; shown on mobile only when mobileTab === "workspace" */}
+          {/* Right: Workspace */}
           <div className={`${mobileTab === "workspace" ? "flex" : "hidden"} md:flex flex-1 overflow-y-auto flex-col`}>
-            <div className="flex-1 px-4 md:px-6 py-6 space-y-6 max-w-4xl w-full mx-auto">
+            <div className="flex-1 px-4 md:px-6 py-6 space-y-5 max-w-4xl w-full mx-auto">
 
-              {/* 1. Approach Explanation */}
+              {/* 1. Solution type toggle */}
               <section>
-                <label className="block text-xs font-mono text-white/50 uppercase tracking-widest mb-2">
-                  Explain your approach
-                </label>
-                <textarea
-                  value={approach}
-                  onChange={e => setApproach(e.target.value)}
-                  placeholder="Describe how you plan to solve this problem…"
-                  rows={4}
-                  className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-4 py-3 text-sm text-white/80 placeholder:text-white/20 font-sans outline-none focus:border-[#00D2FF]/40 resize-none transition-colors leading-relaxed"
-                />
+                <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-3">Solution Type</p>
+                <SolutionModeToggle mode={solutionMode} onChange={(m) => {
+                  setSolutionMode(m);
+                  setSubmitError(null);
+                }} />
               </section>
 
-              {/* 2. Code Editor */}
-              <section>
-                <label className="block text-xs font-mono text-white/50 uppercase tracking-widest mb-2">
-                  Your Solution (Code / Logic)
-                </label>
-                <div className="rounded-xl overflow-hidden border border-white/10">
-                  <Editor
-                    height="320px"
-                    defaultLanguage="javascript"
-                    value={code}
-                    onChange={v => { setCode(v || ""); setUnsaved(true); }}
-                    theme="vs-dark"
-                    options={{
-                      fontSize: 13,
-                      fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-                      minimap: { enabled: false },
-                      scrollBeyondLastLine: false,
-                      lineNumbers: "on",
-                      padding: { top: 16, bottom: 16 },
-                      smoothScrolling: true,
-                      cursorBlinking: "smooth",
-                      renderLineHighlight: "gutter",
-                      automaticLayout: true,
-                    }}
-                  />
-                </div>
-              </section>
+              {/* 2. Brainiac AI Tip */}
+              <BrainiacAITip mode={solutionMode} />
 
-              {/* 3. File Upload */}
+              {/* 3. Solution editor */}
+              <AnimatePresence mode="wait">
+                {solutionMode === "prose" ? (
+                  <motion.section
+                    key="prose"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <label className="block text-xs font-mono text-white/50 uppercase tracking-widest mb-2">
+                      Your Solution
+                    </label>
+                    <RichTextEditor
+                      editorRef={richEditorRef}
+                      onInput={() => setUnsaved(true)}
+                    />
+                  </motion.section>
+                ) : (
+                  <motion.section
+                    key="code"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-4"
+                  >
+                    {/* Optional approach for code mode */}
+                    <div>
+                      <label className="block text-xs font-mono text-white/50 uppercase tracking-widest mb-2">
+                        Explain your approach <span className="text-white/20 normal-case font-sans">(optional)</span>
+                      </label>
+                      <textarea
+                        value={approach}
+                        onChange={e => setApproach(e.target.value)}
+                        placeholder="Briefly describe your overall strategy before writing the code…"
+                        rows={3}
+                        className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-4 py-3 text-sm text-white/80 placeholder:text-white/20 font-sans outline-none focus:border-[#FFD700]/30 resize-none transition-colors leading-relaxed"
+                      />
+                    </div>
+
+                    {/* Language selector + Monaco */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-mono text-white/50 uppercase tracking-widest">
+                          Code Solution
+                        </label>
+                        <select
+                          value={language}
+                          onChange={e => setLanguage(e.target.value)}
+                          className="text-xs font-mono bg-[#0a0e18] border border-white/10 rounded-lg px-2 py-1.5 text-white/60 outline-none focus:border-[#FFD700]/30 cursor-pointer hover:border-white/20 transition-colors"
+                        >
+                          {LANGUAGES.map(l => (
+                            <option key={l.value} value={l.value}>{l.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="rounded-xl overflow-hidden border border-white/10">
+                        <Editor
+                          height="320px"
+                          language={language}
+                          value={code}
+                          onChange={v => { setCode(v || ""); setUnsaved(true); }}
+                          theme="vs-dark"
+                          options={{
+                            fontSize: 13,
+                            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                            minimap: { enabled: false },
+                            scrollBeyondLastLine: false,
+                            lineNumbers: "on",
+                            padding: { top: 16, bottom: 16 },
+                            smoothScrolling: true,
+                            cursorBlinking: "smooth",
+                            renderLineHighlight: "gutter",
+                            automaticLayout: true,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </motion.section>
+                )}
+              </AnimatePresence>
+
+              {/* 4. File Upload */}
               <section>
                 <label className="block text-xs font-mono text-white/50 uppercase tracking-widest mb-2">
-                  Evidence Files (optional)
+                  Evidence Files <span className="text-white/20 normal-case font-sans">(optional)</span>
                 </label>
                 <div
                   onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`flex flex-col items-center justify-center gap-3 py-8 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200
+                  className={`flex flex-col items-center justify-center gap-3 py-6 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200
                     ${isDragging ? "border-[#00D2FF]/60 bg-[#00D2FF]/5 scale-[1.01]" : "border-white/10 hover:border-white/20 hover:bg-white/2"}`}
                 >
-                  <Upload className="w-6 h-6 text-white/20" />
+                  <Upload className="w-5 h-5 text-white/20" />
                   <div className="text-center">
                     <p className="text-sm text-white/40 font-mono">Drop files here or click to upload</p>
-                    <p className="text-xs text-white/20 mt-1">Images, code files, ZIP archives</p>
+                    <p className="text-xs text-white/20 mt-1">Images, documents, code files, ZIP archives</p>
                   </div>
                   <input
                     ref={fileInputRef}
@@ -808,24 +1098,22 @@ export default function SolvePage() {
                 )}
               </section>
 
-              {/* 4. Brainiac AI */}
+              {/* 5. Brainiac AI Chat */}
               <section>
                 <BrainiacPanel
                   sessionId={sessionId}
                   userId={userId}
-                  approach={approach}
-                  code={code}
+                  approach={solutionMode === "prose" ? (richEditorRef.current?.innerText || "") : approach}
+                  code={solutionMode === "code" ? code : ""}
                 />
               </section>
 
-              {/* Spacer for action bar */}
               <div className="h-6" />
             </div>
 
-            {/* 5. Sticky action bar */}
-            <div className="sticky bottom-0 z-10 flex-shrink-0 bg-[#060a10]/90 backdrop-blur border-t border-white/5 px-6 py-4">
+            {/* Sticky action bar */}
+            <div className="sticky bottom-0 z-10 flex-shrink-0 bg-[#060a10]/90 backdrop-blur border-t border-white/5 px-4 sm:px-6 py-4">
               <div className="max-w-4xl mx-auto flex items-center gap-3">
-                {/* Submit error */}
                 <AnimatePresence>
                   {submitError && (
                     <motion.p
@@ -842,15 +1130,16 @@ export default function SolvePage() {
                 <div className="ml-auto flex items-center gap-3">
                   <button
                     onClick={() => setShowAbandon(true)}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-500/20 text-red-400/60 text-sm font-mono hover:border-red-500/40 hover:text-red-400 transition-colors"
+                    className="flex items-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-xl border border-red-500/20 text-red-400/60 text-sm font-mono hover:border-red-500/40 hover:text-red-400 transition-colors"
                   >
-                    <Flag className="w-3.5 h-3.5" /> Abandon
+                    <Flag className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Abandon</span>
                   </button>
 
                   <button
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD] text-white text-sm font-bold font-mono hover:opacity-90 hover:scale-[1.02] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-[#00D2FF]/20"
+                    className="flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD] text-white text-sm font-bold font-mono hover:opacity-90 hover:scale-[1.02] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-[#00D2FF]/20"
                   >
                     {submitting ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Submitting…</>
@@ -865,7 +1154,6 @@ export default function SolvePage() {
         </div>
       )}
 
-      {/* Abandon modal */}
       <AnimatePresence>
         {showAbandon && (
           <AbandonModal
