@@ -1,0 +1,176 @@
+Build and integrate Social Login (Google, Facebook, LinkedIn, GitHub if available) into the Brainepedia Login and Sign Up pages.
+
+OBJECTIVE
+
+Allow users to authenticate using social providers through browser redirection using the backend endpoint:
+
+GET /api/Account/social-login/{provider}
+
+Example:
+
+window.location.href =
+"https://api.brainepedia.com/api/Account/social-login/Google?redirectUrl=https://demo.brainepedia.com/login-success";
+
+Do NOT use fetch or axios for social login initialization.
+It must use full browser redirect navigation.
+
+REQUIRED IMPLEMENTATION
+1. UPDATE LOGIN PAGE UI
+
+Add a modern “Continue with” section below the normal login form.
+
+Buttons:
+
+Continue with Google
+Continue with Facebook
+Continue with LinkedIn
+Continue with GitHub (optional if provider exists)
+
+Requirements:
+
+Use clean rounded buttons
+Provider icons
+Responsive mobile layout
+Match existing Brainepedia branding/theme
+Maintain dark/light mode compatibility
+
+Example structure:
+
+<div className="social-login-section">
+  <button onClick={() => socialLogin("Google")}>
+    <GoogleIcon /> Continue with Google
+  </button>
+</div>
+2. UPDATE SIGNUP PAGE
+
+Add the same social login section to the registration page.
+
+Text:
+“Create your account instantly with social login”
+
+3. CREATE SOCIAL LOGIN HELPER
+
+Create reusable helper:
+
+const API_BASE = "https://api.brainepedia.com";
+
+const socialLogin = (provider) => {
+  const redirectUrl =
+    encodeURIComponent("https://demo.brainepedia.com/login-success");
+
+  window.location.href =
+    `${API_BASE}/api/Account/social-login/${provider}?redirectUrl=${redirectUrl}`;
+};
+4. CREATE LOGIN SUCCESS PAGE
+
+Create:
+
+/login-success
+
+Purpose:
+Handle redirect response from backend.
+
+Backend redirects with:
+
+?status=Success
+&userId=...
+&email=...
+&token=...
+&profileId=...
+5. PARSE QUERY STRING
+
+On page load:
+
+Read query parameters
+Validate token exists
+Save auth data securely
+
+Store:
+
+JWT token
+userId
+profileId
+email
+
+Use:
+
+localStorage OR Zustand/Redux/AuthContext
+
+Example:
+
+localStorage.setItem("token", token);
+localStorage.setItem("userId", userId);
+localStorage.setItem("profileId", profileId);
+6. REMOVE TOKEN FROM URL
+
+IMPORTANT:
+After processing auth params:
+
+Immediately clean the URL using:
+window.history.replaceState({}, document.title, "/dashboard");
+
+OR navigate cleanly using router replace.
+
+This prevents token exposure.
+
+7. AUTO LOGIN FLOW
+
+After successful processing:
+
+Redirect user to dashboard
+Show loading spinner while processing
+Show friendly success message:
+“Welcome back to Brainepedia”
+
+If auth fails:
+
+Show error state
+Redirect back to login
+8. ADD AUTH GUARD SUPPORT
+
+Update existing auth middleware/hooks to:
+
+Detect social login JWT token
+Automatically authenticate user session
+Restore session on refresh
+9. USER EXPERIENCE REQUIREMENTS
+
+Ensure:
+
+Mobile responsive
+Smooth transitions
+No page flashing
+Loading indicators
+Error handling
+Retry support
+10. SECURITY REQUIREMENTS
+
+IMPORTANT:
+
+Never expose token permanently in URL
+Remove query params immediately
+Validate token before storing
+Logout should clear all auth storage
+11. OPTIONAL ENHANCEMENTS
+
+If possible:
+
+Add animated provider buttons
+Add “Signing you in...” screen
+Add profile avatar preview after login
+Add remember session support
+12. FINAL TESTING
+
+Verify:
+
+Google login works
+Existing users login successfully
+New users auto-register correctly
+Redirect flow works
+Dashboard loads authenticated state
+Refresh persists login
+Logout clears session
+Mobile works properly
+URL query params are cleaned after login
+
+Use production-ready clean architecture and reusable auth utilities.

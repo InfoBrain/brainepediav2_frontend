@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
+import { SocialLoginSection } from "@/components/auth/SocialLoginSection";
 
 export function AuthBanner({ type, message }: { type: "error" | "success" | "info", message: string }) {
   if (!message) return null;
@@ -137,6 +138,8 @@ export default function Login() {
           {isSubmitting ? "Authenticating..." : "Login"}
         </Button>
       </form>
+
+      <SocialLoginSection />
 
       <div className="mt-6 space-y-2 text-center text-sm">
         <div>

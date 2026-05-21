@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "wouter";
 import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { SocialLoginSection } from "@/components/auth/SocialLoginSection";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const registerSchema = z.object({
@@ -124,6 +125,8 @@ export default function Register() {
           {isSubmitting ? "Initializing..." : "Create Account"}
         </Button>
       </form>
+
+      <SocialLoginSection label="Or create account with" />
 
       <div className="mt-6 text-center text-sm">
         <Link href="/auth/login" className="text-muted-foreground hover:text-primary transition-colors">

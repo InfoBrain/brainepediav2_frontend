@@ -20,6 +20,7 @@ import VerifyOtp from "@/pages/auth/VerifyOtp";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
 import ChangePassword from "@/pages/auth/ChangePassword";
+import LoginSuccess from "@/pages/auth/LoginSuccess";
 
 // Dashboard pages
 import UserDashboard from "@/pages/dashboard/UserDashboard";
@@ -101,6 +102,7 @@ function Router() {
       <Route path="/auth/forgot-password" component={ForgotPassword} />
       <Route path="/auth/reset-password" component={ResetPassword} />
       <Route path="/auth/change-password" component={ChangePassword} />
+      <Route path="/login-success" component={LoginSuccess} />
 
       <Route path="/user/subscription/verify">
         <RequireAuth allow={["User"]}>
