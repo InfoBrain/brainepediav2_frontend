@@ -38,9 +38,9 @@ export default function ForgotPassword() {
   };
 
   return (
-    <AuthLayout quote="Even Grandmasters forget.">
+    <AuthLayout quote="It happens to everyone.">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Forgot your key?</h1>
+        <h1 className="text-3xl font-bold mb-2">Forgot your password?</h1>
         <p className="text-muted-foreground">Enter your email. We'll send you a code to reset your password.</p>
       </div>
 
@@ -49,13 +49,13 @@ export default function ForgotPassword() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="operator@domain.com" {...register("email")} />
+          <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
           {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
         </div>
 
         <Button type="submit" className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)]" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {isSubmitting ? "Transmitting..." : "Send Reset Code"}
+          {isSubmitting ? "Sending..." : "Send Reset Code"}
         </Button>
       </form>
 

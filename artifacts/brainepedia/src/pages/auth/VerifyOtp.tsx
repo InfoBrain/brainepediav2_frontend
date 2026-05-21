@@ -72,9 +72,9 @@ export default function VerifyOtp() {
   };
 
   return (
-    <AuthLayout quote="Confirm your signal.">
+    <AuthLayout quote="Check your inbox.">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Confirm Your Signal.</h1>
+        <h1 className="text-3xl font-bold mb-2">Verify Your Email.</h1>
         <p className="text-muted-foreground">
           We sent a 6-digit code to <span className="font-mono text-primary">{email}</span>.
         </p>

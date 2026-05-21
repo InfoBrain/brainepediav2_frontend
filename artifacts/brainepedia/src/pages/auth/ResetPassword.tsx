@@ -95,9 +95,9 @@ export default function ResetPassword() {
   const defaultEmail = params.get("email") || "";
 
   return (
-    <AuthLayout quote="Forge a new key.">
+    <AuthLayout quote="Create a new password.">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Forge a New Key.</h1>
+        <h1 className="text-3xl font-bold mb-2">Reset Your Password.</h1>
         <p className="text-muted-foreground">Enter the code from your email and choose a new password.</p>
       </div>
 
@@ -140,7 +140,7 @@ export default function ResetPassword() {
 
         <Button type="submit" className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)]" disabled={isSubmitting || otp.length !== 6}>
           {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {isSubmitting ? "Forging..." : "Reset Password"}
+          {isSubmitting ? "Saving..." : "Reset Password"}
         </Button>
       </form>
     </AuthLayout>
