@@ -525,11 +525,21 @@ function BrainiacPanel({
 
       function extractHint(val: unknown): string {
         if (!val) return "";
-        if (typeof val === "string") return val.trim();
+        if (typeof val === "string") {
+          const s = val.trim();
+          if (s.startsWith("{") || s.startsWith("[")) {
+            try {
+              return extractHint(JSON.parse(s));
+            } catch {
+              // not JSON — fall through and return as-is
+            }
+          }
+          return s;
+        }
         if (typeof val === "object" && val !== null) {
           const obj = val as Record<string, unknown>;
           const hint = obj.hint ?? obj.text ?? obj.message ?? obj.content ?? obj.response;
-          if (typeof hint === "string") return hint.trim();
+          if (hint !== undefined) return extractHint(hint);
           const nested = Object.values(obj).find(v => typeof v === "string");
           if (typeof nested === "string") return nested.trim();
         }
