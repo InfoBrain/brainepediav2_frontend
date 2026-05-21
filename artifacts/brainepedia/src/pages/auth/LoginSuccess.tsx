@@ -20,6 +20,9 @@ export default function LoginSuccess() {
     const userId    = params.get("userId");
     const email     = params.get("email");
     const profileId = params.get("profileId");
+    const firstName = params.get("firstName");
+    const lastName  = params.get("lastName");
+    const role      = params.get("role");
 
     if (!token || status?.toLowerCase() !== "success") {
       setErrorMsg(
@@ -37,6 +40,9 @@ export default function LoginSuccess() {
       userId,
       profileId,
       email,
+      ...(firstName ? { firstName } : {}),
+      ...(lastName  ? { lastName  } : {}),
+      ...(role      ? { role      } : {}),
     };
 
     setToken(token, profile);
