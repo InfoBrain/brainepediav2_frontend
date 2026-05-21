@@ -1,0 +1,231 @@
+Update the Mission/Task Activity page to make the solution submission area profession-agnostic and suitable for all users, not just software developers.
+
+OBJECTIVE
+
+Currently, the platform uses a fixed “Code Solution” text block which only works well for programming-related professions.
+
+Since Brainepedia now supports multiple professions including:
+
+* Business
+* Marketing
+* Finance
+* Design
+* Education
+* Healthcare
+* Media
+* Administration
+* Sales
+* Software Development
+
+…the solution input system must become more flexible and generic.
+
+---
+
+# REQUIRED UPDATE
+
+Replace the current fixed code text area with a modern dynamic solution editor system.
+
+---
+
+# NEW SOLUTION INPUT SYSTEM
+
+Create TWO switchable modes:
+
+## 1. Rich Text Solution Mode (Default)
+
+For:
+
+* theories
+* explanations
+* business plans
+* marketing ideas
+* reports
+* essays
+* strategies
+* analyses
+* documentation
+* general professional answers
+
+Features:
+
+* rich text editor
+* formatting toolbar
+* headings
+* bullet lists
+* bold/italic
+* links
+* tables
+* image embed support
+* responsive mobile typing experience
+
+Label:
+
+```txt
+Your Solution
+```
+
+Placeholder:
+
+```txt
+Explain your approach, ideas, analysis, or professional solution here...
+```
+
+---
+
+## 2. Code Editor Mode (Optional)
+
+For technical professions.
+
+Allow users to switch to:
+
+```txt
+Code Mode
+```
+
+Features:
+
+* syntax highlighting
+* language selector
+* Monaco editor or similar
+* dark/light theme support
+* fullscreen mode
+
+Placeholder:
+
+```txt
+Write your code solution here...
+```
+
+---
+
+# MODE SWITCHING
+
+Add a clean toggle:
+
+```txt
+Solution Type:
+○ Professional Response
+○ Code Solution
+```
+
+OR tab switcher:
+
+* Rich Text
+* Code
+
+The default mode should be:
+
+```txt
+Professional Response
+```
+
+---
+
+# IMPORTANT BACKEND COMPATIBILITY
+
+Maintain compatibility with existing API:
+
+```txt
+POST /api/Submissions/submit
+```
+
+Current fields:
+
+* ApproachExplanation
+* CodeSnippet
+
+Update frontend logic:
+
+## Rich Text Mode
+
+* save content into:
+
+```txt
+ApproachExplanation
+```
+
+## Code Mode
+
+* save code into:
+
+```txt
+CodeSnippet
+```
+
+If Rich Text mode is used:
+
+* CodeSnippet can be empty
+
+If Code mode is used:
+
+* ApproachExplanation can still contain optional explanation
+
+---
+
+# UI/UX REQUIREMENTS
+
+Improve mobile responsiveness significantly.
+
+Current issue:
+
+* right panel too compressed
+* typing area too narrow on mobile
+
+Fix:
+
+* full-width editor on mobile
+* stacked layout on smaller screens
+* responsive resizing
+* better spacing/padding
+* sticky action buttons
+
+---
+
+# ADD BRAINIAC AI GUIDANCE
+
+Above the editor add:
+
+```txt
+Brainiac AI Tip
+```
+
+Example:
+
+```txt
+Provide a clear practical solution with real-world reasoning and structured thinking.
+```
+
+Tips should adapt to:
+
+* profession
+* challenge type
+* solution mode
+
+---
+
+# DESIGN REQUIREMENTS
+
+Maintain:
+
+* modern glassmorphism
+* futuristic Brainepedia UI
+* smooth animations
+* clean professional look
+
+But make the experience:
+
+* simpler
+* broader
+* more intuitive
+* less developer-only
+
+The task page should now feel suitable for:
+
+* professionals
+* students
+* creatives
+* analysts
+* technical users
+* non-technical users
+
+Use reusable editor components and production-ready architecture.
