@@ -1,0 +1,174 @@
+Update the Brainepedia authentication system to support ONLY “Sign in with Google”.
+
+IMPORTANT:
+
+Remove all Facebook, LinkedIn, GitHub social login options.
+Do NOT hardcode frontend URLs like:
+https://demo.brainepedia.com
+https://brainepedia.com
+The same frontend build runs on multiple domains/environments.
+All redirects must dynamically use the current window origin.
+FIX GOOGLE REDIRECT_URI_MISMATCH ERROR
+
+The Google OAuth redirect URIs configured in Google Console are now:
+
+https://brainepedia.com/signin-google
+https://demo.brainepedia.com/signin-google
+
+Ensure frontend and backend flows align with these exact redirect URLs.
+
+IMPORTANT:
+The frontend should NEVER manually navigate to /signin-google.
+
+The backend ASP.NET Core Google authentication middleware handles this automatically.
+
+REQUIRED IMPLEMENTATION
+1. LOGIN PAGE
+
+Update Login page UI to include ONLY:
+
+Continue with Google
+
+Requirements:
+
+Modern clean Google button
+Google icon
+Responsive mobile design
+Match Brainepedia branding/theme
+Place below normal login form
+2. SIGNUP PAGE
+
+Add the same Google Sign-In section below registration form.
+
+Text:
+
+Create your account instantly with Google
+3. REMOVE HARDCODED DOMAINS
+
+DO NOT use:
+
+https://demo.brainepedia.com
+
+DO NOT use:
+
+https://brainepedia.com
+
+Instead dynamically detect current frontend origin:
+
+const FRONTEND_URL = window.location.origin;
+4. CREATE GOOGLE LOGIN HELPER
+
+Use browser redirect ONLY.
+
+DO NOT use fetch or axios.
+
+Implementation:
+
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || "https://api.brainepedia.com";
+
+const loginWithGoogle = () => {
+  const redirectUrl =
+    encodeURIComponent(`${window.location.origin}/login-success`);
+
+  window.location.href =
+    `${API_BASE}/api/Account/social-login/Google?redirectUrl=${redirectUrl}`;
+};
+5. CREATE /LOGIN-SUCCESS PAGE
+
+Create route:
+
+/login-success
+
+Purpose:
+Handle backend redirect after Google authentication.
+
+The backend redirects with:
+
+?status=Success
+&userId=...
+&email=...
+&token=...
+&profileId=...
+6. PROCESS AUTH RESPONSE
+
+On page load:
+
+Read query params
+Validate token exists
+Save auth data securely
+
+Store:
+
+token
+userId
+profileId
+email
+
+Example:
+
+localStorage.setItem("token", token);
+localStorage.setItem("userId", userId);
+localStorage.setItem("profileId", profileId);
+localStorage.setItem("email", email);
+7. REMOVE TOKEN FROM URL
+
+IMPORTANT SECURITY FIX
+
+Immediately clean URL after processing:
+
+window.history.replaceState({}, document.title, "/dashboard");
+
+OR router.replace("/dashboard")
+
+This prevents token exposure.
+
+8. AUTH SESSION SUPPORT
+
+Update auth middleware/hooks/context to:
+
+Detect stored JWT token
+Auto-login returning users
+Persist login on refresh
+Support Google-authenticated accounts
+9. FIX GOOGLE CALLBACK FLOW
+
+IMPORTANT:
+Do NOT create frontend routes that interfere with:
+
+/signin-google
+
+This route belongs to ASP.NET Core authentication middleware.
+
+Frontend routing must allow backend authentication flow to complete correctly.
+
+10. HANDLE ERRORS
+
+If authentication fails:
+
+Show friendly error message
+Redirect back to login page
+Allow retry
+
+Example:
+
+Google sign-in failed. Please try again.
+11. FINAL TESTING CHECKLIST
+
+Verify:
+
+Google button works
+No redirect_uri_mismatch error
+Production works:
+https://brainepedia.com
+Demo works:
+https://demo.brainepedia.com
+Login-success processes correctly
+JWT token stores correctly
+Dashboard loads authenticated user
+Refresh preserves session
+Logout clears auth state
+Mobile responsive layout works
+No hardcoded frontend URLs remain anywhere in the app
+
+Use clean reusable production-ready authentication architecture.
