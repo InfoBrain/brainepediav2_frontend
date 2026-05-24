@@ -24,3 +24,9 @@ id = "HPguCO5O06-cggdTw-_j0"
 uri = "file://brainepedia-release.zip"
 type = "unspecified"
 title = "brainepedia-release.zip — IIS/Node.js deployment package"
+
+[[outputs]]
+id = "aXzBbqPfKthLNevcjmign"
+uri = "file://Brainepedia_Platform_Review.docx"
+type = "word_document"
+title = "Brainepedia — Technical, Marketing & Business Review"
