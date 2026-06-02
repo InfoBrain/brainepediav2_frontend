@@ -1,0 +1,343 @@
+Build a complete Employer System UI and workflow for Brainepedia using the existing Employers API endpoints.
+
+GENERAL REQUIREMENTS
+
+* Use responsive modern UI matching the Brainepedia theme.
+* Use clean business-focused terminology.
+* All authenticated requests must include Bearer token authorization.
+* Do NOT hardcode domain URLs. Use environment variables or current origin.
+* Add loading states, empty states, success/error toasts, and pagination.
+* Store authentication securely.
+* Use reusable API services/hooks.
+* Validate all forms before submission.
+* Ensure all pages are mobile responsive.
+
+========================================
+
+1. UPDATE SIGN UP PAGE
+   ========================================
+
+Replace:
+"Apply as a Mission Author / Instructor"
+
+With:
+"Apply as an Employer"
+
+When toggled:
+
+* Switch registration form into Employer Registration Mode.
+
+Employer Registration Fields:
+
+* First Name
+* Last Name
+* Email
+* Password
+* Confirm Password
+* Phone Number
+* Company Name
+* Company Logo URL
+* Website URL
+* About Company
+
+POST API:
+POST /api/Employers/onboard
+
+Request Body:
+{
+"firstName": "",
+"lastName": "",
+"email": "",
+"password": "",
+"confirmPassword": "",
+"phoneNumber": "",
+"companyName": "",
+"companyLogoUrl": "",
+"websiteUrl": "",
+"aboutCompany": ""
+}
+
+Success Response:
+{
+"status": "Success",
+"message": "Registeration Successful. Verification OTP sent to your email"
+}
+
+After success:
+
+* Redirect to OTP verification flow.
+* Show success message.
+
+========================================
+2. EMPLOYER DASHBOARD
+=====================
+
+Create dedicated Employer Dashboard with sidebar menus:
+
+* Dashboard Overview
+* Company Profile
+* Team Members
+* Private Challenges
+* Candidate Assessments
+* Team Analytics
+* Billing & Seats
+* Subscription
+* Settings
+
+Dashboard Overview Cards:
+
+* Total Team Members
+* Active Challenges
+* Total Candidates
+* Current Subscription
+* Monthly Active Seats
+
+========================================
+3. COMPANY PROFILE PAGE
+=======================
+
+GET employer profile data from authenticated employer account.
+
+Allow editing:
+
+* Company Name
+* Company Email
+* Company Phone Number
+* Company Logo URL
+* Website URL
+* About Company
+
+UPDATE API:
+PUT /api/Employers/my-profile/update
+
+Request Body:
+{
+"companyName": "",
+"companyEmail": "",
+"companyPhoneNumber": "",
+"companyLogoUrl": "",
+"websiteUrl": "",
+"aboutCompany": ""
+}
+
+Success Response:
+{
+"status": "Success",
+"message": "Corporate details successfully updated."
+}
+
+========================================
+4. TEAM MEMBER MANAGEMENT
+=========================
+
+Create Team Provision Page.
+
+Form Fields:
+
+* First Name
+* Last Name
+* Employee Email
+* Profession
+
+POST API:
+POST /api/Employers/team/provision
+
+Request Body:
+{
+"firstName": "",
+"lastName": "",
+"employeeEmail": "",
+"profession": ""
+}
+
+Handle both:
+
+* Existing users
+* Newly created users
+
+Display:
+
+* Success alerts
+* Roster table
+* Team status
+
+========================================
+5. PRIVATE CHALLENGES PAGE
+==========================
+
+Create Corporate Challenge Assignment Page.
+
+Form Fields:
+
+* Challenge Name
+* ProblemNodeId
+* End Date
+
+POST API:
+POST /api/Employers/team/private-challenges/create
+
+Request Body:
+{
+"challengeName": "",
+"problemNodeId": "",
+"endDate": ""
+}
+
+Success:
+
+* Show created challenge.
+* Refresh assignments list.
+
+Display:
+
+* Challenge cards
+* Assigned professions
+* Expiry date
+* Participant counts
+
+========================================
+6. CANDIDATE ASSESSMENTS
+========================
+
+Create Candidate Recruitment Assessment UI.
+
+Form Fields:
+
+* Candidate Email
+* First Name
+* Last Name
+* ProblemNodeId
+
+POST API:
+POST /api/Employers/candidates/assign-private-mission
+
+Request Body:
+{
+"candidateEmail": "",
+"firstName": "",
+"lastName": "",
+"problemNodeId": ""
+}
+
+Success Response:
+{
+"status": "Success",
+"message": "Candidate tracking records generated and invitation successfully dispatched."
+}
+
+Display:
+
+* Assigned assessments
+* Candidate status
+* Completion tracking
+
+========================================
+7. TEAM ANALYTICS PAGE
+======================
+
+GET API:
+GET /api/Employers/team/analytics
+
+Display:
+
+* Organization size
+* Employee performance cards
+* XP charts
+* Verified Experience metrics
+* Problem solved count
+* Day streak
+* Profession distribution
+
+Use clean charts and tables.
+
+========================================
+8. BILLING & ACTIVE SEATS PAGE
+==============================
+
+GET API:
+GET /api/Employers/billing/current-month-seats
+
+Display:
+
+* Billing cycle start
+* Unique active employees this month
+* Current plan type
+
+========================================
+9. SEAT PAYMENT FLOW
+====================
+
+Create “Activate Grandmaster Seat” button per employee.
+
+POST API:
+POST /api/Employers/team/{employeeUserId}/initialize-seat-payment
+
+Response:
+{
+"checkoutUrl": ""
+}
+
+Behavior:
+
+* Redirect browser directly to checkoutUrl.
+
+========================================
+10. GLOBAL ADMIN EMPLOYER MANAGEMENT
+====================================
+
+Admin-only section.
+
+GET ALL EMPLOYERS:
+GET /api/Employers/admin/all-employers?page=1&pageSize=15
+
+Display:
+
+* Company Name
+* Website
+* Employer Email
+* Date Registered
+* Active Jobs
+* Team Members
+
+Add pagination.
+
+Employer Details Page:
+GET /api/Employers/admin/{employerId}/details
+
+Display:
+
+* Company profile
+* Account owner info
+* Job history
+* Contact information
+* Company logo
+* About company
+
+========================================
+11. UX IMPROVEMENTS
+===================
+
+* Add employer onboarding wizard.
+* Add confirmation modals before assignments.
+* Add empty states for no team members/challenges.
+* Add profile avatar/logo previews.
+* Use modern cards and tables.
+* Add searchable lists.
+* Add breadcrumb navigation.
+* Add protected employer routes.
+* Add role-based rendering for Employer and GlobalAdmin.
+* Add retry handling for failed requests.
+* Add optimistic UI updates where appropriate.
+
+========================================
+12. API & AUTH STANDARDS
+========================
+
+* Use centralized API client.
+* Automatically attach JWT token.
+* Handle 401 and redirect to login.
+* Handle 403 with permission messages.
+* Use async loading skeletons.
+* Ensure all forms are strongly typed.
+
+Finalize the employer module production-ready and fully integrated into the existing Brainepedia platform.

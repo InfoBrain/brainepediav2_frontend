@@ -23,7 +23,7 @@ title = "brainepedia-release.tar.gz — Node.js + iisnode deployment package (Go
 id = "HPguCO5O06-cggdTw-_j0"
 uri = "file://brainepedia-release.zip"
 type = "unspecified"
-title = "brainepedia-release.zip — IIS/Node.js deployment package"
+title = "brainepedia-release.zip — Node.js + IISNode deployment package"
 
 [[outputs]]
 id = "aXzBbqPfKthLNevcjmign"
