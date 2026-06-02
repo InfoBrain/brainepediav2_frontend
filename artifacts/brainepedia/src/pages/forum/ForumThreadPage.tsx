@@ -64,17 +64,45 @@ function Avatar({ author, size = "md" }: { author: ThreadAuthor; size?: "sm" | "
   );
 }
 
+type Segment = { type: "bold" | "italic" | "text"; text: string };
+
+function parseInline(line: string): Segment[] {
+  const segments: Segment[] = [];
+  const re = /(\*\*(.+?)\*\*|\*(.+?)\*)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(line)) !== null) {
+    if (m.index > last) segments.push({ type: "text", text: line.slice(last, m.index) });
+    if (m[0].startsWith("**")) segments.push({ type: "bold", text: m[2] });
+    else segments.push({ type: "italic", text: m[3] });
+    last = m.index + m[0].length;
+  }
+  if (last < line.length) segments.push({ type: "text", text: line.slice(last) });
+  return segments;
+}
+
 function ContentBody({ text }: { text: string }) {
   const paragraphs = text.split(/\n\n+/);
   return (
     <div className="space-y-4 text-sm leading-relaxed text-foreground/90">
-      {paragraphs.map((para, i) => {
-        const html = para
-          .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-          .replace(/\*(.+?)\*/g, "<em>$1</em>")
-          .replace(/\n/g, "<br/>");
-        return <p key={i} dangerouslySetInnerHTML={{ __html: html }} />;
-      })}
+      {paragraphs.map((para, i) => (
+        <p key={i}>
+          {para.split("\n").map((line, li) => (
+            <span key={li}>
+              {li > 0 && <br />}
+              {parseInline(line).map((seg, si) =>
+                seg.type === "bold" ? (
+                  <strong key={si}>{seg.text}</strong>
+                ) : seg.type === "italic" ? (
+                  <em key={si}>{seg.text}</em>
+                ) : (
+                  <span key={si}>{seg.text}</span>
+                )
+              )}
+            </span>
+          ))}
+        </p>
+      ))}
     </div>
   );
 }
