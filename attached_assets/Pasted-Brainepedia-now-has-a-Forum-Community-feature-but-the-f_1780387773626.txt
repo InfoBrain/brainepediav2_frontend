@@ -4,11 +4,7 @@ Your task is to populate the forum with realistic, professional, and engaging di
 
 Requirements:
 
-1. Log into the platform using the following test accounts:
-
-   * [ayobamideleadepoju@gmail.com](mailto:ayobamideleadepoju@gmail.com) / Damochi-1992
-   * [johnkayode2021@gmail.com](mailto:johnkayode2021@gmail.com) / Damochi-1992
-   * [serahadetutu998@gmail.com](mailto:serahadetutu998@gmail.com) / Adetutu998
+1. Log into the platform using the test accounts provided separately (credentials redacted).
 
 2. Create multiple discussion threads under different forum categories.
 
