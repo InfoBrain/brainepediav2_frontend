@@ -14,7 +14,7 @@ export function Solution() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -29,7 +29,7 @@ export function Solution() {
             </p>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -45,7 +45,7 @@ export function Solution() {
             </p>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -55,9 +55,9 @@ export function Solution() {
             <div className="w-14 h-14 rounded-lg bg-accent/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Database className="w-7 h-7 text-accent" />
             </div>
-            <h3 className="text-2xl font-bold mb-4">Immutable Ledger</h3>
+            <h3 className="text-2xl font-bold mb-4">Independently Verified Record</h3>
             <p className="text-muted-foreground">
-              Your career progress is permanently recorded on our secure ledger. A public profile that proves exactly what you're capable of.
+              Your career progress is independently verified and tamper-evident. A public profile that proves exactly what you're capable of — backed by AI evaluation, not self-reporting.
             </p>
           </motion.div>
         </div>

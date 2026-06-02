@@ -88,7 +88,12 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
 
 export const api = {
   auth: {
-    register: (data: any) => fetchApi("/api/Account/register", { method: "POST", body: JSON.stringify(data) }),
+    register: (data: any, recaptchaToken?: string) =>
+      fetchApi("/api/Account/register", {
+        method: "POST",
+        body: JSON.stringify(data),
+        ...(recaptchaToken ? { headers: { "X-Recaptcha-Token": recaptchaToken } } : {}),
+      }),
     login: (data: any) => fetchApi("/api/Account/auth_login", { method: "POST", body: JSON.stringify(data) }),
     forgotPassword: (email: string) => fetchApi(`/api/Account/forgot_password?email=${encodeURIComponent(email)}`, { method: "GET" }),
     resetPassword: (data: any) => fetchApi("/api/Account/reset_password", { method: "POST", body: JSON.stringify(data) }),
@@ -323,5 +328,8 @@ export const api = {
         method: "POST",
         body: JSON.stringify(data),
       }),
+    /** POST /api/Forum/categories/create */
+    createCategory: (data: { Name: string; Description: string }) =>
+      fetchApi("/api/Forum/categories/create", { method: "POST", body: JSON.stringify(data) }),
   },
 };

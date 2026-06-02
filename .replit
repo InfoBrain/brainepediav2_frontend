@@ -63,3 +63,9 @@ externalPort = 3001
 [[ports]]
 localPort = 23465
 externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+VITE_RECAPTCHA_SITE_KEY = "6LfQnv8sAAAAABr9YgnMkDL70PFT-JT1eTQOqScY"
+RECAPTCHA_SECRET_KEY = "6LfQnv8sAAAAADlIIP1i8Z0T0Ou1W0APZT3c6RNP"

@@ -6,6 +6,7 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Brainiac } from "@/components/landing/Brainiac";
 import { Professions } from "@/components/landing/Professions";
 import { XPLedger } from "@/components/landing/XPLedger";
+import { Testimonials } from "@/components/landing/Testimonials";
 import { Pricing } from "@/components/landing/Pricing";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { FAQ } from "@/components/landing/FAQ";
@@ -23,6 +24,7 @@ export default function Home() {
         <Brainiac />
         <Professions />
         <XPLedger />
+        <Testimonials />
         <Pricing />
         <FAQ />
         <FinalCTA />

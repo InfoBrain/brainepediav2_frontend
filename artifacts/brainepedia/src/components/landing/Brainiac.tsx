@@ -6,7 +6,7 @@ export function Brainiac() {
     <section className="py-32 relative bg-card/30" id="brainiac">
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center gap-16">
-          <motion.div 
+          <motion.div
             className="flex-1"
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -21,7 +21,7 @@ export function Brainiac() {
                 "Analyzes architecture, not just syntax.",
                 "Flags security vulnerabilities and edge cases.",
                 "Grades against industry-standard benchmarks.",
-                "Issues immutable Verified Experience (VX) scores."
+                "Issues independently verified Verified Experience (VX) scores.",
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3 text-muted-foreground">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
@@ -31,7 +31,7 @@ export function Brainiac() {
             </ul>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="flex-1 w-full"
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}

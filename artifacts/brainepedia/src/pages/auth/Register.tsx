@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import ReCAPTCHA from "react-google-recaptcha";
 import { api } from "@/lib/api";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthBanner } from "@/pages/auth/Login";
@@ -14,6 +15,8 @@ import { Link } from "wouter";
 import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { SocialLoginSection } from "@/components/auth/SocialLoginSection";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string;
 
 const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -35,7 +38,9 @@ export default function Register() {
   const [, setLocation] = useLocation();
   const [error, setError] = useState("");
   const [isReferralOpen, setIsReferralOpen] = useState(false);
-  
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+
   const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: { isInstructor: false }
@@ -45,9 +50,17 @@ export default function Register() {
 
   const onSubmit = async (data: RegisterForm) => {
     setError("");
-    const res = await api.auth.register(data);
+
+    if (RECAPTCHA_SITE_KEY && !recaptchaToken) {
+      setError("Please complete the reCAPTCHA verification before continuing.");
+      return;
+    }
+
+    const res = await api.auth.register(data, recaptchaToken ?? undefined);
     if (!res.ok) {
       setError(res.error || "Failed to register");
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
       return;
     }
     setLocation(`/auth/verify-otp?email=${encodeURIComponent(data.email)}`);
@@ -112,15 +125,31 @@ export default function Register() {
         </Collapsible>
 
         <div className="flex items-center space-x-2 pt-2 border-t border-border/50">
-          <Switch 
-            id="isInstructor" 
+          <Switch
+            id="isInstructor"
             checked={isInstructor}
             onCheckedChange={(c) => setValue("isInstructor", c)}
           />
           <Label htmlFor="isInstructor" className="text-sm">Apply as a Mission Author / Instructor</Label>
         </div>
 
-        <Button type="submit" className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] mt-4" disabled={isSubmitting}>
+        {RECAPTCHA_SITE_KEY && (
+          <div className="flex justify-center pt-1">
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={RECAPTCHA_SITE_KEY}
+              theme="dark"
+              onChange={(token) => setRecaptchaToken(token)}
+              onExpired={() => setRecaptchaToken(null)}
+            />
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] mt-4"
+          disabled={isSubmitting || (!!RECAPTCHA_SITE_KEY && !recaptchaToken)}
+        >
           {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           {isSubmitting ? "Creating account..." : "Create Account"}
         </Button>

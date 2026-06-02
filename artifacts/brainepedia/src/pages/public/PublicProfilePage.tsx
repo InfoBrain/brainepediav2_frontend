@@ -7,6 +7,7 @@ import {
   Download, BookOpen, Calendar, Award, User,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { getUser } from "@/lib/auth";
 
 /* ── Types ── */
 type BadgeItem = {
@@ -195,7 +196,7 @@ export default function PublicProfilePage() {
         <div className="text-center max-w-sm">
           <User className="w-16 h-16 text-white/10 mx-auto mb-4" />
           <p className="text-lg font-bold text-white/60">{error}</p>
-          <button onClick={() => navigate("/")} className="mt-6 px-6 py-2.5 rounded-xl bg-[#00D2FF]/10 border border-[#00D2FF]/20 text-[#00D2FF] text-sm font-mono hover:bg-[#00D2FF]/20 transition-colors">
+          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")} className="mt-6 px-6 py-2.5 rounded-xl bg-[#00D2FF]/10 border border-[#00D2FF]/20 text-[#00D2FF] text-sm font-mono hover:bg-[#00D2FF]/20 transition-colors">
             ← Back to Brainepedia
           </button>
         </div>
@@ -213,9 +214,9 @@ export default function PublicProfilePage() {
 
         {/* ── Top bar ── */}
         <div className="flex items-center justify-between">
-          <button onClick={() => navigate("/")}
+          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")}
             className="flex items-center gap-2 text-white/40 hover:text-white/80 text-sm font-mono transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Brainepedia
+            <ArrowLeft className="w-4 h-4" /> {getUser() ? "Dashboard" : "Brainepedia"}
           </button>
           <div className="flex items-center gap-1 text-[10px] font-mono text-white/20 uppercase tracking-widest">
             <Shield className="w-3 h-3" /> Verified Dossier

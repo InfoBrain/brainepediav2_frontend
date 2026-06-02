@@ -1,4 +1,4 @@
-import { Router, type IRouter, type Request, type Response } from "express";
+import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 
 const UPSTREAM = "https://api.brainepedia.com";
 
@@ -31,6 +31,41 @@ function timeoutForUrl(url: string): number {
   return AI_PATHS.some(p => url.includes(p)) ? 120_000 : 30_000;
 }
 
+// ── reCAPTCHA verification middleware ─────────────────────────────────────────
+async function verifyRecaptcha(req: Request, res: Response, next: NextFunction) {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  // If not configured in this environment, skip verification gracefully
+  if (!secret) return next();
+
+  const token = req.headers["x-recaptcha-token"] as string | undefined;
+  if (!token) {
+    res.status(400).json({ message: "Please complete the reCAPTCHA verification." });
+    return;
+  }
+
+  try {
+    const verifyRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ secret, response: token }).toString(),
+    });
+    const result = await verifyRes.json() as { success: boolean; "error-codes"?: string[] };
+    if (!result.success) {
+      res.status(400).json({ message: "reCAPTCHA verification failed. Please try again." });
+      return;
+    }
+  } catch {
+    res.status(500).json({ message: "Could not verify reCAPTCHA. Please try again." });
+    return;
+  }
+
+  next();
+}
+
+// Apply reCAPTCHA check specifically to the register endpoint before proxying
+router.post("/Account/register", verifyRecaptcha);
+
+// ── Generic proxy ─────────────────────────────────────────────────────────────
 async function proxy(req: Request, res: Response) {
   const url = `${UPSTREAM}/api${req.url}`;
 
