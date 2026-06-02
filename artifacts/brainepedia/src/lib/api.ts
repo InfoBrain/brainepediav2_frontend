@@ -302,4 +302,26 @@ export const api = {
     aiGenerate: (userId: string, data: { topic: string; districtId: string; difficultyId: string }) =>
       fetchApi(`/api/ProblemNodes/ai-generate?userId=${encodeURIComponent(userId)}`, { method: "POST", body: JSON.stringify(data) }),
   },
+  forum: {
+    /** GET /api/Forum/categories */
+    getCategories: () => fetchApi("/api/Forum/categories"),
+    /** GET /api/Forum/categories/{categoryId}/threads?page=&pageSize=&sortBy= */
+    getThreads: (categoryId: string, page = 1, pageSize = 20, sortBy = "newest") =>
+      fetchApi(
+        `/api/Forum/categories/${encodeURIComponent(categoryId)}/threads?page=${page}&pageSize=${pageSize}&sortBy=${sortBy}`,
+        { suppressUnauthorized: true }
+      ),
+    /** GET /api/Forum/threads/{threadId} — returns { threadDetails, replies } */
+    getThread: (threadId: string) =>
+      fetchApi(`/api/Forum/threads/${encodeURIComponent(threadId)}`, { suppressUnauthorized: true }),
+    /** POST /api/Forum/threads/create */
+    createThread: (data: { categoryId: string; title: string; content: string }) =>
+      fetchApi("/api/Forum/threads/create", { method: "POST", body: JSON.stringify(data) }),
+    /** POST /api/Forum/threads/{threadId}/replies/create */
+    createReply: (threadId: string, data: { content: string }) =>
+      fetchApi(`/api/Forum/threads/${encodeURIComponent(threadId)}/replies/create`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+  },
 };

@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown,
   User as UserIcon, LayoutDashboard, Compass, TrendingUp, CheckCircle2,
-  Medal, Star, Zap, Share2, Link2, ExternalLink, Shield,
+  Medal, Star, Zap, Share2, Link2, ExternalLink, Shield, MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
@@ -21,6 +21,7 @@ const nav: NavItem[] = [
   { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
   { href: "/profession/select", label: "Choose Path", icon: Compass },
   { href: "/user/map", label: "Learning Map", icon: Map },
+  { href: "/forum", label: "Community", icon: MessageSquare },
   { href: "/profile/edit", label: "My Profile", icon: UserIcon },
   { href: "/user/badges", label: "My Badges", icon: Trophy },
   { href: "/user/activity", label: "Activity Feed", icon: Activity },

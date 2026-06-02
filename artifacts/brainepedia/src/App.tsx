@@ -71,6 +71,11 @@ import UserProgressPage from "@/pages/app/UserProgressPage";
 // Public pages
 import PublicProfilePage from "@/pages/public/PublicProfilePage";
 
+// Forum pages
+import ForumPage from "@/pages/forum/ForumPage";
+import ForumCategoryPage from "@/pages/forum/ForumCategoryPage";
+import ForumThreadPage from "@/pages/forum/ForumThreadPage";
+
 // Global widget
 import { BrainiacWidget } from "@/components/app/BrainiacWidget";
 import { OnboardingGuide } from "@/components/app/OnboardingGuide";
@@ -271,6 +276,10 @@ function Router() {
       </Route>
 
       <Route path="/public-profile/:userId" component={PublicProfilePage} />
+
+      <Route path="/forum" component={ForumPage} />
+      <Route path="/forum/category/:categoryId" component={ForumCategoryPage} />
+      <Route path="/forum/thread/:threadId" component={ForumThreadPage} />
 
       <Route component={NotFound} />
     </Switch>

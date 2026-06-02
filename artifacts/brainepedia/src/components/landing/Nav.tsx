@@ -20,7 +20,7 @@ export function Nav() {
           <Link href="/solution" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">The System</Link>
           <Link href="/how-it-works" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How It Works</Link>
           <a href="/#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Pricing</a>
-          <a href="/#faq" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">FAQ</a>
+          <Link href="/forum" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Community</Link>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/auth/login" className={cn(buttonVariants({ variant: "ghost" }), "text-muted-foreground hover:text-foreground")}>
