@@ -17,7 +17,7 @@ title = "Brainepedia — Production Build (dist.zip)"
 id = "RvCE5c0p2UaOyLXtscmNj"
 uri = "file://brainepedia-release.tar.gz"
 type = "unspecified"
-title = "brainepedia-release.tar.gz — Node.js + iisnode deployment package (Google OAuth updated)"
+title = "brainepedia-release.tar.gz — Node.js + IISNode deployment package"
 
 [[outputs]]
 id = "HPguCO5O06-cggdTw-_j0"
