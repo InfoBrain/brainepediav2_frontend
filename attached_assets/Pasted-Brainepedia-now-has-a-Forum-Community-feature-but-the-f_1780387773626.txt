@@ -1,0 +1,63 @@
+Brainepedia now has a Forum & Community feature, but the forum currently appears empty.
+
+Your task is to populate the forum with realistic, professional, and engaging discussions across all available forum categories.
+
+Requirements:
+
+1. Log into the platform using the following test accounts:
+
+   * [ayobamideleadepoju@gmail.com](mailto:ayobamideleadepoju@gmail.com) / Damochi-1992
+   * [johnkayode2021@gmail.com](mailto:johnkayode2021@gmail.com) / Damochi-1992
+   * [serahadetutu998@gmail.com](mailto:serahadetutu998@gmail.com) / Adetutu998
+
+2. Create multiple discussion threads under different forum categories.
+
+   * Minimum 5–10 discussions per category.
+   * Use meaningful and professional titles.
+   * Topics should cover technology, career growth, design, business, marketing, AI, learning, entrepreneurship, productivity, and professional development.
+
+3. Use different accounts to create discussions so content appears community-driven.
+
+4. Add realistic replies to discussions.
+
+   * Each discussion should have 2–5 replies.
+   * Replies should come from different accounts.
+   * Encourage knowledge sharing, collaboration, and problem-solving.
+
+5. Ensure content matches Brainepedia's mission of:
+
+   * Gamified learning
+   * Professional growth
+   * Verified Experience (VX)
+   * Skills development
+   * Career advancement
+   * Community collaboration
+
+6. Avoid spam, duplicate posts, placeholder text, lorem ipsum, or AI-sounding repetitive content.
+
+7. Create a healthy mix of:
+
+   * Questions
+   * Advice posts
+   * Experience sharing
+   * Career discussions
+   * Technical discussions
+   * Learning resources
+   * Industry trends
+
+8. Verify:
+
+   * Categories display correctly.
+   * Threads are created successfully.
+   * Replies are attached to the correct threads.
+   * Pagination works.
+   * Thread counts and reply counts update properly.
+
+9. After completion, provide a report showing:
+
+   * Number of categories populated.
+   * Number of threads created.
+   * Number of replies created.
+   * Any issues discovered during testing.
+
+The goal is to make the Forum & Community section feel active, welcoming, and valuable for new users visiting Brainepedia.

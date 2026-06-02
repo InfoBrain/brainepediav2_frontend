@@ -1,0 +1,292 @@
+Design and implement a complete modern Forum section for Brainepedia using the provided Forum API endpoints.
+
+The forum should match the Brainepedia gamified learning theme while keeping terminology simple, clean, and professional for all professions (not just tech users).
+
+CORE FORUM FEATURES
+
+Create the following pages and flows:
+
+1. Forum Home Page
+
+Route:
+/forum
+
+Purpose:
+Display all forum categories from:
+
+GET /api/Forum/categories
+
+UI Requirements
+Modern responsive layout
+Mobile-first design
+Search bar for categories
+Clean card/grid layout
+Category icon/avatar placeholder
+Category name
+Category description
+Number of threads (optional)
+“Open Discussions” button
+Empty State
+
+If no categories exist:
+“Community discussions are coming soon.”
+
+CTA
+
+Authenticated users:
+
+“Start Discussion”
+
+Anonymous users:
+
+“Login to Participate”
+2. Category Threads Page
+
+Route:
+/forum/category/:categoryId
+
+Load threads using:
+
+GET /api/Forum/categories/{categoryId}/threads?page=1&pageSize=15
+
+Display
+
+For each thread show:
+
+Thread title
+Author nickname
+Author avatar
+Reply count
+View count
+Created date/time
+Preview snippet of content
+Features
+Pagination
+Infinite scroll optional
+Sort:
+Newest
+Most Viewed
+Most Replied
+Search/filter thread titles
+CTA
+
+Button:
+“Create Discussion”
+
+3. Create Thread Page
+
+Route:
+/forum/create-thread
+
+Endpoint:
+
+POST /api/Forum/threads/create
+
+Form Fields
+Category dropdown
+Thread title
+Rich text discussion content editor
+Markdown support optional
+Emoji support optional
+Validation
+Prevent empty submissions
+Show friendly errors
+Disable button during submission
+Success State
+
+“Discussion published successfully.”
+
+Then redirect to thread details page.
+
+4. Thread Details Page
+
+Route:
+/forum/thread/:threadId
+
+Endpoint:
+
+GET /api/Forum/threads/{threadId}
+
+Display
+Thread Header
+Thread title
+Author avatar
+Author nickname
+Created date
+View count
+Main Content
+Clean readable formatting
+Rich text rendering
+Mobile optimized typography
+Replies Section
+
+For each reply:
+
+Avatar
+Nickname
+Reply content
+Reply timestamp
+5. Reply Composer
+
+Endpoint:
+
+POST /api/Forum/threads/{threadId}/replies/create
+
+Features
+Rich text reply box
+Auto resize textarea
+Character counter
+Submit button loading state
+Success Behavior
+Append reply instantly
+Auto scroll to latest reply
+Clear editor after successful submission
+6. Forum Navigation
+
+Add Forum to:
+
+Main sidebar
+Mobile navigation
+Dashboard quick links
+
+Menu label:
+“Community Forum”
+
+NOT:
+“Imperial Discussions”
+“RPG Hall”
+or any overly complex terminology.
+
+7. User Experience Enhancements
+Author Profile Interaction
+
+Clicking author avatar/name should open:
+GET
+/api/Profiles/user-public-profile?userId=
+
+Gamification
+
+Show subtle user stats:
+
+XP
+Verified Experience (VX)
+Professional title
+Earned badges
+
+next to usernames.
+
+8. Responsive Design
+
+Must work perfectly on:
+
+Mobile
+Tablet
+Desktop
+
+Especially:
+
+Thread content width
+Reply typing area
+Sticky bottom reply composer on mobile
+9. Loading & Empty States
+
+Add skeleton loaders for:
+
+Categories
+Threads
+Replies
+
+Friendly empty messages:
+
+“No discussions yet. Start the first conversation.”
+
+10. Security & Auth Handling
+
+Authenticated endpoints must automatically attach:
+
+Authorization Bearer token
+
+from stored auth session.
+
+If unauthorized:
+
+redirect to login
+preserve intended forum route
+11. Admin Features
+
+If logged-in user role = GlobalAdmin:
+
+Show:
+
+“Create Category” button
+
+Endpoint:
+
+POST /api/Forum/categories/create
+
+Admin form fields:
+
+Name
+Description
+
+Clear category cache automatically after successful creation.
+
+12. Visual Style
+
+Theme:
+Modern AI-powered learning community
+
+Use:
+
+clean gradients
+subtle glassmorphism
+rounded cards
+modern typography
+smooth hover animations
+dark/light mode support
+
+Avoid:
+
+overly technical RPG wording
+cyberpunk overload
+confusing sci-fi labels
+
+Use simple language:
+
+Discussions
+Community
+Learning Groups
+Conversations
+Replies
+13. SEO + Metadata
+
+Add dynamic metadata:
+
+page title
+description
+og:image
+keywords
+
+Examples:
+
+“Brainepedia Community Forum”
+“Discuss missions, learning experiences, careers, and professional growth.”
+
+Author:
+InfoBrain
+
+14. Performance Optimization
+Cache categories locally
+Lazy load replies
+Avoid duplicate API requests
+Debounce search input
+Use pagination efficiently
+15. Accessibility
+Proper contrast
+Keyboard navigation
+Accessible buttons
+ARIA labels
+Screen reader support
+
+Final Goal:
+Create a polished, production-ready community forum experience fully integrated into the Brainepedia gamified learning ecosystem.
