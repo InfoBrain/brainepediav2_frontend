@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Briefcase,
   Search,
-  Users as UsersIcon,
   ShieldCheck,
   Loader2,
   Trophy,
@@ -17,17 +15,11 @@ import {
   PolarRadiusAxis,
   ResponsiveContainer,
 } from "recharts";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const nav: NavItem[] = [
-  { href: "/employer/portal", label: "Talent Search", icon: Search },
-  { href: "/employer/saved", label: "Saved Candidates", icon: UsersIcon },
-  { href: "/employer/verifications", label: "Verifications", icon: ShieldCheck },
-  { href: "/employer/postings", label: "Postings", icon: Briefcase },
-];
 
 type Candidate = {
   id: string;
@@ -76,11 +68,7 @@ export default function EmployerDashboard() {
     ]);
     setDetailLoading(false);
     setDistricts(m.ok ? normalizeDistricts(m.data) : []);
-    setBadges(
-      b.ok
-        ? normalizeBadgeList(b.data)
-        : c.topBadges || []
-    );
+    setBadges(b.ok ? normalizeBadgeList(b.data) : c.topBadges || []);
   };
 
   const chartData = useMemo(
@@ -99,8 +87,8 @@ export default function EmployerDashboard() {
 
   return (
     <DashboardShell
-      nav={nav}
-      title="Validator's Suite"
+      nav={EMPLOYER_NAV}
+      title="Talent Search"
       subtitle="// employer.talent.verification"
       theme="employer"
     >
@@ -118,6 +106,7 @@ export default function EmployerDashboard() {
                 <Input
                   value={profession}
                   onChange={(e) => setProfession(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && runSearch()}
                   placeholder="Profession (e.g. Tech, Legal)"
                   className="pl-9"
                 />
@@ -170,8 +159,7 @@ export default function EmployerDashboard() {
                           {c.profession || "—"}
                           {typeof c.verifiedXp === "number" && (
                             <span className="text-[#00D2FF]">
-                              {" "}
-                              · {c.verifiedXp.toLocaleString()} XP
+                              {" "}· {c.verifiedXp.toLocaleString()} XP
                             </span>
                           )}
                         </div>
@@ -217,9 +205,7 @@ export default function EmployerDashboard() {
                   </div>
                   <Button
                     className="bg-[#00D2FF] hover:bg-[#00B8DD] text-black font-bold shadow-[0_0_18px_rgba(0,210,255,0.45)]"
-                    onClick={() =>
-                      window.open(`/verify/${encodeURIComponent(selected.id)}`, "_blank")
-                    }
+                    onClick={() => window.open(`/verify/${encodeURIComponent(selected.id)}`, "_blank")}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     View Verified Certificate
@@ -231,32 +217,16 @@ export default function EmployerDashboard() {
                 <div className="flex items-center justify-between mb-3">
                   <div>
                     <h3 className="text-base font-bold">Competency Chart</h3>
-                    <p className="text-xs text-muted-foreground font-mono">
-                      Mastery across Districts
-                    </p>
+                    <p className="text-xs text-muted-foreground font-mono">Mastery across Districts</p>
                   </div>
                 </div>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={chartData} outerRadius="75%">
                       <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                      <PolarAngleAxis
-                        dataKey="subject"
-                        tick={{ fill: "rgba(255,255,255,0.7)", fontSize: 12 }}
-                      />
-                      <PolarRadiusAxis
-                        angle={30}
-                        domain={[0, 100]}
-                        tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }}
-                        axisLine={false}
-                      />
-                      <Radar
-                        name="Mastery"
-                        dataKey="A"
-                        stroke="#00D2FF"
-                        fill="#00D2FF"
-                        fillOpacity={0.3}
-                      />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: "rgba(255,255,255,0.7)", fontSize: 12 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 10 }} axisLine={false} />
+                      <Radar name="Mastery" dataKey="A" stroke="#00D2FF" fill="#00D2FF" fillOpacity={0.3} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
@@ -272,10 +242,7 @@ export default function EmployerDashboard() {
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {badges!.slice(0, 12).map((b, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-white/5 border border-white/10"
-                      >
+                      <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-white/5 border border-white/10">
                         {b.name}
                         {b.rarity && (
                           <span className="ml-2 text-[10px] uppercase tracking-wider font-mono text-muted-foreground">
@@ -317,10 +284,8 @@ function normalizeCandidates(d: any): Candidate[] {
   return arr.map((x: any) => ({
     id: String(x.userId ?? x.id ?? x.profileId ?? Math.random()),
     fullName:
-      x.fullName ||
-      x.name ||
-      `${x.firstName || ""} ${x.surName || x.lastName || ""}`.trim() ||
-      "Candidate",
+      x.fullName || x.name ||
+      `${x.firstName || ""} ${x.surName || x.lastName || ""}`.trim() || "Candidate",
     profession: x.profession || x.role || x.currentTitle || x.title,
     isGrandmaster:
       Boolean(x.isGrandmaster) ||
@@ -344,6 +309,7 @@ function normalizeDistricts(d: any): DistrictRow[] {
     mastery: Number(x.mastery ?? x.percent ?? x.progress ?? 0),
   }));
 }
+
 function normalizeBadgeList(d: any): { name: string; rarity?: string }[] {
   const arr = Array.isArray(d) ? d : d?.badges || [];
   if (!Array.isArray(arr)) return [];

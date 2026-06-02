@@ -39,6 +39,20 @@ import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminUserProfile from "@/pages/admin/AdminUserProfile";
 import AdminUserDossier from "@/pages/admin/AdminUserDossier";
 
+// Admin employer management
+import AdminEmployers from "@/pages/admin/AdminEmployers";
+import AdminEmployerDetails from "@/pages/admin/AdminEmployerDetails";
+
+// Employer pages
+import EmployerOverview from "@/pages/employer/EmployerOverview";
+import CompanyProfile from "@/pages/employer/CompanyProfile";
+import TeamMembers from "@/pages/employer/TeamMembers";
+import PrivateChallenges from "@/pages/employer/PrivateChallenges";
+import CandidateAssessments from "@/pages/employer/CandidateAssessments";
+import TeamAnalytics from "@/pages/employer/TeamAnalytics";
+import BillingSeats from "@/pages/employer/BillingSeats";
+import EmployerSettings from "@/pages/employer/EmployerSettings";
+
 // Profile pages
 import ViewProfile from "@/pages/profile/ViewProfile";
 import EditProfile from "@/pages/profile/EditProfile";
@@ -195,14 +209,77 @@ function Router() {
           <AdminUsers />
         </RequireAuth>
       </Route>
+      <Route path="/admin/employers/:employerId">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminEmployerDetails />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/employers">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminEmployers />
+        </RequireAuth>
+      </Route>
       <Route path="/admin/:rest*">
         <RequireAuth allow={["GlobalAdmin"]}>
           <AdminDashboard />
         </RequireAuth>
       </Route>
-      <Route path="/employer/:rest*">
+
+      {/* Employer-specific routes — must appear BEFORE the catch-all /employer/:rest* */}
+      <Route path="/employer/overview">
+        <RequireAuth allow={["Employer"]}>
+          <EmployerOverview />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/company-profile">
+        <RequireAuth allow={["Employer"]}>
+          <CompanyProfile />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/portal">
         <RequireAuth allow={["Employer"]}>
           <EmployerDashboard />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/team">
+        <RequireAuth allow={["Employer"]}>
+          <TeamMembers />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/challenges">
+        <RequireAuth allow={["Employer"]}>
+          <PrivateChallenges />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/assessments">
+        <RequireAuth allow={["Employer"]}>
+          <CandidateAssessments />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/analytics">
+        <RequireAuth allow={["Employer"]}>
+          <TeamAnalytics />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/billing">
+        <RequireAuth allow={["Employer"]}>
+          <BillingSeats />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/subscription">
+        <RequireAuth allow={["Employer"]}>
+          <SubscriptionCenter />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/settings">
+        <RequireAuth allow={["Employer"]}>
+          <EmployerSettings />
+        </RequireAuth>
+      </Route>
+      {/* Catch-all → employer overview dashboard */}
+      <Route path="/employer/:rest*">
+        <RequireAuth allow={["Employer"]}>
+          <EmployerOverview />
         </RequireAuth>
       </Route>
 

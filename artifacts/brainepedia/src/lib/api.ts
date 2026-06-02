@@ -307,6 +307,51 @@ export const api = {
     aiGenerate: (userId: string, data: { topic: string; districtId: string; difficultyId: string }) =>
       fetchApi(`/api/ProblemNodes/ai-generate?userId=${encodeURIComponent(userId)}`, { method: "POST", body: JSON.stringify(data) }),
   },
+  employers: {
+    /** POST /api/Employers/onboard — create employer account */
+    onboard: (data: {
+      firstName: string; lastName: string; email: string; password: string;
+      confirmPassword: string; phoneNumber: string; companyName: string;
+      companyLogoUrl: string; websiteUrl: string; aboutCompany: string;
+    }) => fetchApi("/api/Employers/onboard", { method: "POST", body: JSON.stringify(data) }),
+    /** GET /api/Employers/my-profile */
+    myProfile: () => fetchApi("/api/Employers/my-profile"),
+    /** PUT /api/Employers/my-profile/update */
+    updateProfile: (data: {
+      companyName: string; companyEmail: string; companyPhoneNumber: string;
+      companyLogoUrl: string; websiteUrl: string; aboutCompany: string;
+    }) => fetchApi("/api/Employers/my-profile/update", { method: "PUT", body: JSON.stringify(data) }),
+    /** POST /api/Employers/team/provision */
+    provisionTeam: (data: { firstName: string; lastName: string; employeeEmail: string; profession: string }) =>
+      fetchApi("/api/Employers/team/provision", { method: "POST", body: JSON.stringify(data) }),
+    /** GET /api/Employers/team/members */
+    teamMembers: () => fetchApi("/api/Employers/team/members"),
+    /** POST /api/Employers/team/private-challenges/create */
+    createChallenge: (data: { challengeName: string; problemNodeId: string; endDate: string }) =>
+      fetchApi("/api/Employers/team/private-challenges/create", { method: "POST", body: JSON.stringify(data) }),
+    /** GET /api/Employers/team/private-challenges */
+    listChallenges: () => fetchApi("/api/Employers/team/private-challenges"),
+    /** POST /api/Employers/candidates/assign-private-mission */
+    assignMission: (data: { candidateEmail: string; firstName: string; lastName: string; problemNodeId: string }) =>
+      fetchApi("/api/Employers/candidates/assign-private-mission", { method: "POST", body: JSON.stringify(data) }),
+    /** GET /api/Employers/candidates/assessments */
+    listAssessments: () => fetchApi("/api/Employers/candidates/assessments"),
+    /** GET /api/Employers/team/analytics */
+    teamAnalytics: () => fetchApi("/api/Employers/team/analytics"),
+    /** GET /api/Employers/billing/current-month-seats */
+    billingSeats: () => fetchApi("/api/Employers/billing/current-month-seats"),
+    /** POST /api/Employers/team/{employeeUserId}/initialize-seat-payment */
+    initializeSeatPayment: (employeeUserId: string) =>
+      fetchApi(`/api/Employers/team/${encodeURIComponent(employeeUserId)}/initialize-seat-payment`, { method: "POST" }),
+    admin: {
+      /** GET /api/Employers/admin/all-employers?page=&pageSize= */
+      allEmployers: (page = 1, pageSize = 15) =>
+        fetchApi(`/api/Employers/admin/all-employers?page=${page}&pageSize=${pageSize}`),
+      /** GET /api/Employers/admin/{employerId}/details */
+      employerDetails: (employerId: string) =>
+        fetchApi(`/api/Employers/admin/${encodeURIComponent(employerId)}/details`),
+    },
+  },
   forum: {
     /** GET /api/Forum/categories */
     getCategories: () => fetchApi("/api/Forum/categories"),

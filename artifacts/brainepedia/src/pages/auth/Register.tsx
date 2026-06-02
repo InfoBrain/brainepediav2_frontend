@@ -12,12 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "wouter";
-import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, Building2, User } from "lucide-react";
 import { SocialLoginSection } from "@/components/auth/SocialLoginSection";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Textarea } from "@/components/ui/textarea";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string;
 
+// ── User registration schema ────────────────────────────────────────────────
 const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
@@ -27,15 +29,33 @@ const registerSchema = z.object({
   phoneNumber: z.string().regex(/^[+0-9]*$/, "Invalid phone number format").optional().or(z.literal("")),
   referralCode: z.string().optional(),
   isInstructor: z.boolean().default(false),
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((d) => d.password === d.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+// ── Employer registration schema ─────────────────────────────────────────────
+const employerSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters").max(100),
+  confirmPassword: z.string(),
+  phoneNumber: z.string().regex(/^[+0-9]*$/, "Invalid phone number format").min(1, "Phone number is required"),
+  companyName: z.string().min(1, "Company name is required"),
+  companyLogoUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  websiteUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  aboutCompany: z.string().min(10, "Please provide a brief company description"),
+}).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
+type EmployerForm = z.infer<typeof employerSchema>;
 
-export default function Register() {
-  const [, setLocation] = useLocation();
+// ── User Registration Form ───────────────────────────────────────────────────
+function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void }) {
   const [error, setError] = useState("");
   const [isReferralOpen, setIsReferralOpen] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
@@ -43,19 +63,17 @@ export default function Register() {
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { isInstructor: false }
+    defaultValues: { isInstructor: false },
   });
 
   const isInstructor = watch("isInstructor");
 
   const onSubmit = async (data: RegisterForm) => {
     setError("");
-
     if (RECAPTCHA_SITE_KEY && !recaptchaToken) {
       setError("Please complete the reCAPTCHA verification before continuing.");
       return;
     }
-
     const res = await api.auth.register(data, recaptchaToken ?? undefined);
     if (!res.ok) {
       setError(res.error || "Failed to register");
@@ -63,18 +81,12 @@ export default function Register() {
       setRecaptchaToken(null);
       return;
     }
-    setLocation(`/auth/verify-otp?email=${encodeURIComponent(data.email)}`);
+    onSuccess(data.email);
   };
 
   return (
-    <AuthLayout quote="Start your journey.">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Create your account.</h1>
-        <p className="text-muted-foreground">Join Brainepedia and start learning today.</p>
-      </div>
-
+    <>
       <AuthBanner type="error" message={error} />
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -125,37 +137,215 @@ export default function Register() {
         </Collapsible>
 
         <div className="flex items-center space-x-2 pt-2 border-t border-border/50">
-          <Switch
-            id="isInstructor"
-            checked={isInstructor}
-            onCheckedChange={(c) => setValue("isInstructor", c)}
-          />
+          <Switch id="isInstructor" checked={isInstructor} onCheckedChange={(c) => setValue("isInstructor", c)} />
           <Label htmlFor="isInstructor" className="text-sm">Apply as a Mission Author / Instructor</Label>
         </div>
 
         {RECAPTCHA_SITE_KEY && (
           <div className="flex justify-center pt-1">
-            <ReCAPTCHA
-              ref={recaptchaRef}
-              sitekey={RECAPTCHA_SITE_KEY}
-              theme="dark"
-              onChange={(token) => setRecaptchaToken(token)}
-              onExpired={() => setRecaptchaToken(null)}
-            />
+            <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} theme="dark"
+              onChange={(t) => setRecaptchaToken(t)} onExpired={() => setRecaptchaToken(null)} />
           </div>
         )}
 
-        <Button
-          type="submit"
-          className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] mt-4"
-          disabled={isSubmitting || (!!RECAPTCHA_SITE_KEY && !recaptchaToken)}
-        >
+        <Button type="submit" className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] mt-4"
+          disabled={isSubmitting || (!!RECAPTCHA_SITE_KEY && !recaptchaToken)}>
           {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {isSubmitting ? "Creating account..." : "Create Account"}
+          {isSubmitting ? "Creating account…" : "Create Account"}
         </Button>
       </form>
+    </>
+  );
+}
 
-      <SocialLoginSection label="Or create account with" />
+// ── Employer Registration Form ───────────────────────────────────────────────
+function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => void }) {
+  const [error, setError] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<EmployerForm>({
+    resolver: zodResolver(employerSchema),
+  });
+
+  const onSubmit = async (data: EmployerForm) => {
+    setError("");
+    if (RECAPTCHA_SITE_KEY && !recaptchaToken) {
+      setError("Please complete the reCAPTCHA verification before continuing.");
+      return;
+    }
+    const res = await api.employers.onboard({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+      phoneNumber: data.phoneNumber,
+      companyName: data.companyName,
+      companyLogoUrl: data.companyLogoUrl || "",
+      websiteUrl: data.websiteUrl || "",
+      aboutCompany: data.aboutCompany,
+    });
+    if (!res.ok) {
+      setError(res.error || "Employer registration failed. Please try again.");
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
+      return;
+    }
+    onSuccess(data.email);
+  };
+
+  return (
+    <>
+      <AuthBanner type="error" message={error} />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Personal info */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>First Name</Label>
+            <Input {...register("firstName")} />
+            {errors.firstName && <p className="text-destructive text-xs font-mono">{errors.firstName.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>Last Name</Label>
+            <Input {...register("lastName")} />
+            {errors.lastName && <p className="text-destructive text-xs font-mono">{errors.lastName.message}</p>}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Email</Label>
+          <Input type="email" placeholder="you@company.com" {...register("email")} />
+          {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label>Phone Number</Label>
+          <Input type="tel" placeholder="+1234567890" {...register("phoneNumber")} />
+          {errors.phoneNumber && <p className="text-destructive text-xs font-mono">{errors.phoneNumber.message}</p>}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Password</Label>
+            <Input type="password" {...register("password")} />
+            {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>Confirm Password</Label>
+            <Input type="password" {...register("confirmPassword")} />
+            {errors.confirmPassword && <p className="text-destructive text-xs font-mono">{errors.confirmPassword.message}</p>}
+          </div>
+        </div>
+
+        {/* Company info */}
+        <div className="border-t border-border/50 pt-4 space-y-4">
+          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider flex items-center gap-1.5">
+            <Building2 className="h-3.5 w-3.5" /> Company Information
+          </p>
+
+          <div className="space-y-2">
+            <Label>Company Name</Label>
+            <Input placeholder="Acme Corp" {...register("companyName")} />
+            {errors.companyName && <p className="text-destructive text-xs font-mono">{errors.companyName.message}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Company Logo URL <span className="text-muted-foreground">(optional)</span></Label>
+              <Input placeholder="https://…/logo.png" {...register("companyLogoUrl")} />
+              {errors.companyLogoUrl && <p className="text-destructive text-xs font-mono">{errors.companyLogoUrl.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Website URL <span className="text-muted-foreground">(optional)</span></Label>
+              <Input placeholder="https://yourcompany.com" {...register("websiteUrl")} />
+              {errors.websiteUrl && <p className="text-destructive text-xs font-mono">{errors.websiteUrl.message}</p>}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>About Company</Label>
+            <Textarea rows={3} placeholder="Briefly describe your company and what you do…" {...register("aboutCompany")} />
+            {errors.aboutCompany && <p className="text-destructive text-xs font-mono">{errors.aboutCompany.message}</p>}
+          </div>
+        </div>
+
+        {RECAPTCHA_SITE_KEY && (
+          <div className="flex justify-center pt-1">
+            <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} theme="dark"
+              onChange={(t) => setRecaptchaToken(t)} onExpired={() => setRecaptchaToken(null)} />
+          </div>
+        )}
+
+        <Button type="submit"
+          className="w-full font-bold mt-4"
+          style={{ background: "#00D2FF", color: "#000", boxShadow: "0 0 15px rgba(0,210,255,0.35)" }}
+          disabled={isSubmitting || (!!RECAPTCHA_SITE_KEY && !recaptchaToken)}>
+          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Building2 className="mr-2 h-4 w-4" />}
+          {isSubmitting ? "Registering employer…" : "Create Employer Account"}
+        </Button>
+      </form>
+    </>
+  );
+}
+
+// ── Main Register Page ───────────────────────────────────────────────────────
+export default function Register() {
+  const [, setLocation] = useLocation();
+  const [isEmployer, setIsEmployer] = useState(false);
+
+  const handleSuccess = (email: string) => {
+    setLocation(`/auth/verify-otp?email=${encodeURIComponent(email)}`);
+  };
+
+  return (
+    <AuthLayout quote={isEmployer ? "Build your team." : "Start your journey."}>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">
+          {isEmployer ? "Create your employer account." : "Create your account."}
+        </h1>
+        <p className="text-muted-foreground">
+          {isEmployer
+            ? "Join Brainepedia as an employer and start building your team."
+            : "Join Brainepedia and start learning today."}
+        </p>
+      </div>
+
+      {/* Mode toggle */}
+      <div className="flex rounded-lg border border-border/50 p-1 bg-background/50 mb-6 gap-1">
+        <button
+          type="button"
+          onClick={() => setIsEmployer(false)}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
+            !isEmployer
+              ? "bg-primary text-primary-foreground shadow-[0_0_12px_rgba(0,210,255,0.3)]"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <User className="h-4 w-4" />
+          Individual
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsEmployer(true)}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
+            isEmployer
+              ? "bg-[#00D2FF] text-black shadow-[0_0_12px_rgba(0,210,255,0.35)]"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Building2 className="h-4 w-4" />
+          Apply as an Employer
+        </button>
+      </div>
+
+      {isEmployer ? (
+        <EmployerRegisterForm onSuccess={handleSuccess} />
+      ) : (
+        <UserRegisterForm onSuccess={handleSuccess} />
+      )}
+
+      {!isEmployer && <SocialLoginSection label="Or create account with" />}
 
       <div className="mt-6 text-center text-sm">
         <Link href="/auth/login" className="text-muted-foreground hover:text-primary transition-colors">

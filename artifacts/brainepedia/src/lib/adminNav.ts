@@ -7,6 +7,7 @@ import {
   Users,
   UserCircle,
   Globe,
+  Building2,
 } from "lucide-react";
 import type { NavItem } from "@/components/dashboard/DashboardShell";
 
@@ -19,4 +20,5 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/users", label: "All Users", icon: Users, section: "User Management" },
   { href: "/admin/user-profiles", label: "User Profiles", icon: UserCircle },
   { href: "/admin/public-dossiers", label: "Public Dossiers", icon: Globe },
+  { href: "/admin/employers", label: "Employers", icon: Building2, section: "Employer Management" },
 ];
