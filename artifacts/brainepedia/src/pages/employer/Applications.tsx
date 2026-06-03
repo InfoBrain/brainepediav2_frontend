@@ -121,7 +121,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
   const updateDraft = (applicationId: string, key: "newStatus" | "notes", value: string) => {
     setDrafts((prev) => ({
       ...prev,
-      [applicationId]: { newStatus: "", notes: "", ...prev[applicationId], [key]: value },
+      [applicationId]: { ...(prev[applicationId] ?? { newStatus: "", notes: "" }), [key]: value },
     }));
   };
 
