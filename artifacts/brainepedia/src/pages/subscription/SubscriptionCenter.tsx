@@ -9,10 +9,11 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
+import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { getUserId } from "@/lib/auth";
+import { getUserId, getUserRole } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 /* ─── Tier data ─────────────────────────────────────────────────────────── */
@@ -114,9 +115,12 @@ export default function SubscriptionCenter() {
   usePageTitle("Subscription");
   const [, navigate] = useLocation();
   const userId = getUserId();
+  const role = getUserRole();
+  const isEmployer = role === "Employer";
   const { toast } = useToast();
 
   const [currentTier, setCurrentTier] = useState<number>(0);
+  const [employerPlan, setEmployerPlan] = useState("Grandmaster");
   const [loading, setLoading] = useState(true);
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
@@ -125,13 +129,19 @@ export default function SubscriptionCenter() {
   useEffect(() => {
     if (!userId) { navigate("/auth/login"); return; }
     (async () => {
+      if (isEmployer) {
+        const res = await api.employers.myCompanyProfile();
+        if (res.ok && res.data) setEmployerPlan(String((res.data as any).subscriptionLevel ?? "Grandmaster"));
+        setLoading(false);
+        return;
+      }
       const res = await api.profiles.stats(userId);
       if (res.ok && res.data) {
         setCurrentTier(Number(res.data.currentSubscription ?? 0));
       }
       setLoading(false);
     })();
-  }, [userId, navigate]);
+  }, [userId, navigate, isEmployer]);
 
   // Rotate Brainiac tips
   useEffect(() => {
@@ -164,7 +174,7 @@ export default function SubscriptionCenter() {
     }
   };
 
-  const currentTierName = SUB_NAMES[currentTier] ?? "Initiate";
+  const currentTierName = isEmployer ? employerPlan : (SUB_NAMES[currentTier] ?? "Initiate");
 
   const headerRight = (
     <div className="hidden sm:flex items-center gap-2">
@@ -181,7 +191,14 @@ export default function SubscriptionCenter() {
   );
 
   return (
-    <DashboardShell nav={USER_NAV} title="Subscription Center" subtitle="// tier.management.system" headerRight={headerRight} theme="user" showBrainiac>
+    <DashboardShell
+      nav={isEmployer ? EMPLOYER_NAV : USER_NAV}
+      title={isEmployer ? "Employer Subscription" : "Subscription Center"}
+      subtitle={isEmployer ? "// grandmaster.employer.plan" : "// tier.management.system"}
+      headerRight={headerRight}
+      theme={isEmployer ? "employer" : "user"}
+      showBrainiac={!isEmployer}
+    >
       {loading ? (
         <div className="flex items-center justify-center min-h-64">
           <div className="flex flex-col items-center gap-3">
@@ -190,6 +207,54 @@ export default function SubscriptionCenter() {
           </div>
         </div>
       ) : (
+        isEmployer ? (
+        <div className="max-w-5xl space-y-6">
+          <section className="rounded-2xl border border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/15 via-[#0d1119] to-[#00D2FF]/10 p-8 shadow-[0_0_35px_rgba(255,215,0,0.18)]">
+            <div className="flex flex-wrap items-start justify-between gap-5">
+              <div>
+                <p className="text-xs font-mono uppercase tracking-[0.25em] text-[#FFD700]">Grandmaster Plan</p>
+                <h2 className="mt-2 text-3xl font-black">Built for talent discovery, team provisioning, and candidate assessment.</h2>
+                <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+                  Employers use one premium plan for recruitment workflows, private training, and team analytics.
+                </p>
+              </div>
+              <span className="rounded-full border border-[#FFD700]/40 bg-[#FFD700]/15 px-4 py-2 text-sm font-bold text-[#FFD700]">
+                Current: {employerPlan}
+              </span>
+            </div>
+          </section>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {[
+              "Job Listings",
+              "Team Provisioning",
+              "Team Training",
+              "Candidate Assessment",
+              "Talent Discovery",
+              "Team Analytics",
+            ].map((feature) => (
+              <div key={feature} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
+                <CheckCircle2 className="mb-3 h-5 w-5 text-emerald-400" />
+                <h3 className="font-bold">{feature}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">Included in the employer Grandmaster plan.</p>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
+            <h3 className="text-lg font-bold">Billing Information</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Seat billing and team activation remain available under Billing and Team Members.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button asChild className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]"><Link href="/employer/billing">Open Billing</Link></Button>
+              <Button asChild variant="outline"><Link href="/employer/team">Manage Team Seats</Link></Button>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
+            <h3 className="text-lg font-bold">Subscription History</h3>
+            <p className="mt-2 text-sm text-muted-foreground">Detailed employer payment history is not exposed by the current Swagger contract.</p>
+          </div>
+        </div>
+        ) : (
         <div className="space-y-8 max-w-6xl">
 
           {/* ── CURRENT TIER HERO ── */}
@@ -423,6 +488,7 @@ export default function SubscriptionCenter() {
           </div>
 
         </div>
+        )
       )}
 
       {/* ── UPGRADE CONFIRMATION MODAL ── */}

@@ -14,6 +14,8 @@ type CandidateRow = {
   id: string;
   name: string;
   profession: string;
+  currentTitle: string;
+  location: string;
   rank: string;
   xp?: unknown;
   vx?: unknown;
@@ -129,7 +131,8 @@ export default function CandidateExplorer() {
         ) : (
           <div className="grid gap-4 xl:grid-cols-2">
             {candidates.map((candidate) => (
-              <article key={candidate.id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
+              <article key={candidate.id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5 transition-colors hover:border-[#00D2FF]/35">
+                <Link href={`/employer/candidates/${encodeURIComponent(candidate.id)}`} className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00D2FF]/60">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#00D2FF]/35 to-[#7C3AED]/30 font-bold">
                     {initials(candidate.name)}
@@ -141,7 +144,8 @@ export default function CandidateExplorer() {
                         {candidate.rank}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{candidate.profession}</p>
+                    <p className="text-sm text-muted-foreground">{candidate.currentTitle}</p>
+                    <p className="text-xs text-muted-foreground">{candidate.profession} · {candidate.location}</p>
                     <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
                       <Metric label="XP" value={formatNumber(candidate.xp)} />
                       <Metric label="VX" value={formatNumber(candidate.vx)} />
@@ -149,6 +153,7 @@ export default function CandidateExplorer() {
                     </div>
                   </div>
                 </div>
+                </Link>
                 <Textarea
                   value={notesById[candidate.id] || ""}
                   onChange={(event) => setNotesById((prev) => ({ ...prev, [candidate.id]: event.target.value }))}
@@ -189,6 +194,8 @@ function normalizeCandidate(item: any): CandidateRow {
     id: idOf(item),
     name: candidateName(item),
     profession: text(item?.professionName ?? item?.profession ?? item?.currentTitle, "Profession not set"),
+    currentTitle: text(item?.currentTitle ?? item?.title ?? item?.headline, "Current title not set"),
+    location: text(item?.location ?? item?.city ?? item?.country ?? item?.address, "Location not set"),
     rank: text(item?.rank ?? item?.professionalRank ?? item?.tier, "Verified talent"),
     xp: item?.xp ?? item?.totalXP ?? item?.totalXp ?? item?.verifiedXp,
     vx: item?.vx ?? item?.verifiedExperienceYears ?? item?.verifiedExperience,

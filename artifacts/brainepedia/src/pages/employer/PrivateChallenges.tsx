@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Lock, Plus, Loader2, Calendar, Users, RefreshCw } from "lucide-react";
+import { GraduationCap, Plus, Loader2, Calendar, Users, RefreshCw } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
+import { asList, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,8 +37,16 @@ export default function PrivateChallenges() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [professions, setProfessions] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
+  const [problemNodes, setProblemNodes] = useState<any[]>([]);
+  const [selectedProfessionId, setSelectedProfessionId] = useState("");
+  const [selectedProfessionName, setSelectedProfessionName] = useState("");
+  const [selectedDistrictId, setSelectedDistrictId] = useState("");
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [loadingNodes, setLoadingNodes] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
@@ -48,13 +57,47 @@ export default function PrivateChallenges() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchChallenges(); }, []);
+  useEffect(() => {
+    fetchChallenges();
+    api.professions.list().then((res) => {
+      if (res.ok) setProfessions(asList(res.data));
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!selectedProfessionId) {
+      setDistricts([]);
+      setSelectedDistrictId("");
+      return;
+    }
+    setLoadingDistricts(true);
+    api.districts.byProfession(selectedProfessionId).then((res) => {
+      setDistricts(res.ok ? asList(res.data) : []);
+      setLoadingDistricts(false);
+    });
+  }, [selectedProfessionId]);
+
+  useEffect(() => {
+    if (!selectedDistrictId) {
+      setProblemNodes([]);
+      setValue("problemNodeId", "");
+      return;
+    }
+    setLoadingNodes(true);
+    api.problemNodes.byDistrict(selectedDistrictId).then((res) => {
+      setProblemNodes(res.ok ? asList(res.data) : []);
+      setLoadingNodes(false);
+    });
+  }, [selectedDistrictId, setValue]);
 
   const onSubmit = async (data: FormData) => {
     const res = await api.employers.createChallenge(data);
     if (res.ok) {
       toast({ title: "Challenge created", description: `"${data.challengeName}" is now live.` });
       reset();
+      setSelectedProfessionId("");
+      setSelectedProfessionName("");
+      setSelectedDistrictId("");
       setOpen(false);
       fetchChallenges();
     } else {
@@ -65,11 +108,11 @@ export default function PrivateChallenges() {
   const isExpired = (date: string) => new Date(date) < new Date();
 
   return (
-    <DashboardShell nav={EMPLOYER_NAV} title="Private Challenges" subtitle="// employer.challenges.management" theme="employer">
+    <DashboardShell nav={EMPLOYER_NAV} title="Team Challenges" subtitle="// employer.team.training" theme="employer">
       <div className="space-y-5">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <p className="text-sm text-muted-foreground">
-            Assign private problem challenges exclusively to your team.
+            Create private team training challenges using profession, district, and mission selections.
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="icon" onClick={fetchChallenges}>
@@ -84,7 +127,7 @@ export default function PrivateChallenges() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create Private Challenge</DialogTitle>
+                  <DialogTitle>Create Team Challenge</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-1">
                   <div className="space-y-2">
@@ -93,10 +136,61 @@ export default function PrivateChallenges() {
                     {errors.challengeName && <p className="text-destructive text-xs">{errors.challengeName.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label>Problem Node ID</Label>
-                    <Input {...register("problemNodeId")} placeholder="Paste the Problem Node ID" />
+                    <Label>Profession</Label>
+                    <select
+                      value={selectedProfessionId}
+                      onChange={(event) => {
+                        const id = event.target.value;
+                        const profession = professions.find((item) => String(item?.professionId ?? item?.id) === id);
+                        setSelectedProfessionId(id);
+                        setSelectedProfessionName(text(profession?.name ?? profession?.professionName ?? profession?.title, ""));
+                        setSelectedDistrictId("");
+                        setProblemNodes([]);
+                        setValue("problemNodeId", "");
+                      }}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="">Select profession</option>
+                      {professions.map((profession, index) => {
+                        const id = text(profession?.professionId ?? profession?.id, "");
+                        const name = text(profession?.name ?? profession?.professionName ?? profession?.title, "");
+                        return id && name ? <option key={id || index} value={id}>{name}</option> : null;
+                      })}
+                    </select>
+                    {selectedProfessionName && <p className="text-xs text-muted-foreground">Selected: {selectedProfessionName}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>District</Label>
+                    <select
+                      value={selectedDistrictId}
+                      onChange={(event) => setSelectedDistrictId(event.target.value)}
+                      disabled={!selectedProfessionId || loadingDistricts}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
+                    >
+                      <option value="">{loadingDistricts ? "Loading districts..." : "Select district"}</option>
+                      {districts.map((district, index) => {
+                        const id = text(district?.districtId ?? district?.id, "");
+                        const name = text(district?.name ?? district?.districtName, "");
+                        return id && name ? <option key={id || index} value={id}>{name}</option> : null;
+                      })}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Problem Node</Label>
+                    <select
+                      {...register("problemNodeId")}
+                      disabled={!selectedDistrictId || loadingNodes}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
+                    >
+                      <option value="">{loadingNodes ? "Loading problem nodes..." : "Select problem node"}</option>
+                      {problemNodes.map((node, index) => {
+                        const id = text(node?.problemNodeId ?? node?.id, "");
+                        const title = text(node?.title ?? node?.name, "Problem node");
+                        const xp = text(node?.experiencePoints ?? node?.xp, "0");
+                        return id ? <option key={id || index} value={id}>{title} · {xp} XP</option> : null;
+                      })}
+                    </select>
                     {errors.problemNodeId && <p className="text-destructive text-xs">{errors.problemNodeId.message}</p>}
-                    <p className="text-xs text-muted-foreground">Find IDs in Admin → Problem Nodes.</p>
                   </div>
                   <div className="space-y-2">
                     <Label>End Date</Label>
@@ -132,7 +226,7 @@ export default function PrivateChallenges() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-lg bg-[#9D4EDD]/15 flex items-center justify-center shrink-0 border border-[#9D4EDD]/30">
-                        <Lock className="h-4 w-4 text-[#9D4EDD]" />
+                        <GraduationCap className="h-4 w-4 text-[#9D4EDD]" />
                       </div>
                       <h3 className="font-semibold text-sm leading-tight">{ch.challengeName}</h3>
                     </div>

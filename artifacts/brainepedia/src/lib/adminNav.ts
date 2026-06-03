@@ -19,7 +19,7 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/professions", label: "Professions", icon: BookOpen },
   { href: "/admin/districts", label: "Districts", icon: MapPin },
   { href: "/admin/problem-nodes", label: "Problem Nodes", icon: Database },
-  { href: "/forum", label: "Forum Management", icon: MessageSquare },
+  { href: "/admin/forum", label: "Forum Management", icon: MessageSquare },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
   { href: "/admin/settings", label: "Settings", icon: Settings },

@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Link } from "wouter";
 import { Loader2, Briefcase, Building2, User } from "lucide-react";
 import { SocialLoginSection } from "@/components/auth/SocialLoginSection";
-import { Textarea } from "@/components/ui/textarea";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string;
 
@@ -38,9 +37,6 @@ const employerSchema = z.object({
   confirmPassword: z.string(),
   phoneNumber: z.string().regex(/^[+0-9]*$/, "Invalid phone number format").min(1, "Phone number is required"),
   companyName: z.string().min(1, "Company name is required"),
-  companyLogoUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
-  websiteUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
-  aboutCompany: z.string().min(10, "Please provide a brief company description"),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -152,9 +148,9 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
       confirmPassword: data.confirmPassword,
       phoneNumber: data.phoneNumber,
       companyName: data.companyName,
-      companyLogoUrl: data.companyLogoUrl || "",
-      websiteUrl: data.websiteUrl || "",
-      aboutCompany: data.aboutCompany,
+      companyLogoUrl: "",
+      websiteUrl: "",
+      aboutCompany: "",
       isEmployer: true,
     });
     if (!res.ok) {
@@ -221,24 +217,9 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
             {errors.companyName && <p className="text-destructive text-xs font-mono">{errors.companyName.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="companyLogoUrl">Company Logo URL <span className="text-muted-foreground">(optional)</span></Label>
-              <Input id="companyLogoUrl" placeholder="https://.../logo.png" {...register("companyLogoUrl")} />
-              {errors.companyLogoUrl && <p className="text-destructive text-xs font-mono">{errors.companyLogoUrl.message}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="websiteUrl">Website URL <span className="text-muted-foreground">(optional)</span></Label>
-              <Input id="websiteUrl" placeholder="https://yourcompany.com" {...register("websiteUrl")} />
-              {errors.websiteUrl && <p className="text-destructive text-xs font-mono">{errors.websiteUrl.message}</p>}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="aboutCompany">About Company</Label>
-            <Textarea id="aboutCompany" rows={3} placeholder="Briefly describe your company and what you do..." {...register("aboutCompany")} />
-            {errors.aboutCompany && <p className="text-destructive text-xs font-mono">{errors.aboutCompany.message}</p>}
-          </div>
+          <p className="rounded-lg border border-[#00D2FF]/20 bg-[#00D2FF]/10 px-3 py-2 text-xs text-muted-foreground">
+            Logo, website, and company description are managed after registration in Company Profile settings.
+          </p>
         </div>
 
         {RECAPTCHA_SITE_KEY && (

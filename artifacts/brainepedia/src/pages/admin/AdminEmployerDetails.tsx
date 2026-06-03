@@ -103,7 +103,7 @@ export default function AdminEmployerDetails() {
 
               {/* Contact Details */}
               <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-                <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider mb-3">Contact Information</h3>
+                <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider mb-3">Company Information</h3>
                 <DetailRow icon={Mail} label="Email" value={details.email} />
                 <DetailRow icon={Phone} label="Phone" value={details.phoneNumber} />
                 <DetailRow icon={Globe} label="Website" value={details.websiteUrl} />
@@ -148,7 +148,7 @@ export default function AdminEmployerDetails() {
                 <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider">Stats</h3>
                 {[
                   { label: "Team Members", value: details.teamMembers ?? "—", color: "#00D2FF", icon: Users },
-                  { label: "Active Jobs", value: details.activeJobs ?? "—", color: "#9D4EDD", icon: Building2 },
+                  { label: "Jobs Posted", value: details.activeJobs ?? "—", color: "#9D4EDD", icon: Building2 },
                 ].map(({ label, value, color, icon: Icon }) => (
                   <div key={label} className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
@@ -181,19 +181,19 @@ export default function AdminEmployerDetails() {
 
 function normDetails(d: any): EmployerDetails {
   return {
-    id: String(d?.id ?? d?.employerId ?? ""),
-    companyName: d?.companyName ?? d?.name ?? "Unknown",
+    id: String(d?.employerProfileId ?? d?.id ?? d?.employerId ?? ""),
+    companyName: d?.companyName ?? d?.CompanyName ?? d?.name ?? "Unknown",
     companyLogoUrl: d?.companyLogoUrl ?? d?.logoUrl,
-    websiteUrl: d?.websiteUrl ?? d?.website,
-    email: d?.email ?? d?.companyEmail ?? d?.ownerEmail ?? "",
-    phoneNumber: d?.phoneNumber ?? d?.companyPhoneNumber,
+    websiteUrl: d?.companyWebsite ?? d?.websiteUrl ?? d?.website,
+    email: d?.companyEmail ?? d?.email ?? d?.ownerEmail ?? "",
+    phoneNumber: d?.companyPhone ?? d?.phoneNumber ?? d?.companyPhoneNumber,
     aboutCompany: d?.aboutCompany ?? d?.about ?? d?.description,
-    dateRegistered: d?.dateRegistered ?? d?.createdAt ?? d?.registrationDate,
-    planType: d?.planType ?? d?.plan ?? d?.subscriptionTier,
-    teamMembers: d?.teamMembers ?? d?.memberCount,
-    activeJobs: d?.activeJobs ?? d?.jobCount,
-    ownerName: d?.ownerName ?? d?.accountOwner ?? (d?.firstName && d?.lastName ? `${d.firstName} ${d.lastName}` : undefined),
-    ownerEmail: d?.ownerEmail ?? d?.accountOwnerEmail,
+    dateRegistered: d?.registrationDate ?? d?.dateRegistered ?? d?.dateJoined ?? d?.createdAt,
+    planType: d?.subscriptionLevel ?? d?.planType ?? d?.plan ?? d?.subscriptionTier,
+    teamMembers: d?.totalTeamMembers ?? d?.teamMembers ?? d?.memberCount,
+    activeJobs: d?.jobsPosted ?? d?.totalJobsPosted ?? d?.activeJobs ?? d?.jobCount,
+    ownerName: d?.accountOwner ?? d?.ownerName ?? (d?.firstName && d?.lastName ? `${d.firstName} ${d.lastName}` : undefined),
+    ownerEmail: d?.accountOwnerEmail ?? d?.ownerEmail,
     jobs: Array.isArray(d?.jobs) ? d.jobs.map((j: any) => ({
       title: j.title ?? j.name ?? "Job",
       postedAt: j.postedAt ?? j.createdAt ?? new Date().toISOString(),

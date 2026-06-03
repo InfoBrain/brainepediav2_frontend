@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "wouter";
-import { BriefcaseBusiness, FilePlus2, Loader2, RefreshCw } from "lucide-react";
+import { BriefcaseBusiness, FilePlus2, Loader2, RefreshCw, Target } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api, type CreateJobRequest } from "@/lib/api";
@@ -22,7 +22,9 @@ export default function CreateJob() {
     linkAssessmentNodeId: "",
   });
   const [professions, setProfessions] = useState<any[]>([]);
+  const [problemNodes, setProblemNodes] = useState<any[]>([]);
   const [loadingProfessions, setLoadingProfessions] = useState(true);
+  const [loadingProblemNodes, setLoadingProblemNodes] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState(false);
 
@@ -37,8 +39,27 @@ export default function CreateJob() {
   }, []);
 
   const update = (key: keyof CreateJobRequest, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+      ...(key === "professionName" ? { linkAssessmentNodeId: "" } : {}),
+    }));
   };
+
+  useEffect(() => {
+    if (!form.professionName) {
+      setProblemNodes([]);
+      return;
+    }
+    let cancelled = false;
+    setLoadingProblemNodes(true);
+    api.problemNodes.byProfession(form.professionName).then((res) => {
+      if (cancelled) return;
+      setProblemNodes(res.ok ? asList(res.data) : []);
+      setLoadingProblemNodes(false);
+    });
+    return () => { cancelled = true; };
+  }, [form.professionName]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -111,13 +132,32 @@ export default function CreateJob() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="assessment-id">Assessment problem node ID</Label>
-              <Input
+              <Label htmlFor="assessment-id">Assessment Mission</Label>
+              <select
                 id="assessment-id"
                 value={form.linkAssessmentNodeId || ""}
                 onChange={(event) => update("linkAssessmentNodeId", event.target.value)}
-                placeholder="Optional UUID from an assessment mission"
-              />
+                disabled={!form.professionName || loadingProblemNodes}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+              >
+                <option value="">
+                  {!form.professionName
+                    ? "Select a profession first"
+                    : loadingProblemNodes
+                      ? "Loading assessment missions..."
+                      : "Optional assessment mission"}
+                </option>
+                {problemNodes.map((node, index) => {
+                  const id = text(node?.problemNodeId ?? node?.id, "");
+                  const title = text(node?.title ?? node?.name, "Untitled mission");
+                  const district = text(node?.districtName ?? node?.district?.name, "District");
+                  const xp = text(node?.experiencePoints ?? node?.xp, "0");
+                  return id ? <option key={id || index} value={id}>{title} · {district} · {xp} XP</option> : null;
+                })}
+              </select>
+              {form.linkAssessmentNodeId && (
+                <MissionPreview node={problemNodes.find((node) => String(node?.problemNodeId ?? node?.id) === form.linkAssessmentNodeId)} />
+              )}
             </div>
 
             <div className="space-y-2">
@@ -144,7 +184,7 @@ export default function CreateJob() {
             <BriefcaseBusiness className="mb-3 h-8 w-8 text-[#00D2FF]" />
             <h3 className="font-bold">Assessment linking</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              The backend accepts `linkAssessmentNodeId` as a UUID. Leave it blank when the posting does not require an assessment.
+              Select a profession first, then choose a Swagger-backed problem node assessment. The job stores only the ProblemNodeId.
             </p>
           </div>
           {created && (
@@ -159,5 +199,24 @@ export default function CreateJob() {
         </aside>
       </div>
     </DashboardShell>
+  );
+}
+
+function MissionPreview({ node }: { node: any }) {
+  if (!node) return null;
+  return (
+    <div className="rounded-xl border border-[#00D2FF]/20 bg-[#00D2FF]/10 p-4">
+      <div className="mb-2 flex items-center gap-2 text-sm font-bold text-[#00D2FF]">
+        <Target className="h-4 w-4" />
+        {text(node?.title ?? node?.name, "Assessment mission")}
+      </div>
+      <div className="mb-2 flex flex-wrap gap-2 text-xs font-mono text-muted-foreground">
+        <span>District: {text(node?.districtName ?? node?.district?.name, "—")}</span>
+        <span>XP: {text(node?.experiencePoints ?? node?.xp, "0")}</span>
+      </div>
+      <p className="line-clamp-3 text-sm text-muted-foreground">
+        {text(node?.missionBrief ?? node?.context, "No mission brief available.")}
+      </p>
+    </div>
   );
 }

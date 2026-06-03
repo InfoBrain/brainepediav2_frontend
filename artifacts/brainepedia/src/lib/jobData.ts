@@ -54,6 +54,9 @@ export function idOf(item: any): string {
       item?.postingId ??
       item?.applicationId ??
       item?.candidateUserId ??
+      item?.candidate?.userId ??
+      item?.profileUserId ??
+      item?.applicationUserId ??
       item?.userId ??
       item?.id ??
       ""
@@ -64,8 +67,11 @@ export function candidateName(item: any): string {
   return text(
     item?.fullName ??
       item?.candidateName ??
+      item?.candidate?.fullName ??
+      item?.candidate?.candidateName ??
+      item?.profile?.fullName ??
       item?.name ??
-      `${item?.firstName ?? ""} ${item?.lastName ?? item?.surName ?? ""}`.trim(),
+      `${item?.firstName ?? item?.candidate?.firstName ?? item?.profile?.firstName ?? ""} ${item?.lastName ?? item?.candidate?.lastName ?? item?.surName ?? item?.candidate?.surName ?? item?.profile?.lastName ?? ""}`.trim(),
     "Candidate"
   );
 }
