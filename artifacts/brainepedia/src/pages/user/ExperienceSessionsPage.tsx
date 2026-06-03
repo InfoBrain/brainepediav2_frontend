@@ -33,7 +33,7 @@ export default function ExperienceSessionsPage() {
       setSessions(asList(res.data).map(normSession).filter((s) => !s.userId || s.userId === currentUserId));
     } else {
       setSessions([]);
-      setError(res.status === 404 ? "" : res.error || "Could not load experience sessions.");
+      setError(res.status === 404 || res.status === 403 ? "" : res.error || "Could not load experience sessions.");
     }
     setLoading(false);
   };

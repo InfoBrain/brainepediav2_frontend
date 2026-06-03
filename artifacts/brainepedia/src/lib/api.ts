@@ -30,10 +30,11 @@ export type UpdateStatusRequest = {
 
 type FetchApiOptions = RequestInit & {
   suppressUnauthorized?: boolean;
+  suppressForbidden?: boolean;
 };
 
 async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}): Promise<ApiResult<T>> {
-  const { suppressUnauthorized, ...fetchOptions } = options;
+  const { suppressUnauthorized, suppressForbidden, ...fetchOptions } = options;
   const headers: Record<string, string> = {
     ...((fetchOptions.headers as any) || {}),
   };
@@ -93,7 +94,7 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
         else if (data.error) errorMsg = data.error;
         else if (data.title) errorMsg = data.title;
       }
-      if (response.status === 403) {
+      if (response.status === 403 && !suppressForbidden) {
         window.dispatchEvent(new CustomEvent("api-forbidden", { detail: { message: errorMsg } }));
       }
       return { ok: false, error: errorMsg, status: response.status };
@@ -260,7 +261,7 @@ export const api = {
     list: () => fetchApi("/api/Difficulties"),
   },
   experienceSessions: {
-    list: () => fetchApi("/api/ExperienceSessions"),
+    list: () => fetchApi("/api/ExperienceSessions", { suppressForbidden: true }),
     get: (sessionId: string) =>
       fetchApi(`/api/ExperienceSessions/${encodeURIComponent(sessionId)}`),
     getActive: (userId: string, problemNodeId: string) =>
