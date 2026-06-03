@@ -10,11 +10,9 @@ import { AuthBanner } from "@/pages/auth/Login";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Link } from "wouter";
-import { Loader2, ChevronDown, ChevronUp, Building2, User } from "lucide-react";
+import { Loader2, Building2, User } from "lucide-react";
 import { SocialLoginSection } from "@/components/auth/SocialLoginSection";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string;
@@ -26,9 +24,6 @@ const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
   confirmPassword: z.string(),
-  phoneNumber: z.string().regex(/^[+0-9]*$/, "Invalid phone number format").optional().or(z.literal("")),
-  referralCode: z.string().optional(),
-  isInstructor: z.boolean().default(false),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -57,16 +52,12 @@ type EmployerForm = z.infer<typeof employerSchema>;
 // ── User Registration Form ───────────────────────────────────────────────────
 function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void }) {
   const [error, setError] = useState("");
-  const [isReferralOpen, setIsReferralOpen] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<RegisterForm>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { isInstructor: false },
   });
-
-  const isInstructor = watch("isInstructor");
 
   const onSubmit = async (data: RegisterForm) => {
     setError("");
@@ -74,7 +65,7 @@ function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void })
       setError("Please complete the reCAPTCHA verification before continuing.");
       return;
     }
-    const res = await api.auth.register(data, recaptchaToken ?? undefined);
+    const res = await api.auth.register({ ...data, isEmployer: false }, recaptchaToken ?? undefined);
     if (!res.ok) {
       setError(res.error || "Failed to register");
       recaptchaRef.current?.reset();
@@ -107,12 +98,6 @@ function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void })
           {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phoneNumber">Phone Number (Optional)</Label>
-          <Input id="phoneNumber" type="tel" placeholder="+1234567890" {...register("phoneNumber")} />
-          {errors.phoneNumber && <p className="text-destructive text-xs font-mono">{errors.phoneNumber.message}</p>}
-        </div>
-
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -124,21 +109,6 @@ function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void })
             <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
             {errors.confirmPassword && <p className="text-destructive text-xs font-mono">{errors.confirmPassword.message}</p>}
           </div>
-        </div>
-
-        <Collapsible open={isReferralOpen} onOpenChange={setIsReferralOpen} className="border border-border/50 rounded-md p-3 bg-background/50">
-          <CollapsibleTrigger className="flex w-full items-center justify-between text-sm font-medium">
-            Have a referral code?
-            {isReferralOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pt-3">
-            <Input id="referralCode" placeholder="Enter code" {...register("referralCode")} />
-          </CollapsibleContent>
-        </Collapsible>
-
-        <div className="flex items-center space-x-2 pt-2 border-t border-border/50">
-          <Switch id="isInstructor" checked={isInstructor} onCheckedChange={(c) => setValue("isInstructor", c)} />
-          <Label htmlFor="isInstructor" className="text-sm">Apply as a Mission Author / Instructor</Label>
         </div>
 
         {RECAPTCHA_SITE_KEY && (
@@ -185,6 +155,7 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
       companyLogoUrl: data.companyLogoUrl || "",
       websiteUrl: data.websiteUrl || "",
       aboutCompany: data.aboutCompany,
+      isEmployer: true,
     });
     if (!res.ok) {
       setError(res.error || "Employer registration failed. Please try again.");
@@ -202,38 +173,38 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
         {/* Personal info */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>First Name</Label>
-            <Input {...register("firstName")} />
+            <Label htmlFor="employer-firstName">First Name</Label>
+            <Input id="employer-firstName" {...register("firstName")} />
             {errors.firstName && <p className="text-destructive text-xs font-mono">{errors.firstName.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label>Last Name</Label>
-            <Input {...register("lastName")} />
+            <Label htmlFor="employer-lastName">Last Name</Label>
+            <Input id="employer-lastName" {...register("lastName")} />
             {errors.lastName && <p className="text-destructive text-xs font-mono">{errors.lastName.message}</p>}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label>Email</Label>
-          <Input type="email" placeholder="you@company.com" {...register("email")} />
+          <Label htmlFor="employer-email">Email</Label>
+          <Input id="employer-email" type="email" placeholder="you@company.com" {...register("email")} />
           {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label>Phone Number</Label>
-          <Input type="tel" placeholder="+1234567890" {...register("phoneNumber")} />
+          <Label htmlFor="employer-phoneNumber">Phone Number</Label>
+          <Input id="employer-phoneNumber" type="tel" placeholder="+1234567890" {...register("phoneNumber")} />
           {errors.phoneNumber && <p className="text-destructive text-xs font-mono">{errors.phoneNumber.message}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Password</Label>
-            <Input type="password" {...register("password")} />
+            <Label htmlFor="employer-password">Password</Label>
+            <Input id="employer-password" type="password" {...register("password")} />
             {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label>Confirm Password</Label>
-            <Input type="password" {...register("confirmPassword")} />
+            <Label htmlFor="employer-confirmPassword">Confirm Password</Label>
+            <Input id="employer-confirmPassword" type="password" {...register("confirmPassword")} />
             {errors.confirmPassword && <p className="text-destructive text-xs font-mono">{errors.confirmPassword.message}</p>}
           </div>
         </div>
@@ -245,27 +216,27 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
           </p>
 
           <div className="space-y-2">
-            <Label>Company Name</Label>
-            <Input placeholder="Acme Corp" {...register("companyName")} />
+            <Label htmlFor="companyName">Company Name</Label>
+            <Input id="companyName" placeholder="Acme Corp" {...register("companyName")} />
             {errors.companyName && <p className="text-destructive text-xs font-mono">{errors.companyName.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Company Logo URL <span className="text-muted-foreground">(optional)</span></Label>
-              <Input placeholder="https://…/logo.png" {...register("companyLogoUrl")} />
+              <Label htmlFor="companyLogoUrl">Company Logo URL <span className="text-muted-foreground">(optional)</span></Label>
+              <Input id="companyLogoUrl" placeholder="https://.../logo.png" {...register("companyLogoUrl")} />
               {errors.companyLogoUrl && <p className="text-destructive text-xs font-mono">{errors.companyLogoUrl.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label>Website URL <span className="text-muted-foreground">(optional)</span></Label>
-              <Input placeholder="https://yourcompany.com" {...register("websiteUrl")} />
+              <Label htmlFor="websiteUrl">Website URL <span className="text-muted-foreground">(optional)</span></Label>
+              <Input id="websiteUrl" placeholder="https://yourcompany.com" {...register("websiteUrl")} />
               {errors.websiteUrl && <p className="text-destructive text-xs font-mono">{errors.websiteUrl.message}</p>}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>About Company</Label>
-            <Textarea rows={3} placeholder="Briefly describe your company and what you do…" {...register("aboutCompany")} />
+            <Label htmlFor="aboutCompany">About Company</Label>
+            <Textarea id="aboutCompany" rows={3} placeholder="Briefly describe your company and what you do..." {...register("aboutCompany")} />
             {errors.aboutCompany && <p className="text-destructive text-xs font-mono">{errors.aboutCompany.message}</p>}
           </div>
         </div>
@@ -306,8 +277,8 @@ export default function Register() {
         </h1>
         <p className="text-muted-foreground">
           {isEmployer
-            ? "Join Brainepedia as an employer and start building your team."
-            : "Join Brainepedia and start learning today."}
+            ? "Apply as Employer and hire through verified experience."
+            : "Join Brainepedia and turn real-world problem solving into verified experience."}
         </p>
       </div>
 
@@ -335,7 +306,7 @@ export default function Register() {
           }`}
         >
           <Building2 className="h-4 w-4" />
-          Apply as an Employer
+          Apply as Employer
         </button>
       </div>
 

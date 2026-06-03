@@ -10,7 +10,8 @@ import {
   Home, ArrowRight, Star, CheckCircle2, Clock, TrendingUp, User,
   LayoutDashboard, RefreshCw, AlertCircle, Loader2, Lock, CreditCard, Compass,
 } from "lucide-react";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getUserId, getUser } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -44,17 +45,6 @@ function getLevel(xp: number): { level: number; current: number; next: number; p
   const next = XP_LEVELS[lv] ?? XP_LEVELS[XP_LEVELS.length - 1];
   return { level: lv, current, next, pct: next > current ? Math.min(100, ((xp - current) / (next - current)) * 100) : 100 };
 }
-
-const nav: NavItem[] = [
-  { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
-  { href: "/profession/select", label: "Choose Path", icon: Compass },
-  { href: "/user/map", label: "Learning Map", icon: Map },
-  { href: "/profile/edit", label: "My Profile", icon: User },
-  { href: "/user/badges", label: "My Badges", icon: Trophy },
-  { href: "/user/activity", label: "Activity Feed", icon: Activity },
-  { href: "/user/subscription", label: "Subscription", icon: CreditCard },
-];
 
 function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string | number; sub?: string; color: string }) {
   return (
@@ -178,7 +168,7 @@ export default function UserProgressPage() {
   };
 
   return (
-    <DashboardShell nav={nav} title="Progress" subtitle="// your progress">
+    <DashboardShell nav={USER_NAV} title="Progress" subtitle="// your progress">
       <div className="flex gap-6 max-w-6xl">
         {/* Main content */}
         <div className="flex-1 min-w-0 space-y-8">

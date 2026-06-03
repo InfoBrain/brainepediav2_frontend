@@ -6,7 +6,8 @@ import {
   Medal, Star, Zap, Share2, Link2, ExternalLink, Shield, MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { USER_NAV } from "@/lib/userNav";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { XPRing } from "@/components/dashboard/XPRing";
 import { Leaderboard, type LeaderboardUser, type CurrentUserRank } from "@/components/dashboard/Leaderboard";
@@ -15,18 +16,6 @@ import { getUser, getUserId, getProfileId } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-
-const nav: NavItem[] = [
-  { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
-  { href: "/profession/select", label: "Choose Path", icon: Compass },
-  { href: "/user/map", label: "Learning Map", icon: Map },
-  { href: "/forum", label: "Community", icon: MessageSquare },
-  { href: "/profile/edit", label: "My Profile", icon: UserIcon },
-  { href: "/user/badges", label: "My Badges", icon: Trophy },
-  { href: "/user/activity", label: "Activity Feed", icon: Activity },
-  { href: "/user/subscription", label: "Subscription", icon: CreditCard },
-];
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type Stats = {
@@ -503,7 +492,7 @@ export default function UserDashboard() {
   );
 
   return (
-    <DashboardShell nav={nav} title="Learning Hub" subtitle="// your progress" headerRight={headerRight} theme="user" showBrainiac>
+    <DashboardShell nav={USER_NAV} title="Learning Hub" subtitle="// your progress" headerRight={headerRight} theme="user" showBrainiac>
       {loading ? <BrainiacSpinner /> : (
         <div className="space-y-6 max-w-6xl">
 

@@ -26,21 +26,12 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
-
-const nav: NavItem[] = [
-  { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/profession/select", label: "Choose Path", icon: Compass },
-  { href: "/user/map", label: "Learning Map", icon: Map },
-  { href: "/profile/edit", label: "My Profile", icon: UserIcon },
-  { href: "/user/badges", label: "My Badges", icon: Trophy },
-  { href: "/user/activity", label: "Activity Feed", icon: Activity },
-  { href: "/user/subscription", label: "Subscription", icon: CreditCard },
-];
 
 type ActivityLog = {
   activity: string;
@@ -415,7 +406,7 @@ export default function ActivityFeed() {
   const activeFilterLabel = EVENT_TYPES.find((t) => t.key === filter)?.label ?? "All Events";
 
   return (
-    <DashboardShell nav={nav} title="Activity Feed" subtitle="// full.history">
+    <DashboardShell nav={USER_NAV} title="Activity Feed" subtitle="// full.history">
       <div className="space-y-10">
 
         {/* ── PAST SUBMISSIONS ── */}

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { getDashboardPath, getUserRole, isAuthenticated } from "@/lib/auth";
+import { getUserRole, isAuthenticated } from "@/lib/auth";
 
 export function ForbiddenWatcher() {
   const { toast } = useToast();
@@ -14,7 +14,7 @@ export function ForbiddenWatcher() {
       const detail = (e as CustomEvent).detail || {};
       const role = getUserRole();
       const subPath =
-        role === "User" ? "/user/subscription" : `${getDashboardPath(role)}/subscription`;
+        role === "Employer" ? "/employer/subscription" : role === "User" ? "/user/subscription" : "/admin/subscriptions";
       toast({
         title: "Access Restricted",
         description:

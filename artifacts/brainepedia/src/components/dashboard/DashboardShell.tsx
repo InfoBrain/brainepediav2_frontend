@@ -148,6 +148,7 @@ export function DashboardShell({
                 size="icon"
                 className="md:hidden"
                 onClick={() => setMobileOpen(true)}
+                aria-label="Open navigation menu"
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -163,7 +164,7 @@ export function DashboardShell({
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-muted-foreground">
                 <span>{user?.email || user?.userName || "operator"}</span>
               </div>
-              <Button variant="ghost" size="icon" onClick={requestLogout} title="Sign out">
+              <Button variant="ghost" size="icon" onClick={requestLogout} title="Sign out" aria-label="Sign out">
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -229,7 +230,9 @@ function SidebarContent({
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
         {nav.map((item, i) => {
-          const active = location === item.href || location.startsWith(item.href + "/");
+          const active =
+            location === item.href ||
+            (item.href !== "/" && location.startsWith(`${item.href}/`));
           const Icon = item.icon;
           const showSectionHeader =
             !!item.section && (i === 0 || nav[i - 1].section !== item.section);
@@ -243,6 +246,7 @@ function SidebarContent({
               <Link
                 href={item.href}
                 onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
                   active
                     ? `${theme.accent} ${theme.accentText} ${theme.accentBorder} border`
@@ -298,6 +302,7 @@ function BrainiacWidget() {
         onClick={() => setOpen((v) => !v)}
         className="h-12 w-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#4C1D95] flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.6)] hover:scale-105 transition-transform"
         title="Brainiac AI"
+        aria-label="Open Brainiac assistant"
       >
         <MessageCircle className="h-5 w-5 text-white" />
       </button>

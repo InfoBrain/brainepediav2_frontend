@@ -9,6 +9,25 @@ export type ApiResult<T = any> = {
   status?: number;
 };
 
+export type CreateJobRequest = {
+  title?: string | null;
+  description?: string | null;
+  location?: string | null;
+  salaryRange?: string | null;
+  professionName?: string | null;
+  linkAssessmentNodeId?: string | null;
+};
+
+export type SaveCandidateRequest = {
+  candidateUserId?: string | null;
+  notes?: string | null;
+};
+
+export type UpdateStatusRequest = {
+  newStatus?: string | null;
+  notes?: string | null;
+};
+
 type FetchApiOptions = RequestInit & {
   suppressUnauthorized?: boolean;
 };
@@ -267,6 +286,8 @@ export const api = {
     stats: (userId: string) => fetchApi(`/api/Dashboard/stats/${encodeURIComponent(userId)}`),
     /** GET /api/Dashboard/leaderboard?userId=&count=N */
     leaderboard: (userId: string, count = 20) => fetchApi(`/api/Dashboard/leaderboard?userId=${encodeURIComponent(userId)}&count=${count}`),
+    /** GET /api/Dashboard/assigned-challenges */
+    assignedChallenges: () => fetchApi("/api/Dashboard/assigned-challenges"),
   },
   evaluations: {
     askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string }) =>
@@ -313,6 +334,7 @@ export const api = {
       firstName: string; lastName: string; email: string; password: string;
       confirmPassword: string; phoneNumber: string; companyName: string;
       companyLogoUrl: string; websiteUrl: string; aboutCompany: string;
+      isEmployer?: boolean;
     }) => fetchApi("/api/Employers/onboard", { method: "POST", body: JSON.stringify(data) }),
     /** GET /api/Employers/my-profile */
     myProfile: () => fetchApi("/api/Employers/my-profile"),
@@ -376,5 +398,49 @@ export const api = {
     /** POST /api/Forum/categories/create */
     createCategory: (data: { Name: string; Description: string }) =>
       fetchApi("/api/Forum/categories/create", { method: "POST", body: JSON.stringify(data) }),
+  },
+  jobs: {
+    /** GET /api/Jobs/candidates/explore?profession=&page=&pageSize= */
+    exploreCandidates: (params: { profession?: string; page?: number; pageSize?: number } = {}) => {
+      const q = new URLSearchParams();
+      if (params.profession) q.set("profession", params.profession);
+      q.set("page", String(params.page ?? 1));
+      q.set("pageSize", String(params.pageSize ?? 20));
+      return fetchApi(`/api/Jobs/candidates/explore?${q.toString()}`);
+    },
+    /** GET /api/Jobs/candidates/{userId}/dossier */
+    candidateDossier: (userId: string) =>
+      fetchApi(`/api/Jobs/candidates/${encodeURIComponent(userId)}/dossier`),
+    /** GET /api/Jobs/candidates/saved */
+    savedCandidates: () => fetchApi("/api/Jobs/candidates/saved"),
+    /** POST /api/Jobs/candidates/save — body: SaveCandidateRequest */
+    saveCandidate: (data: SaveCandidateRequest) =>
+      fetchApi("/api/Jobs/candidates/save", { method: "POST", body: JSON.stringify(data) }),
+    /** POST /api/Jobs/jobs/create — body: CreateJobRequest */
+    createJob: (data: CreateJobRequest) =>
+      fetchApi("/api/Jobs/jobs/create", { method: "POST", body: JSON.stringify(data) }),
+    /** GET /api/Jobs/my-postings */
+    myPostings: () => fetchApi("/api/Jobs/my-postings"),
+    /** GET /api/Jobs/jobs/{jobpostingId}/applicants */
+    postingApplicants: (jobPostingId: string) =>
+      fetchApi(`/api/Jobs/jobs/${encodeURIComponent(jobPostingId)}/applicants`),
+    /** GET /api/Jobs/feed?page=&pageSize= */
+    feed: (page = 1, pageSize = 10) =>
+      fetchApi(`/api/Jobs/feed?page=${page}&pageSize=${pageSize}`),
+    /** GET /api/Jobs/{jobId}/details */
+    details: (jobId: string) =>
+      fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/details`),
+    /** POST /api/Jobs/{jobId}/apply */
+    apply: (jobId: string) =>
+      fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/apply`, { method: "POST" }),
+    /** GET /api/Jobs/postings/{jobId}/applications */
+    applications: (jobId: string) =>
+      fetchApi(`/api/Jobs/postings/${encodeURIComponent(jobId)}/applications`),
+    /** POST /api/Jobs/applications/{applicationId}/update-status — body: UpdateStatusRequest */
+    updateApplicationStatus: (applicationId: string, data: UpdateStatusRequest) =>
+      fetchApi(`/api/Jobs/applications/${encodeURIComponent(applicationId)}/update-status`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
 };

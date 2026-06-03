@@ -7,23 +7,13 @@ import {
   Lock, Brain, ChevronRight, AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { USER_NAV } from "@/lib/userNav";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
-
-const nav: NavItem[] = [
-  { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/dashboard", label: "Progress", icon: TrendingUp },
-  { href: "/profession/select", label: "Choose Path", icon: Compass },
-  { href: "/profession/select", label: "Learning Map", icon: Map },
-  { href: "/profile/edit", label: "My Profile", icon: UserIcon },
-  { href: "/user/badges", label: "My Badges", icon: Trophy },
-  { href: "/user/activity", label: "Activity Feed", icon: Activity },
-  { href: "/user/subscription", label: "Subscription", icon: CreditCard },
-];
 
 /* ─── Tier data ─────────────────────────────────────────────────────────── */
 const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Grandmaster" };
@@ -191,7 +181,7 @@ export default function SubscriptionCenter() {
   );
 
   return (
-    <DashboardShell nav={nav} title="Subscription Center" subtitle="// tier.management.system" headerRight={headerRight} theme="user" showBrainiac>
+    <DashboardShell nav={USER_NAV} title="Subscription Center" subtitle="// tier.management.system" headerRight={headerRight} theme="user" showBrainiac>
       {loading ? (
         <div className="flex items-center justify-center min-h-64">
           <div className="flex flex-col items-center gap-3">

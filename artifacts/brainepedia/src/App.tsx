@@ -52,6 +52,12 @@ import CandidateAssessments from "@/pages/employer/CandidateAssessments";
 import TeamAnalytics from "@/pages/employer/TeamAnalytics";
 import BillingSeats from "@/pages/employer/BillingSeats";
 import EmployerSettings from "@/pages/employer/EmployerSettings";
+import CandidateExplorer from "@/pages/employer/CandidateExplorer";
+import CandidateDossier from "@/pages/employer/CandidateDossier";
+import SavedCandidates from "@/pages/employer/SavedCandidates";
+import CreateJob from "@/pages/employer/CreateJob";
+import MyJobPostings from "@/pages/employer/MyJobPostings";
+import Applications from "@/pages/employer/Applications";
 
 // Profile pages
 import ViewProfile from "@/pages/profile/ViewProfile";
@@ -62,6 +68,8 @@ import CreateProfile from "@/pages/profile/CreateProfile";
 import BadgesPage from "@/pages/user/BadgesPage";
 import ActivityFeed from "@/pages/user/ActivityFeed";
 import SubscriptionSuccess from "@/pages/user/SubscriptionSuccess";
+import AchievementsPage from "@/pages/user/AchievementsPage";
+import PublicPortfolioRedirect from "@/pages/user/PublicPortfolioRedirect";
 
 // Subscription pages
 import SubscriptionCenter from "@/pages/subscription/SubscriptionCenter";
@@ -89,6 +97,12 @@ import PublicProfilePage from "@/pages/public/PublicProfilePage";
 import ForumPage from "@/pages/forum/ForumPage";
 import ForumCategoryPage from "@/pages/forum/ForumCategoryPage";
 import ForumThreadPage from "@/pages/forum/ForumThreadPage";
+
+// Jobs / career pages
+import JobFeed from "@/pages/jobs/JobFeed";
+import JobDetails from "@/pages/jobs/JobDetails";
+import UserApplications from "@/pages/jobs/UserApplications";
+import UserAssessments from "@/pages/jobs/UserAssessments";
 
 // Global widget
 import { BrainiacWidget } from "@/components/app/BrainiacWidget";
@@ -159,6 +173,31 @@ function Router() {
           <BadgesPage />
         </RequireAuth>
       </Route>
+      <Route path="/user/achievements">
+        <RequireAuth allow={["User"]}>
+          <AchievementsPage />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/applications">
+        <RequireAuth allow={["User"]}>
+          <UserApplications />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/assessments">
+        <RequireAuth allow={["User"]}>
+          <UserAssessments />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/portfolio">
+        <RequireAuth allow={["User"]}>
+          <PublicPortfolioRedirect />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/map">
+        <RequireAuth allow={["User"]}>
+          <LegacyRedirect to="/profession/select" />
+        </RequireAuth>
+      </Route>
       <Route path="/user/profile/create">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <CreateProfile />
@@ -167,6 +206,16 @@ function Router() {
       <Route path="/user/:rest*">
         <RequireAuth allow={["User"]}>
           <UserDashboard />
+        </RequireAuth>
+      </Route>
+      <Route path="/jobs/:jobId">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <JobDetails />
+        </RequireAuth>
+      </Route>
+      <Route path="/jobs">
+        <RequireAuth allow={["User"]}>
+          <JobFeed />
         </RequireAuth>
       </Route>
       <Route path="/admin/professions">
@@ -236,9 +285,49 @@ function Router() {
           <CompanyProfile />
         </RequireAuth>
       </Route>
+      <Route path="/employer/candidates/:userId">
+        <RequireAuth allow={["Employer"]}>
+          <CandidateDossier />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/candidates">
+        <RequireAuth allow={["Employer"]}>
+          <CandidateExplorer />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/candidate-dossiers">
+        <RequireAuth allow={["Employer"]}>
+          <CandidateDossier />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/saved-candidates">
+        <RequireAuth allow={["Employer"]}>
+          <SavedCandidates />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/jobs/create">
+        <RequireAuth allow={["Employer"]}>
+          <CreateJob />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/jobs">
+        <RequireAuth allow={["Employer"]}>
+          <MyJobPostings />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/applications/:jobId">
+        <RequireAuth allow={["Employer"]}>
+          <Applications />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/applications">
+        <RequireAuth allow={["Employer"]}>
+          <Applications />
+        </RequireAuth>
+      </Route>
       <Route path="/employer/portal">
         <RequireAuth allow={["Employer"]}>
-          <EmployerDashboard />
+          <LegacyRedirect to="/employer/candidates" />
         </RequireAuth>
       </Route>
       <Route path="/employer/team">

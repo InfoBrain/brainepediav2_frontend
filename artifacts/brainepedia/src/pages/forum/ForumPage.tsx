@@ -5,6 +5,7 @@ import { MessageSquare, Search, Hash, ChevronRight, Users, LogIn, Plus, X, Loade
 import { api } from "@/lib/api";
 import { getUser, getUserRole } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { asList } from "@/lib/jobData";
 
 interface ForumCategory {
   forumCategoryId: string;
@@ -32,7 +33,7 @@ export default function ForumPage() {
   const fetchCategories = () => {
     setLoading(true);
     api.forum.getCategories().then((res) => {
-      if (res.ok && Array.isArray(res.data)) setCategories(res.data);
+      if (res.ok) setCategories(asList(res.data));
       setLoading(false);
     });
   };

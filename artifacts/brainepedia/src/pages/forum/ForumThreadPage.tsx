@@ -46,12 +46,13 @@ function Avatar({ author, size = "md" }: { author: ThreadAuthor; size?: "sm" | "
     size === "sm" ? "w-7 h-7 text-xs" :
     size === "lg" ? "w-12 h-12 text-base" :
     "w-9 h-9 text-sm";
+  const name = author?.nickName || "Community member";
 
-  if (author.avatarUrl) {
+  if (author?.avatarUrl) {
     return (
       <img
         src={author.avatarUrl}
-        alt={author.nickName}
+        alt={name}
         className={`${sz} rounded-full object-cover border border-border/40 flex-shrink-0`}
         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
       />
@@ -59,7 +60,7 @@ function Avatar({ author, size = "md" }: { author: ThreadAuthor; size?: "sm" | "
   }
   return (
     <div className={`${sz} rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold flex-shrink-0`}>
-      {author.nickName.charAt(0).toUpperCase()}
+      {name.charAt(0).toUpperCase()}
     </div>
   );
 }
@@ -203,7 +204,7 @@ export default function ForumThreadPage() {
           <div className="flex items-center gap-3 mb-5 pb-5 border-b border-border/30">
             <Avatar author={thread.author} size="lg" />
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">{thread.author.nickName}</p>
+              <p className="font-semibold text-sm">{thread.author?.nickName || "Community member"}</p>
               <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
@@ -243,7 +244,7 @@ export default function ForumThreadPage() {
                     <Avatar author={reply.author} size="sm" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm font-semibold">{reply.author.nickName}</span>
+                        <span className="text-sm font-semibold">{reply.author?.nickName || "Community member"}</span>
                         <span className="text-xs text-muted-foreground">{timeAgo(reply.createdAt)}</span>
                       </div>
                       <div className="text-sm text-foreground/85 leading-relaxed whitespace-pre-wrap">
