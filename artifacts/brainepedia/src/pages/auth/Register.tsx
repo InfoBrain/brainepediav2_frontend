@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "wouter";
-import { Loader2, Building2, User } from "lucide-react";
+import { Loader2, BriefcaseBusiness, Building2, User } from "lucide-react";
 import { SocialLoginSection } from "@/components/auth/SocialLoginSection";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -305,7 +305,7 @@ export default function Register() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Building2 className="h-4 w-4 shrink-0" />
+          <BriefcaseBusiness className="h-4 w-4 shrink-0" />
           Apply as Employer
         </button>
       </div>
