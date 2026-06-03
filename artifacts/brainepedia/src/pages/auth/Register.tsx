@@ -293,7 +293,7 @@ export default function Register() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <User className="h-4 w-4" />
+          <User className="h-4 w-4 shrink-0" />
           Individual
         </button>
         <button
@@ -305,7 +305,7 @@ export default function Register() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Building2 className="h-4 w-4" />
+          <Building2 className="h-4 w-4 shrink-0" />
           Apply as Employer
         </button>
       </div>
