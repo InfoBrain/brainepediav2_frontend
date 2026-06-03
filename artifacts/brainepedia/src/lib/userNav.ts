@@ -1,0 +1,38 @@
+import {
+  Activity,
+  Award,
+  BriefcaseBusiness,
+  ClipboardCheck,
+  Compass,
+  FileText,
+  LayoutDashboard,
+  Map,
+  MessageSquare,
+  Settings,
+  Sparkles,
+  Star,
+  Trophy,
+  User as UserIcon,
+  Zap,
+} from "lucide-react";
+import type { NavItem } from "@/components/dashboard/DashboardShell";
+
+export const USER_NAV: NavItem[] = [
+  { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/profession/select", label: "Professions", icon: Compass, section: "My Journey" },
+  { href: "/profession/select", label: "Districts", icon: Map },
+  { href: "/app/dashboard", label: "Missions", icon: Sparkles },
+  { href: "/user/activity", label: "Experience Sessions", icon: Activity },
+  { href: "/app/dashboard", label: "XP Progress", icon: Zap, section: "Growth" },
+  { href: "/app/dashboard", label: "VX Progress", icon: Award },
+  { href: "/user/badges", label: "Badges", icon: Trophy },
+  { href: "/user/achievements", label: "Achievements", icon: Star },
+  { href: "/forum", label: "Forum", icon: MessageSquare, section: "Community" },
+  { href: "/forum", label: "Discussions", icon: FileText },
+  { href: "/forum", label: "My Discussions", icon: UserIcon },
+  { href: "/jobs", label: "Job Feed", icon: BriefcaseBusiness, section: "Career" },
+  { href: "/user/applications", label: "Applications", icon: FileText },
+  { href: "/user/assessments", label: "Assessments", icon: ClipboardCheck },
+  { href: "/user/portfolio", label: "Public Portfolio", icon: UserIcon, section: "Profile" },
+  { href: "/profile/edit", label: "Settings", icon: Settings },
+];

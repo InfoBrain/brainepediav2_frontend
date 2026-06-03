@@ -14,9 +14,9 @@ export function AuthLayout({ children, quote }: AuthLayoutProps) {
     <div className="min-h-[100dvh] flex flex-col bg-background overflow-hidden">
     <div className="flex flex-col md:flex-row flex-1 relative">
       {/* Absolute Back Link */}
-      <div className="absolute top-6 left-6 z-50">
-        <Link href="/" className="text-sm font-mono text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-          ← back to brainepedia.com
+      <div className="absolute top-6 left-6 z-50 leading-none">
+        <Link href="/" className="inline-flex items-center text-sm font-mono text-muted-foreground hover:text-primary transition-colors">
+          ← Back to brainepedia.com
         </Link>
       </div>
 

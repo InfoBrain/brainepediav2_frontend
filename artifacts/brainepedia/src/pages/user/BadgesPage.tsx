@@ -12,19 +12,11 @@ import {
   Star,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
-
-const nav: NavItem[] = [
-  { href: "/user/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/user/map", label: "Learning Map", icon: Map },
-  { href: "/profile/edit", label: "My Profile", icon: UserIcon },
-  { href: "/user/badges", label: "My Badges", icon: Trophy },
-  { href: "/user/activity", label: "Activity Feed", icon: Activity },
-  { href: "/user/subscription", label: "Subscription", icon: CreditCard },
-];
 
 type Badge = {
   id: string;
@@ -182,7 +174,7 @@ export default function BadgesPage() {
   const common = badges.filter(b => b.rarity === 0);
 
   return (
-    <DashboardShell nav={nav} title="Trophy Case" subtitle="// earned.glory">
+    <DashboardShell nav={USER_NAV} title="Trophy Case" subtitle="// earned.glory">
       <div className="space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">

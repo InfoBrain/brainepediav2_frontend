@@ -12,10 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { getUserRole, getUserId } from "@/lib/auth";
-
-const nav: NavItem[] = [
-  { href: "/profile/create", label: "Create Profile", icon: UserIcon },
-];
+import { USER_NAV } from "@/lib/userNav";
+import { EMPLOYER_NAV } from "@/lib/employerNav";
+import { ADMIN_NAV } from "@/lib/adminNav";
 
 const schema = z.object({
   firstName: z.string().min(1, "First name is required").max(80),
@@ -46,6 +45,7 @@ export default function CreateProfile() {
   const { toast } = useToast();
   const userId = getUserId();
   const role = getUserRole();
+  const nav = role === "Employer" ? EMPLOYER_NAV : role === "GlobalAdmin" ? ADMIN_NAV : USER_NAV;
   const [submitting, setSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);

@@ -10,6 +10,7 @@ import { getUser } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { asList } from "@/lib/jobData";
 
 interface ThreadAuthor {
   nickName: string;
@@ -40,11 +41,12 @@ function timeAgo(dateStr: string): string {
 
 function Avatar({ author, size = "sm" }: { author: ThreadAuthor; size?: "sm" | "md" }) {
   const sz = size === "sm" ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm";
-  if (author.avatarUrl) {
+  const name = author?.nickName || "Community member";
+  if (author?.avatarUrl) {
     return (
       <img
         src={author.avatarUrl}
-        alt={author.nickName}
+        alt={name}
         className={`${sz} rounded-full object-cover border border-border/40 flex-shrink-0`}
         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
       />
@@ -52,7 +54,7 @@ function Avatar({ author, size = "sm" }: { author: ThreadAuthor; size?: "sm" | "
   }
   return (
     <div className={`${sz} rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold flex-shrink-0`}>
-      {author.nickName.charAt(0).toUpperCase()}
+      {name.charAt(0).toUpperCase()}
     </div>
   );
 }
@@ -168,7 +170,7 @@ export default function ForumCategoryPage() {
     setLoading(true);
     const res = await api.forum.getThreads(categoryId, page, pageSize, sort);
     if (res.ok && res.data) {
-      setThreads(res.data.data ?? []);
+      setThreads(asList(res.data));
       setTotalCount(res.data.totalCount ?? 0);
     }
     setLoading(false);

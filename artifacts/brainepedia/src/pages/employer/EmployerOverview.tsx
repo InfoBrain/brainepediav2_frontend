@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Users, Lock, UserCheck, CreditCard, Zap, Building2, Loader2 } from "lucide-react";
+import { Users, Lock, UserCheck, CreditCard, Zap, Building2, Loader2, BriefcaseBusiness, Bookmark } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
+import { asList } from "@/lib/jobData";
 
 type BillingData = {
   billingCycleStart?: string;
@@ -25,6 +26,12 @@ type ProfileData = {
   companyLogoUrl?: string;
   aboutCompany?: string;
   planType?: string;
+};
+
+type JobsOverview = {
+  totalJobs: number;
+  totalApplicants: number;
+  savedCandidates: number;
 };
 
 function StatCard({
@@ -62,18 +69,28 @@ export default function EmployerOverview() {
   const [billing, setBilling] = useState<BillingData | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [jobsOverview, setJobsOverview] = useState<JobsOverview>({ totalJobs: 0, totalApplicants: 0, savedCandidates: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [bRes, aRes, pRes] = await Promise.all([
+      const [bRes, aRes, pRes, jobsRes, savedRes] = await Promise.all([
         api.employers.billingSeats(),
         api.employers.teamAnalytics(),
         api.employers.myProfile(),
+        api.jobs.myPostings(),
+        api.jobs.savedCandidates(),
       ]);
       if (bRes.ok) setBilling(normBilling(bRes.data));
       if (aRes.ok) setAnalytics(normAnalytics(aRes.data));
       if (pRes.ok) setProfile(normProfile(pRes.data));
+      const postings = jobsRes.ok ? asList(jobsRes.data) : [];
+      const saved = savedRes.ok ? asList(savedRes.data) : [];
+      setJobsOverview({
+        totalJobs: postings.length,
+        totalApplicants: postings.reduce((sum, job) => sum + Number(job?.applicantCount ?? job?.applicationsCount ?? job?.totalApplicants ?? 0), 0),
+        savedCandidates: saved.length,
+      });
       setLoading(false);
     }
     load();
@@ -115,41 +132,34 @@ export default function EmployerOverview() {
         ) : (
           <>
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard
-                icon={Users}
-                label="Team Members"
-                value={analytics?.organizationSize ?? analytics?.employees?.length ?? "—"}
-                sub="Provisioned employees"
+                icon={BriefcaseBusiness}
+                label="Total Jobs"
+                value={jobsOverview.totalJobs}
+                sub="Active postings"
                 color="#00D2FF"
               />
               <StatCard
-                icon={Lock}
-                label="Active Challenges"
-                value={analytics?.totalChallenges ?? "—"}
-                sub="Private challenges"
+                icon={UserCheck}
+                label="Total Applicants"
+                value={jobsOverview.totalApplicants}
+                sub="Across job postings"
                 color="#9D4EDD"
               />
               <StatCard
-                icon={UserCheck}
-                label="Total Candidates"
-                value={analytics?.totalCandidates ?? "—"}
-                sub="Assessment invites sent"
+                icon={Bookmark}
+                label="Saved Candidates"
+                value={jobsOverview.savedCandidates}
+                sub="Shortlisted talent"
                 color="#FFD700"
               />
               <StatCard
-                icon={CreditCard}
-                label="Current Plan"
-                value={billing?.planType ?? profile?.planType ?? "—"}
-                sub={billing?.billingCycleStart ? `Since ${new Date(billing.billingCycleStart).toLocaleDateString()}` : undefined}
+                icon={Users}
+                label="Team Size"
+                value={analytics?.organizationSize ?? analytics?.employees?.length ?? "—"}
+                sub="Provisioned members"
                 color="#22c55e"
-              />
-              <StatCard
-                icon={Zap}
-                label="Active Seats"
-                value={billing?.uniqueActiveEmployees ?? billing?.activeSeats ?? "—"}
-                sub="This billing cycle"
-                color="#f97316"
               />
             </div>
 
@@ -159,9 +169,9 @@ export default function EmployerOverview() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
                   { label: "Add Team Member", href: "/employer/team", color: "#00D2FF" },
-                  { label: "Create Challenge", href: "/employer/challenges", color: "#9D4EDD" },
-                  { label: "Invite Candidate", href: "/employer/assessments", color: "#FFD700" },
-                  { label: "Search Talent", href: "/employer/portal", color: "#22c55e" },
+                  { label: "Create Job", href: "/employer/jobs/create", color: "#9D4EDD" },
+                  { label: "Review Applicants", href: "/employer/applications", color: "#FFD700" },
+                  { label: "Explore Candidates", href: "/employer/candidates", color: "#22c55e" },
                 ].map((a) => (
                   <a
                     key={a.href}

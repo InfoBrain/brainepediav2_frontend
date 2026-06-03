@@ -21,10 +21,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useUpdateProfile } from "@/hooks/useUpdateProfile";
 import { api } from "@/lib/api";
 import { getUserRole, getUserId, getProfileId, getUser } from "@/lib/auth";
-
-const nav: NavItem[] = [
-  { href: "/profile/edit", label: "Edit Profile", icon: UserIcon },
-];
+import { USER_NAV } from "@/lib/userNav";
+import { EMPLOYER_NAV } from "@/lib/employerNav";
+import { ADMIN_NAV } from "@/lib/adminNav";
 
 const schema = z.object({
   firstName: z.string().min(1, "First name is required").max(80),
@@ -57,6 +56,7 @@ export default function EditProfile() {
   const authProfileId = getProfileId();
   const authUser = getUser();
   const role = getUserRole();
+  const nav = role === "Employer" ? EMPLOYER_NAV : role === "GlobalAdmin" ? ADMIN_NAV : USER_NAV;
 
   const [loading, setLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState<string | null>(null);

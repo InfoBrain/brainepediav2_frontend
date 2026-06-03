@@ -115,8 +115,8 @@ export function getUserId(): string | null {
 export function getDashboardPath(role?: ReturnType<typeof getUserRole>): string {
   const r = role ?? getUserRole();
   if (r === "GlobalAdmin") return "/admin/dashboard";
-  if (r === "Employer") return "/employer/portal";
-  return "/user/map";
+  if (r === "Employer") return "/employer/overview";
+  return "/user/dashboard";
 }
 
 export function useAuth() {

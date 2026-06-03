@@ -7,7 +7,7 @@ import { getUser, getUserRole, getDashboardPath } from "@/lib/auth";
 export function Nav() {
   const user = getUser();
   const role = getUserRole();
-  const dashboardPath = role ? getDashboardPath(role) : "/dashboard";
+  const dashboardPath = role ? getDashboardPath(role) : "/auth/login";
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
