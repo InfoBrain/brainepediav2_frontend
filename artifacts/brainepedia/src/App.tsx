@@ -1,114 +1,86 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSessionTimeout } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/Home";
-import { ProblemPage } from "@/pages/Problem";
-import { SolutionPage } from "@/pages/Solution";
-import { HowItWorksPage } from "@/pages/HowItWorks";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import Terms from "@/pages/Terms";
-
-// Auth pages
-import Login from "@/pages/auth/Login";
-import Register from "@/pages/auth/Register";
-import VerifyOtp from "@/pages/auth/VerifyOtp";
-import ForgotPassword from "@/pages/auth/ForgotPassword";
-import ResetPassword from "@/pages/auth/ResetPassword";
-import ChangePassword from "@/pages/auth/ChangePassword";
-import LoginSuccess from "@/pages/auth/LoginSuccess";
-
-// Dashboard pages
-import UserDashboard from "@/pages/dashboard/UserDashboard";
-import AdminDashboard from "@/pages/dashboard/AdminDashboard";
-import EmployerDashboard from "@/pages/dashboard/EmployerDashboard";
 import { RequireAuth } from "@/components/dashboard/RequireAuth";
 import { ForbiddenWatcher } from "@/components/dashboard/ForbiddenWatcher";
-
-// Admin content management pages
-import AdminProfessions from "@/pages/admin/AdminProfessions";
-import AdminDistricts from "@/pages/admin/AdminDistricts";
-import AdminProblemNodes from "@/pages/admin/AdminProblemNodes";
-
-// Admin user management pages
-import AdminUsers from "@/pages/admin/AdminUsers";
-import AdminUserProfile from "@/pages/admin/AdminUserProfile";
-import AdminUserDossier from "@/pages/admin/AdminUserDossier";
-
-// Admin employer management
-import AdminEmployers from "@/pages/admin/AdminEmployers";
-import AdminEmployerDetails from "@/pages/admin/AdminEmployerDetails";
-
-// Employer pages
-import EmployerOverview from "@/pages/employer/EmployerOverview";
-import CompanyProfile from "@/pages/employer/CompanyProfile";
-import TeamMembers from "@/pages/employer/TeamMembers";
-import PrivateChallenges from "@/pages/employer/PrivateChallenges";
-import CandidateAssessments from "@/pages/employer/CandidateAssessments";
-import TeamAnalytics from "@/pages/employer/TeamAnalytics";
-import BillingSeats from "@/pages/employer/BillingSeats";
-import EmployerSettings from "@/pages/employer/EmployerSettings";
-import CandidateExplorer from "@/pages/employer/CandidateExplorer";
-import CandidateDossier from "@/pages/employer/CandidateDossier";
-import SavedCandidates from "@/pages/employer/SavedCandidates";
-import CreateJob from "@/pages/employer/CreateJob";
-import MyJobPostings from "@/pages/employer/MyJobPostings";
-import Applications from "@/pages/employer/Applications";
-
-// Profile pages
-import ViewProfile from "@/pages/profile/ViewProfile";
-import EditProfile from "@/pages/profile/EditProfile";
-import CreateProfile from "@/pages/profile/CreateProfile";
-
-// User sub-pages
-import BadgesPage from "@/pages/user/BadgesPage";
-import ActivityFeed from "@/pages/user/ActivityFeed";
-import SubscriptionSuccess from "@/pages/user/SubscriptionSuccess";
-import AchievementsPage from "@/pages/user/AchievementsPage";
-import PublicPortfolioRedirect from "@/pages/user/PublicPortfolioRedirect";
-
-// Subscription pages
-import SubscriptionCenter from "@/pages/subscription/SubscriptionCenter";
-import VerifyPayment from "@/pages/subscription/VerifyPayment";
-
-// Profession journey
-import SelectProfession from "@/pages/profession/SelectProfession";
-import DistrictMap from "@/pages/profession/DistrictMap";
-
-// App journey
-import MissionListPage from "@/pages/app/MissionListPage";
-import MissionDetailPage from "@/pages/app/MissionDetailPage";
-import SolvePage from "@/pages/app/SolvePage";
-import EvaluationPage from "@/pages/app/EvaluationPage";
-import ResultPage from "@/pages/app/ResultPage";
-import MissionEvaluatingPage from "@/pages/app/MissionEvaluatingPage";
-import MissionResultPage from "@/pages/app/MissionResultPage";
-import NodeResultPage from "@/pages/app/NodeResultPage";
-import UserProgressPage from "@/pages/app/UserProgressPage";
-
-// Public pages
-import PublicProfilePage from "@/pages/public/PublicProfilePage";
-
-// Forum pages
-import ForumPage from "@/pages/forum/ForumPage";
-import ForumCategoryPage from "@/pages/forum/ForumCategoryPage";
-import ForumThreadPage from "@/pages/forum/ForumThreadPage";
-
-// Jobs / career pages
-import JobFeed from "@/pages/jobs/JobFeed";
-import JobDetails from "@/pages/jobs/JobDetails";
-import UserApplications from "@/pages/jobs/UserApplications";
-import UserAssessments from "@/pages/jobs/UserAssessments";
 
 // Global widget
 import { BrainiacWidget } from "@/components/app/BrainiacWidget";
 import { OnboardingGuide } from "@/components/app/OnboardingGuide";
 
 const queryClient = new QueryClient();
+
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Home = lazy(() => import("@/pages/Home"));
+const ProblemPage = lazy(() => import("@/pages/Problem").then((m) => ({ default: m.ProblemPage })));
+const SolutionPage = lazy(() => import("@/pages/Solution").then((m) => ({ default: m.SolutionPage })));
+const HowItWorksPage = lazy(() => import("@/pages/HowItWorks").then((m) => ({ default: m.HowItWorksPage })));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const Terms = lazy(() => import("@/pages/Terms"));
+const Login = lazy(() => import("@/pages/auth/Login"));
+const Register = lazy(() => import("@/pages/auth/Register"));
+const VerifyOtp = lazy(() => import("@/pages/auth/VerifyOtp"));
+const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/auth/ResetPassword"));
+const ChangePassword = lazy(() => import("@/pages/auth/ChangePassword"));
+const LoginSuccess = lazy(() => import("@/pages/auth/LoginSuccess"));
+const UserDashboard = lazy(() => import("@/pages/dashboard/UserDashboard"));
+const AdminDashboard = lazy(() => import("@/pages/dashboard/AdminDashboard"));
+const AdminProfessions = lazy(() => import("@/pages/admin/AdminProfessions"));
+const AdminDistricts = lazy(() => import("@/pages/admin/AdminDistricts"));
+const AdminProblemNodes = lazy(() => import("@/pages/admin/AdminProblemNodes"));
+const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
+const AdminUserProfile = lazy(() => import("@/pages/admin/AdminUserProfile"));
+const AdminUserDossier = lazy(() => import("@/pages/admin/AdminUserDossier"));
+const AdminEmployers = lazy(() => import("@/pages/admin/AdminEmployers"));
+const AdminEmployerDetails = lazy(() => import("@/pages/admin/AdminEmployerDetails"));
+const EmployerOverview = lazy(() => import("@/pages/employer/EmployerOverview"));
+const CompanyProfile = lazy(() => import("@/pages/employer/CompanyProfile"));
+const TeamMembers = lazy(() => import("@/pages/employer/TeamMembers"));
+const PrivateChallenges = lazy(() => import("@/pages/employer/PrivateChallenges"));
+const CandidateAssessments = lazy(() => import("@/pages/employer/CandidateAssessments"));
+const TeamAnalytics = lazy(() => import("@/pages/employer/TeamAnalytics"));
+const BillingSeats = lazy(() => import("@/pages/employer/BillingSeats"));
+const EmployerSettings = lazy(() => import("@/pages/employer/EmployerSettings"));
+const CandidateExplorer = lazy(() => import("@/pages/employer/CandidateExplorer"));
+const CandidateDossier = lazy(() => import("@/pages/employer/CandidateDossier"));
+const SavedCandidates = lazy(() => import("@/pages/employer/SavedCandidates"));
+const CreateJob = lazy(() => import("@/pages/employer/CreateJob"));
+const MyJobPostings = lazy(() => import("@/pages/employer/MyJobPostings"));
+const Applications = lazy(() => import("@/pages/employer/Applications"));
+const ViewProfile = lazy(() => import("@/pages/profile/ViewProfile"));
+const EditProfile = lazy(() => import("@/pages/profile/EditProfile"));
+const CreateProfile = lazy(() => import("@/pages/profile/CreateProfile"));
+const BadgesPage = lazy(() => import("@/pages/user/BadgesPage"));
+const ActivityFeed = lazy(() => import("@/pages/user/ActivityFeed"));
+const SubscriptionSuccess = lazy(() => import("@/pages/user/SubscriptionSuccess"));
+const AchievementsPage = lazy(() => import("@/pages/user/AchievementsPage"));
+const PublicPortfolioRedirect = lazy(() => import("@/pages/user/PublicPortfolioRedirect"));
+const SubscriptionCenter = lazy(() => import("@/pages/subscription/SubscriptionCenter"));
+const VerifyPayment = lazy(() => import("@/pages/subscription/VerifyPayment"));
+const SelectProfession = lazy(() => import("@/pages/profession/SelectProfession"));
+const DistrictMap = lazy(() => import("@/pages/profession/DistrictMap"));
+const MissionListPage = lazy(() => import("@/pages/app/MissionListPage"));
+const MissionDetailPage = lazy(() => import("@/pages/app/MissionDetailPage"));
+const SolvePage = lazy(() => import("@/pages/app/SolvePage"));
+const EvaluationPage = lazy(() => import("@/pages/app/EvaluationPage"));
+const ResultPage = lazy(() => import("@/pages/app/ResultPage"));
+const MissionEvaluatingPage = lazy(() => import("@/pages/app/MissionEvaluatingPage"));
+const MissionResultPage = lazy(() => import("@/pages/app/MissionResultPage"));
+const NodeResultPage = lazy(() => import("@/pages/app/NodeResultPage"));
+const UserProgressPage = lazy(() => import("@/pages/app/UserProgressPage"));
+const PublicProfilePage = lazy(() => import("@/pages/public/PublicProfilePage"));
+const ForumPage = lazy(() => import("@/pages/forum/ForumPage"));
+const ForumCategoryPage = lazy(() => import("@/pages/forum/ForumCategoryPage"));
+const ForumThreadPage = lazy(() => import("@/pages/forum/ForumThreadPage"));
+const JobFeed = lazy(() => import("@/pages/jobs/JobFeed"));
+const JobDetails = lazy(() => import("@/pages/jobs/JobDetails"));
+const UserApplications = lazy(() => import("@/pages/jobs/UserApplications"));
+const UserAssessments = lazy(() => import("@/pages/jobs/UserAssessments"));
 
 function LegacyRedirect({ to }: { to: string }) {
   const [, setLocation] = useLocation();
@@ -468,6 +440,17 @@ function SessionGuard() {
   return null;
 }
 
+function RouteFallback() {
+  return (
+    <div className="min-h-screen bg-[#0A0E14] text-foreground flex items-center justify-center">
+      <div className="rounded-2xl border border-white/10 bg-[#0d1119] px-6 py-5 text-center shadow-[0_0_30px_rgba(0,210,255,0.12)]">
+        <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#00D2FF]/30 border-t-[#00D2FF]" />
+        <p className="text-sm font-mono text-muted-foreground">Loading Brainepedia...</p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -475,7 +458,9 @@ function App() {
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <SessionGuard />
           <ForbiddenWatcher />
-          <Router />
+          <Suspense fallback={<RouteFallback />}>
+            <Router />
+          </Suspense>
           <BrainiacWidget />
           <OnboardingGuide />
         </WouterRouter>
