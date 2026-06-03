@@ -293,7 +293,7 @@ export default function Register() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <User className="h-4 w-4 shrink-0" />
+          <User className={`h-4 w-4 shrink-0 ${!isEmployer ? "text-black" : "text-slate-300"}`} />
           Individual
         </button>
         <button
@@ -305,7 +305,7 @@ export default function Register() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Briefcase className="h-5 w-5 shrink-0" strokeWidth={2.5} />
+          <Briefcase className={`h-5 w-5 shrink-0 ${isEmployer ? "text-black" : "text-slate-300"}`} strokeWidth={2.5} />
           Apply as Employer
         </button>
       </div>
