@@ -6,6 +6,7 @@ import { Users, UserPlus, Loader2, Zap, Search, RefreshCw } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
+import { asList, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +45,7 @@ export default function TeamMembers() {
   const [open, setOpen] = useState(false);
   const [seatTarget, setSeatTarget] = useState<Member | null>(null);
   const [seatLoading, setSeatLoading] = useState(false);
+  const [professions, setProfessions] = useState<string[]>([]);
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -56,7 +58,17 @@ export default function TeamMembers() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchMembers(); }, []);
+  useEffect(() => {
+    fetchMembers();
+    api.professions.list().then((res) => {
+      if (!res.ok) return;
+      setProfessions(
+        asList(res.data)
+          .map((item) => text(item?.name ?? item?.professionName ?? item?.title, ""))
+          .filter(Boolean),
+      );
+    });
+  }, []);
 
   const onSubmit = async (data: FormData) => {
     const res = await api.employers.provisionTeam(data);
@@ -140,7 +152,15 @@ export default function TeamMembers() {
                   </div>
                   <div className="space-y-2">
                     <Label>Profession</Label>
-                    <Input {...register("profession")} placeholder="e.g. Software Engineer, Legal, Finance" />
+                    <select
+                      {...register("profession")}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="">Select profession</option>
+                      {professions.map((profession) => (
+                        <option key={profession} value={profession}>{profession}</option>
+                      ))}
+                    </select>
                     {errors.profession && <p className="text-destructive text-xs">{errors.profession.message}</p>}
                   </div>
                   <Button type="submit" className="w-full font-bold" disabled={isSubmitting}>

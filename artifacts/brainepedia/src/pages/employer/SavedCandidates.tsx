@@ -4,7 +4,7 @@ import { Bookmark, Loader2, RefreshCw, Search, ShieldCheck } from "lucide-react"
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
-import { asList, candidateName, idOf, initials, text } from "@/lib/jobData";
+import { asList, candidateName, formatNumber, idOf, initials, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 
 export default function SavedCandidates() {
@@ -65,7 +65,10 @@ export default function SavedCandidates() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="truncate text-lg font-bold">{name}</h3>
-                    <p className="text-sm text-muted-foreground">{text(item?.profession ?? item?.candidate?.profession ?? item?.currentTitle, "Verified candidate")}</p>
+                    <p className="text-sm text-muted-foreground">{text(item?.profession ?? item?.candidate?.profession ?? item?.candidate?.professionName ?? item?.currentTitle, "Verified candidate")}</p>
+                    <p className="mt-1 text-xs font-mono text-[#00D2FF]">
+                      VX {formatNumber(item?.vx ?? item?.verifiedExperience ?? item?.candidate?.vx ?? item?.candidate?.verifiedExperience)}
+                    </p>
                     <p className="mt-3 rounded-lg border border-white/5 bg-white/[0.03] p-3 text-sm text-muted-foreground">
                       {text(item?.notes, "No saved notes yet.")}
                     </p>

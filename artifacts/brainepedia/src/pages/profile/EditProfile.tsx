@@ -24,6 +24,7 @@ import { getUserRole, getUserId, getProfileId, getUser } from "@/lib/auth";
 import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { ADMIN_NAV } from "@/lib/adminNav";
+import { asList, text } from "@/lib/jobData";
 
 const schema = z.object({
   firstName: z.string().min(1, "First name is required").max(80),
@@ -62,6 +63,7 @@ export default function EditProfile() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [professions, setProfessions] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -124,6 +126,19 @@ export default function EditProfile() {
       });
     },
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    api.professions.list().then((res) => {
+      if (cancelled || !res.ok) return;
+      setProfessions(
+        asList(res.data)
+          .map((item) => text(item?.name ?? item?.professionName ?? item?.title, ""))
+          .filter(Boolean),
+      );
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!userId) {
@@ -351,7 +366,15 @@ export default function EditProfile() {
                 <Input {...register("currentTitle")} placeholder="Senior Engineer" />
               </Field>
               <Field label="Profession" error={errors.profession?.message}>
-                <Input {...register("profession")} placeholder="Software Engineering" />
+                <select
+                  {...register("profession")}
+                  className="w-full rounded-lg border border-white/10 bg-[#0A0E14] px-3 py-2 text-sm text-white outline-none transition-colors focus:border-amber-400/40"
+                >
+                  <option value="">Select profession</option>
+                  {professions.map((profession) => (
+                    <option key={profession} value={profession}>{profession}</option>
+                  ))}
+                </select>
               </Field>
             </div>
           </Section>

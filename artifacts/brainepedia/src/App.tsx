@@ -38,6 +38,9 @@ const AdminUserProfile = lazy(() => import("@/pages/admin/AdminUserProfile"));
 const AdminUserDossier = lazy(() => import("@/pages/admin/AdminUserDossier"));
 const AdminEmployers = lazy(() => import("@/pages/admin/AdminEmployers"));
 const AdminEmployerDetails = lazy(() => import("@/pages/admin/AdminEmployerDetails"));
+const AdminAnalytics = lazy(() => import("@/pages/admin/AdminAnalytics"));
+const AdminSubscriptions = lazy(() => import("@/pages/admin/AdminSubscriptions"));
+const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
 const EmployerOverview = lazy(() => import("@/pages/employer/EmployerOverview"));
 const CompanyProfile = lazy(() => import("@/pages/employer/CompanyProfile"));
 const TeamMembers = lazy(() => import("@/pages/employer/TeamMembers"));
@@ -60,6 +63,11 @@ const ActivityFeed = lazy(() => import("@/pages/user/ActivityFeed"));
 const SubscriptionSuccess = lazy(() => import("@/pages/user/SubscriptionSuccess"));
 const AchievementsPage = lazy(() => import("@/pages/user/AchievementsPage"));
 const PublicPortfolioRedirect = lazy(() => import("@/pages/user/PublicPortfolioRedirect"));
+const UserMissions = lazy(() => import("@/pages/user/UserMissions"));
+const XPProgress = lazy(() => import("@/pages/user/XPProgress"));
+const VXProgress = lazy(() => import("@/pages/user/VXProgress"));
+const ExperienceSessionsPage = lazy(() => import("@/pages/user/ExperienceSessionsPage"));
+const UserSettings = lazy(() => import("@/pages/user/UserSettings"));
 const SubscriptionCenter = lazy(() => import("@/pages/subscription/SubscriptionCenter"));
 const VerifyPayment = lazy(() => import("@/pages/subscription/VerifyPayment"));
 const SelectProfession = lazy(() => import("@/pages/profession/SelectProfession"));
@@ -74,7 +82,7 @@ const MissionResultPage = lazy(() => import("@/pages/app/MissionResultPage"));
 const NodeResultPage = lazy(() => import("@/pages/app/NodeResultPage"));
 const UserProgressPage = lazy(() => import("@/pages/app/UserProgressPage"));
 const PublicProfilePage = lazy(() => import("@/pages/public/PublicProfilePage"));
-const ForumPage = lazy(() => import("@/pages/forum/ForumPage"));
+const ForumDashboardPage = lazy(() => import("@/pages/forum/ForumDashboardPage"));
 const ForumCategoryPage = lazy(() => import("@/pages/forum/ForumCategoryPage"));
 const ForumThreadPage = lazy(() => import("@/pages/forum/ForumThreadPage"));
 const JobFeed = lazy(() => import("@/pages/jobs/JobFeed"));
@@ -138,6 +146,31 @@ function Router() {
       <Route path="/user/activity">
         <RequireAuth allow={["User"]}>
           <ActivityFeed />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/missions">
+        <RequireAuth allow={["User"]}>
+          <UserMissions />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/xp-progress">
+        <RequireAuth allow={["User"]}>
+          <XPProgress />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/vx-progress">
+        <RequireAuth allow={["User"]}>
+          <VXProgress />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/experience-sessions">
+        <RequireAuth allow={["User"]}>
+          <ExperienceSessionsPage />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/settings">
+        <RequireAuth allow={["User"]}>
+          <UserSettings />
         </RequireAuth>
       </Route>
       <Route path="/user/badges">
@@ -238,6 +271,26 @@ function Router() {
       <Route path="/admin/employers">
         <RequireAuth allow={["GlobalAdmin"]}>
           <AdminEmployers />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/forum">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <ForumDashboardPage mode="categories" />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/analytics">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminAnalytics />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/subscriptions">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminSubscriptions />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/settings">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminSettings />
         </RequireAuth>
       </Route>
       <Route path="/admin/:rest*">
@@ -415,9 +468,23 @@ function Router() {
 
       <Route path="/public-profile/:userId" component={PublicProfilePage} />
 
-      <Route path="/forum" component={ForumPage} />
+      <Route path="/forum/discussions">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <ForumDashboardPage mode="discussions" />
+        </RequireAuth>
+      </Route>
+      <Route path="/forum/my-discussions">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <ForumDashboardPage mode="mine" />
+        </RequireAuth>
+      </Route>
       <Route path="/forum/category/:categoryId" component={ForumCategoryPage} />
       <Route path="/forum/thread/:threadId" component={ForumThreadPage} />
+      <Route path="/forum">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <ForumDashboardPage mode="categories" />
+        </RequireAuth>
+      </Route>
 
       <Route component={NotFound} />
     </Switch>

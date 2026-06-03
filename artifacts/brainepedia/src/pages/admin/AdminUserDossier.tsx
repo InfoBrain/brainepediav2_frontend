@@ -296,20 +296,18 @@ export default function AdminUserDossier() {
               )}
               <MetricCard
                 icon={CheckCircle2}
-                label="Completed"
+                label="Missions"
                 value={String(dossier.completedTasks)}
                 color="text-emerald-400"
                 glow="rgba(52,211,153,0.15)"
               />
-              {dossier.verifiedExperienceYears > 0 && (
-                <MetricCard
-                  icon={Star}
-                  label="Exp. Years"
-                  value={`${dossier.verifiedExperienceYears}y`}
-                  color="text-rose-400"
-                  glow="rgba(251,113,133,0.15)"
-                />
-              )}
+              <MetricCard
+                icon={Star}
+                label="VX"
+                value={`${dossier.verifiedExperienceYears.toFixed(1)}`}
+                color="text-rose-400"
+                glow="rgba(251,113,133,0.15)"
+              />
             </div>
           </motion.div>
 

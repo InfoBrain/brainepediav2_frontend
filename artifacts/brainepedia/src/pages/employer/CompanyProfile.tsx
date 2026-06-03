@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Building2, Loader2, Save, Globe, Phone, Mail, Image, AlignLeft } from "lucide-react";
+import { Building2, Loader2, Save, Globe, Phone, Mail, Image, AlignLeft, MapPin } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -15,8 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 const schema = z.object({
   companyName: z.string().min(1, "Company name is required"),
   companyEmail: z.string().email("Invalid email").or(z.literal("")),
-  companyPhoneNumber: z.string().optional(),
-  companyLogoUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  companyPhone: z.string().optional(),
+  companyAddress: z.string().optional(),
   websiteUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
   aboutCompany: z.string().optional(),
 });
@@ -26,27 +26,24 @@ export default function CompanyProfile() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [logoPreview, setLogoPreview] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [profileMeta, setProfileMeta] = useState<any>(null);
 
   const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const watchedLogo = watch("companyLogoUrl");
   useEffect(() => {
-    if (watchedLogo && watchedLogo.startsWith("http")) setLogoPreview(watchedLogo);
-    else setLogoPreview("");
-  }, [watchedLogo]);
-
-  useEffect(() => {
-    api.employers.myProfile().then((res) => {
+    api.employers.myCompanyProfile().then((res) => {
       if (res.ok && res.data) {
         const d = res.data as any;
+        setProfileMeta(d);
         reset({
-          companyName: d.companyName ?? d.name ?? "",
+          companyName: d.companyName ?? d.CompanyName ?? d.name ?? "",
           companyEmail: d.companyEmail ?? d.email ?? "",
-          companyPhoneNumber: d.companyPhoneNumber ?? d.phoneNumber ?? "",
-          companyLogoUrl: d.companyLogoUrl ?? d.logoUrl ?? "",
-          websiteUrl: d.websiteUrl ?? d.website ?? "",
+          companyPhone: d.companyPhone ?? d.companyPhoneNumber ?? d.phoneNumber ?? "",
+          companyAddress: d.companyAddress ?? d.address ?? "",
+          websiteUrl: d.companyWebsite ?? d.websiteUrl ?? d.website ?? "",
           aboutCompany: d.aboutCompany ?? d.about ?? "",
         });
         if (d.companyLogoUrl) setLogoPreview(d.companyLogoUrl);
@@ -56,14 +53,15 @@ export default function CompanyProfile() {
   }, [reset]);
 
   const onSubmit = async (data: FormData) => {
-    const res = await api.employers.updateProfile({
-      companyName: data.companyName,
-      companyEmail: data.companyEmail || "",
-      companyPhoneNumber: data.companyPhoneNumber || "",
-      companyLogoUrl: data.companyLogoUrl || "",
-      websiteUrl: data.websiteUrl || "",
-      aboutCompany: data.aboutCompany || "",
-    });
+    const fd = new FormData();
+    fd.append("CompanyName", data.companyName);
+    fd.append("CompanyEmail", data.companyEmail || "");
+    fd.append("CompanyPhone", data.companyPhone || "");
+    fd.append("CompanyAddress", data.companyAddress || "");
+    fd.append("WebsiteUrl", data.websiteUrl || "");
+    fd.append("AboutCompany", data.aboutCompany || "");
+    if (logoFile) fd.append("LogoFile", logoFile);
+    const res = await api.employers.updateCompanyProfile(fd);
     if (res.ok) {
       toast({ title: "Profile updated", description: "Corporate details saved successfully." });
     } else {
@@ -92,6 +90,9 @@ export default function CompanyProfile() {
             <div>
               <p className="font-semibold text-lg">{watch("companyName") || "Company Name"}</p>
               <p className="text-xs text-muted-foreground font-mono mt-0.5">{watch("websiteUrl") || "—"}</p>
+              {profileMeta?.subscriptionLevel && (
+                <p className="mt-1 text-xs text-[#00D2FF]">Plan: {profileMeta.subscriptionLevel}</p>
+              )}
             </div>
           </div>
 
@@ -112,14 +113,26 @@ export default function CompanyProfile() {
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />Phone Number</Label>
-                <Input {...register("companyPhoneNumber")} type="tel" placeholder="+1234567890" />
+                <Input {...register("companyPhone")} type="tel" placeholder="+1234567890" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="flex items-center gap-1.5"><Image className="h-3.5 w-3.5" />Company Logo URL</Label>
-              <Input {...register("companyLogoUrl")} placeholder="https://cdn.example.com/logo.png" />
-              {errors.companyLogoUrl && <p className="text-destructive text-xs font-mono">{errors.companyLogoUrl.message}</p>}
+              <Label className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />Company Address</Label>
+              <Input {...register("companyAddress")} placeholder="Company address" />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5"><Image className="h-3.5 w-3.5" />Company Logo</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  setLogoFile(file);
+                  if (file) setLogoPreview(URL.createObjectURL(file));
+                }}
+              />
             </div>
 
             <div className="space-y-2">

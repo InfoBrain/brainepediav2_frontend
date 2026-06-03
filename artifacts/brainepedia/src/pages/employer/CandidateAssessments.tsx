@@ -30,10 +30,11 @@ type Assessment = {
   id: string;
   candidateName: string;
   email: string;
-  problemNodeId: string;
+  assessment: string;
   status: string;
+  completionStatus: string;
   completedAt?: string;
-  invitedAt?: string;
+  assignedAt?: string;
 };
 
 export default function CandidateAssessments() {
@@ -162,10 +163,10 @@ export default function CandidateAssessments() {
                 <thead>
                   <tr className="border-b border-white/5 text-muted-foreground text-xs font-mono uppercase tracking-wider">
                     <th className="text-left px-4 py-3">Candidate</th>
-                    <th className="text-left px-4 py-3">Problem Node</th>
+                    <th className="text-left px-4 py-3">Assessment</th>
                     <th className="text-left px-4 py-3">Status</th>
-                    <th className="text-left px-4 py-3">Invited</th>
-                    <th className="text-left px-4 py-3">Completed</th>
+                    <th className="text-left px-4 py-3">Date Assigned</th>
+                    <th className="text-left px-4 py-3">Completion Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -185,8 +186,8 @@ export default function CandidateAssessments() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground font-mono break-all max-w-[160px] truncate">
-                          {a.problemNodeId}
+                        <td className="px-4 py-3 text-sm text-muted-foreground max-w-[220px] truncate">
+                          {a.assessment}
                         </td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border ${badge.className}`}>
@@ -195,10 +196,10 @@ export default function CandidateAssessments() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground">
-                          {a.invitedAt ? new Date(a.invitedAt).toLocaleDateString() : "—"}
+                          {a.assignedAt ? new Date(a.assignedAt).toLocaleDateString() : "—"}
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground">
-                          {a.completedAt ? new Date(a.completedAt).toLocaleDateString() : "—"}
+                          {a.completionStatus}{a.completedAt ? ` · ${new Date(a.completedAt).toLocaleDateString()}` : ""}
                         </td>
                       </tr>
                     );
@@ -238,9 +239,10 @@ function normAssessments(d: any): Assessment[] {
     id: String(x.id ?? x.assessmentId ?? Math.random()),
     candidateName: x.candidateName ?? x.name ?? (`${x.firstName ?? ""} ${x.lastName ?? ""}`.trim() || "Candidate"),
     email: x.email ?? x.candidateEmail ?? "",
-    problemNodeId: x.problemNodeId ?? x.nodeId ?? "",
+    assessment: x.assessment ?? x.assessmentName ?? x.missionName ?? x.problemNodeTitle ?? x.problemNode?.title ?? x.problemNodeId ?? "Assessment",
     status: x.status ?? x.state ?? "Invited",
+    completionStatus: x.completionStatus ?? x.resultStatus ?? (x.completedAt || x.completionDate ? "Completed" : "Pending"),
     completedAt: x.completedAt ?? x.completionDate,
-    invitedAt: x.invitedAt ?? x.sentAt ?? x.createdAt,
+    assignedAt: x.dateAssigned ?? x.assignedAt ?? x.invitedAt ?? x.sentAt ?? x.createdAt,
   }));
 }

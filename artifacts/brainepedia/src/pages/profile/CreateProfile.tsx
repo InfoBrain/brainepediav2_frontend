@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +15,7 @@ import { getUserRole, getUserId } from "@/lib/auth";
 import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { ADMIN_NAV } from "@/lib/adminNav";
+import { asList, text } from "@/lib/jobData";
 
 const schema = z.object({
   firstName: z.string().min(1, "First name is required").max(80),
@@ -49,6 +50,7 @@ export default function CreateProfile() {
   const [submitting, setSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [professions, setProfessions] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -95,6 +97,19 @@ export default function CreateProfile() {
     setImageFile(f);
     setImagePreview(URL.createObjectURL(f));
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    api.professions.list().then((res) => {
+      if (cancelled || !res.ok) return;
+      setProfessions(
+        asList(res.data)
+          .map((item) => text(item?.name ?? item?.professionName ?? item?.title, ""))
+          .filter(Boolean),
+      );
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const onSubmit = async (vals: FormVals) => {
     if (!userId) return;
@@ -228,7 +243,15 @@ export default function CreateProfile() {
               <Input placeholder="Senior Engineer" {...register("currentTitle")} className="bg-[#0A0E14] border-white/10 text-white" />
             </Field>
             <Field label="Profession" error={errors.profession?.message}>
-              <Input placeholder="Software Engineering" {...register("profession")} className="bg-[#0A0E14] border-white/10 text-white" />
+              <select
+                {...register("profession")}
+                className="w-full rounded-lg border border-white/10 bg-[#0A0E14] px-3 py-2 text-sm text-white outline-none"
+              >
+                <option value="">Select profession</option>
+                {professions.map((profession) => (
+                  <option key={profession} value={profession}>{profession}</option>
+                ))}
+              </select>
             </Field>
           </div>
         </Section>

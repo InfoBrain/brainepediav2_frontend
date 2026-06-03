@@ -41,7 +41,8 @@ export default function EmployerSettings() {
     const res = await api.auth.changePassword({
       email: user?.email ?? "",
       oldPassword: data.currentPassword,
-      newPassword: data.newPassword,
+      password: data.newPassword,
+      confirmPassword: data.confirmPassword,
     });
     if (res.ok) {
       toast({ title: "Password updated", description: "Your password has been changed successfully." });

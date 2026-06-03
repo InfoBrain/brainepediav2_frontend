@@ -260,6 +260,7 @@ export const api = {
     list: () => fetchApi("/api/Difficulties"),
   },
   experienceSessions: {
+    list: () => fetchApi("/api/ExperienceSessions"),
     get: (sessionId: string) =>
       fetchApi(`/api/ExperienceSessions/${encodeURIComponent(sessionId)}`),
     getActive: (userId: string, problemNodeId: string) =>
@@ -314,6 +315,8 @@ export const api = {
   problemNodes: {
     byDistrict: (districtId: string, userId?: string | null) =>
       fetchApi(`/api/ProblemNodes/by-district/${encodeURIComponent(districtId)}${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
+    byProfession: (professionName: string) =>
+      fetchApi(`/api/ProblemNodes/by-profession?professionName=${encodeURIComponent(professionName)}`),
     get: (id: string) => fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`),
     /** POST /api/ProblemNodes?userId=... — userId as query param, rest in FormData */
     create: (userId: string, formData: FormData) =>
@@ -338,11 +341,15 @@ export const api = {
     }) => fetchApi("/api/Employers/onboard", { method: "POST", body: JSON.stringify(data) }),
     /** GET /api/Employers/my-profile */
     myProfile: () => fetchApi("/api/Employers/my-profile"),
+    /** GET /api/Employers/my-company-profile */
+    myCompanyProfile: () => fetchApi("/api/Employers/my-company-profile"),
     /** PUT /api/Employers/my-profile/update */
     updateProfile: (data: {
       companyName: string; companyEmail: string; companyPhoneNumber: string;
       companyLogoUrl: string; websiteUrl: string; aboutCompany: string;
     }) => fetchApi("/api/Employers/my-profile/update", { method: "PUT", body: JSON.stringify(data) }),
+    updateCompanyProfile: (formData: FormData) =>
+      fetchApi("/api/Employers/my-profile/update", { method: "PUT", body: formData }),
     /** POST /api/Employers/team/provision */
     provisionTeam: (data: { firstName: string; lastName: string; employeeEmail: string; profession: string }) =>
       fetchApi("/api/Employers/team/provision", { method: "POST", body: JSON.stringify(data) }),
@@ -356,8 +363,8 @@ export const api = {
     /** POST /api/Employers/candidates/assign-private-mission */
     assignMission: (data: { candidateEmail: string; firstName: string; lastName: string; problemNodeId: string }) =>
       fetchApi("/api/Employers/candidates/assign-private-mission", { method: "POST", body: JSON.stringify(data) }),
-    /** GET /api/Employers/candidates/assessments */
-    listAssessments: () => fetchApi("/api/Employers/candidates/assessments"),
+    /** GET /api/Employers/candidate/assessments */
+    listAssessments: () => fetchApi("/api/Employers/candidate/assessments"),
     /** GET /api/Employers/team/analytics */
     teamAnalytics: () => fetchApi("/api/Employers/team/analytics"),
     /** GET /api/Employers/billing/current-month-seats */

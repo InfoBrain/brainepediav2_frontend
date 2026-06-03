@@ -86,6 +86,8 @@ type ActivityItem = {
   id: string;
   activity: string;
   createdAt: string;
+  module: string;
+  action: string;
 };
 
 function normDetail(d: any): ProfileDetail {
@@ -196,6 +198,8 @@ function normActivity(d: any): ActivityItem[] {
       x.activityType ||
       "Activity",
     createdAt: x.createdAt || x.date || x.timestamp || x.performedAt || "",
+    module: x.module || x.moduleName || x.area || "Platform",
+    action: x.action || x.actionName || x.activityType || "Activity",
   }));
 }
 
@@ -595,6 +599,10 @@ function ActivityTab({
   items: ActivityItem[];
   loading: boolean;
 }) {
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const paged = items.slice((page - 1) * pageSize, page * pageSize);
   if (loading) {
     return (
       <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6 space-y-4">
@@ -619,34 +627,44 @@ function ActivityTab({
     );
   }
   return (
-    <div className="bg-[#0d1119] border border-white/5 rounded-xl divide-y divide-white/5">
-      {items.map((item, i) => (
-        <motion.div
-          key={item.id}
-          initial={{ opacity: 0, x: -8 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: i * 0.03 }}
-          className="flex items-start gap-4 p-4"
-        >
-          <div className="h-8 w-8 rounded-full bg-[#6366F1]/15 border border-[#6366F1]/30 flex items-center justify-center shrink-0 mt-0.5">
-            <Activity className="h-3.5 w-3.5 text-[#A5B4FC]" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm text-foreground">{item.activity}</p>
-            {item.createdAt && (
-              <p className="text-xs text-muted-foreground font-mono mt-1">
-                {new Date(item.createdAt).toLocaleString("en-GB", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-            )}
-          </div>
-        </motion.div>
-      ))}
+    <div className="space-y-4">
+      <div className="overflow-x-auto rounded-xl border border-white/5 bg-[#0d1119]">
+        <table className="w-full min-w-[680px] text-sm">
+          <thead className="border-b border-white/5 text-xs uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3 text-left">Activity</th>
+              <th className="px-4 py-3 text-left">Date</th>
+              <th className="px-4 py-3 text-left">Module</th>
+              <th className="px-4 py-3 text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paged.map((item, i) => (
+              <motion.tr
+                key={item.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.03 }}
+                className="border-b border-white/5 last:border-0"
+              >
+                <td className="px-4 py-3 text-foreground">{item.activity}</td>
+                <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                  {item.createdAt ? new Date(item.createdAt).toLocaleString() : "—"}
+                </td>
+                <td className="px-4 py-3 text-muted-foreground">{item.module}</td>
+                <td className="px-4 py-3"><span className="rounded-full border border-[#6366F1]/30 bg-[#6366F1]/15 px-2 py-0.5 text-xs text-[#A5B4FC]">{item.action}</span></td>
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>Page {page} of {totalPages}</span>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Previous</Button>
+          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next</Button>
+        </div>
+      </div>
     </div>
   );
 }
