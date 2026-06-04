@@ -249,8 +249,11 @@ export default function CandidateAssessments() {
                   <Button
                     type="submit"
                     disabled={isSubmitting || !inviteReady}
-                    className="w-full font-bold disabled:opacity-60"
-                    style={{ background: "#FFD700", color: "#000" }}
+                    className={`w-full font-bold ${
+                      inviteReady
+                        ? "bg-[#FFD700] text-black hover:bg-[#F3C800]"
+                        : "bg-white/10 text-muted-foreground hover:bg-white/10"
+                    }`}
                   >
                     Review & Send
                   </Button>
