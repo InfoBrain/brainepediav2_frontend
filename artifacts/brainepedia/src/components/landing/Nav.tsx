@@ -21,11 +21,11 @@ export function Nav() {
           <span className="font-bold text-xl tracking-tight text-foreground">Brainepedia</span>
         </Link>
         <div className="hidden md:flex items-center gap-8">
-          <Link href="/problem" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">The Problem</Link>
-          <Link href="/solution" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">The System</Link>
-          <Link href="/how-it-works" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How It Works</Link>
-          <a href="/#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Pricing</a>
+          <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Home</Link>
+          <Link href="/jobs" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Jobs</Link>
+          <a href="/#employers" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Employers</a>
           <Link href="/forum" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Community</Link>
+          <a href="/#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Pricing</a>
         </div>
         <div className="flex items-center gap-4">
           {user ? (
@@ -41,10 +41,10 @@ export function Nav() {
           ) : (
             <>
               <Link href="/auth/login" className={cn(buttonVariants({ variant: "ghost" }), "text-muted-foreground hover:text-foreground")}>
-                Log In
+                Login
               </Link>
               <Link href="/auth/register" className={cn(buttonVariants({ variant: "default" }), "bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] border border-primary/50")}>
-                Enter City
+                Sign Up
               </Link>
             </>
           )}

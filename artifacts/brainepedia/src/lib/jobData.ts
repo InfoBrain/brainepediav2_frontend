@@ -15,6 +15,7 @@ export function asList(data: any): any[] {
     data?.postings ??
     data?.candidates ??
     data?.applications ??
+    data?.applicants ??
     data?.savedCandidates ??
     data?.threads ??
     [];
@@ -55,24 +56,69 @@ export function idOf(item: any): string {
       item?.applicationId ??
       item?.candidateUserId ??
       item?.candidate?.userId ??
+      item?.candidate?.UserId ??
+      item?.candidate?.id ??
+      item?.applicant?.userId ??
+      item?.applicant?.UserId ??
+      item?.candidateInfo?.userId ??
+      item?.candidateInfo?.UserId ??
+      item?.profile?.userId ??
+      item?.profile?.UserId ??
+      item?.user?.userId ??
+      item?.user?.UserId ??
       item?.profileUserId ??
       item?.applicationUserId ??
       item?.userId ??
+      item?.UserId ??
       item?.id ??
       ""
   );
 }
 
 export function candidateName(item: any): string {
+  const source = item?.candidate ?? item?.applicant ?? item?.candidateInfo ?? item?.profile ?? item?.user ?? item;
+  const first = source?.firstName ?? source?.FirstName ?? item?.firstName ?? item?.FirstName;
+  const last =
+    source?.surName ??
+    source?.SurName ??
+    source?.surname ??
+    source?.Surname ??
+    source?.lastName ??
+    source?.LastName ??
+    item?.surName ??
+    item?.SurName ??
+    item?.lastName ??
+    item?.LastName;
   return text(
-    item?.fullName ??
+    source?.displayName ??
+      source?.DisplayName ??
+      source?.fullName ??
+      source?.FullName ??
+      source?.candidateName ??
+      source?.CandidateName ??
+      item?.displayName ??
+      item?.DisplayName ??
       item?.candidateName ??
-      item?.candidate?.fullName ??
-      item?.candidate?.candidateName ??
-      item?.profile?.fullName ??
-      item?.name ??
-      `${item?.firstName ?? item?.candidate?.firstName ?? item?.profile?.firstName ?? ""} ${item?.lastName ?? item?.candidate?.lastName ?? item?.surName ?? item?.candidate?.surName ?? item?.profile?.lastName ?? ""}`.trim(),
+      item?.CandidateName ??
+      source?.name ??
+      source?.Name ??
+      `${first ?? ""} ${last ?? ""}`.trim(),
     "Candidate"
+  );
+}
+
+export function candidateAvatar(item: any): string {
+  const source = item?.candidate ?? item?.applicant ?? item?.candidateInfo ?? item?.profile ?? item?.user ?? item;
+  return text(
+    source?.avatarUrl ??
+      source?.AvatarUrl ??
+      source?.profilePictureUrl ??
+      source?.ProfilePictureUrl ??
+      source?.photoUrl ??
+      source?.PhotoUrl ??
+      item?.avatarUrl ??
+      item?.AvatarUrl,
+    ""
   );
 }
 

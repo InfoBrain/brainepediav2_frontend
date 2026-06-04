@@ -1,23 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { Hash, LayoutDashboard, Loader2, MessageSquare, Search, User as UserIcon } from "lucide-react";
-import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
+import { Hash, Loader2, Search } from "lucide-react";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { api } from "@/lib/api";
-import { getDashboardPath, getUser, getUserRole } from "@/lib/auth";
+import { getUserRole } from "@/lib/auth";
 import { asList, text } from "@/lib/jobData";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { USER_NAV } from "@/lib/userNav";
+import { EMPLOYER_NAV } from "@/lib/employerNav";
+import { ADMIN_NAV } from "@/lib/adminNav";
 
-type Mode = "categories" | "discussions" | "mine";
+type Mode = "categories" | "discussions";
 type Category = { id: string; name: string; description: string };
 type Thread = { id: string; title: string; categoryName: string; authorName: string; authorId?: string; authorEmail?: string; createdAt?: string; replies?: number; views?: number };
 
 export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mode }) {
-  usePageTitle(mode === "categories" ? "Forum Categories" : mode === "mine" ? "My Discussions" : "Discussions");
+  usePageTitle(mode === "categories" ? "Forum Categories" : "Discussions");
   const role = getUserRole();
-  const user = getUser();
-  const nav = forumNav(getDashboardPath(role));
+  const nav = role === "GlobalAdmin" ? ADMIN_NAV : role === "Employer" ? EMPLOYER_NAV : USER_NAV;
   const [categories, setCategories] = useState<Category[]>([]);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,17 +49,11 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
   }, [mode]);
 
   const filteredThreads = useMemo(() => {
-    const mine = mode === "mine";
     const query = search.trim().toLowerCase();
     return threads.filter((thread) => {
-      if (mine) {
-        const identity = [thread.authorId, thread.authorEmail, thread.authorName].filter(Boolean).map((value) => String(value).toLowerCase());
-        const current = [user?.id, user?.userId, user?.email, user?.firstName].filter(Boolean).map((value) => String(value).toLowerCase());
-        if (!identity.some((value) => current.includes(value))) return false;
-      }
       return !query || thread.title.toLowerCase().includes(query) || thread.categoryName.toLowerCase().includes(query);
     });
-  }, [mode, search, threads, user]);
+  }, [search, threads]);
 
   const filteredCategories = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -66,12 +61,12 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
   }, [categories, search]);
 
   return (
-    <DashboardShell nav={nav} title={mode === "categories" ? "Forum" : mode === "mine" ? "My Discussions" : "Discussions"} subtitle="// community.professional-growth" theme={role === "GlobalAdmin" ? "admin" : role === "Employer" ? "employer" : "user"}>
+    <DashboardShell nav={nav} title={mode === "categories" ? "Forum" : "Discussions"} subtitle="// community.professional-growth" theme={role === "GlobalAdmin" ? "admin" : role === "Employer" ? "employer" : "user"}>
       <div className="space-y-6">
         <section className="rounded-2xl border border-[#00D2FF]/20 bg-gradient-to-br from-[#00D2FF]/10 to-[#0d1119] p-6">
           <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#00D2FF]">Community hub</p>
           <h2 className="mt-1 text-2xl font-black">
-            {mode === "categories" ? "Explore forum categories." : mode === "mine" ? "Review discussions you created." : "Browse all discussions."}
+            {mode === "categories" ? "Explore forum categories." : "Browse all discussions."}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">Stay inside dashboard navigation while learning with the Brainepedia community.</p>
         </section>
@@ -99,7 +94,7 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
         ) : (
           <div className="rounded-2xl border border-white/5 bg-[#0d1119]">
             {filteredThreads.length === 0 ? (
-              <Empty label={mode === "mine" ? "No discussions created by your account were found." : "No discussions found."} />
+              <Empty label="No discussions found." />
             ) : filteredThreads.map((thread) => (
               <Link key={thread.id} href={`/forum/thread/${thread.id}`} className="block border-b border-white/5 p-4 transition-colors last:border-0 hover:bg-white/[0.03]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -116,15 +111,6 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
       </div>
     </DashboardShell>
   );
-}
-
-function forumNav(dashboardHref: string): NavItem[] {
-  return [
-    { href: dashboardHref, label: "Dashboard", icon: LayoutDashboard },
-    { href: "/forum", label: "Categories", icon: Hash, section: "Forum" },
-    { href: "/forum/discussions", label: "Discussions", icon: MessageSquare },
-    { href: "/forum/my-discussions", label: "My Discussions", icon: UserIcon },
-  ];
 }
 
 function normCategory(item: any): Category {

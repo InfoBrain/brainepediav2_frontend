@@ -16,12 +16,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export type NavItem = {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   section?: string;
+  tooltip?: string;
 };
 
 type Theme = "user" | "admin" | "employer";
@@ -243,19 +245,28 @@ function SidebarContent({
                   {item.section}
                 </div>
               )}
-              <Link
-                href={item.href}
-                onClick={onNavigate}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
-                  active
-                    ? `${theme.accent} ${theme.accentText} ${theme.accentBorder} border`
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
-                }`}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span className="truncate">{item.label}</span>
-              </Link>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={item.href}
+                    onClick={onNavigate}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
+                      active
+                        ? `${theme.accent} ${theme.accentText} ${theme.accentBorder} border`
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                </TooltipTrigger>
+                {item.tooltip && (
+                  <TooltipContent side="right" className="max-w-64 bg-[#111827] text-white border border-white/10">
+                    {item.tooltip}
+                  </TooltipContent>
+                )}
+              </Tooltip>
             </div>
           );
         })}

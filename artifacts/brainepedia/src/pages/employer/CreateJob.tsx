@@ -11,15 +11,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
+type JobForm = CreateJobRequest & {
+  expiryDate?: string | null;
+};
+
 export default function CreateJob() {
   const { toast } = useToast();
-  const [form, setForm] = useState<CreateJobRequest>({
+  const [form, setForm] = useState<JobForm>({
     title: "",
     description: "",
     location: "",
     salaryRange: "",
     professionName: "",
     linkAssessmentNodeId: "",
+    expiryDate: defaultExpiryDate(),
   });
   const [professions, setProfessions] = useState<any[]>([]);
   const [problemNodes, setProblemNodes] = useState<any[]>([]);
@@ -38,7 +43,7 @@ export default function CreateJob() {
     loadProfessions();
   }, []);
 
-  const update = (key: keyof CreateJobRequest, value: string) => {
+  const update = (key: keyof JobForm, value: string) => {
     setForm((prev) => ({
       ...prev,
       [key]: value,
@@ -65,6 +70,10 @@ export default function CreateJob() {
     event.preventDefault();
     if (!form.title?.trim() || !form.description?.trim()) {
       toast({ title: "Missing job details", description: "Title and description are required.", variant: "destructive" });
+      return;
+    }
+    if (form.expiryDate && form.expiryDate < todayString()) {
+      toast({ title: "Invalid expiry date", description: "Expiry Date cannot be earlier than today.", variant: "destructive" });
       return;
     }
     setSubmitting(true);
@@ -129,6 +138,19 @@ export default function CreateJob() {
                 <Label htmlFor="location">Location</Label>
                 <Input id="location" value={form.location || ""} onChange={(event) => update("location", event.target.value)} placeholder="Remote, Lagos, London..." />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="expiry-date">Expiry Date</Label>
+              <Input
+                id="expiry-date"
+                type="date"
+                min={todayString()}
+                value={form.expiryDate || ""}
+                onChange={(event) => update("expiryDate", event.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">Defaults to 30 days from today. Expiry Date cannot be earlier than today.</p>
             </div>
 
             <div className="space-y-2">
@@ -219,4 +241,14 @@ function MissionPreview({ node }: { node: any }) {
       </p>
     </div>
   );
+}
+
+function todayString(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function defaultExpiryDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 30);
+  return date.toISOString().slice(0, 10);
 }

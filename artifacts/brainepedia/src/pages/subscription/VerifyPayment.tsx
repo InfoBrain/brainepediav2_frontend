@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { getUserId } from "@/lib/auth";
+import { getUserId, getUserRole } from "@/lib/auth";
 
-type Status = "loading" | "success" | "failed";
+type Status = "loading" | "success" | "failed" | "pending";
 
 const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Grandmaster" };
 
@@ -15,6 +15,8 @@ export default function VerifyPayment() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const userId = getUserId();
+  const role = getUserRole();
+  const isEmployer = role === "Employer";
 
   const [status, setStatus] = useState<Status>("loading");
   const [tierName, setTierName] = useState<string>("Architect");
@@ -26,7 +28,7 @@ export default function VerifyPayment() {
     let cancelled = false;
 
     const scheduleRedirect = (ms: number) => {
-      timerRef.current = setTimeout(() => { if (!cancelled) navigate("/user/subscription"); }, ms);
+      timerRef.current = setTimeout(() => { if (!cancelled) navigate(isEmployer ? "/employer/subscription" : "/user/subscription"); }, ms);
     };
 
     (async () => {
@@ -40,15 +42,25 @@ export default function VerifyPayment() {
         return;
       }
 
-      const res = await api.subscriptions.verifyPayment(reference);
+      const res = isEmployer
+        ? await api.subscriptions.verifyEmployerPayment(reference)
+        : await api.subscriptions.verifyPayment(reference);
       if (cancelled) return;
 
       if (res.ok) {
+        const paymentStatus = String((res.data as any)?.status ?? (res.data as any)?.paymentStatus ?? "").toLowerCase();
+        if (paymentStatus.includes("pending")) {
+          setStatus("pending");
+          scheduleRedirect(8000);
+          return;
+        }
         // Fetch updated tier
-        const statsRes = await api.profiles.stats(userId);
-        if (!cancelled && statsRes.ok && statsRes.data) {
+        const statsRes = isEmployer ? await api.employers.myCompanyProfile() : await api.profiles.stats(userId);
+        if (!cancelled && statsRes.ok && statsRes.data && !isEmployer) {
           const tier = Number(statsRes.data.currentSubscription ?? 1);
           setTierName(SUB_NAMES[tier] ?? "Architect");
+        } else if (isEmployer) {
+          setTierName("Grandmaster");
         }
         if (!cancelled) {
           setStatus("success");
@@ -72,7 +84,7 @@ export default function VerifyPayment() {
       cancelled = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [userId, navigate, toast]);
+  }, [userId, navigate, toast, isEmployer]);
 
   return (
     <div className="min-h-screen bg-[#080C12] flex items-center justify-center p-6">
@@ -90,7 +102,7 @@ export default function VerifyPayment() {
                 <Loader2 className="h-12 w-12 text-[#A78BFA] animate-spin" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-white">Verifying Payment…</h1>
+            <h1 className="text-2xl font-bold text-white">Verifying Payment...</h1>
             <p className="text-sm text-white/40">Confirming your transaction with Paystack. Please wait.</p>
             <div className="flex gap-1 mt-4 justify-center">
               {[0, 0.2, 0.4].map((d, i) => (
@@ -117,8 +129,8 @@ export default function VerifyPayment() {
               <CheckCircle2 className="h-7 w-7 text-emerald-400" />
             </motion.div>
             <div>
-              <h1 className="text-3xl font-black text-white">Welcome to {tierName}!</h1>
-              <p className="text-[#A78BFA] font-semibold mt-1">{tierName} Tier Activated</p>
+              <h1 className="text-3xl font-black text-white">{isEmployer ? "Grandmaster Activated" : `Welcome to ${tierName}!`}</h1>
+              <p className="text-[#A78BFA] font-semibold mt-1">{isEmployer ? "Corporate Plan Activated" : `${tierName} Tier Activated`}</p>
             </div>
             {tierName === "Grandmaster" && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
@@ -129,19 +141,38 @@ export default function VerifyPayment() {
             )}
             <p className="text-sm text-white/40">
               {tierName === "Grandmaster"
-                ? "GPT-4o evaluations, unlimited Brainiac guidance, and elite status are now active."
+                ? (isEmployer ? "Candidate discovery, job listings, assessments, and corporate talent analytics are now active." : "GPT-4o evaluations, unlimited Brainiac guidance, and elite status are now active.")
                 : "Unlimited challenges, enhanced Brainiac hints, and premium district access are now unlocked."}
             </p>
             <div className="flex flex-col gap-3 pt-2">
-              <Button onClick={() => navigate("/user/dashboard")}
+              <Button onClick={() => navigate(isEmployer ? "/employer/overview" : "/user/dashboard")}
                 className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold shadow-[0_0_15px_rgba(255,215,0,0.4)]">
                 Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button variant="outline" onClick={() => navigate("/profession/select")}
+              <Button variant="outline" onClick={() => navigate(isEmployer ? "/employer/candidates" : "/profession/select")}
                 className="w-full border-white/15 text-white/60 hover:bg-white/5 hover:text-white">
-                Start New Mission
+                {isEmployer ? "Discover Candidates" : "Start New Mission"}
               </Button>
             </div>
+          </motion.div>
+        )}
+
+        {status === "pending" && (
+          <motion.div key="pending" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-5">
+            <div className="relative mx-auto w-20 h-20 mb-2">
+              <div className="absolute inset-0 rounded-full bg-[#FFD700]/20 animate-ping" />
+              <div className="relative flex items-center justify-center h-full">
+                <Loader2 className="h-12 w-12 text-[#FFD700] animate-spin" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Payment Pending</h1>
+              <p className="text-sm text-white/40 mt-2">Your payment is still being processed. We will refresh your subscription status once Paystack confirms the transaction.</p>
+            </div>
+            <Button variant="outline" onClick={() => navigate(isEmployer ? "/employer/subscription" : "/user/subscription")}
+              className="w-full border-white/15 text-white/60 hover:bg-white/5 hover:text-white">
+              Back to Subscription
+            </Button>
           </motion.div>
         )}
 
@@ -162,7 +193,7 @@ export default function VerifyPayment() {
                 className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white">
                 <RefreshCw className="mr-2 h-4 w-4" /> Retry Verification
               </Button>
-              <Button variant="outline" onClick={() => navigate("/user/subscription")}
+              <Button variant="outline" onClick={() => navigate(isEmployer ? "/employer/subscription" : "/user/subscription")}
                 className="w-full border-white/15 text-white/60 hover:bg-white/5 hover:text-white">
                 Back to Plans
               </Button>

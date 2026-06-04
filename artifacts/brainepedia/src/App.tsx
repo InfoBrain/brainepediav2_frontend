@@ -53,6 +53,7 @@ const CandidateExplorer = lazy(() => import("@/pages/employer/CandidateExplorer"
 const CandidateDossier = lazy(() => import("@/pages/employer/CandidateDossier"));
 const SavedCandidates = lazy(() => import("@/pages/employer/SavedCandidates"));
 const CreateJob = lazy(() => import("@/pages/employer/CreateJob"));
+const EditJob = lazy(() => import("@/pages/employer/EditJob"));
 const MyJobPostings = lazy(() => import("@/pages/employer/MyJobPostings"));
 const Applications = lazy(() => import("@/pages/employer/Applications"));
 const ViewProfile = lazy(() => import("@/pages/profile/ViewProfile"));
@@ -61,12 +62,10 @@ const CreateProfile = lazy(() => import("@/pages/profile/CreateProfile"));
 const BadgesPage = lazy(() => import("@/pages/user/BadgesPage"));
 const ActivityFeed = lazy(() => import("@/pages/user/ActivityFeed"));
 const SubscriptionSuccess = lazy(() => import("@/pages/user/SubscriptionSuccess"));
-const AchievementsPage = lazy(() => import("@/pages/user/AchievementsPage"));
 const PublicPortfolioRedirect = lazy(() => import("@/pages/user/PublicPortfolioRedirect"));
 const UserMissions = lazy(() => import("@/pages/user/UserMissions"));
 const XPProgress = lazy(() => import("@/pages/user/XPProgress"));
 const VXProgress = lazy(() => import("@/pages/user/VXProgress"));
-const ExperienceSessionsPage = lazy(() => import("@/pages/user/ExperienceSessionsPage"));
 const UserSettings = lazy(() => import("@/pages/user/UserSettings"));
 const SubscriptionCenter = lazy(() => import("@/pages/subscription/SubscriptionCenter"));
 const VerifyPayment = lazy(() => import("@/pages/subscription/VerifyPayment"));
@@ -129,7 +128,7 @@ function Router() {
       </Route>
       {/* Paystack callback — trxref and reference are read directly by VerifyPayment */}
       <Route path="/payment/callback">
-        <RequireAuth allow={["User"]}>
+        <RequireAuth allow={["User", "Employer"]}>
           <VerifyPayment />
         </RequireAuth>
       </Route>
@@ -163,11 +162,6 @@ function Router() {
           <VXProgress />
         </RequireAuth>
       </Route>
-      <Route path="/user/experience-sessions">
-        <RequireAuth allow={["User"]}>
-          <ExperienceSessionsPage />
-        </RequireAuth>
-      </Route>
       <Route path="/user/settings">
         <RequireAuth allow={["User"]}>
           <UserSettings />
@@ -176,11 +170,6 @@ function Router() {
       <Route path="/user/badges">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <BadgesPage />
-        </RequireAuth>
-      </Route>
-      <Route path="/user/achievements">
-        <RequireAuth allow={["User"]}>
-          <AchievementsPage />
         </RequireAuth>
       </Route>
       <Route path="/user/applications">
@@ -214,14 +203,10 @@ function Router() {
         </RequireAuth>
       </Route>
       <Route path="/jobs/:jobId">
-        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
-          <JobDetails />
-        </RequireAuth>
+        <JobDetails />
       </Route>
       <Route path="/jobs">
-        <RequireAuth allow={["User"]}>
-          <JobFeed />
-        </RequireAuth>
+        <JobFeed />
       </Route>
       <Route path="/admin/professions">
         <RequireAuth allow={["GlobalAdmin"]}>
@@ -333,6 +318,11 @@ function Router() {
       <Route path="/employer/jobs/create">
         <RequireAuth allow={["Employer"]}>
           <CreateJob />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/jobs/:jobId/edit">
+        <RequireAuth allow={["Employer"]}>
+          <EditJob />
         </RequireAuth>
       </Route>
       <Route path="/employer/jobs">
@@ -471,11 +461,6 @@ function Router() {
       <Route path="/forum/discussions">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <ForumDashboardPage mode="discussions" />
-        </RequireAuth>
-      </Route>
-      <Route path="/forum/my-discussions">
-        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
-          <ForumDashboardPage mode="mine" />
         </RequireAuth>
       </Route>
       <Route path="/forum/category/:categoryId" component={ForumCategoryPage} />
