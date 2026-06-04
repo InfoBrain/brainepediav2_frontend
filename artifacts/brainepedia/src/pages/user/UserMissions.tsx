@@ -4,11 +4,13 @@ import { CheckCircle2, Clock, Loader2, Percent, RefreshCw, Sparkles, Target, Tro
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
+import { getUserId } from "@/lib/auth";
 import { asList, numberish, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 
 type MissionRow = {
   id: string;
@@ -30,6 +32,7 @@ type MissionStats = {
 
 export default function UserMissions() {
   usePageTitle("Missions");
+  const { toast } = useToast();
   const [stats, setStats] = useState<MissionStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,11 +40,22 @@ export default function UserMissions() {
   const load = async () => {
     setLoading(true);
     setError("");
-    const res = await api.dashboard.myMissionStatistics();
-    if (!res.ok) {
-      setError(res.error || "Could not load missions. Please try again.");
+    const userId = getUserId();
+    if (!userId) {
+      const message = "Unable to identify the current user. Please log in again.";
+      setError(message);
       setStats(null);
       setLoading(false);
+      toast({ title: "Missions unavailable", description: message, variant: "destructive" });
+      return;
+    }
+    const res = await api.dashboard.userMissionStatistics(userId);
+    if (!res.ok) {
+      const message = res.error || "Could not load missions. Please try again.";
+      setError(message);
+      setStats(null);
+      setLoading(false);
+      toast({ title: "Missions unavailable", description: message, variant: "destructive" });
       return;
     }
     setStats(normStats(res.data));

@@ -10,6 +10,7 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { ADMIN_NAV } from "@/lib/adminNav";
+import { Nav } from "@/components/landing/Nav";
 
 type Mode = "categories" | "discussions";
 type Category = { id: string; name: string; description: string };
@@ -60,15 +61,16 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
     return categories.filter((category) => !query || category.name.toLowerCase().includes(query) || category.description.toLowerCase().includes(query));
   }, [categories, search]);
 
-  return (
-    <DashboardShell nav={nav} title={mode === "categories" ? "Forum" : "Discussions"} subtitle="// community.professional-growth" theme={role === "GlobalAdmin" ? "admin" : role === "Employer" ? "employer" : "user"}>
-      <div className="space-y-6">
+  const content = (
+    <div className="space-y-6">
         <section className="rounded-2xl border border-[#00D2FF]/20 bg-gradient-to-br from-[#00D2FF]/10 to-[#0d1119] p-6">
           <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#00D2FF]">Community hub</p>
           <h2 className="mt-1 text-2xl font-black">
             {mode === "categories" ? "Explore forum categories." : "Browse all discussions."}
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">Stay inside dashboard navigation while learning with the Brainepedia community.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {role ? "Stay inside dashboard navigation while learning with the Brainepedia community." : "Read community conversations freely. Sign in when you are ready to start a discussion or reply."}
+          </p>
         </section>
 
         <div className="relative max-w-md">
@@ -108,7 +110,23 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
             ))}
           </div>
         )}
+    </div>
+  );
+
+  if (!role) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Nav />
+        <main className="container mx-auto px-4 pb-16 pt-24">
+          <div className="mx-auto max-w-6xl">{content}</div>
+        </main>
       </div>
+    );
+  }
+
+  return (
+    <DashboardShell nav={nav} title={mode === "categories" ? "Forum" : "Discussions"} subtitle="// community.professional-growth" theme={role === "GlobalAdmin" ? "admin" : role === "Employer" ? "employer" : "user"}>
+      {content}
     </DashboardShell>
   );
 }

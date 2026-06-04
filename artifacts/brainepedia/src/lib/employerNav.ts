@@ -25,8 +25,8 @@ export const EMPLOYER_NAV: NavItem[] = [
   { href: "/employer/assessments", label: "Candidate Assessments", icon: UserCheck, tooltip: "Assessments assigned to candidates or team members to validate practical skills." },
   { href: "/employer/team", label: "Team Members", icon: Users, section: "Teams", tooltip: "Provision employees and manage Grandmaster team access." },
   { href: "/employer/analytics", label: "Team Analytics", icon: BarChart3, tooltip: "Corporate talent analytics across team participation and performance." },
-  { href: "/employer/company-profile", label: "Company Profile", icon: Building2, section: "Organization" },
+  { href: "/employer/company-profile", label: "Company Profile", icon: Building2, section: "Organization", tooltip: "Public-facing employer identity, contact details, website, logo, and company overview." },
   { href: "/employer/subscription", label: "Subscription", icon: Gem, tooltip: "Grandmaster Corporate Plan for candidate discovery, jobs, assessments, and analytics." },
-  { href: "/employer/billing", label: "Billing", icon: CreditCard },
-  { href: "/employer/settings", label: "Settings", icon: Settings, section: "Account" },
+  { href: "/employer/billing", label: "Billing", icon: CreditCard, tooltip: "Current month seats, team payment initialization, and employer billing status." },
+  { href: "/employer/settings", label: "Settings", icon: Settings, section: "Account", tooltip: "Employer account security and access settings." },
 ];
