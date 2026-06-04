@@ -36,10 +36,10 @@ export default function JobFeed() {
   const load = async (nextPage = page) => {
     setLoading(true);
     setError("");
-    const res = await api.jobs.feed(nextPage, 10, { public: !role });
+    const res = await api.jobs.feed(nextPage, 10, { public: true });
     setLoading(false);
     if (!res.ok) {
-      setError(!role && res.status === 401 ? "The live jobs feed currently requires login. Please log in to view current roles." : (res.error || "Unable to load job feed."));
+      setError(res.error || "Unable to load job feed.");
       setJobs([]);
       return;
     }
@@ -89,7 +89,7 @@ export default function JobFeed() {
         {loading ? (
           <Loading label="Loading verified opportunities..." />
         ) : error ? (
-          <ErrorState message={error} onRetry={() => load(page)} showLogin={!role && error.toLowerCase().includes("requires login")} />
+          <ErrorState message={error} onRetry={() => load(page)} />
         ) : filtered.length === 0 ? (
           <EmptyState />
         ) : (
@@ -111,6 +111,7 @@ export default function JobFeed() {
                     <h3 className="truncate text-xl font-bold">{job.title}</h3>
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       <span className="inline-flex items-center gap-1"><Building2 className="h-4 w-4" /> {job.company}</span>
+                      <span className="inline-flex items-center gap-1"><BriefcaseBusiness className="h-4 w-4" /> Profession: {job.profession}</span>
                       <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" /> {job.location}</span>
                       <span className="inline-flex items-center gap-1"><WalletCards className="h-4 w-4" /> {job.salary}</span>
                       <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> {job.postedDate}</span>
@@ -192,14 +193,11 @@ function Loading({ label }: { label: string }) {
   );
 }
 
-function ErrorState({ message, onRetry, showLogin = false }: { message: string; onRetry: () => void; showLogin?: boolean }) {
+function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
       <p className="mb-4 text-sm text-destructive">{message}</p>
-      <div className="flex flex-wrap justify-center gap-3">
-        <Button onClick={onRetry} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
-        {showLogin && <Button asChild><Link href="/auth/login">Login to view jobs</Link></Button>}
-      </div>
+      <Button onClick={onRetry} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
     </div>
   );
 }

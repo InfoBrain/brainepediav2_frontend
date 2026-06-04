@@ -49,10 +49,10 @@ export default function JobDetails() {
     if (!jobId) return;
     setLoading(true);
     setError("");
-    const res = await api.jobs.details(jobId, { public: !role });
+    const res = await api.jobs.details(jobId, { public: true });
     setLoading(false);
     if (!res.ok) {
-      setError(!role && res.status === 401 ? "The live job details endpoint currently requires login. Please log in to view and apply." : (res.error || "Unable to load job details."));
+      setError(res.error || "Unable to load job details.");
       return;
     }
     setJob(res.data);
@@ -102,9 +102,6 @@ export default function JobDetails() {
             <p className="mb-4 text-sm text-destructive">{error}</p>
             <div className="flex flex-wrap justify-center gap-3">
               <Button onClick={load} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
-              {!role && error.toLowerCase().includes("requires login") && (
-                <Button asChild><Link href={`/auth/login?redirect=/jobs/${encodeURIComponent(jobId)}`}>Login to view job</Link></Button>
-              )}
             </div>
           </div>
         ) : (
