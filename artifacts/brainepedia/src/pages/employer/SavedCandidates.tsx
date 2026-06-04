@@ -135,7 +135,11 @@ function candidateMatches(info: any, candidate: any): boolean {
   if (infoEmail && candidateEmail && infoEmail === candidateEmail) return true;
   const infoName = candidateName(info).toLowerCase();
   const candidateDisplayName = candidateName(candidate).toLowerCase();
-  return infoName !== "candidate" && candidateDisplayName !== "candidate" && infoName === candidateDisplayName;
+  if (infoName === "candidate" || candidateDisplayName === "candidate") return false;
+  if (infoName === candidateDisplayName) return true;
+  const infoTokens = infoName.split(/\s+/).filter((part) => part.length > 1);
+  const candidateTokens = new Set(candidateDisplayName.split(/\s+/).filter(Boolean));
+  return infoTokens.length > 0 && infoTokens.every((token) => candidateTokens.has(token));
 }
 
 function formatDate(value: unknown): string {
