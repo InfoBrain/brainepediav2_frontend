@@ -177,7 +177,7 @@ export default function CandidateAssessments() {
                   Invite Candidate
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Invite Candidate to Assessment</DialogTitle>
                 </DialogHeader>
