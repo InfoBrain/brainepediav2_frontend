@@ -153,8 +153,10 @@ export default function SubscriptionCenter() {
     if (!upgradeTarget || !userId) return;
     setUpgradeLoading(true);
     const tierDef = TIERS.find(t => t.key === upgradeTarget);
-    const newTier = tierDef?.numericTier ?? 1;
-    const res = await api.subscriptions.initializeUpgrade({ userId, newTier, currency: "NGN", source: "paystack" });
+    const newTier = isEmployer ? "Grandmaster" : (tierDef?.numericTier ?? 1);
+    const res = isEmployer
+      ? await api.subscriptions.initializeEmployerUpgrade({ userId, newTier })
+      : await api.subscriptions.initializeUpgrade({ userId, newTier, currency: "NGN", source: "paystack" });
     setUpgradeLoading(false);
     const data = res.data as { checkoutUrl?: string; authorization_url?: string } | null;
     const url = data?.checkoutUrl || data?.authorization_url;
@@ -212,11 +214,15 @@ export default function SubscriptionCenter() {
           <section className="rounded-2xl border border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/15 via-[#0d1119] to-[#00D2FF]/10 p-8 shadow-[0_0_35px_rgba(255,215,0,0.18)]">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div>
-                <p className="text-xs font-mono uppercase tracking-[0.25em] text-[#FFD700]">Grandmaster Plan</p>
+                <p className="text-xs font-mono uppercase tracking-[0.25em] text-[#FFD700]">Grandmaster Corporate Plan</p>
                 <h2 className="mt-2 text-3xl font-black">Built for talent discovery, team provisioning, and candidate assessment.</h2>
                 <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
                   Employers use one premium plan for recruitment workflows, private training, and team analytics.
                 </p>
+                <Button onClick={() => setUpgradeTarget("Grandmaster")} disabled={upgradeLoading} className="mt-5 bg-[#FFD700] text-black hover:bg-[#F3C800]">
+                  {upgradeLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Crown className="mr-2 h-4 w-4" />}
+                  Upgrade to Grandmaster
+                </Button>
               </div>
               <span className="rounded-full border border-[#FFD700]/40 bg-[#FFD700]/15 px-4 py-2 text-sm font-bold text-[#FFD700]">
                 Current: {employerPlan}
@@ -225,12 +231,14 @@ export default function SubscriptionCenter() {
           </section>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {[
-              "Job Listings",
+              "Unlimited Job Listings",
               "Team Provisioning",
-              "Team Training",
-              "Candidate Assessment",
-              "Talent Discovery",
-              "Team Analytics",
+              "Candidate Assessments",
+              "Team Training Challenges",
+              "Recruitment Pipeline",
+              "Corporate Talent Analytics",
+              "Private Team Challenges",
+              "Candidate Discovery",
             ].map((feature) => (
               <div key={feature} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                 <CheckCircle2 className="mb-3 h-5 w-5 text-emerald-400" />

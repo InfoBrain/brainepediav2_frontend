@@ -16,6 +16,14 @@ export type CreateJobRequest = {
   salaryRange?: string | null;
   professionName?: string | null;
   linkAssessmentNodeId?: string | null;
+  expiryDate?: string | null;
+};
+
+export type UpdateJobRequest = {
+  title?: string | null;
+  description?: string | null;
+  location?: string | null;
+  salaryRange?: string | null;
 };
 
 export type SaveCandidateRequest = {
@@ -32,6 +40,26 @@ type FetchApiOptions = RequestInit & {
   suppressUnauthorized?: boolean;
   suppressForbidden?: boolean;
 };
+
+function extractApiMessage(data: any): string {
+  if (!data) return "";
+  if (typeof data === "string") {
+    const trimmed = data.trim();
+    const isHtml = trimmed.startsWith("<") || /<!doctype/i.test(trimmed);
+    return isHtml ? "" : trimmed;
+  }
+  if (typeof data !== "object") return "";
+  const direct = data.message ?? data.Message ?? data.error ?? data.Error ?? data.title ?? data.Title;
+  if (direct) return String(direct);
+  const errors = data.errors ?? data.Errors;
+  if (typeof errors === "string") return errors;
+  if (Array.isArray(errors)) return errors.map(String).join(" ");
+  if (errors && typeof errors === "object") {
+    const first = Object.values(errors).flat().filter(Boolean).map(String);
+    if (first.length) return first.join(" ");
+  }
+  return "";
+}
 
 async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}): Promise<ApiResult<T>> {
   const { suppressUnauthorized, suppressForbidden, ...fetchOptions } = options;
@@ -68,8 +96,8 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
     }
 
     if (!response.ok) {
-      let errorMsg = "Something went wrong. Please try again.";
-      if (response.status === 401) {
+      let errorMsg = extractApiMessage(data);
+      if (!errorMsg && response.status === 401) {
         // Session expired or token rejected — clear credentials and signal the app
         // to redirect to login. Callers that pass suppressUnauthorized (e.g. optional
         // authenticated features on public pages) skip the redirect so the page
@@ -80,20 +108,14 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
           window.dispatchEvent(new CustomEvent("api-unauthorized"));
         }
         errorMsg = "Your session has expired. Please log in again.";
-      } else if (response.status === 403) {
+      } else if (!errorMsg && response.status === 403) {
         errorMsg = "Access restricted. Upgrade your subscription to unlock this District.";
-      } else if (response.status === 404) {
+      } else if (!errorMsg && response.status === 404) {
         errorMsg = "The requested resource was not found. Please try again.";
-      } else if (response.status >= 500) {
+      } else if (!errorMsg && response.status >= 500) {
         errorMsg = "Server error. Please try again later.";
-      } else if (typeof data === "string" && data) {
-        const isHtml = data.trimStart().startsWith("<") || /<!doctype/i.test(data);
-        errorMsg = isHtml ? `Request failed (${response.status}). Please try again.` : data;
-      } else if (data && typeof data === "object") {
-        if (data.message) errorMsg = data.message;
-        else if (data.error) errorMsg = data.error;
-        else if (data.title) errorMsg = data.title;
       }
+      if (!errorMsg) errorMsg = `Request failed (${response.status}). Please try again.`;
       if (response.status === 403 && !suppressForbidden) {
         window.dispatchEvent(new CustomEvent("api-forbidden", { detail: { message: errorMsg } }));
       }
@@ -182,11 +204,17 @@ export const api = {
   subscriptions: {
     initialize: (data: any) => fetchApi("/api/Subscriptions/initialize", { method: "POST", body: JSON.stringify(data) }),
     /** POST /api/Subscriptions/initialize-upgrade — body: { userId, newTier, currency, source } */
-    initializeUpgrade: (data: { userId: string; newTier: string | number; currency: string; source: string }) =>
+    initializeUpgrade: (data: { userId: string; newTier: string | number; currency?: string; source?: string }) =>
       fetchApi("/api/Subscriptions/initialize-upgrade", { method: "POST", body: JSON.stringify(data) }),
     /** GET /api/Subscriptions/verify-payment?reference=xxx */
     verifyPayment: (reference: string) =>
       fetchApi(`/api/Subscriptions/verify-payment?reference=${encodeURIComponent(reference)}`),
+    /** POST /api/Subscriptions/employer/initialize-upgrade — body: { userId, newTier } */
+    initializeEmployerUpgrade: (data: { userId: string; newTier: string | number; currency?: string; source?: string }) =>
+      fetchApi("/api/Subscriptions/employer/initialize-upgrade", { method: "POST", body: JSON.stringify(data) }),
+    /** GET /api/Subscriptions/verify-employer-payment?reference=xxx */
+    verifyEmployerPayment: (reference: string) =>
+      fetchApi(`/api/Subscriptions/verify-employer-payment?reference=${encodeURIComponent(reference)}`),
   },
   admin: {
     /** GET /api/Dashboard/stats — global system stats (totalUsers, activeSubscriptions, totalXpAwarded) */
@@ -290,6 +318,8 @@ export const api = {
     leaderboard: (userId: string, count = 20) => fetchApi(`/api/Dashboard/leaderboard?userId=${encodeURIComponent(userId)}&count=${count}`),
     /** GET /api/Dashboard/assigned-challenges */
     assignedChallenges: () => fetchApi("/api/Dashboard/assigned-challenges"),
+    /** GET /api/Dashboard/my-mission-statistics */
+    myMissionStatistics: () => fetchApi("/api/Dashboard/my-mission-statistics"),
   },
   evaluations: {
     askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string }) =>
@@ -438,6 +468,15 @@ export const api = {
     /** GET /api/Jobs/{jobId}/details */
     details: (jobId: string) =>
       fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/details`),
+    /** GET /api/Jobs/my-jobs/{jobId} */
+    myJob: (jobId: string) =>
+      fetchApi(`/api/Jobs/my-jobs/${encodeURIComponent(jobId)}`),
+    /** PUT /api/Jobs/my-jobs/{jobId}/update */
+    updateJob: (jobId: string, data: UpdateJobRequest) =>
+      fetchApi(`/api/Jobs/my-jobs/${encodeURIComponent(jobId)}/update`, { method: "PUT", body: JSON.stringify(data) }),
+    /** PATCH /api/Jobs/my-jobs/{jobId}/status */
+    updateJobStatus: (jobId: string, isActive: boolean) =>
+      fetchApi(`/api/Jobs/my-jobs/${encodeURIComponent(jobId)}/status`, { method: "PATCH", body: JSON.stringify({ isActive, status: isActive ? "Active" : "Inactive" }) }),
     /** POST /api/Jobs/{jobId}/apply */
     apply: (jobId: string) =>
       fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/apply`, { method: "POST" }),

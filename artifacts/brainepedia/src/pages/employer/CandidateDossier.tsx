@@ -4,7 +4,7 @@ import { ArrowLeft, Award, Bookmark, BriefcaseBusiness, Crown, Loader2, RefreshC
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
-import { asList, candidateName, formatNumber, idOf, initials, text } from "@/lib/jobData";
+import { asList, candidateAvatar, candidateName, formatNumber, idOf, initials, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -66,10 +66,12 @@ export default function CandidateDossier() {
     );
   }
 
-  const name = candidateName(dossier);
-  const profession = text(dossier?.professionName ?? dossier?.profession ?? dossier?.currentTitle, "Verified professional");
-  const badges = asList(dossier?.badges ?? dossier?.topBadges);
-  const missions = asList(dossier?.missions ?? dossier?.completedMissions ?? dossier?.missionHistory);
+  const profile = dossier?.profile ?? dossier?.candidate ?? dossier?.user ?? dossier;
+  const name = candidateName(profile);
+  const avatarUrl = candidateAvatar(profile);
+  const profession = text(profile?.professionName ?? profile?.ProfessionName ?? profile?.profession ?? profile?.Profession ?? profile?.currentTitle, "Verified professional");
+  const badges = asList(dossier?.badges ?? dossier?.topBadges ?? profile?.badges);
+  const missions = asList(dossier?.missions ?? dossier?.completedMissions ?? dossier?.missionHistory ?? profile?.missions);
 
   return (
     <DashboardShell nav={EMPLOYER_NAV} title="Candidate Dossier" subtitle="// recruitment.verified-dossier" theme="employer">
@@ -90,18 +92,18 @@ export default function CandidateDossier() {
             <section className="rounded-2xl border border-[#00D2FF]/15 bg-gradient-to-br from-[#00D2FF]/10 via-[#0d1119] to-[#7C3AED]/10 p-6">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#00D2FF]/35 to-[#7C3AED]/30 text-xl font-black">
-                    {initials(name)}
+                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#00D2FF]/35 to-[#7C3AED]/30 text-xl font-black">
+                    {avatarUrl ? <img src={avatarUrl} alt={name} className="h-full w-full object-cover" /> : initials(name)}
                   </div>
                   <div>
                     <h2 className="text-3xl font-black">{name}</h2>
                     <p className="text-sm text-muted-foreground">{profession}</p>
-                    <p className="mt-1 text-xs font-mono text-[#FFD700]">{text(dossier?.rank ?? dossier?.professionalRank ?? dossier?.tier, "Rank pending")}</p>
+                    <p className="mt-1 text-xs font-mono text-[#FFD700]">{text(profile?.rankTitle ?? profile?.RankTitle ?? profile?.rank ?? profile?.professionalRank ?? profile?.tier, "Rank pending")}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:w-[420px]">
-                  <Metric icon={Zap} label="XP" value={formatNumber(dossier?.xp ?? dossier?.totalXP ?? dossier?.totalXp)} />
-                  <Metric icon={Award} label="VX" value={formatNumber(dossier?.vx ?? dossier?.verifiedExperienceYears ?? dossier?.verifiedExperience)} />
+                  <Metric icon={Zap} label="XP" value={formatNumber(profile?.xp ?? profile?.XP ?? profile?.totalXP ?? profile?.totalXp ?? dossier?.xp)} />
+                  <Metric icon={Award} label="VX" value={formatNumber(profile?.vx ?? profile?.VX ?? profile?.verifiedExperienceYears ?? profile?.verifiedExperience ?? dossier?.vx)} />
                   <Metric icon={Crown} label="Leaderboard" value={formatNumber(dossier?.leaderboardPosition ?? dossier?.rankPosition)} />
                 </div>
               </div>

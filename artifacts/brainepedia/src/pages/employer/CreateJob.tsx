@@ -20,6 +20,7 @@ export default function CreateJob() {
     salaryRange: "",
     professionName: "",
     linkAssessmentNodeId: "",
+    expiryDate: defaultExpiryDate(),
   });
   const [professions, setProfessions] = useState<any[]>([]);
   const [problemNodes, setProblemNodes] = useState<any[]>([]);
@@ -67,6 +68,10 @@ export default function CreateJob() {
       toast({ title: "Missing job details", description: "Title and description are required.", variant: "destructive" });
       return;
     }
+    if (form.expiryDate && form.expiryDate < todayString()) {
+      toast({ title: "Invalid expiry date", description: "Expiry Date cannot be earlier than today.", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     const payload: CreateJobRequest = {
       title: form.title?.trim(),
@@ -75,6 +80,7 @@ export default function CreateJob() {
       salaryRange: form.salaryRange?.trim() || null,
       professionName: form.professionName?.trim() || null,
       linkAssessmentNodeId: form.linkAssessmentNodeId?.trim() || null,
+      expiryDate: form.expiryDate || null,
     };
     const res = await api.jobs.createJob(payload);
     setSubmitting(false);
@@ -129,6 +135,19 @@ export default function CreateJob() {
                 <Label htmlFor="location">Location</Label>
                 <Input id="location" value={form.location || ""} onChange={(event) => update("location", event.target.value)} placeholder="Remote, Lagos, London..." />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="expiry-date">Expiry Date</Label>
+              <Input
+                id="expiry-date"
+                type="date"
+                min={todayString()}
+                value={form.expiryDate || ""}
+                onChange={(event) => update("expiryDate", event.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">Defaults to 30 days from today. Expiry Date cannot be earlier than today.</p>
             </div>
 
             <div className="space-y-2">
@@ -219,4 +238,14 @@ function MissionPreview({ node }: { node: any }) {
       </p>
     </div>
   );
+}
+
+function todayString(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function defaultExpiryDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 30);
+  return date.toISOString().slice(0, 10);
 }

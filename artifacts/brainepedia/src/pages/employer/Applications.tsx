@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { ClipboardList, Loader2, RefreshCw, Save, Search, UserCheck } from "lucide-react";
+import { ClipboardList, Eye, Loader2, RefreshCw, Save, Search, UserCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function Applications() {
   const [, params] = useRoute("/employer/applications/:jobId");
@@ -94,12 +101,19 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
   const [error, setError] = useState("");
   const [drafts, setDrafts] = useState<Record<string, { newStatus: string; notes: string }>>({});
   const [savingId, setSavingId] = useState("");
+  const [job, setJob] = useState<any>(null);
+  const [result, setResult] = useState<any | null>(null);
+  const [resultLoading, setResultLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
     setError("");
-    const res = await api.jobs.applications(jobId);
+    const [jobRes, res] = await Promise.all([
+      api.jobs.myJob(jobId),
+      api.jobs.postingApplicants(jobId),
+    ]);
     setLoading(false);
+    if (jobRes.ok) setJob(jobRes.data);
     if (!res.ok) {
       setError(res.error || "Unable to load applications.");
       setApplications([]);
@@ -141,6 +155,18 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
     load();
   };
 
+  const viewAssessmentResult = async (problemNodeId: string, candidateUserId: string) => {
+    setResultLoading(true);
+    setResult(null);
+    const res = await api.evaluations.getNodeResult(problemNodeId, candidateUserId);
+    setResultLoading(false);
+    if (!res.ok) {
+      toast({ title: "Unable to load assessment result", description: res.error || "Please try again.", variant: "destructive" });
+      return;
+    }
+    setResult(res.data);
+  };
+
   return (
     <DashboardShell nav={EMPLOYER_NAV} title="Applications" subtitle="// jobs.application-review" theme="employer">
       <div className="space-y-5">
@@ -160,7 +186,19 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
               const id = idOf(application) || String(index);
               const draft = drafts[id] || { newStatus: "", notes: "" };
               const name = candidateName(application?.candidate ?? application?.applicant ?? application);
-              const userId = application?.userId ?? application?.candidateUserId ?? application?.applicantUserId;
+              const userId = application?.userId ?? application?.candidateUserId ?? application?.applicantUserId ?? application?.candidate?.userId ?? application?.applicant?.userId;
+              const problemNodeId = String(
+                application?.problemNodeId ??
+                  application?.linkedAssessmentNodeId ??
+                  application?.linkAssessmentNodeId ??
+                  job?.problemNodeId ??
+                  job?.linkedAssessmentNodeId ??
+                  job?.linkAssessmentNodeId ??
+                  job?.assessmentNodeId ??
+                  ""
+              );
+              const assessmentStatus = text(application?.assessmentStatus ?? application?.assessmentCompletionStatus, "Assessment status unknown");
+              const completedAssessment = /complete|passed|submitted|evaluated/i.test(assessmentStatus);
               return (
                 <article key={id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                   <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -172,14 +210,21 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                         <h3 className="text-lg font-bold">{name}</h3>
                         <p className="text-sm text-muted-foreground">{text(application?.profession ?? application?.candidate?.profession, "Applicant")}</p>
                         <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">{text(application?.assessmentStatus ?? application?.assessmentCompletionStatus, "Assessment status unknown")}</span>
+                          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">{assessmentStatus}</span>
                           <span className="rounded-full border border-[#00D2FF]/30 bg-[#00D2FF]/10 px-2.5 py-1 text-[#00D2FF]">{text(application?.status ?? application?.applicationStatus, "New")}</span>
                         </div>
-                        {userId && (
-                          <Button asChild variant="outline" className="mt-4">
-                            <Link href={`/employer/candidates/${encodeURIComponent(String(userId))}`}><UserCheck className="mr-2 h-4 w-4" /> Candidate dossier</Link>
-                          </Button>
-                        )}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {userId && (
+                            <Button asChild variant="outline">
+                              <Link href={`/employer/candidates/${encodeURIComponent(String(userId))}`}><UserCheck className="mr-2 h-4 w-4" /> Candidate dossier</Link>
+                            </Button>
+                          )}
+                          {completedAssessment && problemNodeId && userId && (
+                            <Button variant="outline" onClick={() => viewAssessmentResult(problemNodeId, String(userId))}>
+                              <Eye className="mr-2 h-4 w-4" /> View Assessment Result
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="space-y-3">
@@ -206,8 +251,45 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
             })}
           </div>
         )}
+        <Dialog open={Boolean(result) || resultLoading} onOpenChange={(open) => !open && setResult(null)}>
+          <DialogContent className="max-w-2xl bg-[#0d1119] border border-white/10">
+            <DialogHeader>
+              <DialogTitle>Assessment Result</DialogTitle>
+              <DialogDescription>Linked problem-node evaluation for this applicant.</DialogDescription>
+            </DialogHeader>
+            {resultLoading ? (
+              <State label="Loading assessment result..." />
+            ) : result ? (
+              <AssessmentResult result={result} />
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardShell>
+  );
+}
+
+function AssessmentResult({ result }: { result: any }) {
+  const root = result?.data ?? result?.result ?? result?.evaluation ?? result;
+  const passed = Boolean(root?.passed ?? root?.isPassed ?? root?.IsPassed);
+  const rows = [
+    ["Mission Title", text(root?.missionTitle ?? root?.MissionTitle ?? root?.title ?? root?.Title, "Assessment mission")],
+    ["Score", text(root?.score ?? root?.Score ?? root?.percentageScore, "—")],
+    ["Passed/Failed", passed ? "Passed" : "Failed"],
+    ["Strengths", text(root?.strengths ?? root?.Strengths, "No strengths returned.")],
+    ["Weaknesses", text(root?.weaknesses ?? root?.Weaknesses, "No weaknesses returned.")],
+    ["Improvement Areas", text(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement, "No improvement areas returned.")],
+    ["Positive Feedback", text(root?.positiveFeedback ?? root?.PositiveFeedback ?? root?.feedback, "No positive feedback returned.")],
+  ];
+  return (
+    <div className="space-y-3">
+      {rows.map(([label, value]) => (
+        <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm">{value}</p>
+        </div>
+      ))}
+    </div>
   );
 }
 

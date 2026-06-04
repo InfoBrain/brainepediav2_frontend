@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { BriefcaseBusiness, Building2, ChevronLeft, ChevronRight, Loader2, MapPin, RefreshCw, Search, ShieldCheck, WalletCards } from "lucide-react";
+import { BriefcaseBusiness, Building2, CalendarDays, ChevronLeft, ChevronRight, Loader2, MapPin, RefreshCw, Search, ShieldCheck, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
+import { EMPLOYER_NAV } from "@/lib/employerNav";
+import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
 import { asList, idOf, listMeta, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getUserRole } from "@/lib/auth";
+import { Nav } from "@/components/landing/Nav";
+import { Footer } from "@/components/landing/Footer";
 
 type JobRow = {
   id: string;
@@ -15,10 +20,12 @@ type JobRow = {
   profession: string;
   salary: string;
   location: string;
+  postedDate: string;
   assessmentRequired: boolean;
 };
 
 export default function JobFeed() {
+  const role = getUserRole();
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState<number | undefined>();
@@ -55,13 +62,7 @@ export default function JobFeed() {
     );
   });
 
-  return (
-    <DashboardShell
-      nav={USER_NAV}
-      title="Job Feed"
-      subtitle="// career.verified-experience.marketplace"
-      theme="user"
-    >
+  const content = (
       <div className="space-y-6">
         <section className="rounded-2xl border border-[#FFD700]/15 bg-gradient-to-br from-[#FFD700]/10 via-[#0d1119] to-[#7C3AED]/10 p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -112,6 +113,7 @@ export default function JobFeed() {
                       <span className="inline-flex items-center gap-1"><Building2 className="h-4 w-4" /> {job.company}</span>
                       <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" /> {job.location}</span>
                       <span className="inline-flex items-center gap-1"><WalletCards className="h-4 w-4" /> {job.salary}</span>
+                      <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> {job.postedDate}</span>
                     </div>
                   </div>
                   <Button asChild className="bg-[#FFD700] text-black hover:bg-[#F3C800]">
@@ -135,6 +137,29 @@ export default function JobFeed() {
           </Button>
         </div>
       </div>
+  );
+
+  if (!role) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Nav />
+        <main className="container mx-auto px-4 pb-16 pt-24">{content}</main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const nav = role === "Employer" ? EMPLOYER_NAV : role === "GlobalAdmin" ? ADMIN_NAV : USER_NAV;
+  const theme = role === "Employer" ? "employer" : role === "GlobalAdmin" ? "admin" : "user";
+
+  return (
+    <DashboardShell
+      nav={nav}
+      title="Jobs"
+      subtitle="// career.verified-experience.marketplace"
+      theme={theme}
+    >
+      {content}
     </DashboardShell>
   );
 }
@@ -147,8 +172,15 @@ function normalizeJob(job: any): JobRow {
     profession: text(job?.professionName ?? job?.profession, "Open profession"),
     salary: text(job?.salaryRange ?? job?.salary, "Salary undisclosed"),
     location: text(job?.location, "Remote / flexible"),
+    postedDate: formatDate(job?.postedDate ?? job?.datePosted ?? job?.createdAt ?? job?.dateCreated),
     assessmentRequired: Boolean(job?.assessmentRequired ?? job?.requiresAssessment ?? job?.linkAssessmentNodeId ?? job?.assessmentNodeId),
   };
+}
+
+function formatDate(value: unknown): string {
+  if (!value) return "Posted date unavailable";
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? text(value, "Posted date unavailable") : date.toLocaleDateString();
 }
 
 function Loading({ label }: { label: string }) {

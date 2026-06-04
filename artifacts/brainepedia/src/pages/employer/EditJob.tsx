@@ -1,0 +1,118 @@
+import { FormEvent, useEffect, useState } from "react";
+import { Link, useLocation, useRoute } from "wouter";
+import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { EMPLOYER_NAV } from "@/lib/employerNav";
+import { api, type UpdateJobRequest } from "@/lib/api";
+import { text } from "@/lib/jobData";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+
+export default function EditJob() {
+  const [, params] = useRoute("/employer/jobs/:jobId/edit");
+  const [, navigate] = useLocation();
+  const jobId = params?.jobId ? decodeURIComponent(params.jobId) : "";
+  const { toast } = useToast();
+  const [form, setForm] = useState<UpdateJobRequest>({ title: "", description: "", location: "", salaryRange: "" });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (!jobId) return;
+      setLoading(true);
+      setError("");
+      const res = await api.jobs.myJob(jobId);
+      if (cancelled) return;
+      setLoading(false);
+      if (!res.ok) {
+        setError(res.error || "Unable to load job.");
+        return;
+      }
+      const job = res.data as any;
+      setForm({
+        title: text(job?.title ?? job?.jobTitle, ""),
+        description: text(job?.description ?? job?.details, ""),
+        location: text(job?.location, ""),
+        salaryRange: text(job?.salaryRange ?? job?.salary, ""),
+      });
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [jobId]);
+
+  const update = (key: keyof UpdateJobRequest, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!jobId) return;
+    if (!form.title?.trim() || !form.description?.trim()) {
+      toast({ title: "Missing job details", description: "Title and description are required.", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    const res = await api.jobs.updateJob(jobId, {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      location: form.location?.trim() || null,
+      salaryRange: form.salaryRange?.trim() || null,
+    });
+    setSaving(false);
+    if (!res.ok) {
+      toast({ title: "Unable to update job", description: res.error || "Please try again.", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Job updated", description: "Your posting changes were saved." });
+    navigate("/employer/jobs");
+  };
+
+  return (
+    <DashboardShell nav={EMPLOYER_NAV} title="Edit Job" subtitle="// jobs.edit-posting" theme="employer">
+      <div className="space-y-6">
+        <Button asChild variant="ghost" className="pl-0 text-muted-foreground hover:text-foreground">
+          <Link href="/employer/jobs"><ArrowLeft className="mr-2 h-4 w-4" /> Back to My Job Postings</Link>
+        </Button>
+
+        {loading ? (
+          <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" /> Loading job...
+          </div>
+        ) : error ? (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-sm text-destructive">{error}</div>
+        ) : (
+          <form onSubmit={submit} className="max-w-3xl rounded-2xl border border-white/5 bg-[#0d1119] p-6">
+            <div className="grid gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="edit-job-title">Title</Label>
+                <Input id="edit-job-title" value={form.title || ""} onChange={(event) => update("title", event.target.value)} required />
+              </div>
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-job-location">Location</Label>
+                  <Input id="edit-job-location" value={form.location || ""} onChange={(event) => update("location", event.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-job-salary">Salary Range</Label>
+                  <Input id="edit-job-salary" value={form.salaryRange || ""} onChange={(event) => update("salaryRange", event.target.value)} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-job-description">Description</Label>
+                <Textarea id="edit-job-description" rows={10} value={form.description || ""} onChange={(event) => update("description", event.target.value)} required />
+              </div>
+            </div>
+            <Button type="submit" disabled={saving} className="mt-6 bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Save changes
+            </Button>
+          </form>
+        )}
+      </div>
+    </DashboardShell>
+  );
+}

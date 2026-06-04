@@ -4,7 +4,7 @@ import { Bookmark, ChevronLeft, ChevronRight, Loader2, RefreshCw, Search, Shield
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
-import { asList, candidateName, formatNumber, idOf, initials, listMeta, text } from "@/lib/jobData";
+import { asList, candidateAvatar, candidateName, formatNumber, idOf, initials, listMeta, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 type CandidateRow = {
   id: string;
   name: string;
+  avatarUrl: string;
   profession: string;
   currentTitle: string;
   location: string;
@@ -134,8 +135,12 @@ export default function CandidateExplorer() {
               <article key={candidate.id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5 transition-colors hover:border-[#00D2FF]/35">
                 <Link href={`/employer/candidates/${encodeURIComponent(candidate.id)}`} className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00D2FF]/60">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#00D2FF]/35 to-[#7C3AED]/30 font-bold">
-                    {initials(candidate.name)}
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#00D2FF]/35 to-[#7C3AED]/30 font-bold">
+                    {candidate.avatarUrl ? (
+                      <img src={candidate.avatarUrl} alt={candidate.name} className="h-full w-full object-cover" />
+                    ) : (
+                      initials(candidate.name)
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -190,16 +195,18 @@ export default function CandidateExplorer() {
 }
 
 function normalizeCandidate(item: any): CandidateRow {
+  const source = item?.profile ?? item?.candidate ?? item?.user ?? item;
   return {
     id: idOf(item),
     name: candidateName(item),
-    profession: text(item?.professionName ?? item?.profession ?? item?.currentTitle, "Profession not set"),
-    currentTitle: text(item?.currentTitle ?? item?.title ?? item?.headline, "Current title not set"),
-    location: text(item?.location ?? item?.city ?? item?.country ?? item?.address, "Location not set"),
-    rank: text(item?.rank ?? item?.professionalRank ?? item?.tier, "Verified talent"),
-    xp: item?.xp ?? item?.totalXP ?? item?.totalXp ?? item?.verifiedXp,
-    vx: item?.vx ?? item?.verifiedExperienceYears ?? item?.verifiedExperience,
-    badgeCount: item?.badgeCount ?? item?.badgesCount ?? (Array.isArray(item?.badges) ? item.badges.length : undefined),
+    avatarUrl: candidateAvatar(item),
+    profession: text(source?.professionName ?? source?.ProfessionName ?? source?.profession ?? source?.Profession ?? source?.currentTitle, "Profession not set"),
+    currentTitle: text(source?.currentTitle ?? source?.CurrentTitle ?? source?.title ?? source?.Title ?? source?.headline, "Current title not set"),
+    location: text(source?.location ?? source?.Location ?? source?.city ?? source?.City ?? source?.country ?? source?.Country ?? source?.address, "Location not set"),
+    rank: text(source?.rankTitle ?? source?.RankTitle ?? source?.rank ?? source?.professionalRank ?? source?.tier, "Verified talent"),
+    xp: source?.xp ?? source?.XP ?? source?.totalXP ?? source?.totalXp ?? source?.TotalXp ?? source?.verifiedXp,
+    vx: source?.vx ?? source?.VX ?? source?.verifiedExperienceYears ?? source?.verifiedExperience ?? source?.VerifiedExperience,
+    badgeCount: source?.badgeCount ?? source?.badgesCount ?? (Array.isArray(source?.badges) ? source.badges.length : undefined),
   };
 }
 
