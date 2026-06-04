@@ -85,7 +85,7 @@ export default function JobDetails() {
   const description = text(job?.description ?? job?.details, "No description was provided for this posting.");
   const assessmentTitle = text(job?.assessmentTitle ?? job?.assessmentName ?? job?.problemNodeTitle, "");
   const assessmentId = String(job?.linkedAssessmentNodeId ?? job?.linkAssessmentNodeId ?? job?.assessmentNodeId ?? job?.problemNodeId ?? "");
-  const assessmentRequired = Boolean(job?.assessmentRequired ?? job?.requiresAssessment ?? assessmentId || assessmentTitle);
+  const assessmentRequired = Boolean((job?.assessmentRequired ?? job?.requiresAssessment ?? assessmentId) || assessmentTitle);
   const nav = role === "Employer" ? EMPLOYER_NAV : role === "GlobalAdmin" ? ADMIN_NAV : USER_NAV;
   const theme = role === "Employer" ? "employer" : role === "GlobalAdmin" ? "admin" : "user";
 
