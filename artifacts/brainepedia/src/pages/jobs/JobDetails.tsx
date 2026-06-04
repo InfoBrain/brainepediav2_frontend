@@ -59,6 +59,7 @@ export default function JobDetails() {
   };
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId]);
