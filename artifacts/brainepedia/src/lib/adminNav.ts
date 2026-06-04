@@ -21,6 +21,6 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/problem-nodes", label: "Problem Nodes", icon: Database, tooltip: "Real-world assessment missions users solve to earn XP and VX." },
   { href: "/admin/forum", label: "Forum Management", icon: MessageSquare, tooltip: "Community categories and discussions across the platform." },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3, tooltip: "Platform usage, growth, and talent signal reporting." },
-  { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard, tooltip: "Initiate, Architect, Grandmaster, and employer subscription oversight." },
+  { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard, tooltip: "Initiate and Architect user plans plus Grandmaster Corporate employer oversight." },
   { href: "/admin/settings", label: "Settings", icon: Settings, tooltip: "Administrative configuration and operational controls." },
 ];

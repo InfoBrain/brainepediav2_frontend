@@ -48,6 +48,7 @@ export async function processEvaluation(
   submissionId: string,
   maxRetries = 2
 ): Promise<{ ok: boolean; data?: ProcessResult; error?: string }> {
+  let lastError = "";
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     console.log(`[evaluationService] processEvaluation attempt ${attempt + 1} for submission: ${submissionId}`);
     const res = await api.evaluations.process(submissionId);
@@ -62,6 +63,8 @@ export async function processEvaluation(
       return { ok: false, error: "Your session has expired. Please log in again." };
     }
 
+    lastError = res.error || lastError;
+
     if (attempt < maxRetries) {
       const delay = 2000 * (attempt + 1);
       console.log(`[evaluationService] retrying in ${delay}ms…`);
@@ -69,7 +72,7 @@ export async function processEvaluation(
     }
   }
 
-  return { ok: false, error: "Evaluation failed after retries. Please try again." };
+  return { ok: false, error: lastError || "Evaluation failed after retries. Please try again." };
 }
 
 const NOT_FOUND_PHRASES = ["no evaluation found", "not found", "does not exist"];
@@ -88,6 +91,7 @@ export async function getEvaluationBySession(
   sessionId: string,
   maxRetries = 2
 ): Promise<{ ok: boolean; data?: EvaluationResult; notFound?: boolean; error?: string }> {
+  let lastError = "";
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     console.log(`[evaluationService] getEvaluationBySession attempt ${attempt + 1} for session: ${sessionId}`);
     const res = await api.evaluations.getResult(sessionId);
@@ -109,6 +113,8 @@ export async function getEvaluationBySession(
       return { ok: false, notFound: true, error: "Evaluation still processing…" };
     }
 
+    lastError = res.error || lastError;
+
     if (attempt < maxRetries) {
       const delay = 2000 * (attempt + 1);
       console.log(`[evaluationService] retrying in ${delay}ms…`);
@@ -116,5 +122,5 @@ export async function getEvaluationBySession(
     }
   }
 
-  return { ok: false, error: "Could not load evaluation results. Please retry." };
+  return { ok: false, error: lastError || "Could not load evaluation results. Please retry." };
 }

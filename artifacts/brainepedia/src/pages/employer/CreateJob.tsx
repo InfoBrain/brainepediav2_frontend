@@ -4,11 +4,11 @@ import { BriefcaseBusiness, FilePlus2, Loader2, RefreshCw, Target } from "lucide
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api, type CreateJobRequest } from "@/lib/api";
-import { asList, text } from "@/lib/jobData";
+import { asList, defaultExpiryDate, text, todayString } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor, htmlToPlainText } from "@/components/editor/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 
 type JobForm = CreateJobRequest & {
@@ -68,7 +68,7 @@ export default function CreateJob() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!form.title?.trim() || !form.description?.trim()) {
+    if (!form.title?.trim() || !htmlToPlainText(form.description || "")) {
       toast({ title: "Missing job details", description: "Title and description are required.", variant: "destructive" });
       return;
     }
@@ -84,6 +84,7 @@ export default function CreateJob() {
       salaryRange: form.salaryRange?.trim() || null,
       professionName: form.professionName?.trim() || null,
       linkAssessmentNodeId: form.linkAssessmentNodeId?.trim() || null,
+      expiryDate: form.expiryDate || defaultExpiryDate(),
     };
     const res = await api.jobs.createJob(payload);
     setSubmitting(false);
@@ -103,7 +104,7 @@ export default function CreateJob() {
             <p className="mb-2 text-xs font-mono uppercase tracking-[0.2em] text-[#00D2FF]">Verified hiring</p>
             <h2 className="text-2xl font-black">Publish a role that rewards practical proof.</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Connect salary, location, profession, and optional assessment data without changing backend payloads.
+              Connect salary, location, profession, expiry date, rich description, and optional assessment data.
             </p>
           </div>
 
@@ -184,13 +185,11 @@ export default function CreateJob() {
 
             <div className="space-y-2">
               <Label htmlFor="description">Job description</Label>
-              <Textarea
+              <RichTextEditor
                 id="description"
                 value={form.description || ""}
-                onChange={(event) => update("description", event.target.value)}
-                rows={8}
+                onChange={(html) => update("description", html)}
                 placeholder="Describe the role, success outcomes, and how verified experience will be assessed."
-                required
               />
             </div>
           </div>
@@ -241,14 +240,4 @@ function MissionPreview({ node }: { node: any }) {
       </p>
     </div>
   );
-}
-
-function todayString(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function defaultExpiryDate(): string {
-  const date = new Date();
-  date.setDate(date.getDate() + 30);
-  return date.toISOString().slice(0, 10);
 }

@@ -786,7 +786,7 @@ export default function SolvePage() {
     if (approach || code !== "// Write your code solution here...\n") setUnsaved(true);
   }, [approach, code]);
 
-  const { data: session, isLoading, isError, refetch } = useQuery<SessionData>({
+  const { data: session, isLoading, isError, error: sessionError, refetch } = useQuery<SessionData>({
     queryKey: ["session", sessionId],
     queryFn: async () => {
       const res = await api.experienceSessions.get(sessionId);
@@ -802,7 +802,7 @@ export default function SolvePage() {
     queryKey: ["problem-node-for-session", session?.problemNodeId],
     queryFn: async () => {
       const res = await api.problemNodes.get(session!.problemNodeId);
-      if (!res.ok) throw new Error("Failed to load mission");
+      if (!res.ok) throw new Error(res.error || "Failed to load mission");
       return normProblemNode(res.data);
     },
     enabled: Boolean(session?.problemNodeId) && !session?.problemNode,
@@ -955,7 +955,7 @@ export default function SolvePage() {
       {isError && (
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           <AlertCircle className="w-12 h-12 text-red-400/60" />
-          <p className="text-sm font-mono text-white/50">Failed to load session</p>
+          <p className="text-sm font-mono text-white/50">{sessionError?.message || "Failed to load session"}</p>
           <button
             onClick={() => refetch()}
             className="flex items-center gap-2 text-sm text-white/50 hover:text-white border border-white/20 rounded-lg px-4 py-2 transition-colors"

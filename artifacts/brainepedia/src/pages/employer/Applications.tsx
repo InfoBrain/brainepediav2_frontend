@@ -4,7 +4,19 @@ import { ClipboardList, Eye, Loader2, RefreshCw, Save, Search, UserCheck } from 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
-import { asList, candidateName, idOf, initials, text } from "@/lib/jobData";
+import {
+  applicantUserId,
+  applicationProblemNodeId,
+  asList,
+  candidateName,
+  formatDate,
+  formatNumber,
+  idOf,
+  initials,
+  numberish,
+  profileDetailsOf,
+  text,
+} from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -108,10 +120,11 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
   const load = async () => {
     setLoading(true);
     setError("");
-    const [jobRes, res] = await Promise.all([
+    const [jobRes, primaryRes] = await Promise.all([
       api.jobs.myJob(jobId),
-      api.jobs.postingApplicants(jobId),
+      api.jobs.applications(jobId),
     ]);
+    const res = primaryRes.ok ? primaryRes : await api.jobs.postingApplicants(jobId);
     setLoading(false);
     if (jobRes.ok) setJob(jobRes.data);
     if (!res.ok) {
@@ -185,20 +198,17 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
             {applications.map((application, index) => {
               const id = idOf(application) || String(index);
               const draft = drafts[id] || { newStatus: "", notes: "" };
-              const name = candidateName(application?.candidate ?? application?.applicant ?? application);
-              const userId = application?.userId ?? application?.candidateUserId ?? application?.applicantUserId ?? application?.candidate?.userId ?? application?.applicant?.userId;
-              const problemNodeId = String(
-                application?.problemNodeId ??
-                  application?.linkedAssessmentNodeId ??
-                  application?.linkAssessmentNodeId ??
-                  job?.problemNodeId ??
-                  job?.linkedAssessmentNodeId ??
-                  job?.linkAssessmentNodeId ??
-                  job?.assessmentNodeId ??
-                  ""
-              );
-              const assessmentStatus = text(application?.assessmentStatus ?? application?.assessmentCompletionStatus, "Assessment status unknown");
-              const completedAssessment = /complete|passed|submitted|evaluated/i.test(assessmentStatus);
+              const profile = profileDetailsOf(application);
+              const name = candidateName(application);
+              const userId = applicantUserId(application);
+              const problemNodeId = applicationProblemNodeId(application, job);
+              const profession = text(profile?.profession ?? profile?.Profession ?? application?.profession ?? application?.candidate?.profession, "Profession not provided");
+              const currentTitle = text(profile?.currentTitle ?? profile?.CurrentTitle, "Current title not provided");
+              const totalXp = profile?.totalXP ?? profile?.TotalXP ?? profile?.totalXp ?? profile?.TotalXp;
+              const vx = numberish(profile?.calculatedVX ?? profile?.CalculatedVX ?? profile?.verifiedExperienceYears ?? profile?.VerifiedExperienceYears);
+              const applicationStatus = text(application?.status ?? application?.Status ?? application?.applicationStatus, "New");
+              const appliedAt = formatDate(application?.appliedAt ?? application?.AppliedAt ?? application?.dateApplied ?? application?.DateApplied, "Date unavailable");
+              const assessmentStatus = text(application?.assessmentStatus ?? application?.assessmentCompletionStatus, problemNodeId ? "Assessment linked" : "Assessment status unknown");
               return (
                 <article key={id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                   <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -208,10 +218,19 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                       </div>
                       <div className="min-w-0">
                         <h3 className="text-lg font-bold">{name}</h3>
-                        <p className="text-sm text-muted-foreground">{text(application?.profession ?? application?.candidate?.profession, "Applicant")}</p>
+                        <p className="text-sm text-muted-foreground">{profession}</p>
                         <div className="mt-2 flex flex-wrap gap-2 text-xs">
                           <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">{assessmentStatus}</span>
-                          <span className="rounded-full border border-[#00D2FF]/30 bg-[#00D2FF]/10 px-2.5 py-1 text-[#00D2FF]">{text(application?.status ?? application?.applicationStatus, "New")}</span>
+                          <span className="rounded-full border border-[#00D2FF]/30 bg-[#00D2FF]/10 px-2.5 py-1 text-[#00D2FF]">{applicationStatus}</span>
+                        </div>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                          <ApplicantMetric label="Full Name" value={name} />
+                          <ApplicantMetric label="Profession" value={profession} />
+                          <ApplicantMetric label="Current Title" value={currentTitle} />
+                          <ApplicantMetric label="Total XP" value={formatNumber(totalXp)} />
+                          <ApplicantMetric label="Verified Experience (VX)" value={vx === undefined ? "—" : vx.toFixed(1)} />
+                          <ApplicantMetric label="Applied Date" value={appliedAt} />
+                          <ApplicantMetric label="Application Status" value={applicationStatus} />
                         </div>
                         <div className="mt-4 flex flex-wrap gap-2">
                           {userId && (
@@ -219,7 +238,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                               <Link href={`/employer/candidates/${encodeURIComponent(String(userId))}`}><UserCheck className="mr-2 h-4 w-4" /> Candidate dossier</Link>
                             </Button>
                           )}
-                          {completedAssessment && problemNodeId && userId && (
+                          {problemNodeId && userId && (
                             <Button variant="outline" onClick={() => viewAssessmentResult(problemNodeId, String(userId))}>
                               <Eye className="mr-2 h-4 w-4" /> View Assessment Result
                             </Button>
@@ -271,18 +290,24 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
 
 function AssessmentResult({ result }: { result: any }) {
   const root = result?.data ?? result?.result ?? result?.evaluation ?? result;
-  const passed = Boolean(root?.passed ?? root?.isPassed ?? root?.IsPassed);
-  const rows = [
+  const passed = Boolean(root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed);
+  const rows: [string, string][] = [
     ["Mission Title", text(root?.missionTitle ?? root?.MissionTitle ?? root?.title ?? root?.Title, "Assessment mission")],
-    ["Score", text(root?.score ?? root?.Score ?? root?.percentageScore, "—")],
-    ["Passed/Failed", passed ? "Passed" : "Failed"],
-    ["Strengths", text(root?.strengths ?? root?.Strengths, "No strengths returned.")],
-    ["Weaknesses", text(root?.weaknesses ?? root?.Weaknesses, "No weaknesses returned.")],
-    ["Improvement Areas", text(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement, "No improvement areas returned.")],
-    ["Positive Feedback", text(root?.positiveFeedback ?? root?.PositiveFeedback ?? root?.feedback, "No positive feedback returned.")],
+    ["Score", text(root?.score ?? root?.Score ?? root?.percentageScore ?? root?.PercentageScore, "—")],
+    ["Positive Feedback", listText(root?.positiveFeedback ?? root?.PositiveFeedback ?? root?.feedback ?? root?.Feedback?.PositiveFeedback, "No positive feedback returned.")],
+    ["Strengths", listText(root?.strengths ?? root?.Strengths ?? root?.Feedback?.Strengths, "No strengths returned.")],
+    ["Weaknesses", listText(root?.weaknesses ?? root?.Weaknesses ?? root?.Feedback?.Weaknesses, "No weaknesses returned.")],
+    ["Improvement Areas", listText(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement ?? root?.Feedback?.ImprovementAreas, "No improvement areas returned.")],
+    ["Raw AI Reasoning", text(root?.rawAiReasoning ?? root?.RawAiReasoning ?? root?.aiReasoning ?? root?.AiReasoning, "No raw AI reasoning returned.")],
   ];
   return (
     <div className="space-y-3">
+      <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] p-4">
+        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Passed / Failed</p>
+        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-red-400/40 bg-red-400/10 text-red-300"}`}>
+          {passed ? "Passed" : "Failed"}
+        </span>
+      </div>
       {rows.map(([label, value]) => (
         <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
           <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
@@ -291,6 +316,23 @@ function AssessmentResult({ result }: { result: any }) {
       ))}
     </div>
   );
+}
+
+function ApplicantMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-white/5 bg-white/[0.03] p-3">
+      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-white/85">{value}</p>
+    </div>
+  );
+}
+
+function listText(value: unknown, fallback: string): string {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => text(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  return text(value, fallback);
 }
 
 function State({ label }: { label: string }) {

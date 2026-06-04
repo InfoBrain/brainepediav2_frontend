@@ -113,6 +113,10 @@ export function BrainiacWidget() {
     setThinking(true);
     try {
       const res = await api.evaluations.chatBrainiac({ prompt }, userId);
+      if (!res.ok) {
+        setMessages(m => [...m, { role: "ai", text: res.error || "Brainiac support modules are undergoing maintenance. Please try again shortly." }]);
+        return;
+      }
       const text = extractText(res.data) || "I'm here to help. Could you rephrase your question?";
       const d = res.data as Record<string, unknown> | null;
       const isEscalated = Boolean(d?.IsEscalated ?? d?.isEscalated ?? false);

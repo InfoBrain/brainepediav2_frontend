@@ -53,6 +53,8 @@ export function idOf(item: any): string {
     item?.jobId ??
       item?.jobPostingId ??
       item?.postingId ??
+      item?.jobApplicationId ??
+      item?.JobApplicationId ??
       item?.applicationId ??
       item?.candidateUserId ??
       item?.candidate?.userId ??
@@ -75,7 +77,61 @@ export function idOf(item: any): string {
   );
 }
 
+export function profileDetailsOf(item: any): any {
+  return (
+    item?.profileDetails ??
+    item?.ProfileDetails ??
+    item?.candidate?.profileDetails ??
+    item?.candidate?.ProfileDetails ??
+    item?.applicant?.profileDetails ??
+    item?.applicant?.ProfileDetails ??
+    item?.candidateInfo?.profileDetails ??
+    item?.candidateInfo?.ProfileDetails ??
+    null
+  );
+}
+
+export function applicantUserId(item: any): string {
+  const profile = profileDetailsOf(item);
+  return text(
+    profile?.userId ??
+      profile?.UserId ??
+      item?.userId ??
+      item?.UserId ??
+      item?.candidateUserId ??
+      item?.CandidateUserId ??
+      item?.applicantUserId ??
+      item?.ApplicantUserId ??
+      item?.candidate?.userId ??
+      item?.candidate?.UserId ??
+      item?.applicant?.userId ??
+      item?.applicant?.UserId,
+    ""
+  );
+}
+
+export function applicationProblemNodeId(item: any, job?: any): string {
+  return text(
+    item?.problemNodeId ??
+      item?.ProblemNodeId ??
+      item?.linkedAssessmentNodeId ??
+      item?.LinkedAssessmentNodeId ??
+      item?.linkAssessmentNodeId ??
+      item?.LinkAssessmentNodeId ??
+      job?.problemNodeId ??
+      job?.ProblemNodeId ??
+      job?.linkedAssessmentNodeId ??
+      job?.LinkedAssessmentNodeId ??
+      job?.linkAssessmentNodeId ??
+      job?.LinkAssessmentNodeId ??
+      job?.assessmentNodeId ??
+      job?.AssessmentNodeId,
+    ""
+  );
+}
+
 export function candidateName(item: any): string {
+  const profile = profileDetailsOf(item);
   const source = item?.candidate ?? item?.applicant ?? item?.candidateInfo ?? item?.profile ?? item?.user ?? item;
   const first = source?.firstName ?? source?.FirstName ?? item?.firstName ?? item?.FirstName;
   const last =
@@ -90,7 +146,9 @@ export function candidateName(item: any): string {
     item?.lastName ??
     item?.LastName;
   return text(
-    source?.displayName ??
+    profile?.fullName ??
+      profile?.FullName ??
+      source?.displayName ??
       source?.DisplayName ??
       source?.fullName ??
       source?.FullName ??
@@ -103,14 +161,17 @@ export function candidateName(item: any): string {
       source?.name ??
       source?.Name ??
       `${first ?? ""} ${last ?? ""}`.trim(),
-    "Candidate"
+    "Applicant"
   );
 }
 
 export function candidateAvatar(item: any): string {
+  const profile = profileDetailsOf(item);
   const source = item?.candidate ?? item?.applicant ?? item?.candidateInfo ?? item?.profile ?? item?.user ?? item;
   return text(
-    source?.avatarUrl ??
+    profile?.avatarUrl ??
+      profile?.AvatarUrl ??
+      source?.avatarUrl ??
       source?.AvatarUrl ??
       source?.profilePictureUrl ??
       source?.ProfilePictureUrl ??
@@ -130,4 +191,24 @@ export function initials(name: string): string {
 export function formatNumber(value: unknown): string {
   const n = numberish(value);
   return n === undefined ? "—" : n.toLocaleString();
+}
+
+export function formatDate(value: unknown, fallback = "Date unavailable"): string {
+  if (!value) return fallback;
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? text(value, fallback) : date.toLocaleDateString();
+}
+
+export function expiryDateOf(item: any): unknown {
+  return item?.expiryDate ?? item?.ExpiryDate ?? item?.expiresAt ?? item?.ExpiresAt ?? item?.applicationDeadline ?? item?.ApplicationDeadline;
+}
+
+export function todayString(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export function defaultExpiryDate(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 30);
+  return date.toISOString().slice(0, 10);
 }

@@ -285,7 +285,7 @@ function normalizeCandidates(d: any): Candidate[] {
     id: String(x.userId ?? x.id ?? x.profileId ?? Math.random()),
     fullName:
       x.fullName || x.name ||
-      `${x.firstName || ""} ${x.surName || x.lastName || ""}`.trim() || "Candidate",
+      `${x.firstName || ""} ${x.surName || x.lastName || ""}`.trim() || "Applicant",
     profession: x.profession || x.role || x.currentTitle || x.title,
     isGrandmaster:
       Boolean(x.isGrandmaster) ||

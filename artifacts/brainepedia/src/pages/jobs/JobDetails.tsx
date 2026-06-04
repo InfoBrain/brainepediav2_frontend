@@ -6,12 +6,13 @@ import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
-import { text } from "@/lib/jobData";
+import { expiryDateOf, formatDate, text } from "@/lib/jobData";
 import { getUserRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
+import { HtmlContent } from "@/components/editor/HtmlContent";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,6 +84,7 @@ export default function JobDetails() {
   const location = text(job?.location, "Remote / flexible");
   const salary = text(job?.salaryRange ?? job?.salary, "Salary undisclosed");
   const description = text(job?.description ?? job?.details, "No description was provided for this posting.");
+  const expiryDate = formatDate(expiryDateOf(job), "Not set");
   const assessmentTitle = text(job?.assessmentTitle ?? job?.assessmentName ?? job?.problemNodeTitle, "");
   const assessmentId = String(job?.linkedAssessmentNodeId ?? job?.linkAssessmentNodeId ?? job?.assessmentNodeId ?? job?.problemNodeId ?? "");
   const assessmentRequired = Boolean((job?.assessmentRequired ?? job?.requiresAssessment ?? assessmentId) || assessmentTitle);
@@ -121,14 +123,13 @@ export default function JobDetails() {
                 )}
               </div>
               <h2 className="text-3xl font-black">{title}</h2>
-              <div className="mt-4 grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+              <div className="mt-4 grid gap-3 text-sm text-muted-foreground sm:grid-cols-4">
                 <span className="inline-flex items-center gap-2"><Building2 className="h-4 w-4 text-[#FFD700]" /> {company}</span>
                 <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-[#FFD700]" /> {location}</span>
                 <span className="inline-flex items-center gap-2"><WalletCards className="h-4 w-4 text-[#FFD700]" /> {salary}</span>
+                <span className="inline-flex items-center gap-2"><BriefcaseBusiness className="h-4 w-4 text-[#FFD700]" /> Expires {expiryDate}</span>
               </div>
-              <div className="prose prose-invert prose-sm mt-8 max-w-none whitespace-pre-wrap text-muted-foreground">
-                {description}
-              </div>
+              <HtmlContent html={description} className="mt-8" />
             </article>
 
             <aside className="space-y-4">

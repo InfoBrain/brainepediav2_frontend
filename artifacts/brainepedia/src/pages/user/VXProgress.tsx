@@ -39,7 +39,7 @@ export default function VXProgress() {
   const vx = Number(identity?.verifiedExperienceYears ?? identity?.verifiedExperience ?? stats?.verifiedExperienceYears ?? 0);
   const totalXP = Number(stats?.totalXP ?? stats?.totalXp ?? identity?.totalXp ?? 0);
   const completed = Number(stats?.problemsSolvedCount ?? identity?.completedTasks ?? districts.filter((d) => d.mastered).length);
-  const rank = text(identity?.professionalRank ?? identity?.rank ?? identity?.leaderboardRank, totalXP > 10000 ? "Grandmaster Candidate" : totalXP > 2500 ? "Architect" : "Initiate");
+  const rank = text(identity?.professionalRank ?? identity?.rank ?? identity?.leaderboardRank, totalXP > 10000 ? "Master Operator" : totalXP > 2500 ? "Architect" : "Initiate");
 
   const timeline = useMemo(() => {
     let running = 0;
@@ -95,7 +95,7 @@ export default function VXProgress() {
           <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
             <h2 className="mb-4 text-lg font-bold">Career Progression</h2>
             <div className="grid gap-3 md:grid-cols-3">
-              {["Initiate", "Architect", "Grandmaster"].map((level, index) => {
+              {["Initiate", "Architect", "Master Operator"].map((level, index) => {
                 const active = index === 0 || (index === 1 && totalXP >= 2500) || (index === 2 && totalXP >= 10000);
                 return (
                   <div key={level} className={`rounded-xl border p-4 ${active ? "border-[#00D2FF]/30 bg-[#00D2FF]/10" : "border-white/5 bg-white/[0.02]"}`}>

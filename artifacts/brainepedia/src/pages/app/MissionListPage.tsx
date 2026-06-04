@@ -332,7 +332,7 @@ export default function MissionListPage() {
   const [sortKey, setSortKey] = useState<SortKey>("xp-desc");
   const [completedOverrides, setCompletedOverrides] = useState<Set<string>>(new Set());
 
-  const { data: missions, isLoading: missionsLoading, isError: missionsError, refetch } = useQuery<Mission[]>({
+  const { data: missions, isLoading: missionsLoading, isError: missionsError, error: missionsErrorDetail, refetch } = useQuery<Mission[]>({
     queryKey: ["missions-by-district", districtId, userId],
     queryFn: async () => {
       const res = await api.problemNodes.byDistrict(districtId, userId);
@@ -547,7 +547,7 @@ export default function MissionListPage() {
             className="flex flex-col items-center gap-4 py-24 text-center"
           >
             <AlertCircle className="w-12 h-12 text-red-400/60" />
-            <p className="text-white/50 font-mono text-sm">Failed to load missions. Please retry.</p>
+            <p className="text-white/50 font-mono text-sm">{missionsErrorDetail?.message || "Failed to load missions. Please retry."}</p>
             <Button
               variant="outline"
               size="sm"

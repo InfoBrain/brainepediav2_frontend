@@ -263,7 +263,7 @@ export default function ResultPage() {
   const { data: difficulties } = useDifficulties();
   const difficultyLookup = buildDifficultyLookup(difficulties);
 
-  const { data: submission, isLoading, isError, refetch } = useQuery<Submission>({
+  const { data: submission, isLoading, isError, error: resultError, refetch } = useQuery<Submission>({
     queryKey: ["submission-result", submissionId],
     queryFn: async () => {
       // Step 1: fetch submission to get sessionId and metadata
@@ -418,7 +418,7 @@ export default function ResultPage() {
     return (
       <div className="min-h-screen bg-[#060a10] flex flex-col items-center justify-center gap-4">
         <AlertCircle className="w-12 h-12 text-red-400/60" />
-        <p className="text-sm font-mono text-white/50">Unable to load results</p>
+        <p className="text-sm font-mono text-white/50">{resultError?.message || "Unable to load results"}</p>
         <button onClick={() => refetch()} className="flex items-center gap-2 text-sm border border-white/20 rounded-lg px-4 py-2 text-white/50 hover:text-white transition-colors">
           <RefreshCw className="w-3.5 h-3.5" /> Retry
         </button>

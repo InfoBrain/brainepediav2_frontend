@@ -10,7 +10,7 @@ import { getUserId } from "@/lib/auth";
 const SUB_NAMES: Record<number, string> = {
   0: "Initiate",
   1: "Architect",
-  2: "Grandmaster",
+  2: "Architect",
 };
 
 type Status = "loading" | "success" | "failed";

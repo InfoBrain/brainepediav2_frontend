@@ -26,7 +26,7 @@ const faqs = [
   },
   {
     q: "What subscription plans are available?",
-    a: "We offer three tiers: Initiate (free) for exploring the platform and completing starter missions; Architect for full district access and portfolio tools; and Grandmaster for unlimited missions, priority evaluation, experience elevator tracks, and premium certifications. See our Pricing section for details.",
+    a: "For individual users, we offer Initiate (free) for exploring the platform and completing starter missions, and Architect for full district access and portfolio tools. Grandmaster is a corporate plan for organizations, employers, and teams that need hiring workflows, assessments, team provisioning, and talent analytics.",
   },
   {
     q: "How do badges work?",

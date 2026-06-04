@@ -15,8 +15,8 @@ export default function AdminSubscriptions() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Card icon={Gem} title="Active Plans" value="Live plan mix" />
           <Card icon={DollarSign} title="Revenue Metrics" value="Payment summaries" />
-          <Card icon={CreditCard} title="Employer Subscriptions" value="Grandmaster accounts" />
-          <Card icon={Users} title="User Subscriptions" value="Initiate / Architect / Grandmaster" />
+          <Card icon={CreditCard} title="Employer Subscriptions" value="Grandmaster Corporate accounts" />
+          <Card icon={Users} title="User Subscriptions" value="Initiate / Architect" />
         </div>
         <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-6 text-sm text-muted-foreground">
           Detailed revenue and subscription history endpoints are not currently exposed in Swagger, so this page provides the dedicated admin workspace without inventing mock billing data.

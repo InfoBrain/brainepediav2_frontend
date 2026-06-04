@@ -74,10 +74,9 @@ type VXIdentity = {
 };
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
-const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Grandmaster" };
+const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Architect" };
 
 const SUB_STYLE: Record<string, { bg: string; text: string; border: string; glow: string }> = {
-  Grandmaster: { bg: "bg-[#FFD700]/15", text: "text-[#FFD700]", border: "border-[#FFD700]/40", glow: "shadow-[0_0_16px_rgba(255,215,0,0.5)]" },
   Architect:   { bg: "bg-[#00D2FF]/12", text: "text-[#00D2FF]", border: "border-[#00D2FF]/40", glow: "shadow-[0_0_14px_rgba(0,210,255,0.4)]" },
   Initiate:    { bg: "bg-gray-800/60",  text: "text-gray-400",  border: "border-gray-700",     glow: "" },
 };
@@ -424,10 +423,14 @@ export default function UserDashboard() {
 
   const handleUpgrade = async () => {
     if (!userId) return;
+    if (subName === "Architect") {
+      navigate("/user/subscription");
+      return;
+    }
     setUpgradeLoading(true);
-    const targetTierName = subName === "Architect" ? "Grandmaster" : "Architect";
+    const targetTierName = "Architect";
     /* Use numeric tier values to match the subscription page's working flow */
-    const TIER_NUMS: Record<string, number> = { Initiate: 0, Architect: 1, Grandmaster: 2 };
+    const TIER_NUMS: Record<string, number> = { Initiate: 0, Architect: 1 };
     const newTier = TIER_NUMS[targetTierName] ?? 1;
     const res = await api.subscriptions.initializeUpgrade({
       userId,
@@ -462,7 +465,8 @@ export default function UserDashboard() {
   const totalXP    = dashStats?.totalXP ?? stats?.totalXP ?? 0;
   const dayStreak  = dashStats?.dayStreak ?? stats?.dayStreak ?? 0;
   const solved     = missionStats?.completedMissions ?? dashStats?.problemsSolved ?? stats?.problemsSolvedCount ?? 0;
-  const subName    = dashStats?.subscription ?? SUB_NAMES[stats?.currentSubscription ?? 0] ?? "Initiate";
+  const rawSubName = dashStats?.subscription ?? SUB_NAMES[stats?.currentSubscription ?? 0] ?? "Initiate";
+  const subName    = rawSubName === "Grandmaster" ? "Architect" : rawSubName;
   const subStyle   = SUB_STYLE[subName] ?? SUB_STYLE.Initiate;
   const hasBadges  = dashStats?.hasBadges ?? earnedBadges.length > 0;
   const hasDistricts = dashStats?.hasDistricts ?? districts.length > 0;
@@ -859,51 +863,37 @@ export default function UserDashboard() {
                 : <HexGrid districts={districts} />
               }
             </div>
-            {subName === "Grandmaster" ? (
-              /* Already max tier — show status card */
-              <div className="bg-gradient-to-br from-[#FFD700]/10 to-[#0d1119] border border-[#FFD700]/35 rounded-2xl p-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] flex flex-col">
-                <Crown className="h-6 w-6 text-[#FFD700] mb-3" />
-                <h3 className="text-lg font-bold text-[#FFD700] mb-1">Elite Member</h3>
+            {subName === "Architect" ? (
+              <div className="bg-gradient-to-br from-[#00D2FF]/10 to-[#0d1119] border border-[#00D2FF]/30 rounded-2xl p-6 shadow-[0_0_18px_rgba(0,210,255,0.12)] flex flex-col">
+                <Zap className="h-6 w-6 text-[#00D2FF] mb-3" />
+                <h3 className="text-lg font-bold text-[#00D2FF] mb-1">Architect Active</h3>
                 <p className="text-sm text-white/40 mb-5 flex-1">
-                  You hold Grandmaster status. Unlimited challenges, GPT-4o evaluations, and elite leaderboard badge are all active.
+                  You are on the highest individual plan. Grandmaster is reserved for organizations and employer teams.
                 </p>
                 <Link href="/user/subscription"
-                  className="block text-center text-xs font-mono uppercase tracking-wider text-[#FFD700]/60 hover:text-[#FFD700] transition-colors border border-[#FFD700]/20 rounded-lg py-2.5">
+                  className="block text-center text-xs font-mono uppercase tracking-wider text-[#00D2FF]/70 hover:text-[#00D2FF] transition-colors border border-[#00D2FF]/20 rounded-lg py-2.5">
                   Manage Subscription →
                 </Link>
               </div>
             ) : (
               /* Upgrade card — shows next tier */
               <div className={`bg-gradient-to-br rounded-2xl p-6 flex flex-col ${
-                subName === "Architect"
-                  ? "from-[#FFD700]/10 to-[#0d1119] border border-[#FFD700]/30 shadow-[0_0_18px_rgba(255,215,0,0.12)]"
-                  : "from-[#7C3AED]/15 to-[#0d1119] border border-[#7C3AED]/30 shadow-[0_0_15px_rgba(124,58,237,0.2)]"
+                "from-[#7C3AED]/15 to-[#0d1119] border border-[#7C3AED]/30 shadow-[0_0_15px_rgba(124,58,237,0.2)]"
               }`}>
-                {subName === "Architect"
-                  ? <Crown className="h-6 w-6 text-[#FFD700] mb-3" />
-                  : <Crown className="h-6 w-6 text-amber-400 mb-3" />
-                }
+                <Crown className="h-6 w-6 text-amber-400 mb-3" />
                 <h3 className="text-lg font-bold mb-1">
-                  {subName === "Architect" ? "Ascend to Grandmaster" : "Ascend to Architect"}
+                  Ascend to Architect
                 </h3>
                 <p className="text-sm text-muted-foreground mb-5 flex-1">
-                  {subName === "Architect"
-                    ? "Unlock GPT-4o evaluations, unlimited Brainiac guidance, and elite leaderboard status."
-                    : "Unlock advanced missions, premium badges, and priority Brainiac access."}
+                  Unlock advanced missions, premium badges, and priority Brainiac access.
                 </p>
                 <Button
-                  className={`w-full font-bold ${
-                    subName === "Architect"
-                      ? "bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-black shadow-[0_0_14px_rgba(255,215,0,0.3)]"
-                      : "bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_14px_rgba(124,58,237,0.3)]"
-                  }`}
+                  className="w-full font-bold bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_14px_rgba(124,58,237,0.3)]"
                   onClick={handleUpgrade}
                   disabled={upgradeLoading}
                 >
                   {upgradeLoading
                     ? "Preparing…"
-                    : subName === "Architect"
-                    ? "Upgrade — $49.99/mo"
                     : "Upgrade — $19.99/mo"}
                 </Button>
                 <Link href="/user/subscription"
