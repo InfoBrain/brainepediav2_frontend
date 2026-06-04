@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { CheckCircle2, Clock, Loader2, Percent, RefreshCw, Sparkles, Target, Trophy, Zap } from "lucide-react";
+import { CheckCircle2, Clock, Info, Loader2, Percent, RefreshCw, Sparkles, Target, Trophy, Zap } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
+import { getUserId } from "@/lib/auth";
 import { asList, numberish, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 
 type MissionRow = {
   id: string;
@@ -30,6 +32,7 @@ type MissionStats = {
 
 export default function UserMissions() {
   usePageTitle("Missions");
+  const { toast } = useToast();
   const [stats, setStats] = useState<MissionStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,11 +40,22 @@ export default function UserMissions() {
   const load = async () => {
     setLoading(true);
     setError("");
-    const res = await api.dashboard.myMissionStatistics();
-    if (!res.ok) {
-      setError(res.error || "Could not load missions. Please try again.");
+    const userId = getUserId();
+    if (!userId) {
+      const message = "Unable to identify the current user. Please log in again.";
+      setError(message);
       setStats(null);
       setLoading(false);
+      toast({ title: "Missions unavailable", description: message, variant: "destructive" });
+      return;
+    }
+    const res = await api.dashboard.userMissionStatistics(userId);
+    if (!res.ok) {
+      const message = res.error || "Could not load missions. Please try again.";
+      setError(message);
+      setStats(null);
+      setLoading(false);
+      toast({ title: "Missions unavailable", description: message, variant: "destructive" });
       return;
     }
     setStats(normStats(res.data));
@@ -53,7 +67,7 @@ export default function UserMissions() {
   const recent = useMemo(() => stats?.recent ?? [], [stats]);
 
   return (
-    <DashboardShell nav={USER_NAV} title="Missions" subtitle="// mission.statistics.recent">
+    <DashboardShell nav={USER_NAV} title="Missions" subtitle="Mission statistics and recent activity">
       <div className="space-y-6">
         <section className="rounded-2xl border border-[#FFD700]/20 bg-gradient-to-br from-[#FFD700]/10 to-[#0d1119] p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -128,7 +142,12 @@ function MissionSection({ title, rows, empty }: { title: string; rows: MissionRo
     <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
       <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-white/70">{title}</h3>
       {rows.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">{empty}</p>
+        <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+          <p className="text-sm text-muted-foreground">{empty}</p>
+          <Button asChild className="mt-4 bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
+            <Link href="/profession/select">Start a Mission</Link>
+          </Button>
+        </div>
       ) : (
         <div className="divide-y divide-white/5">
           {rows.slice(0, 12).map((row, index) => (
@@ -158,7 +177,10 @@ function Metric({ icon: Icon, label, value, color, tooltip }: { icon: React.Comp
       <TooltipTrigger asChild>
         <div className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
           <Icon className={`mb-3 h-5 w-5 ${color}`} />
-          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+            <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" aria-hidden="true" />
+          </div>
           <p className={`mt-1 text-3xl font-black ${color}`}>{value}</p>
         </div>
       </TooltipTrigger>

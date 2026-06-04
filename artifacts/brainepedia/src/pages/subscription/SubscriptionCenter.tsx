@@ -15,92 +15,47 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { getUserId, getUserRole } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import {
+  EMPLOYER_GRANDMASTER_FEATURES,
+  PLAN_COMPARISON_FEATURES,
+  USER_SUBSCRIPTION_PLANS,
+} from "@/lib/pricingPlans";
 
 /* ─── Tier data ─────────────────────────────────────────────────────────── */
 const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Grandmaster" };
 
-const TIERS = [
-  {
-    key: "Initiate",
-    numericTier: 0,
-    price: "Free",
-    priceNote: "Forever",
-    icon: Shield,
-    tagline: "Begin your journey",
+const TIER_STYLES = {
+  Initiate: {
     color: "border-slate-700/60",
     glow: "",
-    badge: "bg-slate-800 text-slate-300 border-slate-700",
     buttonClass: "bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed",
     headerBg: "from-slate-900 to-slate-800",
     iconColor: "text-slate-400",
-    features: [
-      { label: "3 missions per month", included: true },
-      { label: "Limited Brainiac hints", included: true },
-      { label: "Basic XP progression", included: true },
-      { label: "Community leaderboard access", included: true },
-      { label: "Unlimited challenges", included: false },
-      { label: "Premium district access", included: false },
-      { label: "GPT-4o evaluations", included: false },
-    ],
   },
-  {
-    key: "Architect",
-    numericTier: 1,
-    price: "$19.99",
-    priceNote: "per month",
-    icon: Zap,
-    tagline: "Unlock the city's full power",
+  Architect: {
     color: "border-[#7C3AED]/50",
     glow: "shadow-[0_0_30px_rgba(124,58,237,0.3)]",
-    badge: "bg-[#7C3AED]/20 text-[#A78BFA] border-[#7C3AED]/40",
     buttonClass: "bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] hover:from-[#6D28D9] hover:to-[#5B21B6] text-white shadow-[0_0_20px_rgba(124,58,237,0.4)]",
     headerBg: "from-[#7C3AED]/20 to-[#4C1D95]/20",
     iconColor: "text-[#A78BFA]",
-    features: [
-      { label: "Unlimited challenges", included: true },
-      { label: "Increased Brainiac hints", included: true },
-      { label: "Faster XP growth", included: true },
-      { label: "Premium district access", included: true },
-      { label: "Advanced AI evaluations", included: true },
-      { label: "Community leaderboard access", included: true },
-      { label: "GPT-4o evaluations", included: false },
-    ],
-    popular: true,
   },
-  {
-    key: "Grandmaster",
-    numericTier: 2,
-    price: "$49.99",
-    priceNote: "per month",
-    icon: Crown,
-    tagline: "Elite Member status",
+  Grandmaster: {
     color: "border-[#FFD700]/50",
     glow: "shadow-[0_0_35px_rgba(255,215,0,0.35)]",
-    badge: "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/40",
     buttonClass: "bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-black font-bold shadow-[0_0_20px_rgba(255,215,0,0.5)]",
     headerBg: "from-[#FFD700]/15 to-[#F59E0B]/10",
     iconColor: "text-[#FFD700]",
-    features: [
-      { label: "Unlimited everything", included: true },
-      { label: "GPT-4o evaluations", included: true },
-      { label: "Unlimited Brainiac guidance", included: true },
-      { label: "Elite leaderboard badge", included: true },
-      { label: "Elite Member badge", included: true },
-      { label: "Priority AI evaluation", included: true },
-      { label: "Legendary status visuals", included: true },
-    ],
   },
-];
+} as const;
 
-const COMPARISON_FEATURES = [
-  { label: "Challenges / month", initiate: "3", architect: "Unlimited", grandmaster: "Unlimited" },
-  { label: "AI evaluations", initiate: "Basic", architect: "Advanced", grandmaster: "GPT-4o" },
-  { label: "Brainiac hints", initiate: "Limited", architect: "More", grandmaster: "Unlimited" },
-  { label: "XP boost", initiate: "1×", architect: "1.5×", grandmaster: "2×" },
-  { label: "Leaderboard", initiate: "✓", architect: "✓", grandmaster: "Elite badge" },
-  { label: "Premium districts", initiate: "✗", architect: "✓", grandmaster: "✓" },
-  { label: "GPT-4o support", initiate: "✗", architect: "✗", grandmaster: "✓" },
-];
+const TIERS = USER_SUBSCRIPTION_PLANS.map((plan) => ({
+  ...plan,
+  ...TIER_STYLES[plan.key],
+  features: [
+    ...plan.features.map((label) => ({ label, included: true })),
+    ...(plan.unavailableFeatures ?? []).map((label) => ({ label, included: false })),
+  ],
+}));
 
 const BRAINIAC_TIPS = [
   "Architect Tier increases your challenge access and XP growth by 50% — a solid investment for active learners.",
@@ -230,16 +185,7 @@ export default function SubscriptionCenter() {
             </div>
           </section>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {[
-              "Unlimited Job Listings",
-              "Team Provisioning",
-              "Candidate Assessments",
-              "Team Training Challenges",
-              "Recruitment Pipeline",
-              "Corporate Talent Analytics",
-              "Private Team Challenges",
-              "Candidate Discovery",
-            ].map((feature) => (
+            {EMPLOYER_GRANDMASTER_FEATURES.map((feature) => (
               <div key={feature} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                 <CheckCircle2 className="mb-3 h-5 w-5 text-emerald-400" />
                 <h3 className="font-bold">{feature}</h3>
@@ -425,7 +371,7 @@ export default function SubscriptionCenter() {
                     </tr>
                   </thead>
                   <tbody>
-                    {COMPARISON_FEATURES.map((f, i) => (
+                    {PLAN_COMPARISON_FEATURES.map((f, i) => (
                       <tr key={f.label} className={`border-b border-white/4 ${i % 2 === 0 ? "bg-white/1" : ""}`}>
                         <td className="py-3 px-5 text-sm text-white/60">{f.label}</td>
                         <td className="py-3 px-4 text-center text-xs font-mono text-slate-400">{f.initiate}</td>
@@ -535,7 +481,7 @@ export default function SubscriptionCenter() {
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">Upgrade to {upgradeTarget}?</h2>
                     <p className="text-sm text-white/50 mb-1">
-                      {upgradeTarget === "Architect" ? "$19.99/month" : "$49.99/month"}
+                      {TIERS.find((tier) => tier.key === upgradeTarget)?.price ?? "$49.99"}/month
                     </p>
                     <p className="text-sm text-white/40 mb-7">
                       You will be redirected securely to Paystack to complete your payment.

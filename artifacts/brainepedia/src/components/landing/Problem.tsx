@@ -22,7 +22,7 @@ export function Problem() {
   ];
 
   return (
-    <section className="py-24 bg-background relative border-y border-border/30">
+    <section id="problem" className="scroll-mt-24 py-24 bg-background relative border-y border-border/30">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           {problems.map((p, i) => (

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { Link } from "wouter";
-import { Hash, Loader2, Search } from "lucide-react";
+import { Clock, Hash, Loader2, MessageCircle, Search, TrendingUp } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { api } from "@/lib/api";
 import { getUserRole } from "@/lib/auth";
@@ -10,6 +11,7 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { ADMIN_NAV } from "@/lib/adminNav";
+import { Nav } from "@/components/landing/Nav";
 
 type Mode = "categories" | "discussions";
 type Category = { id: string; name: string; description: string };
@@ -36,13 +38,11 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
       const categoryRows = asList(cats.data).map(normCategory);
       if (cancelled) return;
       setCategories(categoryRows);
-      if (mode !== "categories") {
-        const batches = await Promise.all(categoryRows.map(async (category) => {
-          const res = await api.forum.getThreads(category.id, 1, 15, "newest");
-          return res.ok ? asList(res.data).map((thread) => normThread(thread, category.name)) : [];
-        }));
-        if (!cancelled) setThreads(batches.flat().sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
-      }
+      const batches = await Promise.all(categoryRows.map(async (category) => {
+        const res = await api.forum.getThreads(category.id, 1, 15, "newest");
+        return res.ok ? asList(res.data).map((thread) => normThread(thread, category.name)) : [];
+      }));
+      if (!cancelled) setThreads(batches.flat().sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
       if (!cancelled) setLoading(false);
     })();
     return () => { cancelled = true; };
@@ -60,15 +60,25 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
     return categories.filter((category) => !query || category.name.toLowerCase().includes(query) || category.description.toLowerCase().includes(query));
   }, [categories, search]);
 
-  return (
-    <DashboardShell nav={nav} title={mode === "categories" ? "Forum" : "Discussions"} subtitle="// community.professional-growth" theme={role === "GlobalAdmin" ? "admin" : role === "Employer" ? "employer" : "user"}>
-      <div className="space-y-6">
+  const popularThreads = useMemo(
+    () => [...threads].sort((a, b) => ((b.replies ?? 0) + (b.views ?? 0)) - ((a.replies ?? 0) + (a.views ?? 0))).slice(0, 6),
+    [threads],
+  );
+  const latestReplies = useMemo(
+    () => [...threads].filter((thread) => (thread.replies ?? 0) > 0).slice(0, 6),
+    [threads],
+  );
+
+  const content = (
+    <div className="space-y-6">
         <section className="rounded-2xl border border-[#00D2FF]/20 bg-gradient-to-br from-[#00D2FF]/10 to-[#0d1119] p-6">
           <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#00D2FF]">Community hub</p>
           <h2 className="mt-1 text-2xl font-black">
             {mode === "categories" ? "Explore forum categories." : "Browse all discussions."}
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">Stay inside dashboard navigation while learning with the Brainepedia community.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {role ? "Stay inside dashboard navigation while learning with the Brainepedia community." : "Read community conversations freely. Sign in when you are ready to start a discussion or reply."}
+          </p>
         </section>
 
         <div className="relative max-w-md">
@@ -81,15 +91,28 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
             <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" /> Loading forum...
           </div>
         ) : mode === "categories" ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {filteredCategories.map((category) => (
-              <Link key={category.id} href={`/forum/category/${category.id}`} className="rounded-xl border border-white/5 bg-[#0d1119] p-5 transition-colors hover:border-[#00D2FF]/35">
-                <Hash className="mb-3 h-5 w-5 text-[#00D2FF]" />
-                <h3 className="font-bold">{category.name}</h3>
-                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description || "Community category"}</p>
-              </Link>
-            ))}
-            {filteredCategories.length === 0 && <Empty label="No categories found." />}
+          <div className="space-y-8">
+            <CommunitySection title="Categories" icon={Hash}>
+              <div className="grid gap-4 md:grid-cols-2">
+                {filteredCategories.map((category) => (
+                  <Link key={category.id} href={`/forum/category/${category.id}`} className="rounded-xl border border-white/5 bg-[#0d1119] p-5 transition-colors hover:border-[#00D2FF]/35">
+                    <Hash className="mb-3 h-5 w-5 text-[#00D2FF]" />
+                    <h3 className="font-bold">{category.name}</h3>
+                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description || "Community category"}</p>
+                  </Link>
+                ))}
+                {filteredCategories.length === 0 && <Empty label="No categories found." />}
+              </div>
+            </CommunitySection>
+            <CommunitySection title="Recent Discussions" icon={Clock}>
+              <ThreadList threads={filteredThreads.slice(0, 6)} />
+            </CommunitySection>
+            <CommunitySection title="Popular Discussions" icon={TrendingUp}>
+              <ThreadList threads={popularThreads} />
+            </CommunitySection>
+            <CommunitySection title="Latest Replies" icon={MessageCircle}>
+              <ThreadList threads={latestReplies.length ? latestReplies : filteredThreads.slice(0, 3)} />
+            </CommunitySection>
           </div>
         ) : (
           <div className="rounded-2xl border border-white/5 bg-[#0d1119]">
@@ -108,7 +131,23 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
             ))}
           </div>
         )}
+    </div>
+  );
+
+  if (!role) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Nav />
+        <main className="container mx-auto px-4 pb-16 pt-24">
+          <div className="mx-auto max-w-6xl">{content}</div>
+        </main>
       </div>
+    );
+  }
+
+  return (
+    <DashboardShell nav={nav} title={mode === "categories" ? "Forum" : "Discussions"} subtitle="// community.professional-growth" theme={role === "GlobalAdmin" ? "admin" : role === "Employer" ? "employer" : "user"}>
+      {content}
     </DashboardShell>
   );
 }
@@ -138,4 +177,34 @@ function normThread(item: any, categoryName: string): Thread {
 
 function Empty({ label }: { label: string }) {
   return <div className="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-muted-foreground">{label}</div>;
+}
+
+function CommunitySection({ title, icon: Icon, children }: { title: string; icon: ComponentType<{ className?: string }>; children: ReactNode }) {
+  return (
+    <section>
+      <h3 className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-white/70">
+        <Icon className="h-4 w-4 text-[#00D2FF]" /> {title}
+      </h3>
+      {children}
+    </section>
+  );
+}
+
+function ThreadList({ threads }: { threads: Thread[] }) {
+  if (threads.length === 0) return <Empty label="No discussions found." />;
+  return (
+    <div className="rounded-2xl border border-white/5 bg-[#0d1119]">
+      {threads.map((thread) => (
+        <Link key={`${thread.id}-${thread.categoryName}`} href={`/forum/thread/${thread.id}`} className="block border-b border-white/5 p-4 transition-colors last:border-0 hover:bg-white/[0.03]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h4 className="font-semibold">{thread.title}</h4>
+              <p className="mt-1 text-xs text-muted-foreground">{thread.categoryName} · by {thread.authorName} · {thread.createdAt ? new Date(thread.createdAt).toLocaleDateString() : "No date"}</p>
+            </div>
+            <span className="font-mono text-xs text-[#00D2FF]">{thread.replies ?? 0} replies · {thread.views ?? 0} views</span>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
 }

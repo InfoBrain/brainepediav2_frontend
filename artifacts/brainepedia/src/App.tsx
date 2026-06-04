@@ -459,16 +459,12 @@ function Router() {
       <Route path="/public-profile/:userId" component={PublicProfilePage} />
 
       <Route path="/forum/discussions">
-        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
-          <ForumDashboardPage mode="discussions" />
-        </RequireAuth>
+        <ForumDashboardPage mode="discussions" />
       </Route>
       <Route path="/forum/category/:categoryId" component={ForumCategoryPage} />
       <Route path="/forum/thread/:threadId" component={ForumThreadPage} />
       <Route path="/forum">
-        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
-          <ForumDashboardPage mode="categories" />
-        </RequireAuth>
+        <ForumDashboardPage mode="categories" />
       </Route>
 
       <Route component={NotFound} />

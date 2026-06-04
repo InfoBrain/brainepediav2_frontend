@@ -17,6 +17,13 @@ import { getUserId, getUser } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 type Stats = { totalXP: number; problemsSolvedCount: number; dayStreak: number; currentSubscription: string; isSubscriptionActive: boolean };
+type MissionStats = {
+  totalAssignedMissions: number;
+  completedMissions: number;
+  inProgressMissions: number;
+  totalXpEarned: number;
+  missionSuccessRate: number;
+};
 type DistrictProgress = { districtName: string; districtId: string; earnedXP: number; totalPossibleXP: number; percentage: number; isMastered: boolean };
 type Badge = { userBadgeId: string; name: string; description: string; iconUrl?: string; rarity: string; unlockedAt?: string };
 type Activity = { activityLogId: number | string; activity: string; dateCreated: string };
@@ -65,6 +72,18 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
   );
 }
 
+function normMissionStats(data: any): MissionStats {
+  const root = data?.data ?? data?.statistics ?? data?.missionStatistics ?? data ?? {};
+  const successRateRaw = Number(root.missionSuccessRate ?? root.MissionSuccessRate ?? root.successRate ?? root.SuccessRate ?? 0);
+  return {
+    totalAssignedMissions: Number(root.totalAssignedMissions ?? root.TotalAssignedMissions ?? root.totalAssigned ?? root.TotalAssigned ?? 0),
+    completedMissions: Number(root.completedMissions ?? root.CompletedMissions ?? root.completedMissionsCount ?? root.CompletedMissionsCount ?? 0),
+    inProgressMissions: Number(root.inProgressMissions ?? root.InProgressMissions ?? root.inProgressMissionsCount ?? root.InProgressMissionsCount ?? 0),
+    totalXpEarned: Number(root.totalXpEarned ?? root.TotalXpEarned ?? root.totalXPEarned ?? root.TotalXPEarned ?? root.totalXP ?? root.TotalXP ?? 0),
+    missionSuccessRate: Math.round(successRateRaw > 1 ? successRateRaw : successRateRaw * 100),
+  };
+}
+
 export default function UserProgressPage() {
   usePageTitle("Progress");
   const [, navigate] = useLocation();
@@ -78,6 +97,17 @@ export default function UserProgressPage() {
       type StatsPayload = { totalXP?: number; problemsSolvedCount?: number; dayStreak?: number; currentSubscription?: string; isSubscriptionActive?: boolean };
       const d = res.data as StatsPayload;
       return { totalXP: d?.totalXP ?? 0, problemsSolvedCount: d?.problemsSolvedCount ?? 0, dayStreak: d?.dayStreak ?? 0, currentSubscription: d?.currentSubscription ?? "Initiate", isSubscriptionActive: Boolean(d?.isSubscriptionActive) };
+    },
+    enabled: Boolean(userId),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const { data: missionStats, isLoading: missionStatsLoading } = useQuery<MissionStats>({
+    queryKey: ["user-mission-statistics", userId],
+    queryFn: async () => {
+      const res = await api.dashboard.userMissionStatistics(userId);
+      if (!res.ok) throw new Error(res.error || "Failed");
+      return normMissionStats(res.data);
     },
     enabled: Boolean(userId),
     staleTime: 2 * 60 * 1000,
@@ -203,16 +233,16 @@ export default function UserProgressPage() {
           )}
 
           {/* Stats Grid */}
-          {statsLoading ? (
+          {statsLoading || missionStatsLoading ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[1,2,3,4].map(i => <div key={i} className="h-28 rounded-2xl bg-white/3 animate-pulse" />)}
             </div>
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard icon={<Target className="w-5 h-5" />} label="Missions" value={displayStats.problemsSolvedCount} sub="Completed" color="text-[#00D2FF]" />
-              <StatCard icon={<Flame className="w-5 h-5" />} label="Streak" value={`${displayStats.dayStreak}d`} sub="Day streak" color="text-orange-400" />
-              <StatCard icon={<Crown className="w-5 h-5" />} label="Plan" value={displayStats.currentSubscription} sub={displayStats.isSubscriptionActive ? "Active" : "Expired"} color={subColor(displayStats.currentSubscription)} />
-              <StatCard icon={<Star className="w-5 h-5" />} label="Total XP" value={displayStats.totalXP.toLocaleString()} sub={`Level ${lvData.level}`} color="text-[#FFD700]" />
+              <StatCard icon={<Target className="w-5 h-5" />} label="Assigned Missions" value={missionStats?.totalAssignedMissions ?? 0} sub="Total assigned" color="text-[#00D2FF]" />
+              <StatCard icon={<CheckCircle2 className="w-5 h-5" />} label="Completed" value={missionStats?.completedMissions ?? 0} sub="Missions completed" color="text-emerald-400" />
+              <StatCard icon={<Clock className="w-5 h-5" />} label="In Progress" value={missionStats?.inProgressMissions ?? 0} sub={`${missionStats?.missionSuccessRate ?? 0}% success rate`} color="text-[#9D4EDD]" />
+              <StatCard icon={<Star className="w-5 h-5" />} label="Mission XP" value={(missionStats?.totalXpEarned ?? displayStats.totalXP).toLocaleString()} sub={`Level ${lvData.level}`} color="text-[#FFD700]" />
             </div>
           )}
 

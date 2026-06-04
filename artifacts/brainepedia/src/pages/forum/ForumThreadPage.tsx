@@ -183,11 +183,11 @@ export default function ForumThreadPage() {
       <div className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <Link
-            href={categoryId ? `/forum/category/${categoryId}` : "/forum"}
+            href="/forum"
             className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to discussions
+            Back to Community
           </Link>
         </div>
       </div>
@@ -297,10 +297,17 @@ export default function ForumThreadPage() {
               </div>
             </form>
           ) : (
-            <div className="flex items-center gap-3 py-2">
+            <div className="flex flex-col gap-3 py-2 sm:flex-row sm:items-center">
               <p className="text-sm text-muted-foreground flex-1">
                 Log in to join the conversation and post a reply.
               </p>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/auth/register")}
+                className="shrink-0"
+              >
+                Register
+              </Button>
               <Button
                 onClick={() => navigate("/auth/login")}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_12px_rgba(0,210,255,0.3)] shrink-0"

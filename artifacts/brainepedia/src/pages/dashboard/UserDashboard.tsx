@@ -35,6 +35,14 @@ type DashboardStats = {
   hasDistricts: boolean;
   totalXP: number;
 };
+type MissionStats = {
+  totalAssignedMissions: number;
+  completedMissions: number;
+  inProgressMissions: number;
+  totalXpEarned: number;
+  missionSuccessRate: number;
+  recentMissions: any[];
+};
 type District = {
   districtName: string;
   earnedXP: number;
@@ -138,6 +146,7 @@ export default function UserDashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [dashStats, setDashStats] = useState<DashboardStats | null>(null);
+  const [missionStats, setMissionStats] = useState<MissionStats | null>(null);
   const [districts, setDistricts] = useState<District[]>([]);
   const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [topUsers, setTopUsers] = useState<LeaderboardUser[]>([]);
@@ -185,7 +194,7 @@ export default function UserDashboard() {
       setLeaderboardLoading(true);
 
       const pid = getProfileId() || userId;
-      const [s, m, a, pDirect, b, ds, lb, vi] = await Promise.all([
+      const [s, m, a, pDirect, b, ds, lb, vi, ms] = await Promise.all([
         api.profiles.stats(userId),
         api.profiles.map(userId),
         api.activityLogs.forUser(userId),
@@ -194,6 +203,7 @@ export default function UserDashboard() {
         api.dashboard.stats(userId),
         api.dashboard.leaderboard(userId, 20),
         api.identity.professionalIdentity(userId),
+        api.dashboard.userMissionStatistics(userId),
       ]);
       if (cancelled) return;
 
@@ -205,6 +215,9 @@ export default function UserDashboard() {
       // Dashboard stats (richer endpoint)
       if (ds.ok && ds.data && typeof ds.data === "object") {
         setDashStats(normDashStats(ds.data));
+      }
+      if (ms.ok && ms.data && typeof ms.data === "object") {
+        setMissionStats(normMissionStats(ms.data));
       }
 
       // VX professional identity
@@ -448,7 +461,7 @@ export default function UserDashboard() {
   /* Derived values */
   const totalXP    = dashStats?.totalXP ?? stats?.totalXP ?? 0;
   const dayStreak  = dashStats?.dayStreak ?? stats?.dayStreak ?? 0;
-  const solved     = dashStats?.problemsSolved ?? stats?.problemsSolvedCount ?? 0;
+  const solved     = missionStats?.completedMissions ?? dashStats?.problemsSolved ?? stats?.problemsSolvedCount ?? 0;
   const subName    = dashStats?.subscription ?? SUB_NAMES[stats?.currentSubscription ?? 0] ?? "Initiate";
   const subStyle   = SUB_STYLE[subName] ?? SUB_STYLE.Initiate;
   const hasBadges  = dashStats?.hasBadges ?? earnedBadges.length > 0;
@@ -627,10 +640,10 @@ export default function UserDashboard() {
           {/* ── QUICK STATS GRID ── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Challenges Solved", value: solved, icon: CheckCircle2, accent: "text-[#00D2FF]", glow: "from-[#00D2FF]/10" },
-              { label: "Completed Districts", value: claimedDist, icon: Map, accent: "text-emerald-400", glow: "from-emerald-400/10" },
-              { label: "In Progress", value: inProgDist, icon: Activity, accent: "text-[#A78BFA]", glow: "from-[#A78BFA]/10" },
-              { label: "Day Streak", value: `${dayStreak}d`, icon: Flame, accent: "text-orange-400", glow: "from-orange-400/10", streak: true },
+              { label: "Assigned Missions", value: missionStats?.totalAssignedMissions ?? 0, icon: Target, accent: "text-[#00D2FF]", glow: "from-[#00D2FF]/10" },
+              { label: "Completed Missions", value: solved, icon: CheckCircle2, accent: "text-emerald-400", glow: "from-emerald-400/10" },
+              { label: "In Progress", value: missionStats?.inProgressMissions ?? inProgDist, icon: Activity, accent: "text-[#A78BFA]", glow: "from-[#A78BFA]/10" },
+              { label: "Success Rate", value: `${missionStats?.missionSuccessRate ?? 0}%`, icon: Flame, accent: "text-orange-400", glow: "from-orange-400/10", streak: true },
             ].map((card, i) => (
               <motion.div key={card.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                 className={`relative bg-[#0d1119] border border-white/6 rounded-xl p-5 overflow-hidden`}>
@@ -1111,6 +1124,18 @@ function normDashStats(d: any): DashboardStats {
     hasBadges: Boolean(d.hasBadges),
     hasDistricts: Boolean(d.hasDistricts),
     totalXP: Number(d.totalXP ?? d.xp ?? 0),
+  };
+}
+function normMissionStats(data: any): MissionStats {
+  const root = data?.data ?? data?.statistics ?? data?.missionStatistics ?? data ?? {};
+  const successRateRaw = Number(root.missionSuccessRate ?? root.MissionSuccessRate ?? root.successRate ?? root.SuccessRate ?? 0);
+  return {
+    totalAssignedMissions: Number(root.totalAssignedMissions ?? root.TotalAssignedMissions ?? root.totalAssigned ?? root.TotalAssigned ?? 0),
+    completedMissions: Number(root.completedMissions ?? root.CompletedMissions ?? root.completedMissionsCount ?? root.CompletedMissionsCount ?? 0),
+    inProgressMissions: Number(root.inProgressMissions ?? root.InProgressMissions ?? root.inProgressMissionsCount ?? root.InProgressMissionsCount ?? 0),
+    totalXpEarned: Number(root.totalXpEarned ?? root.TotalXpEarned ?? root.totalXPEarned ?? root.TotalXPEarned ?? root.totalXP ?? root.TotalXP ?? 0),
+    missionSuccessRate: Math.round(successRateRaw > 1 ? successRateRaw : successRateRaw * 100),
+    recentMissions: Array.isArray(root.recentMissions ?? root.RecentMissions) ? (root.recentMissions ?? root.RecentMissions) : [],
   };
 }
 function normDistricts(d: any): District[] {

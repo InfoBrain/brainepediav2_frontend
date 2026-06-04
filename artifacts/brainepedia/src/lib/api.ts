@@ -49,7 +49,15 @@ function extractApiMessage(data: any): string {
     return isHtml ? "" : trimmed;
   }
   if (typeof data !== "object") return "";
-  const direct = data.message ?? data.Message ?? data.error ?? data.Error ?? data.title ?? data.Title;
+  const direct =
+    data.message ??
+    data.Message ??
+    data.error ??
+    data.Error ??
+    data.detail ??
+    data.Detail ??
+    data.title ??
+    data.Title;
   if (direct) return String(direct);
   const errors = data.errors ?? data.Errors;
   if (typeof errors === "string") return errors;
@@ -318,8 +326,9 @@ export const api = {
     leaderboard: (userId: string, count = 20) => fetchApi(`/api/Dashboard/leaderboard?userId=${encodeURIComponent(userId)}&count=${count}`),
     /** GET /api/Dashboard/assigned-challenges */
     assignedChallenges: () => fetchApi("/api/Dashboard/assigned-challenges"),
-    /** GET /api/Dashboard/my-mission-statistics */
-    myMissionStatistics: () => fetchApi("/api/Dashboard/my-mission-statistics"),
+    /** GET /api/Dashboard/user-mission-statistics?userId= */
+    userMissionStatistics: (userId: string) =>
+      fetchApi(`/api/Dashboard/user-mission-statistics?userId=${encodeURIComponent(userId)}`),
   },
   evaluations: {
     askBrainiac: (data: { sessionId: string; userId: string; currentApproach: string; currentCode: string }) =>
@@ -386,6 +395,8 @@ export const api = {
       fetchApi("/api/Employers/team/provision", { method: "POST", body: JSON.stringify(data) }),
     /** GET /api/Employers/team/members */
     teamMembers: () => fetchApi("/api/Employers/team/members"),
+    /** GET /api/Employers/my-team-roster */
+    myTeamRoster: () => fetchApi("/api/Employers/my-team-roster"),
     /** POST /api/Employers/team/private-challenges/create */
     createChallenge: (data: { challengeName: string; problemNodeId: string; endDate: string }) =>
       fetchApi("/api/Employers/team/private-challenges/create", { method: "POST", body: JSON.stringify(data) }),
@@ -474,9 +485,12 @@ export const api = {
     /** PUT /api/Jobs/my-jobs/{jobId}/update */
     updateJob: (jobId: string, data: UpdateJobRequest) =>
       fetchApi(`/api/Jobs/my-jobs/${encodeURIComponent(jobId)}/update`, { method: "PUT", body: JSON.stringify(data) }),
-    /** PATCH /api/Jobs/my-jobs/{jobId}/status */
+    /** PATCH /api/Jobs/my-jobs/{jobId}/status?newStatus= */
     updateJobStatus: (jobId: string, isActive: boolean) =>
-      fetchApi(`/api/Jobs/my-jobs/${encodeURIComponent(jobId)}/status`, { method: "PATCH", body: JSON.stringify({ isActive, status: isActive ? "Active" : "Inactive" }) }),
+      fetchApi(
+        `/api/Jobs/my-jobs/${encodeURIComponent(jobId)}/status?newStatus=${encodeURIComponent(isActive ? "Active" : "Inactive")}`,
+        { method: "PATCH" }
+      ),
     /** POST /api/Jobs/{jobId}/apply */
     apply: (jobId: string) =>
       fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/apply`, { method: "POST" }),

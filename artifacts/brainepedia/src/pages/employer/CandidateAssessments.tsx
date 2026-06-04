@@ -6,6 +6,7 @@ import { UserCheck, Send, Loader2, CheckCircle, Clock, Search, RefreshCw } from 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
+import { asList, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,9 +23,17 @@ const schema = z.object({
   candidateEmail: z.string().email("Valid email required"),
   firstName: z.string().min(1, "First name required"),
   lastName: z.string().min(1, "Last name required"),
-  problemNodeId: z.string().min(1, "Problem Node ID required"),
+  professionName: z.string().min(1, "Profession required"),
+  problemNodeId: z.string().min(1, "Assessment required"),
 });
 type FormData = z.infer<typeof schema>;
+
+type ProblemNodeOption = {
+  id: string;
+  title: string;
+  districtName: string;
+  xp: number;
+};
 
 type Assessment = {
   id: string;
@@ -44,10 +53,17 @@ export default function CandidateAssessments() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [confirmData, setConfirmData] = useState<FormData | null>(null);
+  const [professions, setProfessions] = useState<string[]>([]);
+  const [problemNodes, setProblemNodes] = useState<ProblemNodeOption[]>([]);
+  const [nodesLoading, setNodesLoading] = useState(false);
+  const [nodesError, setNodesError] = useState("");
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { professionName: "", problemNodeId: "" },
   });
+  const selectedProfession = watch("professionName");
+  const selectedProblemNodeId = watch("problemNodeId");
 
   const fetchAssessments = async () => {
     setLoading(true);
@@ -56,7 +72,41 @@ export default function CandidateAssessments() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchAssessments(); }, []);
+  useEffect(() => {
+    fetchAssessments();
+    api.professions.list().then((res) => {
+      if (!res.ok) {
+        toast({ title: "Unable to load professions", description: res.error, variant: "destructive" });
+        return;
+      }
+      setProfessions(
+        asList(res.data)
+          .map((item) => text(item?.name ?? item?.Name ?? item?.professionName ?? item?.title, ""))
+          .filter(Boolean),
+      );
+    });
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setValue("problemNodeId", "");
+    setProblemNodes([]);
+    setNodesError("");
+    if (!selectedProfession) return;
+    (async () => {
+      setNodesLoading(true);
+      const res = await api.problemNodes.byProfession(selectedProfession);
+      if (cancelled) return;
+      setNodesLoading(false);
+      if (!res.ok) {
+        setNodesError(res.error || "Unable to load assessments for this profession.");
+        toast({ title: "Unable to load assessments", description: res.error, variant: "destructive" });
+        return;
+      }
+      setProblemNodes(asList(res.data).map(normProblemNode).filter((node) => node.id));
+    })();
+    return () => { cancelled = true; };
+  }, [selectedProfession, setValue, toast]);
 
   const onFormSubmit = (data: FormData) => {
     setConfirmData(data);
@@ -104,16 +154,23 @@ export default function CandidateAssessments() {
             <Button variant="outline" size="icon" onClick={fetchAssessments}>
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={(nextOpen) => {
+              setOpen(nextOpen);
+              if (!nextOpen) {
+                reset({ firstName: "", lastName: "", candidateEmail: "", professionName: "", problemNodeId: "" });
+                setProblemNodes([]);
+                setNodesError("");
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button className="font-bold shadow-[0_0_12px_rgba(255,215,0,0.3)]" style={{ background: "#FFD700", color: "#000" }}>
                   <Send className="h-4 w-4 mr-2" />
                   Invite Candidate
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Assign Private Mission</DialogTitle>
+                  <DialogTitle>Invite Candidate to Assessment</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4 pt-1">
                   <div className="grid grid-cols-2 gap-3">
@@ -134,11 +191,58 @@ export default function CandidateAssessments() {
                     {errors.candidateEmail && <p className="text-destructive text-xs">{errors.candidateEmail.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label>Problem Node ID</Label>
-                    <Input {...register("problemNodeId")} placeholder="Paste the Problem Node ID" />
-                    {errors.problemNodeId && <p className="text-destructive text-xs">{errors.problemNodeId.message}</p>}
+                    <Label>Profession</Label>
+                    <select
+                      {...register("professionName")}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="">Select profession</option>
+                      {professions.map((profession) => (
+                        <option key={profession} value={profession}>{profession}</option>
+                      ))}
+                    </select>
+                    {errors.professionName && <p className="text-destructive text-xs">{errors.professionName.message}</p>}
                   </div>
-                  <Button type="submit" className="w-full font-bold" style={{ background: "#FFD700", color: "#000" }}>
+                  <div className="space-y-2">
+                    <Label>Assessment</Label>
+                    <select
+                      {...register("problemNodeId")}
+                      disabled={!selectedProfession || nodesLoading || Boolean(nodesError)}
+                      className="flex min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <option value="">
+                        {!selectedProfession
+                          ? "Select a profession first"
+                          : nodesLoading
+                          ? "Loading assessments..."
+                          : problemNodes.length === 0
+                          ? "No assessments available"
+                          : "Select assessment"}
+                      </option>
+                      {problemNodes.map((node) => (
+                        <option key={node.id} value={node.id}>
+                          {node.title} — {node.districtName} — {node.xp.toLocaleString()} XP
+                        </option>
+                      ))}
+                    </select>
+                    {nodesError && <p className="text-destructive text-xs">{nodesError}</p>}
+                    {errors.problemNodeId && <p className="text-destructive text-xs">{errors.problemNodeId.message}</p>}
+                    {selectedProfession && !nodesLoading && !nodesError && problemNodes.length > 0 && (
+                      <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs text-muted-foreground">
+                        {selectedProblemNodeId ? (
+                          <AssessmentSummary node={problemNodes.find((node) => node.id === selectedProblemNodeId)} />
+                        ) : (
+                          "Choose the assessment problem node to invite this candidate."
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || !selectedProfession || !selectedProblemNodeId}
+                    className="w-full font-bold disabled:opacity-60"
+                    style={{ background: "#FFD700", color: "#000" }}
+                  >
                     Review & Send
                   </Button>
                 </form>
@@ -216,7 +320,8 @@ export default function CandidateAssessments() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Assessment Invitation</AlertDialogTitle>
             <AlertDialogDescription>
-              Send a private mission invitation to <strong>{confirmData?.candidateEmail}</strong>?
+              Send <strong>{selectedAssessmentLabel(confirmData?.problemNodeId, problemNodes)}</strong> to{" "}
+              <strong>{confirmData?.candidateEmail}</strong>?
               They will receive an email with access to the challenge.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -245,4 +350,34 @@ function normAssessments(d: any): Assessment[] {
     completedAt: x.completedAt ?? x.completionDate,
     assignedAt: x.dateAssigned ?? x.assignedAt ?? x.invitedAt ?? x.sentAt ?? x.createdAt,
   }));
+}
+
+function normProblemNode(item: any): ProblemNodeOption {
+  const district = item?.district ?? item?.District ?? {};
+  return {
+    id: String(item?.problemNodeId ?? item?.ProblemNodeId ?? item?.id ?? item?.Id ?? ""),
+    title: text(item?.title ?? item?.Title ?? item?.name ?? item?.Name, "Assessment"),
+    districtName: text(
+      item?.districtName ?? item?.DistrictName ?? district?.name ?? district?.Name ?? item?.professionName,
+      "District unavailable",
+    ),
+    xp: Number(item?.experiencePoints ?? item?.ExperiencePoints ?? item?.xp ?? item?.XP ?? item?.points ?? 0),
+  };
+}
+
+function AssessmentSummary({ node }: { node?: ProblemNodeOption }) {
+  if (!node) return <>Choose the assessment problem node to invite this candidate.</>;
+  return (
+    <div className="space-y-1">
+      <p className="font-semibold text-white">{node.title}</p>
+      <p>{node.districtName}</p>
+      <p className="font-mono text-[#FFD700]">{node.xp.toLocaleString()} XP</p>
+    </div>
+  );
+}
+
+function selectedAssessmentLabel(problemNodeId: string | undefined, nodes: ProblemNodeOption[]): string {
+  if (!problemNodeId) return "this assessment";
+  const node = nodes.find((item) => item.id === problemNodeId);
+  return node ? node.title : "this assessment";
 }

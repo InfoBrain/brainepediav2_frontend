@@ -151,7 +151,6 @@ export default function ForumCategoryPage() {
   const params = useParams<{ categoryId: string }>();
   const categoryId = params.categoryId;
   const [, navigate] = useLocation();
-  const { toast } = useToast();
   const user = getUser();
 
   const [category, setCategory] = useState<{ name: string; description: string } | null>(null);
@@ -162,6 +161,7 @@ export default function ForumCategoryPage() {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [showCreate, setShowCreate] = useState(false);
+  const [joinPromptOpen, setJoinPromptOpen] = useState(false);
   const pageSize = 20;
 
   usePageTitle(category?.name ?? "Forum");
@@ -203,8 +203,7 @@ export default function ForumCategoryPage() {
 
   const handleCreateClick = () => {
     if (!user) {
-      toast({ title: "Login required", description: "Please log in to start a discussion.", variant: "destructive" });
-      navigate("/auth/login");
+      setJoinPromptOpen(true);
       return;
     }
     setShowCreate(true);
@@ -217,7 +216,7 @@ export default function ForumCategoryPage() {
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/forum" className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
             <ChevronLeft className="h-4 w-4" />
-            All Categories
+            Back to Community
           </Link>
           <Button
             onClick={handleCreateClick}
@@ -376,9 +375,49 @@ export default function ForumCategoryPage() {
         )}
       </AnimatePresence>
 
+      <JoinConversationModal
+        open={joinPromptOpen}
+        onCancel={() => setJoinPromptOpen(false)}
+        onLogin={() => navigate("/auth/login")}
+        onRegister={() => navigate("/auth/register")}
+      />
+
       <footer className="text-center text-xs text-muted-foreground py-8 border-t border-border/20 mt-8">
         © 2026 Brainepedia. A product of Infobrainltd.com. All rights reserved.
       </footer>
+    </div>
+  );
+}
+
+function JoinConversationModal({
+  open,
+  onCancel,
+  onLogin,
+  onRegister,
+}: {
+  open: boolean;
+  onCancel: () => void;
+  onLogin: () => void;
+  onRegister: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="w-full max-w-md rounded-2xl border border-border/60 bg-card p-6 shadow-2xl"
+      >
+        <h2 className="text-xl font-bold">Join the Conversation</h2>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          You need an account to create discussions and participate in community conversations.
+        </p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Button onClick={onLogin} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">Login</Button>
+          <Button onClick={onRegister} variant="outline" className="flex-1">Register</Button>
+          <Button onClick={onCancel} variant="ghost" className="flex-1">Cancel</Button>
+        </div>
+      </motion.div>
     </div>
   );
 }
