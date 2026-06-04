@@ -60,6 +60,8 @@ export function idOf(item: any): string {
       item?.candidate?.id ??
       item?.applicant?.userId ??
       item?.applicant?.UserId ??
+      item?.candidateInfo?.userId ??
+      item?.candidateInfo?.UserId ??
       item?.profile?.userId ??
       item?.profile?.UserId ??
       item?.user?.userId ??
@@ -74,7 +76,7 @@ export function idOf(item: any): string {
 }
 
 export function candidateName(item: any): string {
-  const source = item?.candidate ?? item?.applicant ?? item?.profile ?? item?.user ?? item;
+  const source = item?.candidate ?? item?.applicant ?? item?.candidateInfo ?? item?.profile ?? item?.user ?? item;
   const first = source?.firstName ?? source?.FirstName ?? item?.firstName ?? item?.FirstName;
   const last =
     source?.surName ??
@@ -106,7 +108,7 @@ export function candidateName(item: any): string {
 }
 
 export function candidateAvatar(item: any): string {
-  const source = item?.candidate ?? item?.applicant ?? item?.profile ?? item?.user ?? item;
+  const source = item?.candidate ?? item?.applicant ?? item?.candidateInfo ?? item?.profile ?? item?.user ?? item;
   return text(
     source?.avatarUrl ??
       source?.AvatarUrl ??
