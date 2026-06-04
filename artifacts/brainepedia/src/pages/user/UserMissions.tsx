@@ -98,9 +98,9 @@ function normStats(data: any): MissionStats {
     root?.Missions ??
     root?.items ??
     [];
-  const completed = numberish(root?.completedMissions ?? root?.CompletedMissions ?? root?.completedCount ?? root?.CompletedCount) ?? 0;
+  const completed = numberish(root?.completedMissions ?? root?.CompletedMissions ?? root?.completedMissionsCount ?? root?.CompletedMissionsCount ?? root?.completedCount ?? root?.CompletedCount) ?? 0;
   const totalAssigned = numberish(root?.totalAssignedMissions ?? root?.TotalAssignedMissions ?? root?.assignedMissions ?? root?.AssignedMissions ?? root?.totalAssigned ?? root?.TotalAssigned) ?? 0;
-  const inProgress = numberish(root?.inProgressMissions ?? root?.InProgressMissions ?? root?.inProgressCount ?? root?.InProgressCount) ?? Math.max(totalAssigned - completed, 0);
+  const inProgress = numberish(root?.inProgressMissions ?? root?.InProgressMissions ?? root?.inProgressMissionsCount ?? root?.InProgressMissionsCount ?? root?.inProgressCount ?? root?.InProgressCount) ?? Math.max(totalAssigned - completed, 0);
   const successRateRaw = numberish(root?.missionSuccessRate ?? root?.MissionSuccessRate ?? root?.successRate ?? root?.SuccessRate) ?? 0;
   return {
     totalAssigned,
