@@ -38,6 +38,7 @@ export type UpdateStatusRequest = {
 type FetchApiOptions = RequestInit & {
   suppressUnauthorized?: boolean;
   suppressForbidden?: boolean;
+  skipAuth?: boolean;
 };
 
 function extractApiMessage(data: any): string {
@@ -61,7 +62,7 @@ function extractApiMessage(data: any): string {
 }
 
 async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}): Promise<ApiResult<T>> {
-  const { suppressUnauthorized, suppressForbidden, ...fetchOptions } = options;
+  const { suppressUnauthorized, suppressForbidden, skipAuth, ...fetchOptions } = options;
   const headers: Record<string, string> = {
     ...((fetchOptions.headers as any) || {}),
   };
@@ -74,7 +75,7 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
   if (isFormData) delete headers["Content-Type"];
 
   const token = getToken();
-  if (token && !headers["Authorization"]) {
+  if (!skipAuth && token && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
     // IIS on Windows shared hosting (iisnode) sometimes strips the Authorization
     // header before passing the request to Node.js. We send the token in a
@@ -463,10 +464,10 @@ export const api = {
       fetchApi(`/api/Jobs/jobs/${encodeURIComponent(jobPostingId)}/applicants`),
     /** GET /api/Jobs/feed?page=&pageSize= */
     feed: (page = 1, pageSize = 10) =>
-      fetchApi(`/api/Jobs/feed?page=${page}&pageSize=${pageSize}`),
+      fetchApi(`/api/Jobs/feed?page=${page}&pageSize=${pageSize}`, { skipAuth: true, suppressUnauthorized: true }),
     /** GET /api/Jobs/{jobId}/details */
     details: (jobId: string) =>
-      fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/details`),
+      fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/details`, { skipAuth: true, suppressUnauthorized: true }),
     /** GET /api/Jobs/my-jobs/{jobId} */
     myJob: (jobId: string) =>
       fetchApi(`/api/Jobs/my-jobs/${encodeURIComponent(jobId)}`),
