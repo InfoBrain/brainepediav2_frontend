@@ -11,9 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
+type JobForm = CreateJobRequest & {
+  expiryDate?: string | null;
+};
+
 export default function CreateJob() {
   const { toast } = useToast();
-  const [form, setForm] = useState<CreateJobRequest>({
+  const [form, setForm] = useState<JobForm>({
     title: "",
     description: "",
     location: "",
@@ -39,7 +43,7 @@ export default function CreateJob() {
     loadProfessions();
   }, []);
 
-  const update = (key: keyof CreateJobRequest, value: string) => {
+  const update = (key: keyof JobForm, value: string) => {
     setForm((prev) => ({
       ...prev,
       [key]: value,
@@ -80,7 +84,6 @@ export default function CreateJob() {
       salaryRange: form.salaryRange?.trim() || null,
       professionName: form.professionName?.trim() || null,
       linkAssessmentNodeId: form.linkAssessmentNodeId?.trim() || null,
-      expiryDate: form.expiryDate || null,
     };
     const res = await api.jobs.createJob(payload);
     setSubmitting(false);

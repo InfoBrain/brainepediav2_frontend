@@ -47,11 +47,21 @@ export default function MyJobPostings() {
     setPreview(null);
     const res = await api.jobs.myJob(jobId);
     setPreviewLoading(false);
-    if (!res.ok) {
+    if (!res.ok && res.status !== 404) {
       toast({ title: "Unable to preview job", description: res.error || "Please try again.", variant: "destructive" });
       return;
     }
-    setPreview(res.data);
+    if (res.ok) {
+      setPreview(res.data);
+      return;
+    }
+    const fallback = jobs.find((job) => idOf(job) === jobId);
+    if (fallback) {
+      toast({ title: "Showing posting preview", description: "The dedicated job preview endpoint is not available yet, so this preview uses My Job Postings data." });
+      setPreview(fallback);
+      return;
+    }
+    toast({ title: "Unable to preview job", description: res.error || "Please try again.", variant: "destructive" });
   };
 
   const toggleStatus = async (jobId: string, nextActive: boolean) => {

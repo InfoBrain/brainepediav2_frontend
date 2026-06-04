@@ -153,7 +153,7 @@ export default function SubscriptionCenter() {
     if (!upgradeTarget || !userId) return;
     setUpgradeLoading(true);
     const tierDef = TIERS.find(t => t.key === upgradeTarget);
-    const newTier = isEmployer ? "Grandmaster" : (tierDef?.numericTier ?? 1);
+    const newTier = isEmployer ? 2 : (tierDef?.numericTier ?? 1);
     const res = isEmployer
       ? await api.subscriptions.initializeEmployerUpgrade({ userId, newTier })
       : await api.subscriptions.initializeUpgrade({ userId, newTier, currency: "NGN", source: "paystack" });

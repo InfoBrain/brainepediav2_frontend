@@ -30,11 +30,19 @@ export default function EditJob() {
       const res = await api.jobs.myJob(jobId);
       if (cancelled) return;
       setLoading(false);
-      if (!res.ok) {
+      let job = res.data as any;
+      if (!res.ok && res.status === 404) {
+        const postings = await api.jobs.myPostings();
+        if (cancelled) return;
+        job = postings.ok ? (Array.isArray(postings.data) ? postings.data : (postings.data as any)?.jobs ?? (postings.data as any)?.postings ?? (postings.data as any)?.data ?? []).find((item: any) => String(item?.jobId ?? item?.jobPostingId ?? item?.postingId ?? item?.id ?? "") === jobId) : null;
+      } else if (!res.ok) {
         setError(res.error || "Unable to load job.");
         return;
       }
-      const job = res.data as any;
+      if (!job) {
+        setError(res.error || "Unable to load job.");
+        return;
+      }
       setForm({
         title: text(job?.title ?? job?.jobTitle, ""),
         description: text(job?.description ?? job?.details, ""),

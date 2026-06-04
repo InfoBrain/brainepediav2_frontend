@@ -16,7 +16,6 @@ export type CreateJobRequest = {
   salaryRange?: string | null;
   professionName?: string | null;
   linkAssessmentNodeId?: string | null;
-  expiryDate?: string | null;
 };
 
 export type UpdateJobRequest = {
