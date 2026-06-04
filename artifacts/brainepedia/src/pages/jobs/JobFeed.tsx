@@ -39,7 +39,7 @@ export default function JobFeed() {
     const res = await api.jobs.feed(nextPage, 10);
     setLoading(false);
     if (!res.ok) {
-      setError(res.error || "Unable to load job feed.");
+      setError(!role && res.status === 401 ? "The live jobs feed currently requires login. Please log in to view current roles." : (res.error || "Unable to load job feed."));
       setJobs([]);
       return;
     }
@@ -89,7 +89,7 @@ export default function JobFeed() {
         {loading ? (
           <Loading label="Loading verified opportunities..." />
         ) : error ? (
-          <ErrorState message={error} onRetry={() => load(page)} />
+          <ErrorState message={error} onRetry={() => load(page)} showLogin={!role && error.toLowerCase().includes("requires login")} />
         ) : filtered.length === 0 ? (
           <EmptyState />
         ) : (
@@ -192,11 +192,14 @@ function Loading({ label }: { label: string }) {
   );
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorState({ message, onRetry, showLogin = false }: { message: string; onRetry: () => void; showLogin?: boolean }) {
   return (
     <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
       <p className="mb-4 text-sm text-destructive">{message}</p>
-      <Button onClick={onRetry} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
+      <div className="flex flex-wrap justify-center gap-3">
+        <Button onClick={onRetry} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
+        {showLogin && <Button asChild><Link href="/auth/login">Login to view jobs</Link></Button>}
+      </div>
     </div>
   );
 }
