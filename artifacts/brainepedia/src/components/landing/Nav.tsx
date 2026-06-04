@@ -3,18 +3,30 @@ import { Link } from "wouter";
 import logo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
 import { cn } from "@/lib/utils";
 import { getUser, getUserRole, getDashboardPath } from "@/lib/auth";
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
   { href: "/", label: "Home", type: "link" },
-  { href: "/problem", label: "The Problem", type: "link" },
-  { href: "/solution", label: "The Solution", type: "link" },
-  { href: "/how-it-works", label: "How It Works", type: "link" },
+  { href: "/#problem", label: "The Problem", type: "anchor" },
+  { href: "/#solution", label: "The Solution", type: "anchor" },
+  { href: "/#how-it-works", label: "How It Works", type: "anchor" },
   { href: "/jobs", label: "Jobs", type: "link" },
   { href: "/forum", label: "Community", type: "link" },
   { href: "/#pricing", label: "Pricing", type: "anchor" },
 ] as const;
+
+function scrollToHomeSection(event: MouseEvent<HTMLAnchorElement>, href: string, onDone?: () => void) {
+  const [, hash] = href.split("#");
+  if (!hash) return;
+  if (window.location.pathname !== "/") return;
+  const target = document.getElementById(hash);
+  if (!target) return;
+  event.preventDefault();
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+  window.history.replaceState(null, "", href);
+  onDone?.();
+}
 
 export function Nav() {
   const user = getUser();
@@ -36,7 +48,7 @@ export function Nav() {
         <div className="hidden lg:flex items-center gap-6">
           {NAV_LINKS.map((item) => (
             item.type === "anchor" ? (
-              <a key={item.href} href={item.href} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">{item.label}</a>
+              <a key={item.href} href={item.href} onClick={(event) => scrollToHomeSection(event, item.href)} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">{item.label}</a>
             ) : (
               <Link key={item.href} href={item.href} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">{item.label}</Link>
             )
@@ -68,7 +80,7 @@ export function Nav() {
                 Login
               </Link>
               <Link href="/auth/register" className={cn(buttonVariants({ variant: "default" }), "hidden sm:inline-flex bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] border border-primary/50")}>
-                Sign Up
+                Get Started
               </Link>
             </>
           )}
@@ -82,7 +94,7 @@ export function Nav() {
                 <a
                   key={item.href}
                   href={item.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={(event) => scrollToHomeSection(event, item.href, () => setMobileOpen(false))}
                   className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5 hover:text-primary"
                 >
                   {item.label}
@@ -121,7 +133,7 @@ export function Nav() {
                     onClick={() => setMobileOpen(false)}
                     className={cn(buttonVariants({ variant: "default" }), "w-full bg-primary text-primary-foreground hover:bg-primary/90")}
                   >
-                    Sign Up
+                    Get Started
                   </Link>
                 </>
               )}

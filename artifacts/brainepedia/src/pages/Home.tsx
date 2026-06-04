@@ -1,5 +1,7 @@
 import { Nav } from "@/components/landing/Nav";
 import { Hero } from "@/components/landing/Hero";
+import { Problem } from "@/components/landing/Problem";
+import { Solution } from "@/components/landing/Solution";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Professions } from "@/components/landing/Professions";
 import { XPLedger } from "@/components/landing/XPLedger";
@@ -13,10 +15,12 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
+    <div className="min-h-screen scroll-smooth bg-background text-foreground font-sans selection:bg-primary/30">
       <Nav />
       <main>
         <Hero />
+        <Problem />
+        <Solution />
         <VisualProof />
         <EmployerValue />
         <JobsTeaser />

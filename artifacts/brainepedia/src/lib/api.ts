@@ -395,6 +395,8 @@ export const api = {
       fetchApi("/api/Employers/team/provision", { method: "POST", body: JSON.stringify(data) }),
     /** GET /api/Employers/team/members */
     teamMembers: () => fetchApi("/api/Employers/team/members"),
+    /** GET /api/Employers/my-team-roster */
+    myTeamRoster: () => fetchApi("/api/Employers/my-team-roster"),
     /** POST /api/Employers/team/private-challenges/create */
     createChallenge: (data: { challengeName: string; problemNodeId: string; endDate: string }) =>
       fetchApi("/api/Employers/team/private-challenges/create", { method: "POST", body: JSON.stringify(data) }),

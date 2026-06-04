@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Users, UserPlus, Loader2, Zap, Search, RefreshCw } from "lucide-react";
+import { UserPlus, Loader2, Zap, Search, RefreshCw } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -28,20 +28,23 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 type Member = {
-  userId: string;
-  firstName: string;
-  lastName: string;
+  profileId: string;
+  fullName: string;
   email: string;
   profession?: string;
-  totalXP?: number;
+  dateJoinedRoster?: string;
+  totalXpEarned?: number;
   isActive?: boolean;
+  avatarUrl?: string;
 };
 
 export default function TeamMembers() {
   const { toast } = useToast();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [professionFilter, setProfessionFilter] = useState("");
   const [open, setOpen] = useState(false);
   const [seatTarget, setSeatTarget] = useState<Member | null>(null);
   const [seatLoading, setSeatLoading] = useState(false);
@@ -53,8 +56,15 @@ export default function TeamMembers() {
 
   const fetchMembers = async () => {
     setLoading(true);
-    const res = await api.employers.teamMembers();
-    if (res.ok) setMembers(normMembers(res.data));
+    setError("");
+    const res = await api.employers.myTeamRoster();
+    if (res.ok) {
+      setMembers(normMembers(res.data));
+    } else {
+      setMembers([]);
+      setError(res.error || "Unable to load team roster.");
+      toast({ title: "Unable to load team roster", description: res.error, variant: "destructive" });
+    }
     setLoading(false);
   };
 
@@ -85,7 +95,7 @@ export default function TeamMembers() {
   const activateSeat = async () => {
     if (!seatTarget) return;
     setSeatLoading(true);
-    const res = await api.employers.initializeSeatPayment(seatTarget.userId);
+    const res = await api.employers.initializeSeatPayment(seatTarget.profileId);
     setSeatLoading(false);
     setSeatTarget(null);
     if (res.ok && (res.data as any)?.checkoutUrl) {
@@ -95,27 +105,48 @@ export default function TeamMembers() {
     }
   };
 
-  const filtered = members.filter(
-    (m) =>
-      !search ||
-      `${m.firstName} ${m.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
-      m.email?.toLowerCase().includes(search.toLowerCase()) ||
-      m.profession?.toLowerCase().includes(search.toLowerCase()),
+  const rosterProfessions = useMemo(
+    () => Array.from(new Set(members.map((m) => m.profession).filter(Boolean) as string[])).sort(),
+    [members],
   );
 
+  const filtered = members.filter((m) => {
+    const q = search.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      m.fullName.toLowerCase().includes(q) ||
+      m.email.toLowerCase().includes(q) ||
+      (m.profession || "").toLowerCase().includes(q);
+    const matchesProfession = !professionFilter || m.profession === professionFilter;
+    return matchesSearch && matchesProfession;
+  });
+
   return (
-    <DashboardShell nav={EMPLOYER_NAV} title="Team Members" subtitle="// employer.team.management" theme="employer">
+    <DashboardShell nav={EMPLOYER_NAV} title="Team Members" subtitle="Employer team roster and seat activation" theme="employer">
       <div className="space-y-5">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_220px] lg:max-w-2xl">
+          <div className="relative">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search members…"
+              placeholder="Search Team Member"
               className="pl-9"
             />
+          </div>
+            <select
+              value={professionFilter}
+              onChange={(event) => setProfessionFilter(event.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Filter by profession"
+            >
+              <option value="">All professions</option>
+              {rosterProfessions.map((profession) => (
+                <option key={profession} value={profession}>{profession}</option>
+              ))}
+            </select>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="icon" onClick={fetchMembers}>
@@ -125,7 +156,7 @@ export default function TeamMembers() {
               <DialogTrigger asChild>
                 <Button className="font-bold shadow-[0_0_12px_rgba(0,210,255,0.25)]">
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Add Member
+                  Invite Team Member
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -178,41 +209,62 @@ export default function TeamMembers() {
           {loading ? (
             <div className="flex items-center justify-center py-20 text-muted-foreground gap-3">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="font-mono text-sm">Loading team…</span>
+              <span className="font-mono text-sm">Loading team roster…</span>
+            </div>
+          ) : error ? (
+            <div className="m-4 rounded-lg border border-destructive/30 bg-destructive/10 p-6 text-center">
+              <p className="mb-4 text-sm text-destructive">{error}</p>
+              <Button onClick={fetchMembers} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="py-16 text-center text-sm text-muted-foreground font-mono border border-dashed border-white/10 rounded-lg m-4">
-              {search ? "No members match your search." : "No team members yet. Add your first member above."}
+            <div className="m-4 rounded-lg border border-dashed border-white/10 p-10 text-center">
+              <h3 className="text-lg font-bold text-white">
+                {search || professionFilter ? "No team members match your filters." : "No team members have been added yet."}
+              </h3>
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                Invite team members to provision assessment access, roster tracking, and Grandmaster seats.
+              </p>
+              {!search && !professionFilter && (
+                <Button onClick={() => setOpen(true)} className="mt-5 bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
+                  <UserPlus className="mr-2 h-4 w-4" /> Invite Team Member
+                </Button>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/5 text-muted-foreground text-xs font-mono uppercase tracking-wider">
-                    <th className="text-left px-4 py-3">Member</th>
+                    <th className="text-left px-4 py-3">Avatar</th>
+                    <th className="text-left px-4 py-3">Full Name</th>
+                    <th className="text-left px-4 py-3">Email Address</th>
                     <th className="text-left px-4 py-3">Profession</th>
-                    <th className="text-left px-4 py-3">Verified XP</th>
-                    <th className="text-left px-4 py-3">Status</th>
+                    <th className="text-left px-4 py-3">XP Earned</th>
+                    <th className="text-left px-4 py-3">Date Joined</th>
+                    <th className="text-left px-4 py-3">Active Status</th>
                     <th className="text-left px-4 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((m) => (
-                    <tr key={m.userId} className="border-b border-white/5 hover:bg-white/2 transition-colors">
+                    <tr key={m.profileId} className="border-b border-white/5 hover:bg-white/2 transition-colors">
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#00D2FF]/30 to-[#7C3AED]/20 flex items-center justify-center text-xs font-bold shrink-0">
-                            {m.firstName.charAt(0).toUpperCase()}
+                        {m.avatarUrl ? (
+                          <img src={m.avatarUrl} alt={m.fullName} className="h-9 w-9 rounded-full object-cover border border-[#00D2FF]/30" />
+                        ) : (
+                          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#00D2FF]/30 to-[#7C3AED]/20 flex items-center justify-center text-xs font-bold shrink-0">
+                            {initials(m.fullName)}
                           </div>
-                          <div>
-                            <p className="font-medium">{m.firstName} {m.lastName}</p>
-                            <p className="text-xs text-muted-foreground font-mono">{m.email}</p>
-                          </div>
-                        </div>
+                        )}
                       </td>
+                      <td className="px-4 py-3 font-medium">{m.fullName}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{m.email || "—"}</td>
                       <td className="px-4 py-3 text-muted-foreground">{m.profession || "—"}</td>
                       <td className="px-4 py-3 font-mono text-[#00D2FF]">
-                        {m.totalXP !== undefined ? `${m.totalXP.toLocaleString()} XP` : "—"}
+                        {m.totalXpEarned !== undefined ? `${m.totalXpEarned.toLocaleString()} XP` : "0 XP"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        {formatDate(m.dateJoinedRoster)}
                       </td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider ${
@@ -254,7 +306,7 @@ export default function TeamMembers() {
             <AlertDialogTitle>Activate Grandmaster Seat</AlertDialogTitle>
             <AlertDialogDescription>
               This will open the payment checkout to activate a Grandmaster seat for{" "}
-              <strong>{seatTarget?.firstName} {seatTarget?.lastName}</strong>. You will be redirected to the payment page.
+              <strong>{seatTarget?.fullName}</strong>. You will be redirected to the payment page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -271,14 +323,25 @@ export default function TeamMembers() {
 }
 
 function normMembers(d: any): Member[] {
-  const arr = Array.isArray(d) ? d : d?.members ?? d?.employees ?? d?.items ?? [];
+  const arr = Array.isArray(d) ? d : d?.members ?? d?.employees ?? d?.items ?? d?.roster ?? [];
   return arr.map((x: any) => ({
-    userId: String(x.userId ?? x.id ?? x.employeeId ?? Math.random()),
-    firstName: x.firstName ?? x.first_name ?? (x.name ?? "").split(" ")[0] ?? "Employee",
-    lastName: x.lastName ?? x.last_name ?? (x.name ?? "").split(" ").slice(1).join(" ") ?? "",
-    email: x.email ?? x.employeeEmail ?? "",
-    profession: x.profession ?? x.role ?? x.title,
-    totalXP: x.totalXP ?? x.xp ?? x.verifiedXp,
-    isActive: x.isActive ?? x.active ?? true,
+    profileId: String(x.profileId ?? x.ProfileId ?? x.userId ?? x.UserId ?? x.id ?? x.employeeId ?? Math.random()),
+    fullName: text(x.fullName ?? x.FullName ?? x.name ?? `${x.firstName ?? ""} ${x.lastName ?? ""}`.trim(), "Team member"),
+    email: text(x.email ?? x.Email ?? x.employeeEmail ?? x.EmailAddress, ""),
+    profession: text(x.profession ?? x.Profession ?? x.role ?? x.title, ""),
+    dateJoinedRoster: x.dateJoinedRoster ?? x.DateJoinedRoster ?? x.joinedAt ?? x.createdAt,
+    totalXpEarned: Number(x.totalXpEarned ?? x.TotalXpEarned ?? x.totalXP ?? x.TotalXP ?? x.xp ?? x.verifiedXp ?? 0),
+    isActive: Boolean(x.isActive ?? x.IsActive ?? x.active ?? true),
+    avatarUrl: x.avatarUrl ?? x.AvatarUrl ?? x.imageUrl ?? x.ImageUrl,
   }));
+}
+
+function initials(name: string): string {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("") || "TM";
+}
+
+function formatDate(value?: string): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? text(value, "—") : date.toLocaleDateString();
 }
