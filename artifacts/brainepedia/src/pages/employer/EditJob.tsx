@@ -71,7 +71,7 @@ export default function EditJob() {
     setSaving(true);
     const res = await api.jobs.updateJob(jobId, {
       title: form.title.trim(),
-      description: form.description.trim(),
+      description: form.description?.trim() || "",
       location: form.location?.trim() || null,
       salaryRange: form.salaryRange?.trim() || null,
       expiryDate: form.expiryDate || defaultExpiryDate(),
