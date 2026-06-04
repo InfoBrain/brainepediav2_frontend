@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useEffect, useState } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 import { ArrowLeft, BriefcaseBusiness, Building2, ClipboardCheck, Loader2, MapPin, RefreshCw, ShieldCheck, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -58,8 +58,11 @@ export default function JobDetails() {
     setJob(res.data);
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [jobId]);
+
+  useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId]);

@@ -118,7 +118,7 @@ export default function JobFeed() {
                     </div>
                   </div>
                   <Button asChild className="bg-[#FFD700] text-black hover:bg-[#F3C800]">
-                    <Link href={`/jobs/${encodeURIComponent(job.id)}`}>View details</Link>
+                    <Link href={`/jobs/${encodeURIComponent(job.id)}`} onClick={() => window.scrollTo({ top: 0, left: 0, behavior: "auto" })}>View details</Link>
                   </Button>
                 </div>
               </article>
