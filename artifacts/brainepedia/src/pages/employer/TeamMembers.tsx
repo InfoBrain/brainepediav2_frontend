@@ -66,7 +66,7 @@ export default function TeamMembers() {
       const fallback = await api.employers.teamAnalytics();
       if (fallback.ok) {
         setMembers(normMembers(fallback.data));
-        setWarning(res.error || "Roster endpoint is temporarily unavailable; showing team analytics roster data.");
+        setWarning("Roster endpoint is temporarily unavailable; showing available team analytics roster data.");
       } else {
         setMembers([]);
         setError(res.error || fallback.error || "Unable to load team roster.");

@@ -64,6 +64,15 @@ export default function CandidateAssessments() {
   });
   const selectedProfession = watch("professionName");
   const selectedProblemNodeId = watch("problemNodeId");
+  const candidateEmail = watch("candidateEmail");
+  const firstName = watch("firstName");
+  const lastName = watch("lastName");
+  const inviteReady =
+    Boolean(firstName?.trim()) &&
+    Boolean(lastName?.trim()) &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidateEmail || "") &&
+    Boolean(selectedProfession) &&
+    Boolean(selectedProblemNodeId);
 
   const fetchAssessments = async () => {
     setLoading(true);
@@ -208,7 +217,7 @@ export default function CandidateAssessments() {
                     <select
                       {...register("problemNodeId")}
                       disabled={!selectedProfession || nodesLoading || Boolean(nodesError)}
-                      className="flex min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex h-10 w-full truncate rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <option value="">
                         {!selectedProfession
@@ -239,7 +248,7 @@ export default function CandidateAssessments() {
                   </div>
                   <Button
                     type="submit"
-                    disabled={isSubmitting || !selectedProfession || !selectedProblemNodeId}
+                    disabled={isSubmitting || !inviteReady}
                     className="w-full font-bold disabled:opacity-60"
                     style={{ background: "#FFD700", color: "#000" }}
                   >
