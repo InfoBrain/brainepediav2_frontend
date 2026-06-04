@@ -94,24 +94,29 @@ export default function EditJob() {
           <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-sm text-destructive">{error}</div>
         ) : (
           <form onSubmit={submit} className="max-w-3xl rounded-2xl border border-white/5 bg-[#0d1119] p-6">
+            <div className="mb-6">
+              <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#00D2FF]">Editable posting fields</p>
+              <h2 className="mt-1 text-2xl font-black">Update job details</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Title, description, location, and salary range are sent to the backend update endpoint.</p>
+            </div>
             <div className="grid gap-5">
               <div className="space-y-2">
-                <Label htmlFor="edit-job-title">Title</Label>
-                <Input id="edit-job-title" value={form.title || ""} onChange={(event) => update("title", event.target.value)} required />
+                <Label htmlFor="edit-job-title">Job Title</Label>
+                <Input id="edit-job-title" value={form.title || ""} onChange={(event) => update("title", event.target.value)} required className="border-white/15 bg-white/[0.04]" />
               </div>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="edit-job-location">Location</Label>
-                  <Input id="edit-job-location" value={form.location || ""} onChange={(event) => update("location", event.target.value)} />
+                  <Input id="edit-job-location" value={form.location || ""} onChange={(event) => update("location", event.target.value)} className="border-white/15 bg-white/[0.04]" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-job-salary">Salary Range</Label>
-                  <Input id="edit-job-salary" value={form.salaryRange || ""} onChange={(event) => update("salaryRange", event.target.value)} />
+                  <Input id="edit-job-salary" value={form.salaryRange || ""} onChange={(event) => update("salaryRange", event.target.value)} className="border-white/15 bg-white/[0.04]" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-job-description">Description</Label>
-                <Textarea id="edit-job-description" rows={10} value={form.description || ""} onChange={(event) => update("description", event.target.value)} required />
+                <Textarea id="edit-job-description" rows={10} value={form.description || ""} onChange={(event) => update("description", event.target.value)} required className="border-white/15 bg-white/[0.04]" />
               </div>
             </div>
             <Button type="submit" disabled={saving} className="mt-6 bg-[#00D2FF] text-black hover:bg-[#00B8DD]">

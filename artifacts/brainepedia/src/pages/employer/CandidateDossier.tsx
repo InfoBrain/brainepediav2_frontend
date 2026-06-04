@@ -69,8 +69,8 @@ export default function CandidateDossier() {
   const profile = dossier?.profile ?? dossier?.candidate ?? dossier?.user ?? dossier;
   const name = candidateName(profile);
   const avatarUrl = candidateAvatar(profile);
-  const profession = text(profile?.professionName ?? profile?.ProfessionName ?? profile?.profession ?? profile?.Profession ?? profile?.currentTitle, "Verified professional");
-  const badges = asList(dossier?.badges ?? dossier?.topBadges ?? profile?.badges);
+  const profession = text(profile?.professionName ?? profile?.ProfessionName ?? profile?.profession ?? profile?.Profession ?? profile?.activeProfession ?? profile?.professionalTitle ?? profile?.currentTitle, "Verified professional");
+  const badges = asList(dossier?.badges ?? dossier?.topBadges ?? dossier?.earnedBadges ?? profile?.badges);
   const missions = asList(dossier?.missions ?? dossier?.completedMissions ?? dossier?.missionHistory ?? profile?.missions);
 
   return (
@@ -104,7 +104,7 @@ export default function CandidateDossier() {
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:w-[420px]">
                   <Metric icon={Zap} label="XP" value={formatNumber(profile?.xp ?? profile?.XP ?? profile?.totalXP ?? profile?.totalXp ?? dossier?.xp)} />
                   <Metric icon={Award} label="VX" value={formatNumber(profile?.vx ?? profile?.VX ?? profile?.verifiedExperienceYears ?? profile?.verifiedExperience ?? dossier?.vx)} />
-                  <Metric icon={Crown} label="Leaderboard" value={formatNumber(dossier?.leaderboardPosition ?? dossier?.rankPosition)} />
+                  <Metric icon={Crown} label="Leaderboard" value={formatNumber(dossier?.leaderboardPosition ?? dossier?.rankPosition ?? dossier?.globalLeaderboardRank)} />
                 </div>
               </div>
             </section>
