@@ -120,11 +120,12 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
   const load = async () => {
     setLoading(true);
     setError("");
-    const [jobRes, primaryRes] = await Promise.all([
+    const [jobRes, primaryRes, applicantRes] = await Promise.all([
       api.jobs.myJob(jobId),
       api.jobs.applications(jobId),
+      api.jobs.postingApplicants(jobId),
     ]);
-    const res = primaryRes.ok ? primaryRes : await api.jobs.postingApplicants(jobId);
+    const res = primaryRes.ok ? primaryRes : applicantRes;
     setLoading(false);
     if (jobRes.ok) setJob(jobRes.data);
     if (!res.ok) {
@@ -132,7 +133,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
       setApplications([]);
       return;
     }
-    const list = asList(res.data);
+    const list = mergeApplicationLists(asList(res.data), applicantRes.ok ? asList(applicantRes.data) : []);
     setApplications(list);
     setDrafts(Object.fromEntries(list.map((item: any) => {
       const id = idOf(item);
@@ -286,6 +287,16 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
       </div>
     </DashboardShell>
   );
+}
+
+function mergeApplicationLists(primary: any[], withProfileDetails: any[]): any[] {
+  if (!primary.length) return withProfileDetails;
+  if (!withProfileDetails.length) return primary;
+  const detailsById = new Map(withProfileDetails.map((item) => [idOf(item), item]));
+  return primary.map((item) => {
+    const match = detailsById.get(idOf(item));
+    return match ? { ...match, ...item, profileDetails: profileDetailsOf(match) ?? profileDetailsOf(item) } : item;
+  });
 }
 
 function AssessmentResult({ result }: { result: any }) {
