@@ -463,11 +463,11 @@ export const api = {
     postingApplicants: (jobPostingId: string) =>
       fetchApi(`/api/Jobs/jobs/${encodeURIComponent(jobPostingId)}/applicants`),
     /** GET /api/Jobs/feed?page=&pageSize= */
-    feed: (page = 1, pageSize = 10) =>
-      fetchApi(`/api/Jobs/feed?page=${page}&pageSize=${pageSize}`, { skipAuth: true, suppressUnauthorized: true }),
+    feed: (page = 1, pageSize = 10, opts: { public?: boolean } = {}) =>
+      fetchApi(`/api/Jobs/feed?page=${page}&pageSize=${pageSize}`, { skipAuth: opts.public, suppressUnauthorized: opts.public }),
     /** GET /api/Jobs/{jobId}/details */
-    details: (jobId: string) =>
-      fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/details`, { skipAuth: true, suppressUnauthorized: true }),
+    details: (jobId: string, opts: { public?: boolean } = {}) =>
+      fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/details`, { skipAuth: opts.public, suppressUnauthorized: opts.public }),
     /** GET /api/Jobs/my-jobs/{jobId} */
     myJob: (jobId: string) =>
       fetchApi(`/api/Jobs/my-jobs/${encodeURIComponent(jobId)}`),

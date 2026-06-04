@@ -49,7 +49,7 @@ export default function JobDetails() {
     if (!jobId) return;
     setLoading(true);
     setError("");
-    const res = await api.jobs.details(jobId);
+    const res = await api.jobs.details(jobId, { public: !role });
     setLoading(false);
     if (!res.ok) {
       setError(!role && res.status === 401 ? "The live job details endpoint currently requires login. Please log in to view and apply." : (res.error || "Unable to load job details."));

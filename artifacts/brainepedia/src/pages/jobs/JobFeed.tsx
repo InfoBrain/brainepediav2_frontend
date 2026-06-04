@@ -36,7 +36,7 @@ export default function JobFeed() {
   const load = async (nextPage = page) => {
     setLoading(true);
     setError("");
-    const res = await api.jobs.feed(nextPage, 10);
+    const res = await api.jobs.feed(nextPage, 10, { public: !role });
     setLoading(false);
     if (!res.ok) {
       setError(!role && res.status === 401 ? "The live jobs feed currently requires login. Please log in to view current roles." : (res.error || "Unable to load job feed."));
