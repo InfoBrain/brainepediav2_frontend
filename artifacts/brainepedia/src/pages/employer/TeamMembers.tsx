@@ -43,6 +43,7 @@ export default function TeamMembers() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
   const [search, setSearch] = useState("");
   const [professionFilter, setProfessionFilter] = useState("");
   const [open, setOpen] = useState(false);
@@ -57,13 +58,20 @@ export default function TeamMembers() {
   const fetchMembers = async () => {
     setLoading(true);
     setError("");
+    setWarning("");
     const res = await api.employers.myTeamRoster();
     if (res.ok) {
       setMembers(normMembers(res.data));
     } else {
-      setMembers([]);
-      setError(res.error || "Unable to load team roster.");
-      toast({ title: "Unable to load team roster", description: res.error, variant: "destructive" });
+      const fallback = await api.employers.teamAnalytics();
+      if (fallback.ok) {
+        setMembers(normMembers(fallback.data));
+        setWarning(res.error || "Roster endpoint is temporarily unavailable; showing team analytics roster data.");
+      } else {
+        setMembers([]);
+        setError(res.error || fallback.error || "Unable to load team roster.");
+        toast({ title: "Unable to load team roster", description: res.error || fallback.error, variant: "destructive" });
+      }
     }
     setLoading(false);
   };
@@ -205,6 +213,11 @@ export default function TeamMembers() {
         </div>
 
         {/* Table */}
+        {warning && (
+          <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+            {warning}
+          </div>
+        )}
         <div className="bg-[#0d1119] border border-white/5 rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-20 text-muted-foreground gap-3">
@@ -323,14 +336,14 @@ export default function TeamMembers() {
 }
 
 function normMembers(d: any): Member[] {
-  const arr = Array.isArray(d) ? d : d?.members ?? d?.employees ?? d?.items ?? d?.roster ?? [];
+  const arr = Array.isArray(d) ? d : d?.members ?? d?.employees ?? d?.items ?? d?.roster ?? d?.metricsRoster ?? [];
   return arr.map((x: any) => ({
     profileId: String(x.profileId ?? x.ProfileId ?? x.userId ?? x.UserId ?? x.id ?? x.employeeId ?? Math.random()),
     fullName: text(x.fullName ?? x.FullName ?? x.name ?? `${x.firstName ?? ""} ${x.lastName ?? ""}`.trim(), "Team member"),
     email: text(x.email ?? x.Email ?? x.employeeEmail ?? x.EmailAddress, ""),
     profession: text(x.profession ?? x.Profession ?? x.role ?? x.title, ""),
     dateJoinedRoster: x.dateJoinedRoster ?? x.DateJoinedRoster ?? x.joinedAt ?? x.createdAt,
-    totalXpEarned: Number(x.totalXpEarned ?? x.TotalXpEarned ?? x.totalXP ?? x.TotalXP ?? x.xp ?? x.verifiedXp ?? 0),
+    totalXpEarned: Number(x.totalXpEarned ?? x.TotalXpEarned ?? x.totalXP ?? x.TotalXP ?? x.totalXp ?? x.xp ?? x.verifiedXp ?? 0),
     isActive: Boolean(x.isActive ?? x.IsActive ?? x.active ?? true),
     avatarUrl: x.avatarUrl ?? x.AvatarUrl ?? x.imageUrl ?? x.ImageUrl,
   }));
