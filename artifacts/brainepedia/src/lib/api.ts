@@ -16,14 +16,10 @@ export type CreateJobRequest = {
   salaryRange?: string | null;
   professionName?: string | null;
   linkAssessmentNodeId?: string | null;
+  expiryDate?: string | null;
 };
 
-export type UpdateJobRequest = {
-  title?: string | null;
-  description?: string | null;
-  location?: string | null;
-  salaryRange?: string | null;
-};
+export type UpdateJobRequest = CreateJobRequest;
 
 export type SaveCandidateRequest = {
   candidateUserId?: string | null;
@@ -52,6 +48,8 @@ function extractApiMessage(data: any): string {
   const direct =
     data.message ??
     data.Message ??
+    data.data?.message ??
+    data.data?.Message ??
     data.error ??
     data.Error ??
     data.detail ??

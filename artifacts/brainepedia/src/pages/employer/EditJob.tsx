@@ -4,11 +4,11 @@ import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api, type UpdateJobRequest } from "@/lib/api";
-import { text } from "@/lib/jobData";
+import { defaultExpiryDate, expiryDateOf, text, todayString } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor, htmlToPlainText } from "@/components/editor/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 
 export default function EditJob() {
@@ -48,6 +48,7 @@ export default function EditJob() {
         description: text(job?.description ?? job?.details, ""),
         location: text(job?.location, ""),
         salaryRange: text(job?.salaryRange ?? job?.salary, ""),
+        expiryDate: text(expiryDateOf(job), defaultExpiryDate()).slice(0, 10),
       });
     }
     load();
@@ -59,16 +60,21 @@ export default function EditJob() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!jobId) return;
-    if (!form.title?.trim() || !form.description?.trim()) {
+    if (!form.title?.trim() || !htmlToPlainText(form.description || "")) {
       toast({ title: "Missing job details", description: "Title and description are required.", variant: "destructive" });
+      return;
+    }
+    if (form.expiryDate && form.expiryDate < todayString()) {
+      toast({ title: "Invalid expiry date", description: "Expiry Date cannot be earlier than today.", variant: "destructive" });
       return;
     }
     setSaving(true);
     const res = await api.jobs.updateJob(jobId, {
       title: form.title.trim(),
-      description: form.description.trim(),
+      description: form.description?.trim() || "",
       location: form.location?.trim() || null,
       salaryRange: form.salaryRange?.trim() || null,
+      expiryDate: form.expiryDate || defaultExpiryDate(),
     });
     setSaving(false);
     if (!res.ok) {
@@ -97,7 +103,7 @@ export default function EditJob() {
             <div className="mb-6">
               <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#00D2FF]">Editable posting fields</p>
               <h2 className="mt-1 text-2xl font-black">Update job details</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Title, description, location, and salary range are sent to the backend update endpoint.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Title, rich description, expiry date, location, and salary range are sent to the backend update endpoint.</p>
             </div>
             <div className="grid gap-5">
               <div className="space-y-2">
@@ -115,8 +121,27 @@ export default function EditJob() {
                 </div>
               </div>
               <div className="space-y-2">
+                <Label htmlFor="edit-job-expiry">Expiry Date</Label>
+                <Input
+                  id="edit-job-expiry"
+                  type="date"
+                  min={todayString()}
+                  value={form.expiryDate || ""}
+                  onChange={(event) => update("expiryDate", event.target.value)}
+                  required
+                  className="border-white/15 bg-white/[0.04]"
+                />
+                <p className="text-xs text-muted-foreground">Expiry Date cannot be earlier than today.</p>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="edit-job-description">Description</Label>
-                <Textarea id="edit-job-description" rows={10} value={form.description || ""} onChange={(event) => update("description", event.target.value)} required className="border-white/15 bg-white/[0.04]" />
+                <RichTextEditor
+                  id="edit-job-description"
+                  value={form.description || ""}
+                  onChange={(html) => update("description", html)}
+                  placeholder="Update the role, responsibilities, requirements, benefits, and assessment instructions."
+                  className="border-white/15 bg-white/[0.04]"
+                />
               </div>
             </div>
             <Button type="submit" disabled={saving} className="mt-6 bg-[#00D2FF] text-black hover:bg-[#00B8DD]">

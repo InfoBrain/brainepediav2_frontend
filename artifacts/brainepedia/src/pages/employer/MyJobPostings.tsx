@@ -4,7 +4,8 @@ import { BriefcaseBusiness, CalendarDays, ClipboardList, Edit3, Eye, FilePlus2, 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
-import { asList, idOf, text } from "@/lib/jobData";
+import { asList, expiryDateOf, formatDate, idOf, text } from "@/lib/jobData";
+import { HtmlContent } from "@/components/editor/HtmlContent";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -114,6 +115,7 @@ export default function MyJobPostings() {
                       <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" /> {text(job?.location, "Remote / flexible")}</span>
                       <span className="inline-flex items-center gap-1"><WalletCards className="h-4 w-4" /> {text(job?.salaryRange ?? job?.salary, "Salary undisclosed")}</span>
                       <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> {formatDate(job?.datePosted ?? job?.postedDate ?? job?.createdAt ?? job?.dateCreated)}</span>
+                      <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Expires {formatDate(expiryDateOf(job), "Not set")}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -158,10 +160,13 @@ export default function MyJobPostings() {
                 <Info label="Location" value={text(preview?.location, "Remote / flexible")} />
                 <Info label="Salary" value={text(preview?.salaryRange ?? preview?.salary, "Salary undisclosed")} />
                 <Info label="Date Posted" value={formatDate(preview?.datePosted ?? preview?.postedDate ?? preview?.createdAt ?? preview?.dateCreated)} />
+                <Info label="Expiry Date" value={formatDate(expiryDateOf(preview), "Not set")} />
               </div>
               <div>
                 <p className="mb-2 text-xs font-mono uppercase tracking-wider text-muted-foreground">Description</p>
-                <p className="whitespace-pre-wrap rounded-xl border border-white/5 bg-white/[0.03] p-4 text-muted-foreground">{text(preview?.description ?? preview?.details, "No description provided.")}</p>
+                <div className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+                  <HtmlContent html={preview?.description ?? preview?.details} fallback="No description provided." />
+                </div>
               </div>
               {(preview?.linkAssessmentNodeId ?? preview?.linkedAssessmentNodeId ?? preview?.assessmentNodeId ?? preview?.problemNodeTitle ?? preview?.challengeName) && (
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -199,12 +204,6 @@ function isActive(job: any): boolean {
   const raw = job?.isActive ?? job?.active ?? job?.status ?? job?.Status;
   if (typeof raw === "boolean") return raw;
   return !String(raw ?? "Active").toLowerCase().includes("inactive");
-}
-
-function formatDate(value: unknown): string {
-  if (!value) return "Date unavailable";
-  const date = new Date(String(value));
-  return Number.isNaN(date.getTime()) ? text(value, "Date unavailable") : date.toLocaleDateString();
 }
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {

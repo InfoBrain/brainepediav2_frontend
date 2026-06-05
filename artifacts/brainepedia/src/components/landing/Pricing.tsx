@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Building2, Check } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { USER_SUBSCRIPTION_PLANS } from "@/lib/pricingPlans";
+import { EMPLOYER_GRANDMASTER_FEATURES, EMPLOYER_GRANDMASTER_PLAN, USER_SUBSCRIPTION_PLANS } from "@/lib/pricingPlans";
 
 export function Pricing() {
   return (
@@ -16,17 +16,14 @@ export function Pricing() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid gap-8 max-w-4xl mx-auto md:grid-cols-2">
           {USER_SUBSCRIPTION_PLANS.map((plan, i) => {
-            const premium = plan.key === "Grandmaster";
             const popular = Boolean(plan.popular);
             const variant = popular ? "default" : "outline";
             const button =
               plan.key === "Initiate"
                 ? "Begin as Initiate"
-                : plan.key === "Architect"
-                ? "Become an Architect"
-                : "Become a Grandmaster";
+                : "Become an Architect";
             return (
             <motion.div 
               key={plan.key}
@@ -35,7 +32,6 @@ export function Pricing() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
               className={`p-8 rounded-2xl border ${
-                premium ? 'border-accent shadow-[0_0_30px_rgba(255,215,0,0.15)]' : 
                 popular ? 'border-primary shadow-[0_0_30px_rgba(0,210,255,0.15)]' : 
                 'border-border/50'
               } bg-card relative flex flex-col`}
@@ -45,13 +41,7 @@ export function Pricing() {
                   Most Chosen
                 </div>
               )}
-              {premium && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_15px_rgba(255,215,0,0.4)]">
-                  Elite
-                </div>
-              )}
-
-              <h3 className={`text-2xl font-bold mb-2 ${premium ? 'text-accent' : ''}`}>{plan.key}</h3>
+              <h3 className="text-2xl font-bold mb-2">{plan.key}</h3>
               <p className="text-sm text-muted-foreground mb-6 h-10">{plan.description}</p>
               
               <div className="mb-8">
@@ -62,7 +52,7 @@ export function Pricing() {
               <ul className="space-y-4 mb-8 flex-1">
                 {plan.features.map((f, j) => (
                   <li key={j} className="flex items-start gap-3 text-sm">
-                    <Check className={`w-5 h-5 shrink-0 mt-0.5 ${premium ? 'text-accent' : 'text-primary'}`} />
+                    <Check className="w-5 h-5 shrink-0 mt-0.5 text-primary" />
                     <span className="text-muted-foreground leading-snug">{f}</span>
                   </li>
                 ))}
@@ -73,7 +63,6 @@ export function Pricing() {
                 className={cn(
                   buttonVariants({ variant }),
                   "w-full font-bold",
-                  premium ? 'border-accent text-accent hover:bg-accent/10' : 
                   popular ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
                 )}
               >
@@ -82,6 +71,32 @@ export function Pricing() {
             </motion.div>
             );
           })}
+        </div>
+
+        <div className="mx-auto mt-12 max-w-6xl rounded-3xl border border-accent/25 bg-gradient-to-br from-accent/10 via-card to-primary/10 p-8">
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-accent">
+                <Building2 className="h-3.5 w-3.5" /> Organizations only
+              </div>
+              <h3 className="text-3xl font-black">{EMPLOYER_GRANDMASTER_PLAN.key}</h3>
+              <p className="mt-3 text-muted-foreground">{EMPLOYER_GRANDMASTER_PLAN.description}</p>
+              <Link
+                href="/auth/register?role=employer"
+                className={cn(buttonVariants({ variant: "outline" }), "mt-6 border-accent text-accent hover:bg-accent/10")}
+              >
+                Explore Corporate Grandmaster
+              </Link>
+            </div>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {EMPLOYER_GRANDMASTER_FEATURES.map((feature) => (
+                <li key={feature} className="flex items-start gap-3 rounded-xl border border-white/10 bg-background/40 p-3 text-sm">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                  <span className="text-muted-foreground">{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <div className="mt-12 text-center">

@@ -342,7 +342,7 @@ function normAssessments(d: any): Assessment[] {
   const arr = Array.isArray(d) ? d : d?.assessments ?? d?.candidates ?? d?.items ?? [];
   return arr.map((x: any) => ({
     id: String(x.id ?? x.assessmentId ?? Math.random()),
-    candidateName: x.candidateName ?? x.name ?? (`${x.firstName ?? ""} ${x.lastName ?? ""}`.trim() || "Candidate"),
+    candidateName: x.candidateName ?? x.name ?? (`${x.firstName ?? ""} ${x.lastName ?? ""}`.trim() || "Applicant"),
     email: x.email ?? x.candidateEmail ?? "",
     assessment: x.assessment ?? x.assessmentName ?? x.missionName ?? x.problemNodeTitle ?? x.problemNode?.title ?? x.problemNodeId ?? "Assessment",
     status: x.status ?? x.state ?? "Invited",

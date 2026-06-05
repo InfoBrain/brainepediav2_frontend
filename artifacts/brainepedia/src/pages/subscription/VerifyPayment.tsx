@@ -9,7 +9,7 @@ import { getUserId, getUserRole } from "@/lib/auth";
 
 type Status = "loading" | "success" | "failed" | "pending";
 
-const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Grandmaster" };
+const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Architect" };
 
 export default function VerifyPayment() {
   const [, navigate] = useLocation();
@@ -132,16 +132,16 @@ export default function VerifyPayment() {
               <h1 className="text-3xl font-black text-white">{isEmployer ? "Grandmaster Activated" : `Welcome to ${tierName}!`}</h1>
               <p className="text-[#A78BFA] font-semibold mt-1">{isEmployer ? "Corporate Plan Activated" : `${tierName} Tier Activated`}</p>
             </div>
-            {tierName === "Grandmaster" && (
+            {isEmployer && tierName === "Grandmaster" && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
                 className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/30">
                 <Crown className="h-4 w-4 text-[#FFD700]" />
-                <span className="text-sm font-bold text-[#FFD700]">Elite Member Badge Unlocked</span>
+                <span className="text-sm font-bold text-[#FFD700]">Grandmaster Corporate Activated</span>
               </motion.div>
             )}
             <p className="text-sm text-white/40">
-              {tierName === "Grandmaster"
-                ? (isEmployer ? "Candidate discovery, job listings, assessments, and corporate talent analytics are now active." : "GPT-4o evaluations, unlimited Brainiac guidance, and elite status are now active.")
+              {isEmployer && tierName === "Grandmaster"
+                ? "Candidate discovery, job listings, assessments, and corporate talent analytics are now active."
                 : "Unlimited challenges, enhanced Brainiac hints, and premium district access are now unlocked."}
             </p>
             <div className="flex flex-col gap-3 pt-2">

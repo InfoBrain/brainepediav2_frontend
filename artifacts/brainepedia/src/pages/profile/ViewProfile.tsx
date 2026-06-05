@@ -68,7 +68,7 @@ type District = {
   completionPercentage: number;
 };
 
-const SUBS: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Grandmaster" };
+const SUBS: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Architect" };
 
 const RARITY_COLOR: Record<string, { ring: string; glow: string; label: string }> = {
   legendary: {

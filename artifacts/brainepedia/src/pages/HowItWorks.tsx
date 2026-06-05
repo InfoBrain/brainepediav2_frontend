@@ -83,7 +83,7 @@ export function HowItWorksPage() {
     { label: "Initiate", level: "L1 – L9", note: "Entry-level districts only." },
     { label: "Operator", level: "L10 – L29", note: "Cleared at least 10 missions across one or more professions." },
     { label: "Architect", level: "L30 – L59", note: "Verified mastery in a specialization. Recognized by recruiters." },
-    { label: "Grandmaster", level: "L60+", note: "Top 1% of operators. Eligible to author missions of their own." },
+    { label: "Master Operator", level: "L60+", note: "Top 1% of operators. Eligible to author missions of their own." },
   ];
 
   return (

@@ -93,7 +93,7 @@ export default function UserProgressPage() {
     queryKey: ["profile-stats", userId],
     queryFn: async () => {
       const res = await api.profiles.stats(userId);
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error(res.error || "Failed to load profile stats");
       type StatsPayload = { totalXP?: number; problemsSolvedCount?: number; dayStreak?: number; currentSubscription?: string; isSubscriptionActive?: boolean };
       const d = res.data as StatsPayload;
       return { totalXP: d?.totalXP ?? 0, problemsSolvedCount: d?.problemsSolvedCount ?? 0, dayStreak: d?.dayStreak ?? 0, currentSubscription: d?.currentSubscription ?? "Initiate", isSubscriptionActive: Boolean(d?.isSubscriptionActive) };
@@ -117,7 +117,7 @@ export default function UserProgressPage() {
     queryKey: ["profile-map", userId],
     queryFn: async () => {
       const res = await api.profiles.map(userId);
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error(res.error || "Failed to load profile map");
       const arr = Array.isArray(res.data) ? res.data : [];
       return arr.map((d: any) => ({
         districtName: d?.districtName || "Unknown",
@@ -136,7 +136,7 @@ export default function UserProgressPage() {
     queryKey: ["badges", userId],
     queryFn: async () => {
       const res = await api.userBadges.forUser(userId);
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error(res.error || "Failed to load badges");
       const arr = Array.isArray(res.data) ? res.data : [];
       return arr.map((b: any) => ({ userBadgeId: b?.userBadgeId || b?.id || "", name: b?.name || "Badge", description: b?.description || "", iconUrl: b?.iconUrl, rarity: b?.rarity || "Common", unlockedAt: b?.unlockedAt }));
     },
@@ -148,7 +148,7 @@ export default function UserProgressPage() {
     queryKey: ["activity-logs", userId],
     queryFn: async () => {
       const res = await api.activityLogs.forUser(userId);
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error(res.error || "Failed to load activity");
       const arr = Array.isArray(res.data) ? res.data : [];
       return arr.slice(0, 20).map((a: any) => ({ activityLogId: a?.activityLogId ?? a?.id, activity: a?.activity || "", dateCreated: a?.dateCreated || "" }));
     },
@@ -160,7 +160,7 @@ export default function UserProgressPage() {
     queryKey: ["xp-history", userId],
     queryFn: async () => {
       const res = await api.experienceCredits.forUser(userId);
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error(res.error || "Failed to load XP history");
       const arr = Array.isArray(res.data) ? res.data : [];
       return arr.map((x: any) => ({ experienceCreditId: x?.experienceCreditId || x?.id || "", amount: Number(x?.amount ?? 0), reason: x?.reason || "", dateCreated: x?.dateCreated || "" }));
     },

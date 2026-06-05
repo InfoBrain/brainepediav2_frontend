@@ -1,8 +1,8 @@
 import { Crown, Shield, Zap } from "lucide-react";
 
 export type SubscriptionPlan = {
-  key: "Initiate" | "Architect" | "Grandmaster";
-  numericTier: 0 | 1 | 2;
+  key: "Initiate" | "Architect";
+  numericTier: 0 | 1;
   price: string;
   priceNote: string;
   shortPrice: string;
@@ -68,53 +68,44 @@ export const USER_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     ],
     unavailableFeatures: [
       "GPT-4o evaluations",
-      "Grandmaster elite status visuals",
-    ],
-  },
-  {
-    key: "Grandmaster",
-    numericTier: 2,
-    price: "$49.99",
-    priceNote: "per month",
-    shortPrice: "$49.99",
-    period: "/mo",
-    tagline: "Elite member status",
-    description: "For users who want the strongest evaluation and growth signals.",
-    icon: Crown,
-    accent: "gold",
-    features: [
-      "Unlimited missions, districts, and challenges",
-      "GPT-4o evaluations",
-      "Unlimited Brainiac guidance",
-      "Priority AI evaluation",
-      "Elite leaderboard badge",
-      "Elite member badge",
-      "Legendary status visuals",
-      "Experience elevator and premium certification tracks",
+      "Corporate-only Grandmaster team features",
     ],
   },
 ];
 
 export const EMPLOYER_GRANDMASTER_FEATURES = [
-  "Candidate discovery by profession, XP, VX, rank, and portfolio evidence",
-  "Unlimited job listings",
-  "Job preview, editing, activation, and deactivation workflows",
-  "Applicant pipeline and job application status management",
-  "Candidate assessments linked to problem nodes",
-  "Assessment result review for completed candidate missions",
-  "Saved candidate shortlists with notes",
-  "Team member provisioning and seat management",
-  "Private corporate challenges for teams",
-  "Corporate talent and team analytics",
-  "Grandmaster employer subscription and Paystack upgrade flow",
+  "Unlimited Job Listings",
+  "Candidate Discovery",
+  "Candidate Assessments",
+  "Team Provisioning",
+  "Team Challenge Assignments",
+  "Private Corporate Challenges",
+  "Team Performance Tracking",
+  "Workforce Development",
+  "Recruitment Pipeline Management",
+  "Corporate Talent Analytics",
+  "Seat-Based Workforce Growth",
+  "Grandmaster Team Activation",
 ];
 
+export const EMPLOYER_GRANDMASTER_PLAN = {
+  key: "Grandmaster Corporate Plan",
+  price: "Corporate",
+  shortPrice: "Corporate",
+  period: "",
+  tagline: "Built for organizations",
+  description: "Designed for organizations building and developing high-performing teams.",
+  icon: Crown,
+  accent: "gold" as const,
+  features: EMPLOYER_GRANDMASTER_FEATURES,
+};
+
 export const PLAN_COMPARISON_FEATURES = [
-  { label: "Missions / challenges", initiate: "3 / month", architect: "Unlimited", grandmaster: "Unlimited" },
-  { label: "District access", initiate: "Entry-level", architect: "All professional districts", grandmaster: "All districts" },
-  { label: "AI evaluations", initiate: "Basic pass/fail", architect: "Advanced technical breakdown", grandmaster: "GPT-4o" },
-  { label: "Brainiac hints", initiate: "Limited", architect: "Increased", grandmaster: "Unlimited" },
-  { label: "XP growth", initiate: "Basic", architect: "Faster", grandmaster: "Priority + elite" },
-  { label: "Project uploads", initiate: "50MB", architect: "2GB", grandmaster: "Premium allocation" },
-  { label: "Badges / status", initiate: "Community leaderboard", architect: "Verified badges", grandmaster: "Elite + legendary visuals" },
+  { label: "Missions / challenges", initiate: "3 / month", architect: "Unlimited" },
+  { label: "District access", initiate: "Entry-level", architect: "All professional districts" },
+  { label: "AI evaluations", initiate: "Basic pass/fail", architect: "Advanced technical breakdown" },
+  { label: "Brainiac hints", initiate: "Limited", architect: "Increased" },
+  { label: "XP growth", initiate: "Basic", architect: "Faster" },
+  { label: "Project uploads", initiate: "50MB", architect: "2GB" },
+  { label: "Badges / status", initiate: "Community leaderboard", architect: "Verified badges" },
 ];

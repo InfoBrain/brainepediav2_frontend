@@ -36,6 +36,7 @@ export default function SelectProfession() {
     data: professions,
     isLoading,
     isError,
+    error,
     refetch,
   } = useQuery<Profession[]>({
     queryKey: ["professions"],
@@ -175,7 +176,7 @@ export default function SelectProfession() {
             className="flex flex-col items-center gap-4 py-20 text-center"
           >
             <AlertCircle className="w-12 h-12 text-red-400/60" />
-            <p className="text-white/60 font-mono">Unable to load professions</p>
+            <p className="text-white/60 font-mono">{error?.message || "Unable to load professions"}</p>
             <Button
               variant="outline"
               size="sm"

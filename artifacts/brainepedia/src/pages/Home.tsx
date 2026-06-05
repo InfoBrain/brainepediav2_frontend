@@ -64,7 +64,7 @@ function EmployerValue() {
     { label: "Assessments", icon: ClipboardCheck },
     { label: "Team Training", icon: Users },
     { label: "Corporate Challenges", icon: Target },
-    { label: "Grandmaster Plans", icon: Sparkles },
+    { label: "Grandmaster Corporate", icon: Sparkles },
   ];
   return (
     <section id="employers" className="container mx-auto px-4 py-16">
@@ -75,7 +75,7 @@ function EmployerValue() {
           </div>
           <h2 className="text-4xl font-black tracking-tight md:text-5xl">Build Better Teams with Proven Talent</h2>
           <p className="mt-4 max-w-xl text-muted-foreground">
-            Hire from real mission evidence instead of guesswork. Brainepedia connects talent discovery, assessments, team training, and corporate challenges in one Grandmaster workflow.
+            Hire from real mission evidence instead of guesswork. Brainepedia connects talent discovery, assessments, team training, and corporate challenges in one Grandmaster Corporate workflow.
           </p>
           <Button asChild size="lg" className="mt-6 bg-primary text-primary-foreground hover:bg-primary/90">
             <Link href="/auth/register?role=employer">Start Hiring</Link>

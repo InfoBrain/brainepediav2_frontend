@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Crown, Zap, Shield, Star, CheckCircle2, XCircle, Loader2,
-  Map, Trophy, Activity, CreditCard, User as UserIcon,
-  LayoutDashboard, Compass, TrendingUp, Sparkles, ArrowRight,
+  ArrowRight,
   Lock, Brain, ChevronRight, AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,12 +16,13 @@ import { getUserId, getUserRole } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import {
   EMPLOYER_GRANDMASTER_FEATURES,
+  EMPLOYER_GRANDMASTER_PLAN,
   PLAN_COMPARISON_FEATURES,
   USER_SUBSCRIPTION_PLANS,
 } from "@/lib/pricingPlans";
 
 /* ─── Tier data ─────────────────────────────────────────────────────────── */
-const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Grandmaster" };
+const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Architect" };
 
 const TIER_STYLES = {
   Initiate: {
@@ -39,13 +39,6 @@ const TIER_STYLES = {
     headerBg: "from-[#7C3AED]/20 to-[#4C1D95]/20",
     iconColor: "text-[#A78BFA]",
   },
-  Grandmaster: {
-    color: "border-[#FFD700]/50",
-    glow: "shadow-[0_0_35px_rgba(255,215,0,0.35)]",
-    buttonClass: "bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-black font-bold shadow-[0_0_20px_rgba(255,215,0,0.5)]",
-    headerBg: "from-[#FFD700]/15 to-[#F59E0B]/10",
-    iconColor: "text-[#FFD700]",
-  },
 } as const;
 
 const TIERS = USER_SUBSCRIPTION_PLANS.map((plan) => ({
@@ -59,10 +52,9 @@ const TIERS = USER_SUBSCRIPTION_PLANS.map((plan) => ({
 
 const BRAINIAC_TIPS = [
   "Architect Tier increases your challenge access and XP growth by 50% — a solid investment for active learners.",
-  "Grandmaster unlocks GPT-4o evaluations — the most accurate feedback available.",
   "Upgrading to Architect removes the monthly challenge cap and opens premium districts.",
-  "Grandmaster members receive priority AI evaluation and legendary visual effects.",
-  "The XP boost from Architect or Grandmaster accelerates your climb to the top of the leaderboard.",
+  "Architect gives active learners broader mission access and deeper feedback.",
+  "The XP boost from Architect accelerates your climb to the top of the leaderboard.",
 ];
 
 /* ─── Component ──────────────────────────────────────────────────────────── */
@@ -131,7 +123,7 @@ export default function SubscriptionCenter() {
     }
   };
 
-  const currentTierName = isEmployer ? employerPlan : (SUB_NAMES[currentTier] ?? "Initiate");
+  const currentTierName = isEmployer ? employerPlan : (SUB_NAMES[Math.min(currentTier, 1)] ?? "Initiate");
 
   const headerRight = (
     <div className="hidden sm:flex items-center gap-2">
@@ -169,10 +161,10 @@ export default function SubscriptionCenter() {
           <section className="rounded-2xl border border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/15 via-[#0d1119] to-[#00D2FF]/10 p-8 shadow-[0_0_35px_rgba(255,215,0,0.18)]">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div>
-                <p className="text-xs font-mono uppercase tracking-[0.25em] text-[#FFD700]">Grandmaster Corporate Plan</p>
+                <p className="text-xs font-mono uppercase tracking-[0.25em] text-[#FFD700]">{EMPLOYER_GRANDMASTER_PLAN.key}</p>
                 <h2 className="mt-2 text-3xl font-black">Built for talent discovery, team provisioning, and candidate assessment.</h2>
                 <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-                  Employers use one premium plan for recruitment workflows, private training, and team analytics.
+                  {EMPLOYER_GRANDMASTER_PLAN.description}
                 </p>
                 <Button onClick={() => setUpgradeTarget("Grandmaster")} disabled={upgradeLoading} className="mt-5 bg-[#FFD700] text-black hover:bg-[#F3C800]">
                   {upgradeLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Crown className="mr-2 h-4 w-4" />}
@@ -214,58 +206,46 @@ export default function SubscriptionCenter() {
           {/* ── CURRENT TIER HERO ── */}
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
             className={`relative overflow-hidden rounded-2xl border p-6 ${
-              currentTierName === "Grandmaster"
-                ? "border-[#FFD700]/40 shadow-[0_0_40px_rgba(255,215,0,0.2)]"
-                : currentTierName === "Architect"
+              currentTierName === "Architect"
                 ? "border-[#7C3AED]/40 shadow-[0_0_30px_rgba(124,58,237,0.2)]"
                 : "border-white/8"
             }`}>
             <div className={`absolute inset-0 bg-gradient-to-br pointer-events-none ${
-              currentTierName === "Grandmaster" ? "from-[#FFD700]/10 via-transparent to-[#F59E0B]/5"
-              : currentTierName === "Architect" ? "from-[#7C3AED]/12 via-transparent to-[#00D2FF]/5"
+              currentTierName === "Architect" ? "from-[#7C3AED]/12 via-transparent to-[#00D2FF]/5"
               : "from-white/3 to-transparent"
             }`} />
-            {currentTierName === "Grandmaster" && (
-              <GrandmasterParticles />
-            )}
             <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 ${
-                currentTierName === "Grandmaster" ? "bg-[#FFD700]/15"
-                : currentTierName === "Architect" ? "bg-[#7C3AED]/20"
+                currentTierName === "Architect" ? "bg-[#7C3AED]/20"
                 : "bg-white/5"
               }`}>
-                {currentTierName === "Grandmaster" ? <Crown className="h-7 w-7 text-[#FFD700]" />
-                : currentTierName === "Architect" ? <Zap className="h-7 w-7 text-[#A78BFA]" />
+                {currentTierName === "Architect" ? <Zap className="h-7 w-7 text-[#A78BFA]" />
                 : <Shield className="h-7 w-7 text-slate-400" />}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-xs font-mono uppercase tracking-[0.2em] text-white/30">Current Tier</p>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border ${
-                    currentTierName === "Grandmaster" ? "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/30"
-                    : currentTierName === "Architect" ? "bg-[#7C3AED]/15 text-[#A78BFA] border-[#7C3AED]/30"
+                    currentTierName === "Architect" ? "bg-[#7C3AED]/15 text-[#A78BFA] border-[#7C3AED]/30"
                     : "bg-slate-800/60 text-slate-400 border-slate-700"
                   }`}>Active</span>
                 </div>
                 <h2 className={`text-3xl font-black mt-1 ${
-                  currentTierName === "Grandmaster" ? "text-[#FFD700]"
-                  : currentTierName === "Architect" ? "text-[#A78BFA]"
+                  currentTierName === "Architect" ? "text-[#A78BFA]"
                   : "text-white"
                 }`}>{currentTierName}</h2>
                 <p className="text-sm text-white/40 mt-0.5">
-                  {currentTierName === "Grandmaster"
-                    ? "You hold Elite Member status. Unlimited access across all systems."
-                    : currentTierName === "Architect"
+                  {currentTierName === "Architect"
                     ? "Advanced challenge access and enhanced Brainiac guidance active."
-                    : "Upgrade to unlock Architect or Grandmaster abilities."}
+                    : "Upgrade to unlock Architect abilities."}
                 </p>
               </div>
-              {currentTierName !== "Grandmaster" && (
+              {currentTierName === "Initiate" && (
                 <Button
-                  onClick={() => setUpgradeTarget(currentTierName === "Initiate" ? "Architect" : "Grandmaster")}
-                  className="shrink-0 bg-amber-400 hover:bg-amber-300 text-black font-bold shadow-[0_0_15px_rgba(255,215,0,0.3)]"
+                  onClick={() => setUpgradeTarget("Architect")}
+                  className="shrink-0 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold shadow-[0_0_15px_rgba(124,58,237,0.35)]"
                 >
-                  {currentTierName === "Initiate" ? "Upgrade to Architect" : "Upgrade to Grandmaster"}
+                  Upgrade to Architect
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               )}
@@ -278,12 +258,11 @@ export default function SubscriptionCenter() {
               <h2 className="text-xl font-bold text-white">Choose Your Tier</h2>
               <p className="text-xs text-white/30 font-mono mt-0.5">Select the plan that matches your ambition</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {TIERS.map((tier, i) => {
                 const Icon = tier.icon;
-                const isCurrent = currentTier === tier.numericTier;
-                const isLocked = tier.numericTier < currentTier;
-                const isGrandmaster = tier.key === "Grandmaster";
+                const isCurrent = Math.min(currentTier, 1) === tier.numericTier;
+                const isLocked = tier.numericTier < Math.min(currentTier, 1);
                 return (
                   <motion.div key={tier.key}
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
@@ -300,11 +279,10 @@ export default function SubscriptionCenter() {
                         Current
                       </div>
                     )}
-                    {isGrandmaster && <GrandmasterBorderAnimation />}
                     {/* Card header */}
                     <div className={`bg-gradient-to-br ${tier.headerBg} p-5 pb-4 border-b border-white/8`}>
                       <div className={`h-10 w-10 rounded-xl flex items-center justify-center mb-3 ${
-                        isGrandmaster ? "bg-[#FFD700]/20" : tier.key === "Architect" ? "bg-[#7C3AED]/20" : "bg-slate-800"
+                        tier.key === "Architect" ? "bg-[#7C3AED]/20" : "bg-slate-800"
                       }`}>
                         <Icon className={`h-5 w-5 ${tier.iconColor}`} />
                       </div>
@@ -367,7 +345,6 @@ export default function SubscriptionCenter() {
                       <th className="text-left py-3 px-5 text-xs font-mono text-white/30 uppercase tracking-wider">Feature</th>
                       <th className="py-3 px-4 text-xs font-mono text-slate-400 uppercase tracking-wider">Initiate</th>
                       <th className="py-3 px-4 text-xs font-mono text-[#A78BFA] uppercase tracking-wider">Architect</th>
-                      <th className="py-3 px-4 text-xs font-mono text-[#FFD700] uppercase tracking-wider">Grandmaster</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -376,7 +353,6 @@ export default function SubscriptionCenter() {
                         <td className="py-3 px-5 text-sm text-white/60">{f.label}</td>
                         <td className="py-3 px-4 text-center text-xs font-mono text-slate-400">{f.initiate}</td>
                         <td className="py-3 px-4 text-center text-xs font-mono text-[#A78BFA]">{f.architect}</td>
-                        <td className="py-3 px-4 text-center text-xs font-mono text-[#FFD700]">{f.grandmaster}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -512,29 +488,3 @@ export default function SubscriptionCenter() {
   );
 }
 
-/* ─── Decorative sub-components ─────────────────────────────────────────── */
-function GrandmasterBorderAnimation() {
-  return (
-    <motion.div
-      animate={{ opacity: [0.4, 0.9, 0.4] }}
-      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-      className="absolute inset-0 rounded-2xl pointer-events-none"
-      style={{ boxShadow: "inset 0 0 20px rgba(255,215,0,0.12)" }}
-    />
-  );
-}
-
-function GrandmasterParticles() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(8)].map((_, i) => (
-        <motion.div key={i}
-          className="absolute h-1 w-1 rounded-full bg-[#FFD700]"
-          style={{ left: `${10 + i * 12}%`, top: `${Math.random() * 100}%` }}
-          animate={{ y: [0, -30, 0], opacity: [0, 0.8, 0] }}
-          transition={{ duration: 3 + i * 0.5, repeat: Infinity, delay: i * 0.4 }}
-        />
-      ))}
-    </div>
-  );
-}

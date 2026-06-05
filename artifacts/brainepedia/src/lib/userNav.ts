@@ -28,6 +28,6 @@ export const USER_NAV: NavItem[] = [
   { href: "/user/applications", label: "Applications", icon: FileText, tooltip: "Track job applications submitted with your verified experience profile." },
   { href: "/user/assessments", label: "Assessments", icon: ClipboardCheck, tooltip: "Employer-linked problem nodes you may complete to strengthen applications." },
   { href: "/user/portfolio", label: "Public Portfolio", icon: UserIcon, section: "Profile", tooltip: "Your shareable proof dossier with XP, VX, badges, missions, and rank signals." },
-  { href: "/user/subscription", label: "Subscription", icon: CreditCard, tooltip: "Manage access tiers including Grandmaster benefits and payment status." },
+  { href: "/user/subscription", label: "Subscription", icon: CreditCard, tooltip: "Manage Initiate and Architect access tiers and payment status." },
   { href: "/user/settings", label: "Settings", icon: Settings, tooltip: "Update account security and personal dashboard preferences." },
 ];

@@ -228,6 +228,7 @@ export default function MissionDetailPage() {
     data: node,
     isLoading: nodeLoading,
     isError: nodeError,
+    error: nodeErrorDetail,
     refetch,
   } = useQuery<ProblemNode>({
     queryKey: ["problem-node", problemNodeId],
@@ -428,7 +429,7 @@ export default function MissionDetailPage() {
             className="flex flex-col items-center gap-4 py-24 text-center"
           >
             <AlertCircle className="w-12 h-12 text-red-400/60" />
-            <p className="text-white/50 font-mono text-sm">Unable to load challenge details</p>
+            <p className="text-white/50 font-mono text-sm">{nodeErrorDetail?.message || "Unable to load challenge details"}</p>
             <Button
               variant="outline"
               size="sm"
