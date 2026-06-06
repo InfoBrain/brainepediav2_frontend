@@ -164,7 +164,7 @@ export default function CreateJob() {
                 onChange={(event) => update("expiryDate", event.target.value)}
                 required
               />
-              <p className="text-xs text-muted-foreground">Defaults to 30 days from today. Expiry Date cannot be earlier than today.</p>
+              <p className="text-xs text-muted-foreground">Defaults to 30 days from today. Choose today or a future date.</p>
             </div>
 
             <div className="space-y-2">

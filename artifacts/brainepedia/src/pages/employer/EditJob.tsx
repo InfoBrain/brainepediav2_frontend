@@ -218,7 +218,7 @@ export default function EditJob() {
                   required
                   className="border-white/15 bg-white/[0.04]"
                 />
-                <p className="text-xs text-muted-foreground">Expiry Date cannot be earlier than today.</p>
+                <p className="text-xs text-muted-foreground">Choose today or a future date.</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-job-assessment">Assessment Problem Node</Label>
