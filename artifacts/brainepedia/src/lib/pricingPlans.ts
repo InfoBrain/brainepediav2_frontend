@@ -74,18 +74,17 @@ export const USER_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 ];
 
 export const EMPLOYER_GRANDMASTER_FEATURES = [
-  "Unlimited Job Listings",
-  "Candidate Discovery",
-  "Candidate Assessments",
-  "Team Provisioning",
-  "Team Challenge Assignments",
-  "Private Corporate Challenges",
-  "Team Performance Tracking",
-  "Workforce Development",
-  "Recruitment Pipeline Management",
-  "Corporate Talent Analytics",
-  "Seat-Based Workforce Growth",
-  "Grandmaster Team Activation",
+  "Job Listings",
+  "Candidate Recruitment",
+  "Candidate Screening",
+  "Assessment Assignment",
+  "Corporate Team Provisioning",
+  "Private Team Challenges",
+  "Team Training",
+  "Employee Skill Tracking",
+  "Corporate Learning Analytics",
+  "Candidate Portfolio Management",
+  "Talent Pipeline Management",
 ];
 
 export const EMPLOYER_GRANDMASTER_PLAN = {
@@ -94,7 +93,7 @@ export const EMPLOYER_GRANDMASTER_PLAN = {
   shortPrice: "Corporate",
   period: "",
   tagline: "Built for organizations",
-  description: "Designed for organizations building and developing high-performing teams.",
+  description: "Designed for organizations and employers managing recruitment, candidate screening, team training, and corporate learning analytics.",
   icon: Crown,
   accent: "gold" as const,
   features: EMPLOYER_GRANDMASTER_FEATURES,

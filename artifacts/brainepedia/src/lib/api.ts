@@ -1,11 +1,12 @@
 import { getToken } from "./auth";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.brainepedia.com";
 
 export type ApiResult<T = any> = {
   ok: boolean;
   data?: T;
   error?: string;
+  message?: string;
   status?: number;
 };
 
@@ -37,7 +38,7 @@ type FetchApiOptions = RequestInit & {
   skipAuth?: boolean;
 };
 
-function extractApiMessage(data: any): string {
+export function extractApiMessage(data: any): string {
   if (!data) return "";
   if (typeof data === "string") {
     const trimmed = data.trim();
@@ -45,11 +46,15 @@ function extractApiMessage(data: any): string {
     return isHtml ? "" : trimmed;
   }
   if (typeof data !== "object") return "";
+  const message = data.Message ?? data.message;
+  if (message) return String(message);
+  const status = data.Status ?? data.status;
+  if (status) return String(status);
   const direct =
-    data.message ??
-    data.Message ??
-    data.data?.message ??
     data.data?.Message ??
+    data.data?.message ??
+    data.data?.Status ??
+    data.data?.status ??
     data.error ??
     data.Error ??
     data.detail ??
@@ -125,12 +130,13 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
       if (response.status === 403 && !suppressForbidden) {
         window.dispatchEvent(new CustomEvent("api-forbidden", { detail: { message: errorMsg } }));
       }
-      return { ok: false, error: errorMsg, status: response.status };
+      return { ok: false, error: errorMsg, message: errorMsg, status: response.status };
     }
 
-    return { ok: true, data, status: response.status };
+    return { ok: true, data, message: extractApiMessage(data), status: response.status };
   } catch (err: any) {
-    return { ok: false, error: err.message || "Network error. Please try again." };
+    const errorMsg = err.message || "Network error. Please try again.";
+    return { ok: false, error: errorMsg, message: errorMsg };
   }
 }
 
@@ -237,7 +243,7 @@ export const api = {
     xpSummary: () => fetchApi("/api/ExperienceCredits/system-summary"),
   },
   professions: {
-    list: () => fetchApi("/api/Professions"),
+    list: () => fetchApi("/api/Professions", { skipAuth: true, suppressUnauthorized: true }),
     get: (id: string) => fetchApi(`/api/Professions/${encodeURIComponent(id)}`),
     city: (id: string, userId?: string | null) =>
       fetchApi(`/api/Professions/${encodeURIComponent(id)}/city${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),

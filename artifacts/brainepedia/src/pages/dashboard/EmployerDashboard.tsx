@@ -193,7 +193,7 @@ export default function EmployerDashboard() {
                       <h2 className="text-xl font-bold">{selected.fullName}</h2>
                       {selected.isGrandmaster && (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#FFD700]/15 text-[#FFD700] border border-[#FFD700]/40 flex items-center gap-1">
-                          <Crown className="h-3 w-3" /> Grandmaster
+                          <Crown className="h-3 w-3" /> Verified Talent
                         </span>
                       )}
                     </div>

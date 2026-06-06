@@ -19,6 +19,7 @@ import {
 } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -165,7 +166,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
       toast({ title: "Unable to update application", description: res.error || "Please try again.", variant: "destructive" });
       return;
     }
-    toast({ title: "Application updated", description: "Status and notes were saved." });
+    toast({ title: "Application updated", description: res.message || "Status and notes were saved." });
     load();
   };
 
@@ -206,10 +207,12 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
               const profession = text(profile?.profession ?? profile?.Profession ?? application?.profession ?? application?.candidate?.profession, "Profession not provided");
               const currentTitle = text(profile?.currentTitle ?? profile?.CurrentTitle, "Current title not provided");
               const totalXp = profile?.totalXP ?? profile?.TotalXP ?? profile?.totalXp ?? profile?.TotalXp;
+              const xp = formatNumber(totalXp);
               const vx = numberish(profile?.calculatedVX ?? profile?.CalculatedVX ?? profile?.verifiedExperienceYears ?? profile?.VerifiedExperienceYears);
               const applicationStatus = text(application?.status ?? application?.Status ?? application?.applicationStatus, "New");
               const appliedAt = formatDate(application?.appliedAt ?? application?.AppliedAt ?? application?.dateApplied ?? application?.DateApplied, "Date unavailable");
-              const assessmentStatus = text(application?.assessmentStatus ?? application?.assessmentCompletionStatus, problemNodeId ? "Assessment linked" : "Assessment status unknown");
+              const assessmentStatus = assessmentStatusLabel(application);
+              const canViewResult = Boolean(problemNodeId && userId && assessmentStatus === "Completed");
               return (
                 <article key={id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                   <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -220,6 +223,9 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                       <div className="min-w-0">
                         <h3 className="text-lg font-bold">{name}</h3>
                         <p className="text-sm text-muted-foreground">{profession}</p>
+                        {currentTitle !== "Current title not provided" && (
+                          <p className="text-xs text-muted-foreground">{currentTitle}</p>
+                        )}
                         <div className="mt-2 flex flex-wrap gap-2 text-xs">
                           <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">{assessmentStatus}</span>
                           <span className="rounded-full border border-[#00D2FF]/30 bg-[#00D2FF]/10 px-2.5 py-1 text-[#00D2FF]">{applicationStatus}</span>
@@ -228,8 +234,8 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                           <ApplicantMetric label="Full Name" value={name} />
                           <ApplicantMetric label="Profession" value={profession} />
                           <ApplicantMetric label="Current Title" value={currentTitle} />
-                          <ApplicantMetric label="Total XP" value={formatNumber(totalXp)} />
-                          <ApplicantMetric label="Verified Experience (VX)" value={vx === undefined ? "—" : vx.toFixed(1)} />
+                          <ApplicantMetric label="XP" value={xp === "—" ? "—" : `${xp} XP`} />
+                          <ApplicantMetric label="VX" value={vx === undefined ? "—" : `${vx.toFixed(1)} VX`} />
                           <ApplicantMetric label="Applied Date" value={appliedAt} />
                           <ApplicantMetric label="Application Status" value={applicationStatus} />
                         </div>
@@ -239,7 +245,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                               <Link href={`/employer/candidates/${encodeURIComponent(String(userId))}`}><UserCheck className="mr-2 h-4 w-4" /> Candidate dossier</Link>
                             </Button>
                           )}
-                          {problemNodeId && userId && (
+                          {canViewResult && (
                             <Button variant="outline" onClick={() => viewAssessmentResult(problemNodeId, String(userId))}>
                               <Eye className="mr-2 h-4 w-4" /> View Assessment Result
                             </Button>
@@ -248,18 +254,26 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <Input
-                        value={draft.newStatus}
-                        onChange={(event) => updateDraft(id, "newStatus", event.target.value)}
-                        placeholder="Status (e.g. Shortlisted)"
-                        aria-label={`Status for ${name}`}
-                      />
-                      <Textarea
-                        value={draft.notes}
-                        onChange={(event) => updateDraft(id, "notes", event.target.value)}
-                        placeholder="Internal notes"
-                        aria-label={`Notes for ${name}`}
-                      />
+                      <div className="space-y-1.5">
+                        <Label htmlFor={`status-${id}`} className="text-xs text-muted-foreground">Application Status</Label>
+                        <Input
+                          id={`status-${id}`}
+                          value={draft.newStatus}
+                          onChange={(event) => updateDraft(id, "newStatus", event.target.value)}
+                          placeholder="Status (e.g. Shortlisted)"
+                          aria-label={`Status for ${name}`}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor={`notes-${id}`} className="text-xs text-muted-foreground">Internal Notes</Label>
+                        <Textarea
+                          id={`notes-${id}`}
+                          value={draft.notes}
+                          onChange={(event) => updateDraft(id, "notes", event.target.value)}
+                          placeholder="Internal notes"
+                          aria-label={`Notes for ${name}`}
+                        />
+                      </div>
                       <Button onClick={() => save(id)} disabled={savingId === id} className="w-full bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
                         {savingId === id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                         Save status
@@ -301,15 +315,16 @@ function mergeApplicationLists(primary: any[], withProfileDetails: any[]): any[]
 
 function AssessmentResult({ result }: { result: any }) {
   const root = result?.data ?? result?.result ?? result?.evaluation ?? result;
-  const passed = Boolean(root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed);
+  const passValue = root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed ?? root?.passFail ?? root?.PassFail ?? root?.status ?? root?.Status;
+  const passed = typeof passValue === "string" ? /pass|success/i.test(passValue) : Boolean(passValue);
   const rows: [string, string][] = [
     ["Mission Title", text(root?.missionTitle ?? root?.MissionTitle ?? root?.title ?? root?.Title, "Assessment mission")],
     ["Score", text(root?.score ?? root?.Score ?? root?.percentageScore ?? root?.PercentageScore, "—")],
-    ["Positive Feedback", listText(root?.positiveFeedback ?? root?.PositiveFeedback ?? root?.feedback ?? root?.Feedback?.PositiveFeedback, "No positive feedback returned.")],
     ["Strengths", listText(root?.strengths ?? root?.Strengths ?? root?.Feedback?.Strengths, "No strengths returned.")],
     ["Weaknesses", listText(root?.weaknesses ?? root?.Weaknesses ?? root?.Feedback?.Weaknesses, "No weaknesses returned.")],
     ["Improvement Areas", listText(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement ?? root?.Feedback?.ImprovementAreas, "No improvement areas returned.")],
-    ["Raw AI Reasoning", text(root?.rawAiReasoning ?? root?.RawAiReasoning ?? root?.aiReasoning ?? root?.AiReasoning, "No raw AI reasoning returned.")],
+    ["Positive Feedback", listText(root?.positiveFeedback ?? root?.PositiveFeedback ?? root?.feedback ?? root?.Feedback?.PositiveFeedback, "No positive feedback returned.")],
+    ["AI Evaluation Summary", listText(root?.aiEvaluationSummary ?? root?.AiEvaluationSummary ?? root?.summary ?? root?.Summary ?? root?.rawAiReasoning ?? root?.RawAiReasoning ?? root?.aiReasoning ?? root?.AiReasoning, "No AI evaluation summary returned.")],
   ];
   return (
     <div className="space-y-3">
@@ -343,7 +358,31 @@ function listText(value: unknown, fallback: string): string {
     const items = value.map((item) => text(item, "")).filter(Boolean);
     return items.length ? items.join("\n") : fallback;
   }
+  if (value && typeof value === "object") {
+    const items = Object.values(value).map((item) => text(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
   return text(value, fallback);
+}
+
+function assessmentStatusLabel(application: any): "Completed" | "In Progress" | "Pending" | "Not Started" {
+  const raw = text(
+    application?.assessmentStatus ??
+      application?.AssessmentStatus ??
+      application?.assessmentCompletionStatus ??
+      application?.AssessmentCompletionStatus ??
+      application?.completionStatus ??
+      application?.CompletionStatus ??
+      application?.resultStatus ??
+      application?.ResultStatus,
+    "",
+  ).toLowerCase();
+  if (/\b(completed|complete|done|evaluated|submitted)\b/.test(raw)) return "Completed";
+  if (/\b(in[-\s]?progress|started|attempting|attempted|ongoing)\b/.test(raw)) return "In Progress";
+  if (/\b(pending|assigned|invited|sent|waiting|applied)\b/.test(raw)) return "Pending";
+  if (/\b(not[-\s]?started|new|open)\b/.test(raw)) return "Not Started";
+  if (application?.completedAt ?? application?.CompletedAt ?? application?.completionDate ?? application?.CompletionDate) return "Completed";
+  return applicationProblemNodeId(application) ? "Pending" : "Not Started";
 }
 
 function State({ label }: { label: string }) {

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { UserCheck, Send, Loader2, CheckCircle, Clock, Search, RefreshCw } from "lucide-react";
+import { UserCheck, Send, Loader2, CheckCircle, Clock, Search, RefreshCw, Eye } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -37,6 +37,8 @@ type ProblemNodeOption = {
 
 type Assessment = {
   id: string;
+  candidateUserId: string;
+  problemNodeId: string;
   candidateName: string;
   email: string;
   assessment: string;
@@ -57,6 +59,8 @@ export default function CandidateAssessments() {
   const [problemNodes, setProblemNodes] = useState<ProblemNodeOption[]>([]);
   const [nodesLoading, setNodesLoading] = useState(false);
   const [nodesError, setNodesError] = useState("");
+  const [result, setResult] = useState<any | null>(null);
+  const [resultLoading, setResultLoading] = useState(false);
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -68,7 +72,11 @@ export default function CandidateAssessments() {
   const fetchAssessments = async () => {
     setLoading(true);
     const res = await api.employers.listAssessments();
-    if (res.ok) setAssessments(normAssessments(res.data));
+    if (res.ok) {
+      setAssessments(normAssessments(res.data));
+    } else {
+      toast({ title: "Unable to load assessments", description: res.error, variant: "destructive" });
+    }
     setLoading(false);
   };
 
@@ -114,16 +122,34 @@ export default function CandidateAssessments() {
 
   const onConfirm = async () => {
     if (!confirmData) return;
-    const res = await api.employers.assignMission(confirmData);
+    const res = await api.employers.assignMission({
+      candidateEmail: confirmData.candidateEmail,
+      firstName: confirmData.firstName,
+      lastName: confirmData.lastName,
+      problemNodeId: confirmData.problemNodeId,
+    });
     setConfirmData(null);
     if (res.ok) {
-      toast({ title: "Invitation sent", description: `Assessment dispatched to ${confirmData.candidateEmail}.` });
+      toast({ title: "Invitation sent", description: res.message || `Assessment dispatched to ${confirmData.candidateEmail}.` });
       reset();
       setOpen(false);
       fetchAssessments();
     } else {
       toast({ title: "Failed to assign", description: res.error, variant: "destructive" });
     }
+  };
+
+  const viewAssessmentResult = async (assessment: Assessment) => {
+    if (!assessment.problemNodeId || !assessment.candidateUserId) return;
+    setResultLoading(true);
+    setResult(null);
+    const res = await api.evaluations.getNodeResult(assessment.problemNodeId, assessment.candidateUserId);
+    setResultLoading(false);
+    if (!res.ok) {
+      toast({ title: "Unable to load assessment result", description: res.error, variant: "destructive" });
+      return;
+    }
+    setResult(res.data);
   };
 
   const filtered = assessments.filter(
@@ -135,11 +161,13 @@ export default function CandidateAssessments() {
 
   const statusBadge = (status: string) => {
     const s = status.toLowerCase();
-    if (s.includes("complet") || s.includes("done") || s.includes("pass"))
+    if (s.includes("completed"))
       return { label: "Completed", className: "bg-green-500/10 text-green-400 border-green-500/20", icon: CheckCircle };
-    if (s.includes("progress") || s.includes("started") || s.includes("attempt"))
+    if (s.includes("progress"))
       return { label: "In Progress", className: "bg-[#00D2FF]/10 text-[#00D2FF] border-[#00D2FF]/20", icon: Clock };
-    return { label: "Invited", className: "bg-white/5 text-muted-foreground border-white/10", icon: Send };
+    if (s.includes("pending"))
+      return { label: "Pending", className: "bg-amber-500/10 text-amber-300 border-amber-500/20", icon: Clock };
+    return { label: "Not Started", className: "bg-white/5 text-muted-foreground border-white/10", icon: Send };
   };
 
   return (
@@ -271,12 +299,14 @@ export default function CandidateAssessments() {
                     <th className="text-left px-4 py-3">Status</th>
                     <th className="text-left px-4 py-3">Date Assigned</th>
                     <th className="text-left px-4 py-3">Completion Status</th>
+                    <th className="text-left px-4 py-3">Result</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((a) => {
-                    const badge = statusBadge(a.status);
+                    const badge = statusBadge(a.completionStatus);
                     const Icon = badge.icon;
+                    const canViewResult = a.completionStatus === "Completed" && a.problemNodeId && a.candidateUserId;
                     return (
                       <tr key={a.id} className="border-b border-white/5 hover:bg-white/2 transition-colors">
                         <td className="px-4 py-3">
@@ -304,6 +334,18 @@ export default function CandidateAssessments() {
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground">
                           {a.completionStatus}{a.completedAt ? ` · ${new Date(a.completedAt).toLocaleDateString()}` : ""}
+                        </td>
+                        <td className="px-4 py-3">
+                          {canViewResult ? (
+                            <Button variant="outline" size="sm" onClick={() => viewAssessmentResult(a)}>
+                              <Eye className="mr-2 h-3.5 w-3.5" />
+                              View Result
+                            </Button>
+                          ) : a.completionStatus === "Completed" ? (
+                            <span className="text-xs text-muted-foreground">Result unavailable</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </td>
                       </tr>
                     );
@@ -334,22 +376,54 @@ export default function CandidateAssessments() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={Boolean(result) || resultLoading} onOpenChange={(nextOpen) => !nextOpen && setResult(null)}>
+        <DialogContent className="max-w-2xl bg-[#0d1119] border border-white/10">
+          <DialogHeader>
+            <DialogTitle>Assessment Result</DialogTitle>
+            <DialogDescription>Completed problem-node evaluation for this candidate.</DialogDescription>
+          </DialogHeader>
+          {resultLoading ? (
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" />
+              <span className="font-mono">Loading assessment result...</span>
+            </div>
+          ) : result ? (
+            <AssessmentResult result={result} />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </DashboardShell>
   );
 }
 
 function normAssessments(d: any): Assessment[] {
   const arr = Array.isArray(d) ? d : d?.assessments ?? d?.candidates ?? d?.items ?? [];
-  return arr.map((x: any) => ({
-    id: String(x.id ?? x.assessmentId ?? Math.random()),
-    candidateName: x.candidateName ?? x.name ?? (`${x.firstName ?? ""} ${x.lastName ?? ""}`.trim() || "Applicant"),
-    email: x.email ?? x.candidateEmail ?? "",
-    assessment: x.assessment ?? x.assessmentName ?? x.missionName ?? x.problemNodeTitle ?? x.problemNode?.title ?? x.problemNodeId ?? "Assessment",
-    status: x.status ?? x.state ?? "Invited",
-    completionStatus: x.completionStatus ?? x.resultStatus ?? (x.completedAt || x.completionDate ? "Completed" : "Pending"),
-    completedAt: x.completedAt ?? x.completionDate,
-    assignedAt: x.dateAssigned ?? x.assignedAt ?? x.invitedAt ?? x.sentAt ?? x.createdAt,
-  }));
+  return arr.map((x: any) => {
+    const completedAt = x.completedAt ?? x.CompletedAt ?? x.completionDate ?? x.CompletionDate;
+    return {
+      id: String(x.id ?? x.assessmentId ?? x.AssessmentId ?? Math.random()),
+      candidateUserId: text(x.candidateUserId ?? x.CandidateUserId ?? x.userId ?? x.UserId ?? x.profileDetails?.userId ?? x.ProfileDetails?.UserId, ""),
+      problemNodeId: text(x.problemNodeId ?? x.ProblemNodeId ?? x.assessmentProblemNodeId ?? x.AssessmentProblemNodeId ?? x.problemNode?.problemNodeId ?? x.problemNode?.id, ""),
+      candidateName: candidateDisplayName(x),
+      email: x.email ?? x.candidateEmail ?? "",
+      assessment: x.assessment ?? x.assessmentName ?? x.missionName ?? x.problemNodeTitle ?? x.problemNode?.title ?? x.problemNodeId ?? "Assessment",
+      status: text(x.status ?? x.Status ?? x.state ?? x.State, "Pending"),
+      completionStatus: normalizeCompletionStatus(
+        x.completionStatus ??
+          x.CompletionStatus ??
+          x.assessmentStatus ??
+          x.AssessmentStatus ??
+          x.assessmentCompletionStatus ??
+          x.AssessmentCompletionStatus ??
+          x.resultStatus ??
+          x.ResultStatus,
+        completedAt,
+      ),
+      completedAt,
+      assignedAt: x.dateAssigned ?? x.DateAssigned ?? x.assignedAt ?? x.AssignedAt ?? x.invitedAt ?? x.sentAt ?? x.createdAt,
+    };
+  });
 }
 
 function normProblemNode(item: any): ProblemNodeOption {
@@ -380,4 +454,79 @@ function selectedAssessmentLabel(problemNodeId: string | undefined, nodes: Probl
   if (!problemNodeId) return "this assessment";
   const node = nodes.find((item) => item.id === problemNodeId);
   return node ? node.title : "this assessment";
+}
+
+function normalizeCompletionStatus(rawValue: unknown, completedAt?: unknown): "Completed" | "In Progress" | "Pending" | "Not Started" {
+  const raw = text(rawValue, "").toLowerCase();
+  if (/\b(completed|complete|done|evaluated|submitted)\b/.test(raw)) return "Completed";
+  if (/\b(in[-\s]?progress|started|attempting|attempted|ongoing)\b/.test(raw)) return "In Progress";
+  if (/\b(pending|assigned|invited|sent|waiting)\b/.test(raw)) return "Pending";
+  if (/\b(not[-\s]?started|new|open)\b/.test(raw)) return "Not Started";
+  return completedAt ? "Completed" : "Not Started";
+}
+
+function candidateDisplayName(item: any): string {
+  const profile = item?.profileDetails ?? item?.ProfileDetails ?? {};
+  const first = item?.firstName ?? item?.FirstName ?? profile?.firstName ?? profile?.FirstName;
+  const last = item?.lastName ?? item?.LastName ?? item?.surName ?? item?.SurName ?? profile?.lastName ?? profile?.LastName;
+  const candidates = [
+    profile?.fullName,
+    profile?.FullName,
+    item?.fullName,
+    item?.FullName,
+    `${first ?? ""} ${last ?? ""}`.trim(),
+    item?.candidateName,
+    item?.CandidateName,
+    item?.name,
+    item?.Name,
+  ];
+  return text(
+    candidates
+      .map((value) => text(value, ""))
+      .find((value) => value && !["candidate", "applicant"].includes(value.toLowerCase())),
+    "Name unavailable",
+  );
+}
+
+function AssessmentResult({ result }: { result: any }) {
+  const root = result?.data ?? result?.result ?? result?.evaluation ?? result;
+  const passValue = root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed ?? root?.passFail ?? root?.PassFail ?? root?.status ?? root?.Status;
+  const passed = typeof passValue === "string" ? /pass|success/i.test(passValue) : Boolean(passValue);
+  const rows: [string, string][] = [
+    ["Mission Title", text(root?.missionTitle ?? root?.MissionTitle ?? root?.title ?? root?.Title, "Assessment mission")],
+    ["Score", text(root?.score ?? root?.Score ?? root?.percentageScore ?? root?.PercentageScore, "—")],
+    ["Strengths", resultText(root?.strengths ?? root?.Strengths ?? root?.Feedback?.Strengths, "No strengths returned.")],
+    ["Weaknesses", resultText(root?.weaknesses ?? root?.Weaknesses ?? root?.Feedback?.Weaknesses, "No weaknesses returned.")],
+    ["Improvement Areas", resultText(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement ?? root?.Feedback?.ImprovementAreas, "No improvement areas returned.")],
+    ["Positive Feedback", resultText(root?.positiveFeedback ?? root?.PositiveFeedback ?? root?.feedback ?? root?.Feedback?.PositiveFeedback, "No positive feedback returned.")],
+    ["AI Evaluation Summary", resultText(root?.aiEvaluationSummary ?? root?.AiEvaluationSummary ?? root?.summary ?? root?.Summary ?? root?.rawAiReasoning ?? root?.RawAiReasoning ?? root?.aiReasoning ?? root?.AiReasoning, "No AI evaluation summary returned.")],
+  ];
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] p-4">
+        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Pass / Fail</p>
+        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-red-400/40 bg-red-400/10 text-red-300"}`}>
+          {passed ? "Pass" : "Fail"}
+        </span>
+      </div>
+      {rows.map(([label, value]) => (
+        <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm">{value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function resultText(value: unknown, fallback: string): string {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => text(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  if (value && typeof value === "object") {
+    const items = Object.values(value).map((item) => text(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  return text(value, fallback);
 }

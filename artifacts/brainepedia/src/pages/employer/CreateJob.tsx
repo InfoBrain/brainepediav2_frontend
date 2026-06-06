@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor, htmlToPlainText } from "@/components/editor/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type JobForm = CreateJobRequest & {
   expiryDate?: string | null;
@@ -38,10 +39,14 @@ export default function CreateJob() {
       setLoadingProfessions(true);
       const res = await api.professions.list();
       setLoadingProfessions(false);
-      if (res.ok) setProfessions(asList(res.data));
+      if (res.ok) {
+        setProfessions(asList(res.data));
+      } else {
+        toast({ title: "Unable to load professions", description: res.error, variant: "destructive" });
+      }
     }
     loadProfessions();
-  }, []);
+  }, [toast]);
 
   const update = (key: keyof JobForm, value: string) => {
     setForm((prev) => ({
@@ -60,11 +65,16 @@ export default function CreateJob() {
     setLoadingProblemNodes(true);
     api.problemNodes.byProfession(form.professionName).then((res) => {
       if (cancelled) return;
-      setProblemNodes(res.ok ? asList(res.data) : []);
+      if (res.ok) {
+        setProblemNodes(asList(res.data));
+      } else {
+        setProblemNodes([]);
+        toast({ title: "Unable to load assessment missions", description: res.error, variant: "destructive" });
+      }
       setLoadingProblemNodes(false);
     });
     return () => { cancelled = true; };
-  }, [form.professionName]);
+  }, [form.professionName, toast]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -93,7 +103,7 @@ export default function CreateJob() {
       return;
     }
     setCreated(true);
-    toast({ title: "Job created", description: "Your posting is ready for verified candidates." });
+    toast({ title: "Job created", description: res.message || "Your posting is ready for verified candidates." });
   };
 
   return (
@@ -116,18 +126,21 @@ export default function CreateJob() {
 
             <div className="space-y-2">
               <Label htmlFor="profession">Profession</Label>
-              <select
-                id="profession"
+              <Select
                 value={form.professionName || ""}
-                onChange={(event) => update("professionName", event.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onValueChange={(value) => update("professionName", value)}
+                disabled={loadingProfessions}
               >
-                <option value="">{loadingProfessions ? "Loading professions..." : "Select profession"}</option>
+                <SelectTrigger id="profession" className="h-10 border-input bg-background">
+                  <SelectValue placeholder={loadingProfessions ? "Loading professions..." : "Select profession"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-72 border-white/15 bg-[#0d1119] text-white">
                 {professions.map((profession, index) => {
                   const name = text(profession?.name ?? profession?.professionName ?? profession?.title, "");
-                  return name ? <option key={profession?.professionId ?? profession?.id ?? index} value={name}>{name}</option> : null;
+                  return name ? <SelectItem key={profession?.professionId ?? profession?.id ?? index} value={name}>{name}</SelectItem> : null;
                 })}
-              </select>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
@@ -151,33 +164,42 @@ export default function CreateJob() {
                 onChange={(event) => update("expiryDate", event.target.value)}
                 required
               />
-              <p className="text-xs text-muted-foreground">Defaults to 30 days from today. Expiry Date cannot be earlier than today.</p>
+              <p className="text-xs text-muted-foreground">Defaults to 30 days from today. Choose today or a future date.</p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="assessment-id">Assessment Mission</Label>
-              <select
-                id="assessment-id"
-                value={form.linkAssessmentNodeId || ""}
-                onChange={(event) => update("linkAssessmentNodeId", event.target.value)}
+              <Select
+                value={form.linkAssessmentNodeId || "none"}
+                onValueChange={(value) => update("linkAssessmentNodeId", value === "none" ? "" : value)}
                 disabled={!form.professionName || loadingProblemNodes}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
               >
-                <option value="">
+                <SelectTrigger id="assessment-id" className="h-10 border-input bg-background disabled:opacity-60">
+                  <SelectValue
+                    placeholder={!form.professionName
+                    ? "Select a profession first"
+                    : loadingProblemNodes
+                      ? "Loading assessment missions..."
+                      : "Optional assessment mission"}
+                  />
+                </SelectTrigger>
+                <SelectContent className="max-h-72 border-white/15 bg-[#0d1119] text-white">
+                <SelectItem value="none">
                   {!form.professionName
                     ? "Select a profession first"
                     : loadingProblemNodes
                       ? "Loading assessment missions..."
                       : "Optional assessment mission"}
-                </option>
+                </SelectItem>
                 {problemNodes.map((node, index) => {
                   const id = text(node?.problemNodeId ?? node?.id, "");
                   const title = text(node?.title ?? node?.name, "Untitled mission");
                   const district = text(node?.districtName ?? node?.district?.name, "District");
                   const xp = text(node?.experiencePoints ?? node?.xp, "0");
-                  return id ? <option key={id || index} value={id}>{title} · {district} · {xp} XP</option> : null;
+                  return id ? <SelectItem key={id || index} value={id}>{title} · {district} · {xp} XP</SelectItem> : null;
                 })}
-              </select>
+                </SelectContent>
+              </Select>
               {form.linkAssessmentNodeId && (
                 <MissionPreview node={problemNodes.find((node) => String(node?.problemNodeId ?? node?.id) === form.linkAssessmentNodeId)} />
               )}
