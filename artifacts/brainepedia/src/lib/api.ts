@@ -243,7 +243,7 @@ export const api = {
     xpSummary: () => fetchApi("/api/ExperienceCredits/system-summary"),
   },
   professions: {
-    list: () => fetchApi("/api/Professions"),
+    list: () => fetchApi("/api/Professions", { skipAuth: true, suppressUnauthorized: true }),
     get: (id: string) => fetchApi(`/api/Professions/${encodeURIComponent(id)}`),
     city: (id: string, userId?: string | null) =>
       fetchApi(`/api/Professions/${encodeURIComponent(id)}/city${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
