@@ -19,6 +19,7 @@ import {
 } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -253,18 +254,26 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <Input
-                        value={draft.newStatus}
-                        onChange={(event) => updateDraft(id, "newStatus", event.target.value)}
-                        placeholder="Status (e.g. Shortlisted)"
-                        aria-label={`Status for ${name}`}
-                      />
-                      <Textarea
-                        value={draft.notes}
-                        onChange={(event) => updateDraft(id, "notes", event.target.value)}
-                        placeholder="Internal notes"
-                        aria-label={`Notes for ${name}`}
-                      />
+                      <div className="space-y-1.5">
+                        <Label htmlFor={`status-${id}`} className="text-xs text-muted-foreground">Application Status</Label>
+                        <Input
+                          id={`status-${id}`}
+                          value={draft.newStatus}
+                          onChange={(event) => updateDraft(id, "newStatus", event.target.value)}
+                          placeholder="Status (e.g. Shortlisted)"
+                          aria-label={`Status for ${name}`}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor={`notes-${id}`} className="text-xs text-muted-foreground">Internal Notes</Label>
+                        <Textarea
+                          id={`notes-${id}`}
+                          value={draft.notes}
+                          onChange={(event) => updateDraft(id, "notes", event.target.value)}
+                          placeholder="Internal notes"
+                          aria-label={`Notes for ${name}`}
+                        />
+                      </div>
                       <Button onClick={() => save(id)} disabled={savingId === id} className="w-full bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
                         {savingId === id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                         Save status
