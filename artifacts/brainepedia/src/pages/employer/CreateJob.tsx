@@ -127,7 +127,7 @@ export default function CreateJob() {
             <div className="space-y-2">
               <Label htmlFor="profession">Profession</Label>
               <Select
-                value={form.professionName || undefined}
+                value={form.professionName || ""}
                 onValueChange={(value) => update("professionName", value)}
                 disabled={loadingProfessions}
               >
