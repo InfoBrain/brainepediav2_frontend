@@ -38,10 +38,14 @@ export default function CreateJob() {
       setLoadingProfessions(true);
       const res = await api.professions.list();
       setLoadingProfessions(false);
-      if (res.ok) setProfessions(asList(res.data));
+      if (res.ok) {
+        setProfessions(asList(res.data));
+      } else {
+        toast({ title: "Unable to load professions", description: res.error, variant: "destructive" });
+      }
     }
     loadProfessions();
-  }, []);
+  }, [toast]);
 
   const update = (key: keyof JobForm, value: string) => {
     setForm((prev) => ({
@@ -60,11 +64,16 @@ export default function CreateJob() {
     setLoadingProblemNodes(true);
     api.problemNodes.byProfession(form.professionName).then((res) => {
       if (cancelled) return;
-      setProblemNodes(res.ok ? asList(res.data) : []);
+      if (res.ok) {
+        setProblemNodes(asList(res.data));
+      } else {
+        setProblemNodes([]);
+        toast({ title: "Unable to load assessment missions", description: res.error, variant: "destructive" });
+      }
       setLoadingProblemNodes(false);
     });
     return () => { cancelled = true; };
-  }, [form.professionName]);
+  }, [form.professionName, toast]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -93,7 +102,7 @@ export default function CreateJob() {
       return;
     }
     setCreated(true);
-    toast({ title: "Job created", description: "Your posting is ready for verified candidates." });
+    toast({ title: "Job created", description: res.message || "Your posting is ready for verified candidates." });
   };
 
   return (

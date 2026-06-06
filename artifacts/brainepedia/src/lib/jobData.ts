@@ -50,12 +50,13 @@ export function text(value: unknown, fallback = "—"): string {
 
 export function idOf(item: any): string {
   return String(
-    item?.jobId ??
-      item?.jobPostingId ??
-      item?.postingId ??
-      item?.jobApplicationId ??
+    item?.jobApplicationId ??
       item?.JobApplicationId ??
       item?.applicationId ??
+      item?.ApplicationId ??
+      item?.jobId ??
+      item?.jobPostingId ??
+      item?.postingId ??
       item?.candidateUserId ??
       item?.candidate?.userId ??
       item?.candidate?.UserId ??
@@ -145,24 +146,27 @@ export function candidateName(item: any): string {
     item?.SurName ??
     item?.lastName ??
     item?.LastName;
-  return text(
-    profile?.fullName ??
-      profile?.FullName ??
-      source?.displayName ??
-      source?.DisplayName ??
-      source?.fullName ??
-      source?.FullName ??
-      source?.candidateName ??
-      source?.CandidateName ??
-      item?.displayName ??
-      item?.DisplayName ??
-      item?.candidateName ??
-      item?.CandidateName ??
-      source?.name ??
-      source?.Name ??
-      `${first ?? ""} ${last ?? ""}`.trim(),
-    "Applicant"
-  );
+  const candidates = [
+    profile?.fullName,
+    profile?.FullName,
+    source?.displayName,
+    source?.DisplayName,
+    source?.fullName,
+    source?.FullName,
+    item?.displayName,
+    item?.DisplayName,
+    `${first ?? ""} ${last ?? ""}`.trim(),
+    source?.candidateName,
+    source?.CandidateName,
+    item?.candidateName,
+    item?.CandidateName,
+    source?.name,
+    source?.Name,
+  ];
+  const name = candidates
+    .map((value) => text(value, ""))
+    .find((value) => value && !["candidate", "applicant"].includes(value.toLowerCase()));
+  return text(name, "Name unavailable");
 }
 
 export function candidateAvatar(item: any): string {

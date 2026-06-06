@@ -67,7 +67,7 @@ export default function SubscriptionCenter() {
   const { toast } = useToast();
 
   const [currentTier, setCurrentTier] = useState<number>(0);
-  const [employerPlan, setEmployerPlan] = useState("Grandmaster");
+  const [employerPlan, setEmployerPlan] = useState("Not Active");
   const [loading, setLoading] = useState(true);
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
@@ -78,7 +78,7 @@ export default function SubscriptionCenter() {
     (async () => {
       if (isEmployer) {
         const res = await api.employers.myCompanyProfile();
-        if (res.ok && res.data) setEmployerPlan(String((res.data as any).subscriptionLevel ?? "Grandmaster"));
+        if (res.ok && res.data) setEmployerPlan(String((res.data as any).subscriptionLevel ?? "Not Active"));
         setLoading(false);
         return;
       }
@@ -98,8 +98,9 @@ export default function SubscriptionCenter() {
 
   const handleUpgrade = async () => {
     if (!upgradeTarget || !userId) return;
+    const target = upgradeTarget;
     setUpgradeLoading(true);
-    const tierDef = TIERS.find(t => t.key === upgradeTarget);
+    const tierDef = TIERS.find(t => t.key === target);
     const newTier = isEmployer ? 2 : (tierDef?.numericTier ?? 1);
     const res = isEmployer
       ? await api.subscriptions.initializeEmployerUpgrade({ userId, newTier })
@@ -110,7 +111,7 @@ export default function SubscriptionCenter() {
     if (res.ok && url) {
       setUpgradeTarget(null);
       if (userId) {
-        api.activityLogs.create({ userId, activity: `Initiated upgrade to ${upgradeTarget} tier` });
+        api.activityLogs.create({ userId, activity: `Initiated upgrade to ${target} tier` });
       }
       window.location.href = url;
     } else {
@@ -124,11 +125,12 @@ export default function SubscriptionCenter() {
   };
 
   const currentTierName = isEmployer ? employerPlan : (SUB_NAMES[Math.min(currentTier, 1)] ?? "Initiate");
+  const employerGrandmasterActive = isEmployer && currentTierName.toLowerCase().includes("grandmaster");
 
   const headerRight = (
     <div className="hidden sm:flex items-center gap-2">
       <span className={`px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider border ${
-        currentTierName === "Grandmaster"
+        employerGrandmasterActive
           ? "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/40"
           : currentTierName === "Architect"
           ? "bg-[#7C3AED]/15 text-[#A78BFA] border-[#7C3AED]/40"
@@ -166,10 +168,17 @@ export default function SubscriptionCenter() {
                 <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
                   {EMPLOYER_GRANDMASTER_PLAN.description}
                 </p>
-                <Button onClick={() => setUpgradeTarget("Grandmaster")} disabled={upgradeLoading} className="mt-5 bg-[#FFD700] text-black hover:bg-[#F3C800]">
-                  {upgradeLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Crown className="mr-2 h-4 w-4" />}
-                  Upgrade to Grandmaster
-                </Button>
+                {employerGrandmasterActive ? (
+                  <div className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[#FFD700]/30 bg-[#FFD700]/10 px-4 py-2 text-sm font-bold text-[#FFD700]">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Grandmaster Corporate is active
+                  </div>
+                ) : (
+                  <Button onClick={() => setUpgradeTarget("Grandmaster")} disabled={upgradeLoading} className="mt-5 bg-[#FFD700] text-black hover:bg-[#F3C800]">
+                    {upgradeLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Crown className="mr-2 h-4 w-4" />}
+                    Upgrade to Grandmaster Corporate
+                  </Button>
+                )}
               </div>
               <span className="rounded-full border border-[#FFD700]/40 bg-[#FFD700]/15 px-4 py-2 text-sm font-bold text-[#FFD700]">
                 Current: {employerPlan}
@@ -181,7 +190,7 @@ export default function SubscriptionCenter() {
               <div key={feature} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                 <CheckCircle2 className="mb-3 h-5 w-5 text-emerald-400" />
                 <h3 className="font-bold">{feature}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">Included in the employer Grandmaster plan.</p>
+                <p className="mt-2 text-sm text-muted-foreground">Included in the employer-only Grandmaster Corporate plan.</p>
               </div>
             ))}
           </div>
@@ -455,12 +464,18 @@ export default function SubscriptionCenter() {
                         ? <Crown className="h-8 w-8 text-[#FFD700]" />
                         : <Zap className="h-8 w-8 text-[#A78BFA]" />}
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Upgrade to {upgradeTarget}?</h2>
+                    <h2 className="text-2xl font-bold text-white mb-2">
+                      Upgrade to {upgradeTarget === "Grandmaster" ? "Grandmaster Corporate" : upgradeTarget}?
+                    </h2>
                     <p className="text-sm text-white/50 mb-1">
-                      {TIERS.find((tier) => tier.key === upgradeTarget)?.price ?? "$49.99"}/month
+                      {upgradeTarget === "Grandmaster"
+                        ? `${EMPLOYER_GRANDMASTER_PLAN.price} employer subscription`
+                        : `${TIERS.find((tier) => tier.key === upgradeTarget)?.price ?? ""}/month`}
                     </p>
                     <p className="text-sm text-white/40 mb-7">
-                      You will be redirected securely to Paystack to complete your payment.
+                      {upgradeTarget === "Grandmaster"
+                        ? "This corporate subscription is for organizations and employers. You will be redirected securely to Paystack to complete payment."
+                        : "You will be redirected securely to Paystack to complete your payment."}
                     </p>
                     <div className="flex gap-3">
                       <Button variant="outline" className="flex-1 border-white/15 text-white/60 hover:bg-white/5 hover:text-white"

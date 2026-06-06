@@ -56,15 +56,17 @@ export default function VerifyPayment() {
         }
         // Fetch updated tier
         const statsRes = isEmployer ? await api.employers.myCompanyProfile() : await api.profiles.stats(userId);
+        let verifiedTierName = isEmployer ? "Grandmaster Corporate" : "Architect";
         if (!cancelled && statsRes.ok && statsRes.data && !isEmployer) {
           const tier = Number(statsRes.data.currentSubscription ?? 1);
-          setTierName(SUB_NAMES[tier] ?? "Architect");
+          verifiedTierName = SUB_NAMES[tier] ?? "Architect";
+          setTierName(verifiedTierName);
         } else if (isEmployer) {
           setTierName("Grandmaster");
         }
         if (!cancelled) {
           setStatus("success");
-          await api.activityLogs.create({ userId, activity: `Subscription verified and activated: ${tierName}` });
+          await api.activityLogs.create({ userId, activity: `Subscription verified and activated: ${verifiedTierName}` });
         }
       } else {
         if (!cancelled) {
@@ -129,7 +131,7 @@ export default function VerifyPayment() {
               <CheckCircle2 className="h-7 w-7 text-emerald-400" />
             </motion.div>
             <div>
-              <h1 className="text-3xl font-black text-white">{isEmployer ? "Grandmaster Activated" : `Welcome to ${tierName}!`}</h1>
+              <h1 className="text-3xl font-black text-white">{isEmployer ? "Grandmaster Corporate Activated" : `Welcome to ${tierName}!`}</h1>
               <p className="text-[#A78BFA] font-semibold mt-1">{isEmployer ? "Corporate Plan Activated" : `${tierName} Tier Activated`}</p>
             </div>
             {isEmployer && tierName === "Grandmaster" && (
