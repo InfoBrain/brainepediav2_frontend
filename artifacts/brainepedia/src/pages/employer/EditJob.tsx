@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor, htmlToPlainText } from "@/components/editor/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function EditJob() {
   const [, params] = useRoute("/employer/jobs/:jobId/edit");
@@ -180,18 +181,21 @@ export default function EditJob() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-job-profession">Profession</Label>
-                <select
-                  id="edit-job-profession"
-                  value={form.professionName || ""}
-                  onChange={(event) => update("professionName", event.target.value)}
-                  className="flex h-10 w-full rounded-md border border-white/15 bg-white/[0.04] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                <Select
+                  value={form.professionName || undefined}
+                  onValueChange={(value) => update("professionName", value)}
+                  disabled={loadingProfessions}
                 >
-                  <option value="">{loadingProfessions ? "Loading professions..." : "Select profession"}</option>
+                  <SelectTrigger id="edit-job-profession" className="h-10 border-white/15 bg-white/[0.04]">
+                    <SelectValue placeholder={loadingProfessions ? "Loading professions..." : "Select profession"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72 border-white/15 bg-[#0d1119] text-white">
                   {professions.map((profession, index) => {
                     const name = text(profession?.name ?? profession?.Name ?? profession?.professionName ?? profession?.title, "");
-                    return name ? <option key={profession?.professionId ?? profession?.id ?? index} value={name}>{name}</option> : null;
+                    return name ? <SelectItem key={profession?.professionId ?? profession?.id ?? index} value={name}>{name}</SelectItem> : null;
                   })}
-                </select>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
@@ -218,31 +222,40 @@ export default function EditJob() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-job-assessment">Assessment Problem Node</Label>
-                <select
-                  id="edit-job-assessment"
-                  value={form.linkAssessmentNodeId || ""}
-                  onChange={(event) => update("linkAssessmentNodeId", event.target.value)}
+                <Select
+                  value={form.linkAssessmentNodeId || "none"}
+                  onValueChange={(value) => update("linkAssessmentNodeId", value === "none" ? "" : value)}
                   disabled={!form.professionName || loadingProblemNodes}
-                  className="flex min-h-10 w-full rounded-md border border-white/15 bg-white/[0.04] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <option value="">
+                  <SelectTrigger id="edit-job-assessment" className="min-h-10 border-white/15 bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-60">
+                    <SelectValue
+                      placeholder={!form.professionName
+                        ? "Select a profession first"
+                        : loadingProblemNodes
+                          ? "Loading assessment missions..."
+                          : "Optional assessment mission"}
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72 border-white/15 bg-[#0d1119] text-white">
+                  <SelectItem value="none">
                     {!form.professionName
                       ? "Select a profession first"
                       : loadingProblemNodes
                         ? "Loading assessment missions..."
                         : "Optional assessment mission"}
-                  </option>
+                  </SelectItem>
                   {form.linkAssessmentNodeId && !problemNodes.some((node) => String(node?.problemNodeId ?? node?.id ?? node?.ProblemNodeId ?? node?.Id ?? "") === form.linkAssessmentNodeId) && (
-                    <option value={form.linkAssessmentNodeId}>Current linked assessment</option>
+                    <SelectItem value={form.linkAssessmentNodeId}>Current linked assessment</SelectItem>
                   )}
                   {problemNodes.map((node, index) => {
                     const id = text(node?.problemNodeId ?? node?.ProblemNodeId ?? node?.id ?? node?.Id, "");
                     const title = text(node?.title ?? node?.Title ?? node?.name ?? node?.Name, "Untitled mission");
                     const district = text(node?.districtName ?? node?.DistrictName ?? node?.district?.name ?? node?.District?.Name, "District");
                     const xp = text(node?.experiencePoints ?? node?.ExperiencePoints ?? node?.xp ?? node?.XP, "0");
-                    return id ? <option key={id || index} value={id}>{title} · {district} · {xp} XP</option> : null;
+                    return id ? <SelectItem key={id || index} value={id}>{title} · {district} · {xp} XP</SelectItem> : null;
                   })}
-                </select>
+                  </SelectContent>
+                </Select>
                 {form.linkAssessmentNodeId && (
                   <MissionPreview node={problemNodes.find((node) => String(node?.problemNodeId ?? node?.ProblemNodeId ?? node?.id ?? node?.Id) === form.linkAssessmentNodeId)} />
                 )}

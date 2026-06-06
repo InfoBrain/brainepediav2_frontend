@@ -341,6 +341,8 @@ export default function CandidateAssessments() {
                               <Eye className="mr-2 h-3.5 w-3.5" />
                               View Result
                             </Button>
+                          ) : a.completionStatus === "Completed" ? (
+                            <span className="text-xs text-muted-foreground">Result unavailable</span>
                           ) : (
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
