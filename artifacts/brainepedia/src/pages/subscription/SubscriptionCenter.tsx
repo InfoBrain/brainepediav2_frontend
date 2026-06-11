@@ -57,6 +57,15 @@ const BRAINIAC_TIPS = [
   "The XP boost from Architect accelerates your climb to the top of the leaderboard.",
 ];
 
+type SubscriptionDetails = {
+  currentTier: string;
+  active: boolean;
+  startDate: string;
+  expiry: string;
+  corporateSeat: boolean;
+  corporateProvider: string;
+};
+
 /* ─── Component ──────────────────────────────────────────────────────────── */
 export default function SubscriptionCenter() {
   usePageTitle("Subscription");
@@ -72,10 +81,20 @@ export default function SubscriptionCenter() {
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<SubscriptionDetails | null>(null);
 
   useEffect(() => {
     if (!userId) { navigate("/auth/login"); return; }
     (async () => {
+      const detailsRes = await api.subscriptions.details(userId);
+      if (detailsRes.ok) {
+        const details = normSubscriptionDetails(detailsRes.data);
+        setSubscriptionDetails(details);
+        setEmployerPlan(details.currentTier);
+        setCurrentTier(details.currentTier.toLowerCase().includes("architect") ? 1 : 0);
+        setLoading(false);
+        return;
+      }
       if (isEmployer) {
         const res = await api.employers.myCompanyProfile();
         if (res.ok && res.data) setEmployerPlan(String((res.data as any).subscriptionLevel ?? "Not Active"));
@@ -160,6 +179,7 @@ export default function SubscriptionCenter() {
       ) : (
         isEmployer ? (
         <div className="max-w-5xl space-y-6">
+          {subscriptionDetails && <SubscriptionDetailsCard details={subscriptionDetails} />}
           <section className="rounded-2xl border border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/15 via-[#0d1119] to-[#00D2FF]/10 p-8 shadow-[0_0_35px_rgba(255,215,0,0.18)]">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div>
@@ -213,6 +233,7 @@ export default function SubscriptionCenter() {
         <div className="space-y-8 max-w-6xl">
 
           {/* ── CURRENT TIER HERO ── */}
+          {subscriptionDetails && <SubscriptionDetailsCard details={subscriptionDetails} />}
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
             className={`relative overflow-hidden rounded-2xl border p-6 ${
               currentTierName === "Architect"
@@ -501,5 +522,63 @@ export default function SubscriptionCenter() {
       </AnimatePresence>
     </DashboardShell>
   );
+}
+
+function SubscriptionDetailsCard({ details }: { details: SubscriptionDetails }) {
+  return (
+    <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-mono uppercase tracking-[0.2em] text-white/40">Subscription Details</p>
+          <h3 className="mt-1 text-xl font-black">
+            {details.corporateSeat ? "Grandmaster (Corporate Seat)" : details.currentTier}
+          </h3>
+          {details.corporateSeat && (
+            <p className="mt-1 text-sm text-muted-foreground">Provided by: {details.corporateProvider}</p>
+          )}
+        </div>
+        <span className={`rounded-full border px-3 py-1 text-xs font-mono uppercase tracking-wider ${
+          details.active ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-white/10 bg-white/5 text-muted-foreground"
+        }`}>
+          {details.active ? "Active" : "Inactive"}
+        </span>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <Detail label="Current Tier" value={details.currentTier} />
+        <Detail label="Active" value={details.active ? "Yes" : "No"} />
+        <Detail label="Start Date" value={details.startDate} />
+        <Detail label="Expiry" value={details.expiry} />
+        <Detail label="Corporate Seat" value={details.corporateSeat ? "Yes" : "No"} />
+      </div>
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/5 bg-white/[0.03] p-3">
+      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function normSubscriptionDetails(data: any): SubscriptionDetails {
+  const root = data?.data ?? data?.subscription ?? data;
+  const corporateSeat = Boolean(root?.corporateSeat ?? root?.CorporateSeat ?? root?.isCorporateSeat ?? root?.IsCorporateSeat);
+  return {
+    currentTier: String(root?.currentTier ?? root?.CurrentTier ?? root?.tier ?? root?.Tier ?? root?.planName ?? root?.PlanName ?? "Initiate"),
+    active: Boolean(root?.active ?? root?.Active ?? root?.isActive ?? root?.IsActive),
+    startDate: formatDate(root?.startDate ?? root?.StartDate ?? root?.createdAt ?? root?.CreatedAt),
+    expiry: formatDate(root?.expiry ?? root?.Expiry ?? root?.expiryDate ?? root?.ExpiryDate),
+    corporateSeat,
+    corporateProvider: String(root?.corporateProvider ?? root?.CorporateProvider ?? root?.companyName ?? root?.CompanyName ?? "—"),
+  };
+}
+
+function formatDate(value: unknown): string {
+  if (!value) return "—";
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
