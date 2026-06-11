@@ -198,9 +198,11 @@ function CollapsibleSection({
 function RichTextEditor({
   editorRef,
   onInput,
+  onPasteBlocked,
 }: {
   editorRef: React.RefObject<HTMLDivElement | null>;
   onInput: () => void;
+  onPasteBlocked: () => void;
 }) {
   const [isEmpty, setIsEmpty] = useState(true);
 
@@ -218,13 +220,11 @@ function RichTextEditor({
 
   function handlePaste(e: React.ClipboardEvent) {
     e.preventDefault();
-    const text = e.clipboardData.getData("text/plain");
-    document.execCommand("insertText", false, text);
-    setIsEmpty(!editorRef.current?.innerText?.trim());
-    onInput();
+    onPasteBlocked();
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key.toLowerCase() === "v" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); onPasteBlocked(); return; }
     if (e.key === "b" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); exec("bold"); }
     if (e.key === "i" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); exec("italic"); }
     if (e.key === "u" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); exec("underline"); }
@@ -316,6 +316,7 @@ function RichTextEditor({
           onInput={handleInput}
           onPaste={handlePaste}
           onKeyDown={handleKeyDown}
+          onContextMenu={(event) => { event.preventDefault(); onPasteBlocked(); }}
           className="min-h-[280px] sm:min-h-[320px] px-4 py-4 text-sm text-white/80 outline-none leading-relaxed font-sans
             [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-white [&_h2]:mt-4 [&_h2]:mb-2
             [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-white/90 [&_h3]:mt-3 [&_h3]:mb-1
@@ -765,6 +766,7 @@ export default function SolvePage() {
   const [elapsed, setElapsed] = useState(0);
   const [unsaved, setUnsaved] = useState(false);
   const [mobileTab, setMobileTab] = useState<"mission" | "workspace">("workspace");
+  const [pasteWarning, setPasteWarning] = useState("");
 
   const richEditorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -842,6 +844,12 @@ export default function SolvePage() {
       return prev.filter(x => x.id !== id);
     });
   }
+
+  const blockPaste = useCallback((event?: { preventDefault: () => void }) => {
+    event?.preventDefault();
+    setPasteWarning("Direct pasting is disabled. Please write your own solution.");
+    window.setTimeout(() => setPasteWarning(""), 3500);
+  }, []);
 
   async function handleSubmit() {
     setSubmitError(null);
@@ -1007,7 +1015,13 @@ export default function SolvePage() {
                     <RichTextEditor
                       editorRef={richEditorRef}
                       onInput={() => setUnsaved(true)}
+                      onPasteBlocked={() => blockPaste()}
                     />
+                    {pasteWarning && (
+                      <p className="mt-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs font-mono text-amber-200">
+                        {pasteWarning}
+                      </p>
+                    )}
                   </motion.section>
                 ) : (
                   <motion.section
@@ -1026,6 +1040,11 @@ export default function SolvePage() {
                       <textarea
                         value={approach}
                         onChange={e => setApproach(e.target.value)}
+                        onPaste={(event) => blockPaste(event)}
+                        onKeyDown={(event) => {
+                          if (event.key.toLowerCase() === "v" && (event.ctrlKey || event.metaKey)) blockPaste(event);
+                        }}
+                        onContextMenu={(event) => blockPaste(event)}
                         placeholder="Briefly describe your overall strategy before writing the code…"
                         rows={3}
                         className="w-full bg-[#0d1117] border border-white/10 rounded-xl px-4 py-3 text-sm text-white/80 placeholder:text-white/20 font-sans outline-none focus:border-[#FFD700]/30 resize-none transition-colors leading-relaxed"
@@ -1049,26 +1068,40 @@ export default function SolvePage() {
                         </select>
                       </div>
                       <div className="rounded-xl overflow-hidden border border-white/10">
-                        <Editor
-                          height="320px"
-                          language={language}
-                          value={code}
-                          onChange={v => { setCode(v || ""); setUnsaved(true); }}
-                          theme="vs-dark"
-                          options={{
-                            fontSize: 13,
-                            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-                            minimap: { enabled: false },
-                            scrollBeyondLastLine: false,
-                            lineNumbers: "on",
-                            padding: { top: 16, bottom: 16 },
-                            smoothScrolling: true,
-                            cursorBlinking: "smooth",
-                            renderLineHighlight: "gutter",
-                            automaticLayout: true,
+                        <div
+                          onPasteCapture={(event) => blockPaste(event)}
+                          onKeyDownCapture={(event) => {
+                            if (event.key.toLowerCase() === "v" && (event.ctrlKey || event.metaKey)) blockPaste(event);
                           }}
-                        />
+                          onContextMenu={(event) => blockPaste(event)}
+                        >
+                          <Editor
+                            height="320px"
+                            language={language}
+                            value={code}
+                            onChange={v => { setCode(v || ""); setUnsaved(true); }}
+                            theme="vs-dark"
+                            options={{
+                              fontSize: 13,
+                              fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                              minimap: { enabled: false },
+                              scrollBeyondLastLine: false,
+                              lineNumbers: "on",
+                              padding: { top: 16, bottom: 16 },
+                              smoothScrolling: true,
+                              cursorBlinking: "smooth",
+                              renderLineHighlight: "gutter",
+                              automaticLayout: true,
+                              contextmenu: false,
+                            }}
+                          />
+                        </div>
                       </div>
+                      {pasteWarning && (
+                        <p className="mt-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs font-mono text-amber-200">
+                          {pasteWarning}
+                        </p>
+                      )}
                     </div>
                   </motion.section>
                 )}

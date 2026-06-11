@@ -3,6 +3,7 @@ import { CreditCard, Loader2, Calendar, Users, Gem, RefreshCw } from "lucide-rea
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
+import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
 type BillingData = {
@@ -11,9 +12,14 @@ type BillingData = {
   uniqueActiveEmployees?: number;
   planType?: string;
   totalSeats?: number;
+  activeTeamSeats?: number;
+  totalPaidSeats?: number;
   costPerSeat?: number;
   currency?: string;
   totalBilled?: number;
+  currentPlan?: string;
+  nextBillingDate?: string;
+  billingCycle?: string;
 };
 
 function InfoCard({
@@ -55,8 +61,14 @@ export default function BillingSeats() {
     setLoading(true);
     setError("");
     const res = await api.employers.billingSeats();
-    if (res.ok) setBilling(normBilling(res.data));
-    else setError(res.error || "Failed to load billing data.");
+    const [subscriptionRes, rosterRes] = await Promise.all([
+      getUserId() ? api.subscriptions.details(getUserId() as string) : Promise.resolve(null),
+      api.employers.myTeamRoster(),
+    ]);
+    if (res.ok) {
+      const roster = rosterRes.ok ? asArray(rosterRes.data) : [];
+      setBilling(normBilling(res.data, subscriptionRes?.ok ? subscriptionRes.data : null, roster));
+    } else setError(res.error || "Failed to load billing data.");
     setLoading(false);
   };
 
@@ -93,6 +105,20 @@ export default function BillingSeats() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <InfoCard
+                icon={Gem}
+                label="Current Plan"
+                value={billing?.currentPlan ?? billing?.planType ?? "—"}
+                sub="Employer Grandmaster subscription"
+                color="#FFD700"
+              />
+              <InfoCard
+                icon={Calendar}
+                label="Next Billing Date"
+                value={billing?.nextBillingDate ? formatDate(billing.nextBillingDate) : "—"}
+                sub={billing?.billingCycle ? `Cycle: ${billing.billingCycle}` : "Monthly employer subscription"}
+                color="#f97316"
+              />
+              <InfoCard
                 icon={Calendar}
                 label="Billing Cycle Start"
                 value={cycleStart}
@@ -101,16 +127,16 @@ export default function BillingSeats() {
               />
               <InfoCard
                 icon={Users}
-                label="Active Employees"
-                value={billing?.uniqueActiveEmployees ?? "—"}
-                sub="Unique active seats this cycle"
+                label="Active Team Seats"
+                value={billing?.activeTeamSeats ?? billing?.uniqueActiveEmployees ?? "—"}
+                sub="Active employees this cycle"
                 color="#9D4EDD"
               />
               <InfoCard
                 icon={Gem}
-                label="Plan Type"
-                value={billing?.planType ?? "—"}
-                sub={billing?.totalSeats !== undefined ? `${billing.totalSeats} total seats` : undefined}
+                label="Total Paid Seats"
+                value={billing?.totalPaidSeats ?? "—"}
+                sub="IsGrandmasterSeatPaid == true"
                 color="#FFD700"
               />
               {billing?.costPerSeat !== undefined && (
@@ -141,11 +167,15 @@ export default function BillingSeats() {
               </h3>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>
-                  Grandmaster seats are billed per unique active employee each month.
-                  An employee is "active" if they have completed at least one challenge during the billing cycle.
+                  Employer Grandmaster is the organization subscription at <strong>$49.99/month</strong>.
+                  Employee seat activation is billed separately at <strong>$19.99/month per team member</strong>.
                 </p>
                 <p>
-                  To activate a Grandmaster seat for a specific team member, go to{" "}
+                  The employer pays the Grandmaster subscription for recruitment and corporate tooling.
+                  Each employee seat activation grants that team member separate Grandmaster access.
+                </p>
+                <p>
+                  To activate an employee seat, go to{" "}
                   <a href="/employer/team" className="text-[#00D2FF] hover:underline">Team Members</a> and click
                   "Activate Seat" next to their name.
                 </p>
@@ -172,15 +202,33 @@ export default function BillingSeats() {
   );
 }
 
-function normBilling(d: any): BillingData {
+function normBilling(d: any, subscription: any, roster: any[]): BillingData {
+  const sub = subscription?.data ?? subscription?.subscription ?? subscription;
+  const paidSeats = roster.filter((member) => Boolean(member?.isGrandmasterSeatPaid ?? member?.IsGrandmasterSeatPaid ?? member?.grandmasterSeatPaid ?? member?.GrandmasterSeatPaid)).length;
   return {
     billingCycleStart: d?.billingCycleStart ?? d?.cycleStart ?? d?.startDate,
     billingCycleEnd: d?.billingCycleEnd ?? d?.cycleEnd ?? d?.endDate,
     uniqueActiveEmployees: d?.uniqueActiveEmployees ?? d?.activeEmployees ?? d?.activeSeats,
+    activeTeamSeats: d?.activeTeamSeats ?? d?.activeSeats ?? d?.uniqueActiveEmployees,
+    totalPaidSeats: d?.totalPaidSeats ?? d?.paidSeats ?? paidSeats,
     planType: d?.planType ?? d?.plan ?? d?.tier ?? d?.subscriptionTier,
     totalSeats: d?.totalSeats ?? d?.seats,
     costPerSeat: d?.costPerSeat ?? d?.seatCost ?? d?.pricePerSeat,
     currency: d?.currency ?? d?.currencyCode,
     totalBilled: d?.totalBilled ?? d?.totalAmount ?? d?.amount,
+    currentPlan: sub?.currentTier ?? sub?.CurrentTier ?? sub?.tier ?? sub?.Tier ?? sub?.planName ?? sub?.PlanName ?? d?.planType ?? d?.plan,
+    nextBillingDate: sub?.nextBillingDate ?? sub?.NextBillingDate ?? sub?.expiry ?? sub?.Expiry ?? sub?.expiryDate ?? sub?.ExpiryDate,
+    billingCycle: sub?.billingCycle ?? sub?.BillingCycle ?? d?.billingCycle ?? d?.cycle,
   };
+}
+
+function asArray(data: any): any[] {
+  if (Array.isArray(data)) return data;
+  const rows = data?.members ?? data?.employees ?? data?.items ?? data?.roster ?? data?.data ?? [];
+  return Array.isArray(rows) ? rows : [];
+}
+
+function formatDate(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }

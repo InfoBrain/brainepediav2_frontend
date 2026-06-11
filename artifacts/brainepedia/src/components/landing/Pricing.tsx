@@ -80,7 +80,14 @@ export function Pricing() {
                 <Building2 className="h-3.5 w-3.5" /> Organizations only
               </div>
               <h3 className="text-3xl font-black">{EMPLOYER_GRANDMASTER_PLAN.key}</h3>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-4xl font-black text-accent">$49.99</span>
+                <span className="font-mono text-sm text-muted-foreground">/month</span>
+              </div>
               <p className="mt-3 text-muted-foreground">{EMPLOYER_GRANDMASTER_PLAN.description}</p>
+              <p className="mt-3 text-sm text-muted-foreground">
+                For Organizations and Employers. Employer Grandmaster is the organization subscription; employee seat activation is billed separately per team member.
+              </p>
               <Link
                 href="/auth/register?role=employer"
                 className={cn(buttonVariants({ variant: "outline" }), "mt-6 border-accent text-accent hover:bg-accent/10")}

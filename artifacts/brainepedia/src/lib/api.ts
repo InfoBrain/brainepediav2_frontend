@@ -227,6 +227,11 @@ export const api = {
     /** GET /api/Subscriptions/verify-employer-payment?reference=xxx */
     verifyEmployerPayment: (reference: string) =>
       fetchApi(`/api/Subscriptions/verify-employer-payment?reference=${encodeURIComponent(reference)}`),
+    /** GET /api/users/{userId}/subscription-details — shared subscription contract for all roles */
+    details: (userId: string) =>
+      fetchApi(`/api/users/${encodeURIComponent(userId)}/subscription-details`),
+    /** Admin subscription list, when exposed by the backend. */
+    listAll: () => fetchApi("/api/Subscriptions"),
   },
   admin: {
     /** GET /api/Dashboard/stats — global system stats (totalUsers, activeSubscriptions, totalXpAwarded) */
@@ -492,12 +497,14 @@ export const api = {
     /** PATCH /api/Jobs/my-jobs/{jobId}/status?newStatus= */
     updateJobStatus: (jobId: string, isActive: boolean) =>
       fetchApi(
-        `/api/Jobs/my-jobs/${encodeURIComponent(jobId)}/status?newStatus=${encodeURIComponent(isActive ? "Active" : "Inactive")}`,
+        `/api/Jobs/my-jobs/${encodeURIComponent(jobId)}/status?newStatus=${encodeURIComponent(String(isActive))}`,
         { method: "PATCH" }
       ),
     /** POST /api/Jobs/{jobId}/apply */
     apply: (jobId: string) =>
       fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/apply`, { method: "POST" }),
+    /** GET /api/Jobs/my-applications */
+    myApplications: () => fetchApi("/api/Jobs/my-applications"),
     /** GET /api/Jobs/postings/{jobId}/applications */
     applications: (jobId: string) =>
       fetchApi(`/api/Jobs/postings/${encodeURIComponent(jobId)}/applications`),

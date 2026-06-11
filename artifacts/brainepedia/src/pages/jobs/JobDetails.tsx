@@ -6,7 +6,7 @@ import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
-import { expiryDateOf, formatDate, text } from "@/lib/jobData";
+import { formatExpiryDate, text } from "@/lib/jobData";
 import { getUserRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -84,12 +84,20 @@ export default function JobDetails() {
   const location = text(job?.location, "Remote / flexible");
   const salary = text(job?.salaryRange ?? job?.salary, "Salary undisclosed");
   const description = text(job?.description ?? job?.details, "No description was provided for this posting.");
-  const expiryDate = formatDate(expiryDateOf(job), "Not set");
+  const expiryDate = formatExpiryDate(job);
   const assessmentTitle = text(job?.assessmentTitle ?? job?.assessmentName ?? job?.problemNodeTitle, "");
   const assessmentId = String(job?.linkedAssessmentNodeId ?? job?.linkAssessmentNodeId ?? job?.assessmentNodeId ?? job?.problemNodeId ?? "");
   const assessmentRequired = Boolean((job?.assessmentRequired ?? job?.requiresAssessment ?? assessmentId) || assessmentTitle);
   const nav = role === "Employer" ? EMPLOYER_NAV : role === "GlobalAdmin" ? ADMIN_NAV : USER_NAV;
   const theme = role === "Employer" ? "employer" : role === "GlobalAdmin" ? "admin" : "user";
+
+  useEffect(() => {
+    if (!job) return;
+    document.title = `${title} at ${company} | Brainepedia Jobs`;
+    setMeta("description", `${company} is hiring ${title} in ${location}. ${description.slice(0, 140)}`);
+    setMeta("keywords", [title, company, profession, location, "Brainepedia", "Verified Experience", "Proof of Skill"].filter(Boolean).join(", "));
+    setMeta("author", company);
+  }, [company, description, job, location, profession, title]);
 
   const content = (
       <div className="space-y-6">
@@ -241,4 +249,14 @@ function StateCard({ icon: Icon, title, spin = false }: { icon: typeof Loader2; 
       <span className="font-mono">{title}</span>
     </div>
   );
+}
+
+function setMeta(name: string, content: string) {
+  let meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.setAttribute("name", name);
+    document.head.appendChild(meta);
+  }
+  meta.setAttribute("content", content);
 }

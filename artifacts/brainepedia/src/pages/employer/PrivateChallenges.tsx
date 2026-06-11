@@ -26,8 +26,11 @@ type Challenge = {
   id: string;
   challengeName: string;
   problemNodeId: string;
+  problemNodeTitle?: string;
+  targetProfession?: string;
   endDate: string;
   participantCount?: number;
+  completedCount?: number;
   professions?: string[];
   createdAt?: string;
 };
@@ -240,6 +243,14 @@ export default function PrivateChallenges() {
                   </div>
 
                   <div className="space-y-1.5 text-xs text-muted-foreground font-mono">
+                    <div className="rounded-lg border border-white/5 bg-white/[0.03] p-3 font-sans text-sm text-white/80">
+                      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Problem Node Title</p>
+                      <p className="mt-1 font-semibold">{ch.problemNodeTitle || "—"}</p>
+                    </div>
+                    <div className="rounded-lg border border-white/5 bg-white/[0.03] p-3 font-sans text-sm text-white/80">
+                      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Target Profession</p>
+                      <p className="mt-1 font-semibold">{ch.targetProfession || ch.professions?.join(", ") || "—"}</p>
+                    </div>
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-3 w-3" />
                       Ends {new Date(ch.endDate).toLocaleDateString()}
@@ -247,9 +258,13 @@ export default function PrivateChallenges() {
                     {ch.participantCount !== undefined && (
                       <div className="flex items-center gap-1.5">
                         <Users className="h-3 w-3" />
-                        {ch.participantCount} participant{ch.participantCount !== 1 ? "s" : ""}
+                        Total assigned employees: {ch.participantCount}
                       </div>
                     )}
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-3 w-3" />
+                      Completed count: {ch.completedCount ?? 0}
+                    </div>
                     {ch.professions && ch.professions.length > 0 && (
                       <div className="flex flex-wrap gap-1 pt-1">
                         {ch.professions.map((p, i) => (
@@ -278,8 +293,11 @@ function normChallenges(d: any): Challenge[] {
     id: String(x.id ?? x.challengeId ?? Math.random()),
     challengeName: x.challengeName ?? x.name ?? "Challenge",
     problemNodeId: x.problemNodeId ?? x.nodeId ?? "",
+    problemNodeTitle: x.problemNodeTitle ?? x.problemNodeName ?? x.problemNode?.title ?? x.ProblemNodeTitle,
+    targetProfession: x.targetProfession ?? x.profession ?? x.professionName ?? x.TargetProfession,
     endDate: x.endDate ?? x.expiryDate ?? new Date().toISOString(),
-    participantCount: x.participantCount ?? x.participants,
+    participantCount: x.totalAssignedEmployees ?? x.TotalAssignedEmployees ?? x.participantCount ?? x.participants,
+    completedCount: x.completedCount ?? x.CompletedCount ?? x.totalCompleted ?? x.completed,
     professions: Array.isArray(x.professions) ? x.professions : [],
     createdAt: x.createdAt ?? x.dateCreated,
   }));

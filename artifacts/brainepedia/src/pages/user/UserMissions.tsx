@@ -14,11 +14,11 @@ import { useToast } from "@/hooks/use-toast";
 
 type MissionRow = {
   id: string;
-  title: string;
+  challengeName: string;
+  companyName: string;
   status: string;
-  date?: string;
-  xp?: number;
-  score?: number;
+  completedDate?: string;
+  hasCompleted: boolean;
 };
 
 type MissionStats = {
@@ -127,13 +127,14 @@ function normStats(data: any): MissionStats {
 }
 
 function normRecentMission(item: any): MissionRow {
+  const hasCompleted = Boolean(item?.hasCompleted ?? item?.HasCompleted);
   return {
     id: String(item?.problemNodeId ?? item?.ProblemNodeId ?? item?.missionId ?? item?.MissionId ?? item?.id ?? item?.Id ?? ""),
-    title: text(item?.missionTitle ?? item?.MissionTitle ?? item?.title ?? item?.Title ?? item?.problemNode?.title, "Mission"),
-    status: text(item?.status ?? item?.Status ?? item?.completionStatus ?? item?.CompletionStatus, "In progress"),
-    date: item?.dateCompleted ?? item?.DateCompleted ?? item?.completedAt ?? item?.CompletedAt ?? item?.submittedAt ?? item?.dateCreated,
-    xp: numberish(item?.xpEarned ?? item?.XpEarned ?? item?.experiencePointsEarned ?? item?.xp ?? item?.XP ?? item?.netXpGained),
-    score: numberish(item?.score ?? item?.Score),
+    challengeName: text(item?.challengeName ?? item?.ChallengeName ?? item?.missionTitle ?? item?.MissionTitle ?? item?.title ?? item?.Title, "Mission"),
+    companyName: text(item?.companyName ?? item?.CompanyName ?? item?.employerName ?? item?.EmployerName, "Company unavailable"),
+    status: hasCompleted ? "Completed" : text(item?.status ?? item?.Status ?? item?.completionStatus ?? item?.CompletionStatus, "Pending"),
+    completedDate: item?.completedDate ?? item?.CompletedDate ?? item?.dateCompleted ?? item?.DateCompleted ?? item?.completedAt ?? item?.CompletedAt,
+    hasCompleted,
   };
 }
 
@@ -154,10 +155,19 @@ function MissionSection({ title, rows, empty }: { title: string; rows: MissionRo
             <div key={`${row.id}-${index}`} className="flex flex-wrap items-center gap-3 py-3">
               <Clock className="h-4 w-4 text-[#00D2FF]" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{row.title}</p>
-                <p className="text-xs text-muted-foreground">{row.date ? new Date(row.date).toLocaleDateString() : "No date"} · {row.status}</p>
+                <p className="truncate text-sm font-semibold">{row.challengeName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {row.companyName} · {row.completedDate ? new Date(row.completedDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No completed date"}
+                </p>
               </div>
-              <span className="font-mono text-xs text-[#FFD700]">{row.xp ? `+${row.xp} XP` : "0 XP"}</span>
+              <span className={`rounded-full border px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider ${
+                row.hasCompleted
+                  ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                  : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+              }`}>
+                {row.hasCompleted ? "Completed" : "Pending"}
+              </span>
+              <span className="font-mono text-xs text-muted-foreground">{row.status}</span>
               {row.id ? (
                 <Button asChild size="sm" variant="outline">
                   <Link href={row.id.length > 20 ? `/app/mission/${encodeURIComponent(row.id)}` : "/profession/select"}>Open</Link>

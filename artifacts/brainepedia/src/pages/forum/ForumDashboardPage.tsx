@@ -1,12 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentType, ReactNode } from "react";
 import { Link } from "wouter";
-import { Clock, Hash, Loader2, MessageCircle, Search, TrendingUp } from "lucide-react";
+import { Clock, Hash, Loader2, MessageCircle, Plus, Search, TrendingUp } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { api } from "@/lib/api";
 import { getUserRole } from "@/lib/auth";
 import { asList, text } from "@/lib/jobData";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
@@ -20,33 +25,73 @@ type Thread = { id: string; title: string; categoryName: string; authorName: str
 export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mode }) {
   usePageTitle(mode === "categories" ? "Forum Categories" : "Discussions");
   const role = getUserRole();
+  const { toast } = useToast();
   const nav = role === "GlobalAdmin" ? ADMIN_NAV : role === "Employer" ? EMPLOYER_NAV : USER_NAV;
   const [categories, setCategories] = useState<Category[]>([]);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryDescription, setCategoryDescription] = useState("");
+  const [createError, setCreateError] = useState("");
+  const [creating, setCreating] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  const loadForum = async (cancelledRef?: { cancelled: boolean }) => {
+    setLoading(true);
+    const cats = await api.forum.getCategories();
+    if (!cats.ok) {
+      if (!cancelledRef?.cancelled) setLoading(false);
+      return;
+    }
+    const categoryRows = asList(cats.data).map(normCategory);
+    if (cancelledRef?.cancelled) return;
+    setCategories(categoryRows);
+    const batches = await Promise.all(categoryRows.map(async (category) => {
+      const res = await api.forum.getThreads(category.id, 1, 15, "newest");
+      return res.ok ? asList(res.data).map((thread) => normThread(thread, category.name)) : [];
+    }));
+    if (!cancelledRef?.cancelled) setThreads(batches.flat().sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
+    if (!cancelledRef?.cancelled) setLoading(false);
+  };
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const cats = await api.forum.getCategories();
-      if (!cats.ok) {
-        if (!cancelled) setLoading(false);
-        return;
-      }
-      const categoryRows = asList(cats.data).map(normCategory);
-      if (cancelled) return;
-      setCategories(categoryRows);
-      const batches = await Promise.all(categoryRows.map(async (category) => {
-        const res = await api.forum.getThreads(category.id, 1, 15, "newest");
-        return res.ok ? asList(res.data).map((thread) => normThread(thread, category.name)) : [];
-      }));
-      if (!cancelled) setThreads(batches.flat().sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()));
-      if (!cancelled) setLoading(false);
-    })();
+    loadForum({ get cancelled() { return cancelled; } });
     return () => { cancelled = true; };
   }, [mode]);
+
+  useEffect(() => {
+    if (createOpen) window.setTimeout(() => nameRef.current?.focus(), 60);
+  }, [createOpen]);
+
+  const createCategory = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!categoryName.trim()) {
+      setCreateError("Name is required.");
+      return;
+    }
+    if (!categoryDescription.trim()) {
+      setCreateError("Description is required.");
+      return;
+    }
+    setCreateError("");
+    setCreating(true);
+    const res = await api.forum.createCategory({ Name: categoryName.trim(), Description: categoryDescription.trim() });
+    setCreating(false);
+    if (!res.ok) {
+      const message = res.error || "Failed to create category.";
+      setCreateError(message);
+      toast({ title: "Category creation failed", description: message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Category created", description: res.message || categoryName.trim() });
+    setCategoryName("");
+    setCategoryDescription("");
+    setCreateOpen(false);
+    loadForum();
+  };
 
   const filteredThreads = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -81,9 +126,16 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
           </p>
         </section>
 
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={mode === "categories" ? "Search categories..." : "Search discussions..."} className="pl-9" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={mode === "categories" ? "Search categories..." : "Search discussions..."} className="pl-9" />
+          </div>
+          {role === "GlobalAdmin" && mode === "categories" && (
+            <Button onClick={() => { setCreateOpen(true); setCreateError(""); }} className="bg-[#6366F1] text-white hover:bg-[#4F46E5]">
+              <Plus className="mr-2 h-4 w-4" /> Add Category
+            </Button>
+          )}
         </div>
 
         {loading ? (
@@ -131,6 +183,44 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
             ))}
           </div>
         )}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="bg-[#0d1119] border border-white/10">
+          <DialogHeader>
+            <DialogTitle>Create Forum Category</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={createCategory} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="forum-category-name">Name</Label>
+              <Input
+                id="forum-category-name"
+                ref={nameRef}
+                value={categoryName}
+                onChange={(event) => setCategoryName(event.target.value)}
+                maxLength={80}
+                placeholder="e.g. DevOps & Infrastructure"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="forum-category-description">Description</Label>
+              <Textarea
+                id="forum-category-description"
+                value={categoryDescription}
+                onChange={(event) => setCategoryDescription(event.target.value)}
+                maxLength={300}
+                placeholder="What topics belong in this category?"
+              />
+            </div>
+            {createError && <p className="text-xs text-destructive">{createError}</p>}
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={creating} className="bg-[#6366F1] text-white hover:bg-[#4F46E5]">
+                {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Category
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
