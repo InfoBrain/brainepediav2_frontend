@@ -6,7 +6,6 @@ import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { asList, candidateAvatar, candidateName, formatNumber, idOf, initials, listMeta, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,6 +32,7 @@ export default function CandidateExplorer() {
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState("");
   const [notesById, setNotesById] = useState<Record<string, string>>({});
+  const [professionOptions, setProfessionOptions] = useState<string[]>([]);
 
   const load = async (nextPage = page) => {
     setLoading(true);
@@ -52,10 +52,21 @@ export default function CandidateExplorer() {
 
   useEffect(() => {
     load(1);
+    api.professions.list().then((res) => {
+      if (!res.ok) {
+        toast({ title: "Unable to load professions", description: res.error, variant: "destructive" });
+        return;
+      }
+      setProfessionOptions(
+        asList(res.data)
+          .map((item) => text(item?.name ?? item?.Name ?? item?.professionName ?? item?.ProfessionName ?? item?.title, ""))
+          .filter(Boolean),
+      );
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const professionOptions = useMemo(
+  const visibleProfessionOptions = useMemo(
     () => Array.from(new Set(candidates.map((candidate) => candidate.profession).filter(Boolean))).slice(0, 6),
     [candidates]
   );
@@ -89,14 +100,17 @@ export default function CandidateExplorer() {
             <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-[520px]">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
+                <select
                   value={profession}
                   onChange={(event) => setProfession(event.target.value)}
-                  onKeyDown={(event) => event.key === "Enter" && load(1)}
-                  placeholder="Filter by profession"
-                  className="pl-9"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-9 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   aria-label="Filter candidates by profession"
-                />
+                >
+                  <option value="">All professions</option>
+                  {professionOptions.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
               </div>
               <Button onClick={() => load(1)} disabled={loading} className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
                 {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
@@ -104,9 +118,9 @@ export default function CandidateExplorer() {
               </Button>
             </div>
           </div>
-          {professionOptions.length > 0 && (
+          {visibleProfessionOptions.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
-              {professionOptions.map((option) => (
+              {visibleProfessionOptions.map((option) => (
                 <button
                   key={option}
                   type="button"

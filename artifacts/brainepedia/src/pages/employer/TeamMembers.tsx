@@ -35,6 +35,7 @@ type Member = {
   dateJoinedRoster?: string;
   totalXpEarned?: number;
   isActive?: boolean;
+  isGrandmasterSeatPaid?: boolean;
   avatarUrl?: string;
 };
 
@@ -292,11 +293,12 @@ export default function TeamMembers() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10"
+                          disabled={m.isGrandmasterSeatPaid}
+                          className="text-xs border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 disabled:border-emerald-400/30 disabled:text-emerald-300 disabled:opacity-80"
                           onClick={() => setSeatTarget(m)}
                         >
                           <Zap className="h-3 w-3 mr-1" />
-                          Activate Seat
+                          {m.isGrandmasterSeatPaid ? "Seat Activated" : "Activate Seat"}
                         </Button>
                       </td>
                     </tr>
@@ -345,6 +347,7 @@ function normMembers(d: any): Member[] {
     dateJoinedRoster: x.dateJoinedRoster ?? x.DateJoinedRoster ?? x.joinedAt ?? x.createdAt,
     totalXpEarned: Number(x.totalXpEarned ?? x.TotalXpEarned ?? x.totalXP ?? x.TotalXP ?? x.totalXp ?? x.xp ?? x.verifiedXp ?? 0),
     isActive: Boolean(x.isActive ?? x.IsActive ?? x.active ?? true),
+    isGrandmasterSeatPaid: Boolean(x.isGrandmasterSeatPaid ?? x.IsGrandmasterSeatPaid ?? x.grandmasterSeatPaid ?? x.GrandmasterSeatPaid ?? false),
     avatarUrl: x.avatarUrl ?? x.AvatarUrl ?? x.imageUrl ?? x.ImageUrl,
   }));
 }

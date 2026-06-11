@@ -10,6 +10,7 @@ import {
   X,
   TrendingUp,
   Users,
+  DollarSign,
 } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ADMIN_NAV } from "@/lib/adminNav";
@@ -26,6 +27,7 @@ type Stats = {
   totalUsers?: number;
   activeSubscriptions?: number;
   totalXpAwarded?: number;
+  totalSubscriptionRevenue?: number;
 };
 type ProblemNode = {
   id: string;
@@ -138,7 +140,7 @@ export default function AdminDashboard() {
       ) : (
         <div className="space-y-6">
           {/* System Health */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <HealthCard
               label="Total Users"
               value={stats?.totalUsers != null ? stats.totalUsers.toLocaleString() : "—"}
@@ -156,6 +158,12 @@ export default function AdminDashboard() {
               value={stats?.totalXpAwarded != null ? stats.totalXpAwarded.toLocaleString() : "—"}
               icon={Sparkles}
               accent="text-amber-400"
+            />
+            <HealthCard
+              label="Total Subscription Revenue"
+              value={stats?.totalSubscriptionRevenue != null ? formatCurrency(stats.totalSubscriptionRevenue) : "—"}
+              icon={DollarSign}
+              accent="text-[#FFD700]"
             />
           </div>
 
@@ -401,12 +409,17 @@ function normalizeStats(d: any): Stats {
     totalUsers: d.totalUsers ?? d.userCount ?? d.users ?? undefined,
     activeSubscriptions: d.activeSubscriptions ?? d.subscriptionCount ?? d.subscriptions ?? undefined,
     totalXpAwarded: d.totalXpAwarded ?? d.totalXP ?? d.xp ?? undefined,
+    totalSubscriptionRevenue: d.totalSubscriptionRevenue ?? d.subscriptionRevenue ?? d.totalRevenue ?? d.revenue ?? undefined,
   };
 }
 function normalizeXpSummary(d: any): Pick<Stats, "totalXpAwarded"> {
   if (!d || typeof d !== "object") return {};
   const val = d.totalXpAwarded ?? d.totalXP ?? d.totalCredits ?? d.total ?? undefined;
   return val !== undefined ? { totalXpAwarded: Number(val) } : {};
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value);
 }
 function normalizeNodes(d: any): ProblemNode[] {
   const arr =

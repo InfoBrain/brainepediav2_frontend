@@ -447,7 +447,7 @@ export default function UserDashboard() {
     } else if (res.ok) {
       toast({ title: "Payment initialised", description: "Check your email or dashboard for the payment link." });
     } else {
-      toast({ title: "Upgrade failed", description: res.error || "Payment initialization failed. Please try again.", variant: "destructive" });
+      toast({ title: "Upgrade failed", description: res.error || "Payment initialization failed.", variant: "destructive" });
     }
   };
 

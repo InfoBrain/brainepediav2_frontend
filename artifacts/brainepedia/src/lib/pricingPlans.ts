@@ -74,26 +74,23 @@ export const USER_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 ];
 
 export const EMPLOYER_GRANDMASTER_FEATURES = [
-  "Job Listings",
+  "Unlimited Job Listings",
   "Candidate Recruitment",
-  "Candidate Screening",
-  "Assessment Assignment",
-  "Corporate Team Provisioning",
+  "Team Provisioning",
+  "Employee Training",
   "Private Team Challenges",
-  "Team Training",
-  "Employee Skill Tracking",
-  "Corporate Learning Analytics",
-  "Candidate Portfolio Management",
-  "Talent Pipeline Management",
+  "Candidate Assessments",
+  "Team Analytics",
+  "Corporate Growth Tracking",
 ];
 
 export const EMPLOYER_GRANDMASTER_PLAN = {
-  key: "Grandmaster Corporate Plan",
-  price: "Corporate",
-  shortPrice: "Corporate",
-  period: "",
+  key: "Grandmaster",
+  price: "$49.99/month",
+  shortPrice: "$49.99",
+  period: "/month",
   tagline: "Built for organizations",
-  description: "Designed for organizations and employers managing recruitment, candidate screening, team training, and corporate learning analytics.",
+  description: "For organizations and employers managing recruitment, candidate assessments, team provisioning, employee training, private challenges, and growth analytics.",
   icon: Crown,
   accent: "gold" as const,
   features: EMPLOYER_GRANDMASTER_FEATURES,

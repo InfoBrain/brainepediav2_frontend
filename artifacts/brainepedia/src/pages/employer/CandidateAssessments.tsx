@@ -44,6 +44,7 @@ type Assessment = {
   assessment: string;
   status: string;
   completionStatus: string;
+  hasCompleted: boolean;
   completedAt?: string;
   assignedAt?: string;
 };
@@ -306,7 +307,7 @@ export default function CandidateAssessments() {
                   {filtered.map((a) => {
                     const badge = statusBadge(a.completionStatus);
                     const Icon = badge.icon;
-                    const canViewResult = a.completionStatus === "Completed" && a.problemNodeId && a.candidateUserId;
+                    const canViewResult = a.hasCompleted && a.problemNodeId && a.candidateUserId;
                     return (
                       <tr key={a.id} className="border-b border-white/5 hover:bg-white/2 transition-colors">
                         <td className="px-4 py-3">
@@ -336,16 +337,16 @@ export default function CandidateAssessments() {
                           {a.completionStatus}{a.completedAt ? ` · ${new Date(a.completedAt).toLocaleDateString()}` : ""}
                         </td>
                         <td className="px-4 py-3">
-                          {canViewResult ? (
-                            <Button variant="outline" size="sm" onClick={() => viewAssessmentResult(a)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={!canViewResult}
+                            title={!canViewResult ? "View Result is available after the candidate completes the assessment." : undefined}
+                            onClick={() => canViewResult && viewAssessmentResult(a)}
+                          >
                               <Eye className="mr-2 h-3.5 w-3.5" />
                               View Result
-                            </Button>
-                          ) : a.completionStatus === "Completed" ? (
-                            <span className="text-xs text-muted-foreground">Result unavailable</span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
+                          </Button>
                         </td>
                       </tr>
                     );
@@ -401,6 +402,19 @@ function normAssessments(d: any): Assessment[] {
   const arr = Array.isArray(d) ? d : d?.assessments ?? d?.candidates ?? d?.items ?? [];
   return arr.map((x: any) => {
     const completedAt = x.completedAt ?? x.CompletedAt ?? x.completionDate ?? x.CompletionDate;
+    const explicitCompleted = x.hasCompleted ?? x.HasCompleted ?? x.assessment?.hasCompleted ?? x.Assessment?.HasCompleted;
+    const hasCompleted = typeof explicitCompleted === "boolean" ? explicitCompleted : Boolean(completedAt);
+    const rawStatus =
+      x.status ??
+      x.Status ??
+      x.completionStatus ??
+      x.CompletionStatus ??
+      x.assessmentStatus ??
+      x.AssessmentStatus ??
+      x.assessmentCompletionStatus ??
+      x.AssessmentCompletionStatus ??
+      x.resultStatus ??
+      x.ResultStatus;
     return {
       id: String(x.id ?? x.assessmentId ?? x.AssessmentId ?? Math.random()),
       candidateUserId: text(x.candidateUserId ?? x.CandidateUserId ?? x.userId ?? x.UserId ?? x.profileDetails?.userId ?? x.ProfileDetails?.UserId, ""),
@@ -409,17 +423,8 @@ function normAssessments(d: any): Assessment[] {
       email: x.email ?? x.candidateEmail ?? "",
       assessment: x.assessment ?? x.assessmentName ?? x.missionName ?? x.problemNodeTitle ?? x.problemNode?.title ?? x.problemNodeId ?? "Assessment",
       status: text(x.status ?? x.Status ?? x.state ?? x.State, "Pending"),
-      completionStatus: normalizeCompletionStatus(
-        x.completionStatus ??
-          x.CompletionStatus ??
-          x.assessmentStatus ??
-          x.AssessmentStatus ??
-          x.assessmentCompletionStatus ??
-          x.AssessmentCompletionStatus ??
-          x.resultStatus ??
-          x.ResultStatus,
-        completedAt,
-      ),
+      completionStatus: normalizeCompletionStatus(rawStatus, hasCompleted),
+      hasCompleted,
       completedAt,
       assignedAt: x.dateAssigned ?? x.DateAssigned ?? x.assignedAt ?? x.AssignedAt ?? x.invitedAt ?? x.sentAt ?? x.createdAt,
     };
@@ -456,13 +461,9 @@ function selectedAssessmentLabel(problemNodeId: string | undefined, nodes: Probl
   return node ? node.title : "this assessment";
 }
 
-function normalizeCompletionStatus(rawValue: unknown, completedAt?: unknown): "Completed" | "In Progress" | "Pending" | "Not Started" {
-  const raw = text(rawValue, "").toLowerCase();
-  if (/\b(completed|complete|done|evaluated|submitted)\b/.test(raw)) return "Completed";
-  if (/\b(in[-\s]?progress|started|attempting|attempted|ongoing)\b/.test(raw)) return "In Progress";
-  if (/\b(pending|assigned|invited|sent|waiting)\b/.test(raw)) return "Pending";
-  if (/\b(not[-\s]?started|new|open)\b/.test(raw)) return "Not Started";
-  return completedAt ? "Completed" : "Not Started";
+function normalizeCompletionStatus(rawValue: unknown, hasCompleted: boolean): string {
+  if (hasCompleted) return "Completed";
+  return text(rawValue, "Not Started");
 }
 
 function candidateDisplayName(item: any): string {

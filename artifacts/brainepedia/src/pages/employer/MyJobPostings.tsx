@@ -4,7 +4,7 @@ import { BriefcaseBusiness, CalendarDays, ClipboardList, Edit3, Eye, FilePlus2, 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
-import { asList, expiryDateOf, formatDate, idOf, text } from "@/lib/jobData";
+import { asList, formatDate, formatExpiryDate, idOf, text } from "@/lib/jobData";
 import { HtmlContent } from "@/components/editor/HtmlContent";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -115,10 +115,10 @@ export default function MyJobPostings() {
                       <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" /> {text(job?.location, "Remote / flexible")}</span>
                       <span className="inline-flex items-center gap-1"><WalletCards className="h-4 w-4" /> {text(job?.salaryRange ?? job?.salary, "Salary undisclosed")}</span>
                       <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> {formatDate(job?.datePosted ?? job?.postedDate ?? job?.createdAt ?? job?.dateCreated)}</span>
-                      <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Expires {formatDate(expiryDateOf(job), "Not set")}</span>
+                      <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Expires {formatExpiryDate(job)}</span>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
                     <div className="flex items-center gap-2 rounded-md border border-white/10 px-3 py-2 text-xs">
                       <Switch
                         checked={isActive(job)}
@@ -129,13 +129,13 @@ export default function MyJobPostings() {
                       />
                       <span className={isActive(job) ? "text-emerald-300" : "text-muted-foreground"}>{isActive(job) ? "Active" : "Inactive"}</span>
                     </div>
-                    <Button asChild variant="outline">
+                    <Button asChild variant="outline" className="w-full sm:w-auto">
                       <Link href={`/employer/applications/${encodeURIComponent(id)}`}><ClipboardList className="mr-2 h-4 w-4" /> View applicants</Link>
                     </Button>
-                    <Button asChild variant="outline">
+                    <Button asChild variant="outline" className="w-full sm:w-auto">
                       <Link href={`/employer/jobs/${encodeURIComponent(id)}/edit`}><Edit3 className="mr-2 h-4 w-4" /> Edit</Link>
                     </Button>
-                    <Button onClick={() => openPreview(id)} className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
+                    <Button onClick={() => openPreview(id)} className="w-full bg-[#00D2FF] text-black hover:bg-[#00B8DD] sm:w-auto">
                       <Eye className="mr-2 h-4 w-4" /> Preview
                     </Button>
                   </div>
@@ -146,21 +146,24 @@ export default function MyJobPostings() {
         </div>
       )}
       <Dialog open={Boolean(preview) || previewLoading} onOpenChange={(open) => !open && setPreview(null)}>
-        <DialogContent className="max-w-2xl bg-[#0d1119] border border-white/10">
-          <DialogHeader>
+        <DialogContent className="max-h-[90vh] w-[calc(100vw-1.5rem)] max-w-[900px] overflow-hidden bg-[#0d1119] border border-white/10 p-0 sm:w-[calc(100vw-3rem)]">
+          <DialogHeader className="border-b border-white/10 px-5 py-4">
             <DialogTitle>{previewLoading ? "Loading preview..." : text(preview?.title ?? preview?.jobTitle, "Job Preview")}</DialogTitle>
             <DialogDescription>Employer-only preview from my-jobs details.</DialogDescription>
           </DialogHeader>
-          {previewLoading ? (
-            <State label="Loading job preview..." />
-          ) : preview ? (
+          <div className="max-h-[calc(90vh-96px)] overflow-y-auto px-5 py-5">
+            {previewLoading ? (
+              <State label="Loading job preview..." />
+            ) : preview ? (
             <div className="space-y-4 text-sm">
               <div className="grid gap-3 sm:grid-cols-2">
                 <Info label="Job Title" value={text(preview?.title ?? preview?.jobTitle, "Untitled role")} />
+                <Info label="Profession" value={text(preview?.professionName ?? preview?.profession, "Open profession")} />
                 <Info label="Location" value={text(preview?.location, "Remote / flexible")} />
                 <Info label="Salary" value={text(preview?.salaryRange ?? preview?.salary, "Salary undisclosed")} />
-                <Info label="Date Posted" value={formatDate(preview?.datePosted ?? preview?.postedDate ?? preview?.createdAt ?? preview?.dateCreated)} />
-                <Info label="Expiry Date" value={formatDate(expiryDateOf(preview), "Not set")} />
+                <Info label="Created Date" value={formatDate(preview?.datePosted ?? preview?.postedDate ?? preview?.createdAt ?? preview?.dateCreated)} />
+                <Info label="Expiry Date" value={formatExpiryDate(preview)} />
+                <Info label="Status" value={isActive(preview) ? "Active" : "Inactive"} />
               </div>
               <div>
                 <p className="mb-2 text-xs font-mono uppercase tracking-wider text-muted-foreground">Description</p>
@@ -170,12 +173,13 @@ export default function MyJobPostings() {
               </div>
               {(preview?.linkAssessmentNodeId ?? preview?.linkedAssessmentNodeId ?? preview?.assessmentNodeId ?? preview?.problemNodeTitle ?? preview?.challengeName) && (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Info label="Challenge Name" value={text(preview?.challengeName ?? preview?.assessmentTitle ?? preview?.assessmentName, "Linked assessment")} />
-                  <Info label="Problem Node" value={text(preview?.problemNodeTitle ?? preview?.problemNodeName ?? preview?.linkAssessmentNodeId ?? preview?.assessmentNodeId, "Linked problem node")} />
+                  <Info label="Assessment" value={text(preview?.challengeName ?? preview?.assessmentTitle ?? preview?.assessmentName, "Linked assessment")} />
+                  <Info label="Assessment Node" value={text(preview?.problemNodeTitle ?? preview?.problemNodeName ?? preview?.linkAssessmentNodeId ?? preview?.assessmentNodeId, "Linked problem node")} />
                 </div>
               )}
             </div>
-          ) : null}
+            ) : null}
+          </div>
         </DialogContent>
       </Dialog>
     </DashboardShell>

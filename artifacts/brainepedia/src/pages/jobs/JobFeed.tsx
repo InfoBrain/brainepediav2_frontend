@@ -6,7 +6,7 @@ import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
-import { asList, idOf, listMeta, text } from "@/lib/jobData";
+import { asList, formatExpiryDate, idOf, listMeta, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getUserRole } from "@/lib/auth";
@@ -21,6 +21,7 @@ type JobRow = {
   salary: string;
   location: string;
   postedDate: string;
+  expiryDate: string;
   assessmentRequired: boolean;
 };
 
@@ -114,6 +115,7 @@ export default function JobFeed() {
                       <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" /> {job.location}</span>
                       <span className="inline-flex items-center gap-1"><WalletCards className="h-4 w-4" /> {job.salary}</span>
                       <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> {job.postedDate}</span>
+                      <span className="inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Expires {job.expiryDate}</span>
                     </div>
                   </div>
                   <Button asChild className="bg-[#FFD700] text-black hover:bg-[#F3C800]">
@@ -173,6 +175,7 @@ function normalizeJob(job: any): JobRow {
     salary: text(job?.salaryRange ?? job?.salary, "Salary undisclosed"),
     location: text(job?.location, "Remote / flexible"),
     postedDate: formatDate(job?.postedDate ?? job?.datePosted ?? job?.createdAt ?? job?.dateCreated),
+    expiryDate: formatExpiryDate(job),
     assessmentRequired: Boolean(job?.assessmentRequired ?? job?.requiresAssessment ?? job?.linkAssessmentNodeId ?? job?.assessmentNodeId),
   };
 }

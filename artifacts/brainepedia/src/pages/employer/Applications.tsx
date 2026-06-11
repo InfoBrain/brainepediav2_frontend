@@ -30,6 +30,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+const APPLICATION_STATUSES = ["Applied", "Reviewing", "Shortlisted", "Interviewing", "Rejected", "Recruited", "Hired"];
+
 export default function Applications() {
   const [, params] = useRoute("/employer/applications/:jobId");
   const jobId = params?.jobId ? decodeURIComponent(params.jobId) : "";
@@ -211,8 +213,8 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
               const vx = numberish(profile?.calculatedVX ?? profile?.CalculatedVX ?? profile?.verifiedExperienceYears ?? profile?.VerifiedExperienceYears);
               const applicationStatus = text(application?.status ?? application?.Status ?? application?.applicationStatus, "New");
               const appliedAt = formatDate(application?.appliedAt ?? application?.AppliedAt ?? application?.dateApplied ?? application?.DateApplied, "Date unavailable");
-              const assessmentStatus = assessmentStatusLabel(application);
-              const canViewResult = Boolean(problemNodeId && userId && assessmentStatus === "Completed");
+              const assessment = assessmentState(application);
+              const canViewResult = Boolean(problemNodeId && userId && assessment.hasCompleted);
               return (
                 <article key={id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                   <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -227,7 +229,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                           <p className="text-xs text-muted-foreground">{currentTitle}</p>
                         )}
                         <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">{assessmentStatus}</span>
+                          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">{assessment.status}</span>
                           <span className="rounded-full border border-[#00D2FF]/30 bg-[#00D2FF]/10 px-2.5 py-1 text-[#00D2FF]">{applicationStatus}</span>
                         </div>
                         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -245,8 +247,13 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                               <Link href={`/employer/candidates/${encodeURIComponent(String(userId))}`}><UserCheck className="mr-2 h-4 w-4" /> Candidate dossier</Link>
                             </Button>
                           )}
-                          {canViewResult && (
-                            <Button variant="outline" onClick={() => viewAssessmentResult(problemNodeId, String(userId))}>
+                          {problemNodeId && (
+                            <Button
+                              variant="outline"
+                              disabled={!canViewResult}
+                              title={!canViewResult ? "View Result is available after the assessment is completed." : undefined}
+                              onClick={() => canViewResult && viewAssessmentResult(problemNodeId, String(userId))}
+                            >
                               <Eye className="mr-2 h-4 w-4" /> View Assessment Result
                             </Button>
                           )}
@@ -256,13 +263,18 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                     <div className="space-y-3">
                       <div className="space-y-1.5">
                         <Label htmlFor={`status-${id}`} className="text-xs text-muted-foreground">Application Status</Label>
-                        <Input
+                        <select
                           id={`status-${id}`}
                           value={draft.newStatus}
                           onChange={(event) => updateDraft(id, "newStatus", event.target.value)}
-                          placeholder="Status (e.g. Shortlisted)"
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           aria-label={`Status for ${name}`}
-                        />
+                        >
+                          <option value="">Select status</option>
+                          {APPLICATION_STATUSES.map((status) => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
                       </div>
                       <div className="space-y-1.5">
                         <Label htmlFor={`notes-${id}`} className="text-xs text-muted-foreground">Internal Notes</Label>
@@ -365,9 +377,16 @@ function listText(value: unknown, fallback: string): string {
   return text(value, fallback);
 }
 
-function assessmentStatusLabel(application: any): "Completed" | "In Progress" | "Pending" | "Not Started" {
-  const raw = text(
-    application?.assessmentStatus ??
+function assessmentState(application: any): { status: string; hasCompleted: boolean } {
+  const explicitCompleted = application?.hasCompleted ?? application?.HasCompleted ?? application?.assessment?.hasCompleted ?? application?.Assessment?.HasCompleted;
+  const hasCompleted =
+    typeof explicitCompleted === "boolean"
+      ? explicitCompleted
+      : Boolean(application?.completedAt ?? application?.CompletedAt ?? application?.completionDate ?? application?.CompletionDate);
+  const rawStatus = text(
+    application?.status ??
+      application?.Status ??
+      application?.assessmentStatus ??
       application?.AssessmentStatus ??
       application?.assessmentCompletionStatus ??
       application?.AssessmentCompletionStatus ??
@@ -375,14 +394,9 @@ function assessmentStatusLabel(application: any): "Completed" | "In Progress" | 
       application?.CompletionStatus ??
       application?.resultStatus ??
       application?.ResultStatus,
-    "",
-  ).toLowerCase();
-  if (/\b(completed|complete|done|evaluated|submitted)\b/.test(raw)) return "Completed";
-  if (/\b(in[-\s]?progress|started|attempting|attempted|ongoing)\b/.test(raw)) return "In Progress";
-  if (/\b(pending|assigned|invited|sent|waiting|applied)\b/.test(raw)) return "Pending";
-  if (/\b(not[-\s]?started|new|open)\b/.test(raw)) return "Not Started";
-  if (application?.completedAt ?? application?.CompletedAt ?? application?.completionDate ?? application?.CompletionDate) return "Completed";
-  return applicationProblemNodeId(application) ? "Pending" : "Not Started";
+    applicationProblemNodeId(application) ? "Not Started" : "Not Started",
+  );
+  return { status: hasCompleted ? "Completed" : rawStatus, hasCompleted };
 }
 
 function State({ label }: { label: string }) {

@@ -203,8 +203,33 @@ export function formatDate(value: unknown, fallback = "Date unavailable"): strin
   return Number.isNaN(date.getTime()) ? text(value, fallback) : date.toLocaleDateString();
 }
 
+export function formatDisplayDate(value: unknown, fallback = "Date unavailable"): string {
+  if (!value) return fallback;
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime())
+    ? text(value, fallback)
+    : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 export function expiryDateOf(item: any): unknown {
-  return item?.expiryDate ?? item?.ExpiryDate ?? item?.expiresAt ?? item?.ExpiresAt ?? item?.applicationDeadline ?? item?.ApplicationDeadline;
+  return (
+    item?.expiryDate ??
+    item?.ExpiryDate ??
+    item?.expiresAt ??
+    item?.ExpiresAt ??
+    item?.expirationDate ??
+    item?.ExpirationDate ??
+    item?.expiresOn ??
+    item?.ExpiresOn ??
+    item?.applicationDeadline ??
+    item?.ApplicationDeadline ??
+    item?.deadline ??
+    item?.Deadline
+  );
+}
+
+export function formatExpiryDate(item: any): string {
+  return formatDisplayDate(expiryDateOf(item), "No expiry");
 }
 
 export function todayString(): string {

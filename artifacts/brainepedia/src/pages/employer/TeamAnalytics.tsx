@@ -169,6 +169,45 @@ export default function TeamAnalytics() {
               </div>
             </div>
           </div>
+
+          <div className="rounded-xl border border-white/5 bg-[#0d1119] p-6">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-bold">
+              <Users className="h-4 w-4 text-[#00D2FF]" />
+              Team Members
+            </h3>
+            {data.employees.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+                No team member analytics were returned yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] text-sm">
+                  <thead>
+                    <tr className="border-b border-white/5 text-left text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3 py-3">Name</th>
+                      <th className="px-3 py-3">Profession</th>
+                      <th className="px-3 py-3">XP</th>
+                      <th className="px-3 py-3">Problems Solved</th>
+                      <th className="px-3 py-3">Day Streak</th>
+                      <th className="px-3 py-3">Verified Experience</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.employees.map((employee) => (
+                      <tr key={employee.userId} className="border-b border-white/5 last:border-0">
+                        <td className="px-3 py-3 font-medium">{employee.name}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{employee.profession || "—"}</td>
+                        <td className="px-3 py-3 font-mono text-[#00D2FF]">{employee.totalXP.toLocaleString()} XP</td>
+                        <td className="px-3 py-3">{employee.problemsSolved.toLocaleString()}</td>
+                        <td className="px-3 py-3">{employee.dayStreak.toLocaleString()} days</td>
+                        <td className="px-3 py-3">{employee.verifiedExperience?.toLocaleString() ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </DashboardShell>
@@ -176,16 +215,23 @@ export default function TeamAnalytics() {
 }
 
 function normAnalytics(d: any): AnalyticsData {
+  const root = d?.data ?? d?.analytics ?? d;
   const employees: Employee[] = (
-    Array.isArray(d?.employees) ? d.employees : Array.isArray(d?.members) ? d.members : []
+    Array.isArray(root?.employees)
+      ? root.employees
+      : Array.isArray(root?.teamMembers)
+      ? root.teamMembers
+      : Array.isArray(root?.members)
+      ? root.members
+      : []
   ).map((x: any) => ({
-    userId: String(x.userId ?? x.id ?? Math.random()),
-    name: x.name ?? (`${x.firstName ?? ""} ${x.lastName ?? ""}`.trim() || "Employee"),
-    profession: x.profession ?? x.role,
-    totalXP: Number(x.totalXP ?? x.xp ?? x.verifiedXp ?? 0),
-    problemsSolved: Number(x.problemsSolved ?? x.challengesSolved ?? x.solved ?? 0),
-    dayStreak: Number(x.dayStreak ?? x.streak ?? 0),
-    verifiedExperience: Number(x.verifiedExperience ?? x.verifiedXp ?? 0),
+    userId: String(x.userId ?? x.UserId ?? x.id ?? x.Id ?? Math.random()),
+    name: x.name ?? x.Name ?? x.fullName ?? x.FullName ?? (`${x.firstName ?? x.FirstName ?? ""} ${x.lastName ?? x.LastName ?? ""}`.trim() || "Team member"),
+    profession: x.profession ?? x.Profession ?? x.role ?? x.Role,
+    totalXP: Number(x.totalXP ?? x.TotalXP ?? x.totalXp ?? x.TotalXp ?? x.xp ?? x.XP ?? x.verifiedXp ?? x.VerifiedXp ?? 0),
+    problemsSolved: Number(x.problemsSolved ?? x.ProblemsSolved ?? x.challengesSolved ?? x.ChallengesSolved ?? x.solved ?? x.Solved ?? 0),
+    dayStreak: Number(x.dayStreak ?? x.DayStreak ?? x.streak ?? x.Streak ?? 0),
+    verifiedExperience: Number(x.verifiedExperience ?? x.VerifiedExperience ?? x.verifiedExperienceYears ?? x.VerifiedExperienceYears ?? x.verifiedXp ?? x.VerifiedXp ?? 0),
   }));
 
   const profMap: Record<string, number> = {};
@@ -194,7 +240,7 @@ function normAnalytics(d: any): AnalyticsData {
   });
 
   return {
-    organizationSize: d?.organizationSize ?? d?.teamSize ?? employees.length,
+    organizationSize: root?.organizationSize ?? root?.OrganizationSize ?? root?.teamSize ?? root?.TeamSize ?? employees.length,
     employees,
     professionDistribution: Object.entries(profMap).map(([profession, count]) => ({ profession, count })),
     averageXP: employees.length ? employees.reduce((s, e) => s + e.totalXP, 0) / employees.length : 0,
