@@ -210,7 +210,7 @@ export default function SubscriptionCenter() {
               <div key={feature} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                 <CheckCircle2 className="mb-3 h-5 w-5 text-emerald-400" />
                 <h3 className="font-bold">{feature}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">Included in the employer-only Grandmaster Corporate plan.</p>
+                <p className="mt-2 text-sm text-muted-foreground">Included in the employer-only Grandmaster plan.</p>
               </div>
             ))}
           </div>
@@ -224,10 +224,14 @@ export default function SubscriptionCenter() {
               <Button asChild variant="outline"><Link href="/employer/team">Manage Team Seats</Link></Button>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
-            <h3 className="text-lg font-bold">Subscription History</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Detailed employer payment history is not exposed by the current Swagger contract.</p>
-          </div>
+          {subscriptionDetails && (
+            <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
+              <h3 className="text-lg font-bold">Subscription Status</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Current tier is {subscriptionDetails.currentTier}; active status is {subscriptionDetails.active ? "Active" : "Inactive"}.
+              </p>
+            </div>
+          )}
         </div>
         ) : (
         <div className="space-y-8 max-w-6xl">
