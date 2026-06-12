@@ -311,7 +311,7 @@ export const api = {
       fetchApi(`/api/ExperienceSessions/${encodeURIComponent(sessionId)}`),
     getActive: (userId: string, problemNodeId: string) =>
       fetchApi(`/api/ExperienceSessions/active/${encodeURIComponent(userId)}/${encodeURIComponent(problemNodeId)}`),
-    start: (data: { userId: string; problemNodeId: string }) =>
+    start: (data: { userId: string; problemNodeId: string; employerChallengeAssignmentId?: string | null }) =>
       fetchApi("/api/ExperienceSessions/start", { method: "POST", body: JSON.stringify(data) }),
     abandon: (sessionId: string, userId: string) =>
       fetchApi(`/api/ExperienceSessions/${encodeURIComponent(sessionId)}/abandon?userId=${encodeURIComponent(userId)}`, { method: "PATCH" }),
@@ -366,7 +366,14 @@ export const api = {
       fetchApi(`/api/ProblemNodes/by-district/${encodeURIComponent(districtId)}${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
     byProfession: (professionName: string) =>
       fetchApi(`/api/ProblemNodes/by-profession?professionName=${encodeURIComponent(professionName)}`),
-    get: (id: string) => fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}`),
+    get: (id: string, params: { employerChallengeAssignmentId?: string | null } = {}) => {
+      const q = new URLSearchParams();
+      if (params.employerChallengeAssignmentId) {
+        q.set("employerChallengeAssignmentId", params.employerChallengeAssignmentId);
+      }
+      const qs = q.toString();
+      return fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}${qs ? `?${qs}` : ""}`);
+    },
     /** POST /api/ProblemNodes?userId=... — userId as query param, rest in FormData */
     create: (userId: string, formData: FormData) =>
       fetchApi(`/api/ProblemNodes?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),

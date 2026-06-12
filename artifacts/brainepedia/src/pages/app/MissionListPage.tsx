@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
+import { prepareMissionNavigation } from "@/lib/missionAssignmentContext";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
@@ -604,7 +605,7 @@ export default function MissionListPage() {
                 onClick={() =>
                   mission.isCompleted
                     ? navigate(`/missions/node-results/${mission.problemNodeId}`)
-                    : navigate(`/app/mission/${mission.problemNodeId}`)
+                    : navigate(prepareMissionNavigation({ problemNodeId: mission.problemNodeId }))
                 }
                 difficultyMeta={difficultyLookup[mission.difficultyId]}
               />

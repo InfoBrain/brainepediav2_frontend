@@ -6,6 +6,12 @@ import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { asList, numberish, text } from "@/lib/jobData";
+import {
+  buildMissionHref,
+  employerChallengeAssignmentIdOf,
+  hasEmployerAssignmentSignal,
+  storeMissionAssignmentContext,
+} from "@/lib/missionAssignmentContext";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +25,8 @@ type MissionRow = {
   status: string;
   completedDate?: string;
   hasCompleted: boolean;
+  employerChallengeAssignmentId: string;
+  assignmentRequired: boolean;
 };
 
 type MissionStats = {
@@ -128,6 +136,7 @@ function normStats(data: any): MissionStats {
 
 function normRecentMission(item: any): MissionRow {
   const hasCompleted = Boolean(item?.hasCompleted ?? item?.HasCompleted);
+  const employerChallengeAssignmentId = employerChallengeAssignmentIdOf(item);
   return {
     id: String(item?.problemNodeId ?? item?.ProblemNodeId ?? item?.missionId ?? item?.MissionId ?? item?.id ?? item?.Id ?? ""),
     challengeName: text(item?.challengeName ?? item?.ChallengeName ?? item?.missionTitle ?? item?.MissionTitle ?? item?.title ?? item?.Title, "Mission"),
@@ -135,6 +144,8 @@ function normRecentMission(item: any): MissionRow {
     status: hasCompleted ? "Completed" : text(item?.status ?? item?.Status ?? item?.completionStatus ?? item?.CompletionStatus, "Pending"),
     completedDate: item?.completedDate ?? item?.CompletedDate ?? item?.dateCompleted ?? item?.DateCompleted ?? item?.completedAt ?? item?.CompletedAt,
     hasCompleted,
+    employerChallengeAssignmentId,
+    assignmentRequired: hasEmployerAssignmentSignal(item),
   };
 }
 
@@ -170,7 +181,26 @@ function MissionSection({ title, rows, empty }: { title: string; rows: MissionRo
               <span className="font-mono text-xs text-muted-foreground">{row.status}</span>
               {row.id ? (
                 <Button asChild size="sm" variant="outline">
-                  <Link href={row.id.length > 20 ? `/app/mission/${encodeURIComponent(row.id)}` : "/profession/select"}>Open</Link>
+                  <Link
+                    href={
+                      row.id.length > 20
+                        ? buildMissionHref({
+                            problemNodeId: row.id,
+                            employerChallengeAssignmentId: row.employerChallengeAssignmentId || null,
+                          })
+                        : "/profession/select"
+                    }
+                    onClick={() => {
+                      if (row.id.length <= 20) return;
+                      storeMissionAssignmentContext({
+                        problemNodeId: row.id,
+                        employerChallengeAssignmentId: row.employerChallengeAssignmentId || null,
+                        assignmentRequired: row.assignmentRequired,
+                      });
+                    }}
+                  >
+                    Open
+                  </Link>
                 </Button>
               ) : null}
             </div>

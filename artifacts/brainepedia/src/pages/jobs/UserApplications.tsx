@@ -5,6 +5,11 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { asList, formatDisplayDate, idOf, text } from "@/lib/jobData";
+import {
+  buildMissionHref,
+  employerChallengeAssignmentIdOf,
+  storeMissionAssignmentContext,
+} from "@/lib/missionAssignmentContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,6 +24,8 @@ type ApplicationRow = {
   recruiterNotes: string;
   assessmentId: string;
   assessmentTitle: string;
+  employerChallengeAssignmentId: string;
+  assessmentRequiresAssignment: boolean;
 };
 
 export default function UserApplications() {
@@ -111,7 +118,20 @@ export default function UserApplications() {
                           <ClipboardCheck className="h-4 w-4" /> Assessment Required
                         </span>
                         <Button asChild variant="outline">
-                          <Link href={`/app/mission/${encodeURIComponent(application.assessmentId)}`}>
+                          <Link
+                            href={buildMissionHref({
+                              problemNodeId: application.assessmentId,
+                              employerChallengeAssignmentId: application.employerChallengeAssignmentId || null,
+                              assignmentRequired: application.assessmentRequiresAssignment,
+                            })}
+                            onClick={() =>
+                              storeMissionAssignmentContext({
+                                problemNodeId: application.assessmentId,
+                                employerChallengeAssignmentId: application.employerChallengeAssignmentId || null,
+                                assignmentRequired: application.assessmentRequiresAssignment,
+                              })
+                            }
+                          >
                             {application.assessmentTitle || "Open assessment"}
                           </Link>
                         </Button>
@@ -133,6 +153,7 @@ export default function UserApplications() {
 function normApplication(item: any): ApplicationRow {
   const job = item?.job ?? item?.Job ?? item?.jobPosting ?? item?.JobPosting ?? item;
   const company = item?.company ?? item?.Company ?? job?.company ?? job?.Company ?? {};
+  const employerChallengeAssignmentId = employerChallengeAssignmentIdOf(item) || employerChallengeAssignmentIdOf(job);
   const assessmentId = text(
     item?.assessmentId ??
       item?.AssessmentId ??
@@ -155,6 +176,8 @@ function normApplication(item: any): ApplicationRow {
     recruiterNotes: text(item?.recruiterNotes ?? item?.RecruiterNotes ?? item?.notes ?? item?.Notes, "No recruiter notes returned."),
     assessmentId,
     assessmentTitle: text(item?.assessmentTitle ?? item?.AssessmentTitle ?? job?.assessmentTitle ?? job?.problemNodeTitle, "Open assessment"),
+    employerChallengeAssignmentId,
+    assessmentRequiresAssignment: Boolean(assessmentId),
   };
 }
 
