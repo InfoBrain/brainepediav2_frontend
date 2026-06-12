@@ -8,6 +8,11 @@ import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
 import { formatExpiryDate, text } from "@/lib/jobData";
 import { getUserRole } from "@/lib/auth";
+import {
+  buildMissionHref,
+  employerChallengeAssignmentIdOf,
+  storeMissionAssignmentContext,
+} from "@/lib/missionAssignmentContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Nav } from "@/components/landing/Nav";
@@ -43,6 +48,7 @@ export default function JobDetails() {
   const [error, setError] = useState("");
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
+  const [appliedAssignmentId, setAppliedAssignmentId] = useState("");
   const [assessmentOpen, setAssessmentOpen] = useState(false);
   const role = getUserRole();
 
@@ -74,6 +80,7 @@ export default function JobDetails() {
       return;
     }
     setApplied(true);
+    setAppliedAssignmentId(employerChallengeAssignmentIdOf(res.data));
     toast({ title: "Application submitted", description: "Your verified experience profile was attached to this opportunity." });
     if (assessmentId) setAssessmentOpen(true);
   };
@@ -87,6 +94,8 @@ export default function JobDetails() {
   const expiryDate = formatExpiryDate(job);
   const assessmentTitle = text(job?.assessmentTitle ?? job?.assessmentName ?? job?.problemNodeTitle, "");
   const assessmentId = String(job?.linkedAssessmentNodeId ?? job?.linkAssessmentNodeId ?? job?.assessmentNodeId ?? job?.problemNodeId ?? "");
+  const assessmentAssignmentId = appliedAssignmentId || employerChallengeAssignmentIdOf(job);
+  const assessmentRequiresAssignment = Boolean(applied || assessmentAssignmentId);
   const assessmentRequired = Boolean((job?.assessmentRequired ?? job?.requiresAssessment ?? assessmentId) || assessmentTitle);
   const nav = role === "Employer" ? EMPLOYER_NAV : role === "GlobalAdmin" ? ADMIN_NAV : USER_NAV;
   const theme = role === "Employer" ? "employer" : role === "GlobalAdmin" ? "admin" : "user";
@@ -193,7 +202,21 @@ export default function JobDetails() {
                     </p>
                     {assessmentId && (
                       <Button asChild variant="outline" size="sm" className="mt-4">
-                        <Link href={`/app/mission/${encodeURIComponent(assessmentId)}`}>View assessment</Link>
+                        <Link
+                          href={buildMissionHref({
+                            problemNodeId: assessmentId,
+                            employerChallengeAssignmentId: assessmentAssignmentId || null,
+                          })}
+                          onClick={() =>
+                            storeMissionAssignmentContext({
+                              problemNodeId: assessmentId,
+                              employerChallengeAssignmentId: assessmentAssignmentId || null,
+                              assignmentRequired: assessmentRequiresAssignment,
+                            })
+                          }
+                        >
+                          View assessment
+                        </Link>
                       </Button>
                     )}
                   </>
@@ -216,7 +239,19 @@ export default function JobDetails() {
             </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setAssessmentOpen(false)}>Later</Button>
-              <Button className="bg-[#FFD700] text-black hover:bg-[#F3C800]" onClick={() => assessmentId && navigate(`/app/mission/${encodeURIComponent(assessmentId)}`)}>
+              <Button
+                className="bg-[#FFD700] text-black hover:bg-[#F3C800]"
+                onClick={() => {
+                  if (!assessmentId) return;
+                  const context = {
+                    problemNodeId: assessmentId,
+                    employerChallengeAssignmentId: assessmentAssignmentId || null,
+                    assignmentRequired: true,
+                  };
+                  storeMissionAssignmentContext(context);
+                  navigate(buildMissionHref(context));
+                }}
+              >
                 Go to Assessment
               </Button>
             </DialogFooter>

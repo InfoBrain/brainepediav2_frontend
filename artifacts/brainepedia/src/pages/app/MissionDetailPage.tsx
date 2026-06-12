@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +24,15 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
+import { asList } from "@/lib/jobData";
+import {
+  employerChallengeAssignmentIdOf,
+  hasEmployerAssignmentSignal,
+  problemNodeIdOf,
+  readMissionAssignmentContext,
+  storeMissionAssignmentContext,
+  type MissionAssignmentContext,
+} from "@/lib/missionAssignmentContext";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +54,8 @@ type ProblemNode = {
   attachmentUrl?: string | null;
   isStarted?: boolean;
   isCompleted?: boolean;
+  employerChallengeAssignmentId?: string | null;
+  isEmployerAssignedChallenge?: boolean;
 };
 
 type ActiveSession = {
@@ -75,6 +86,8 @@ function normNode(data: any): ProblemNode {
     attachmentUrl: data?.attachmentUrl || data?.attachment || null,
     isStarted: Boolean(data?.isStarted),
     isCompleted: Boolean(data?.isCompleted),
+    employerChallengeAssignmentId: employerChallengeAssignmentIdOf(data) || null,
+    isEmployerAssignedChallenge: hasEmployerAssignmentSignal(data),
   };
 }
 
@@ -223,6 +236,15 @@ export default function MissionDetailPage() {
   const [starting, setStarting] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+  const [assignmentContext, setAssignmentContext] = useState<MissionAssignmentContext>(() =>
+    readMissionAssignmentContext(problemNodeId),
+  );
+  const contextAssignmentId = assignmentContext.employerChallengeAssignmentId || "";
+
+  useEffect(() => {
+    setAssignmentContext(readMissionAssignmentContext(problemNodeId));
+    setStartError(null);
+  }, [problemNodeId]);
 
   const {
     data: node,
@@ -231,9 +253,11 @@ export default function MissionDetailPage() {
     error: nodeErrorDetail,
     refetch,
   } = useQuery<ProblemNode>({
-    queryKey: ["problem-node", problemNodeId],
+    queryKey: ["problem-node", problemNodeId, contextAssignmentId],
     queryFn: async () => {
-      const res = await api.problemNodes.get(problemNodeId);
+      const res = await api.problemNodes.get(problemNodeId, {
+        employerChallengeAssignmentId: contextAssignmentId || undefined,
+      });
       if (!res.ok) throw new Error(res.error || "Failed to load challenge");
       return normNode(res.data);
     },
@@ -241,6 +265,56 @@ export default function MissionDetailPage() {
     staleTime: 3 * 60 * 1000,
     retry: 1,
   });
+
+  const {
+    data: assignedContext,
+    isLoading: assignmentContextLoading,
+  } = useQuery<MissionAssignmentContext | null>({
+    queryKey: ["assigned-mission-context", userId, problemNodeId],
+    queryFn: async () => {
+      const res = await api.dashboard.assignedChallenges();
+      if (!res.ok) return null;
+      const match = asList(res.data).find((item) => problemNodeIdOf(item) === problemNodeId);
+      if (!match) return null;
+      return {
+        problemNodeId,
+        employerChallengeAssignmentId: employerChallengeAssignmentIdOf(match) || null,
+        assignmentRequired: true,
+      };
+    },
+    enabled: Boolean(userId) && Boolean(problemNodeId) && !contextAssignmentId,
+    staleTime: 60 * 1000,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (!assignedContext) return;
+    setAssignmentContext((prev) => {
+      const next: MissionAssignmentContext = {
+        problemNodeId,
+        employerChallengeAssignmentId:
+          assignedContext.employerChallengeAssignmentId || prev.employerChallengeAssignmentId || null,
+        assignmentRequired: Boolean(prev.assignmentRequired || assignedContext.assignmentRequired),
+      };
+      storeMissionAssignmentContext(next);
+      return next;
+    });
+  }, [assignedContext, problemNodeId]);
+
+  useEffect(() => {
+    if (!node) return;
+    const nodeAssignmentId = node.employerChallengeAssignmentId || "";
+    if (!nodeAssignmentId && !node.isEmployerAssignedChallenge) return;
+    setAssignmentContext((prev) => {
+      const next: MissionAssignmentContext = {
+        problemNodeId,
+        employerChallengeAssignmentId: nodeAssignmentId || prev.employerChallengeAssignmentId || null,
+        assignmentRequired: Boolean(prev.assignmentRequired || node.isEmployerAssignedChallenge || nodeAssignmentId),
+      };
+      storeMissionAssignmentContext(next);
+      return next;
+    });
+  }, [node, problemNodeId]);
 
   const {
     data: activeSession,
@@ -265,6 +339,22 @@ export default function MissionDetailPage() {
 
   const isCompleted = node?.isCompleted ?? false;
   const hasActiveSession = Boolean(activeSession?.sessionId) && activeSession?.status !== "completed";
+  const resolvedAssignmentId = assignmentContext.employerChallengeAssignmentId || node?.employerChallengeAssignmentId || "";
+  const assignmentRequired = Boolean(assignmentContext.assignmentRequired || node?.isEmployerAssignedChallenge);
+  const assignmentMissingMessage =
+    "This challenge assignment could not be loaded correctly. Please return to your assignments and try again.";
+
+  function startPayload() {
+    if (assignmentRequired && !resolvedAssignmentId) {
+      setStartError(assignmentMissingMessage);
+      return null;
+    }
+    return {
+      userId: userId || "",
+      problemNodeId,
+      ...(resolvedAssignmentId ? { employerChallengeAssignmentId: resolvedAssignmentId } : {}),
+    };
+  }
 
   // For completed missions: find the latest submissionId via GET /api/Submissions/session/{sessionId}
   const {
@@ -299,9 +389,11 @@ export default function MissionDetailPage() {
 
   async function handleStart() {
     if (!userId) { navigate("/auth/login"); return; }
-    setStarting(true);
     setStartError(null);
-    const res = await api.experienceSessions.start({ userId, problemNodeId });
+    const payload = startPayload();
+    if (!payload) return;
+    setStarting(true);
+    const res = await api.experienceSessions.start(payload);
     setStarting(false);
 
     if (res.ok) {
@@ -327,10 +419,12 @@ export default function MissionDetailPage() {
 
   async function handleResume() {
     if (!userId) { navigate("/auth/login"); return; }
-    setStarting(true);
     setStartError(null);
+    const payload = startPayload();
+    if (!payload) return;
+    setStarting(true);
     // Call start — API returns existing session or creates one
-    const res = await api.experienceSessions.start({ userId, problemNodeId });
+    const res = await api.experienceSessions.start(payload);
     setStarting(false);
 
     if (res.ok) {
@@ -591,7 +685,7 @@ export default function MissionDetailPage() {
                 You can pause and resume anytime
               </p>
 
-              {sessionLoading ? (
+              {sessionLoading || assignmentContextLoading ? (
                 <div className="flex items-center justify-center py-3">
                   <Loader2 className="w-5 h-5 text-[#00D2FF] animate-spin" />
                 </div>

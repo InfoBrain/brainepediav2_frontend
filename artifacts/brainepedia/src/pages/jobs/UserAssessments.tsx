@@ -5,6 +5,12 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { asList, idOf, text } from "@/lib/jobData";
+import {
+  buildMissionHref,
+  employerChallengeAssignmentIdOf,
+  problemNodeIdOf,
+  storeMissionAssignmentContext,
+} from "@/lib/missionAssignmentContext";
 import { Button } from "@/components/ui/button";
 
 export default function UserAssessments() {
@@ -54,7 +60,13 @@ export default function UserAssessments() {
         <div className="grid gap-4">
           {items.map((item, index) => {
             const id = idOf(item) || String(index);
-            const missionId = item?.problemNodeId ?? item?.missionId ?? item?.nodeId;
+            const missionId = problemNodeIdOf(item);
+            const employerChallengeAssignmentId = employerChallengeAssignmentIdOf(item);
+            const missionContext = {
+              problemNodeId: missionId,
+              employerChallengeAssignmentId: employerChallengeAssignmentId || null,
+              assignmentRequired: true,
+            };
             return (
               <article key={id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -65,7 +77,14 @@ export default function UserAssessments() {
                     </p>
                   </div>
                   {missionId ? (
-                    <Button asChild><Link href={`/app/mission/${encodeURIComponent(String(missionId))}`}><Sparkles className="mr-2 h-4 w-4" /> Start</Link></Button>
+                    <Button asChild>
+                      <Link
+                        href={buildMissionHref(missionContext)}
+                        onClick={() => storeMissionAssignmentContext(missionContext)}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" /> Start
+                      </Link>
+                    </Button>
                   ) : (
                     <span className="text-xs font-mono text-muted-foreground">Awaiting mission link</span>
                   )}
