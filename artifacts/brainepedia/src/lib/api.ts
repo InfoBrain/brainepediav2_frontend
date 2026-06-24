@@ -366,8 +366,11 @@ export const api = {
     getResult: (sessionId: string) =>
       fetchApi(`/api/Evaluations/results/${encodeURIComponent(sessionId)}`),
     /** GET /api/Evaluations/node-results/{problemNodeId}?userId= — result by problem node (for completed missions) */
-    getNodeResult: (problemNodeId: string, userId?: string | null) =>
-      fetchApi(`/api/Evaluations/node-results/${encodeURIComponent(problemNodeId)}${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`),
+    getNodeResult: (problemNodeId: string, userId?: string | null, opts?: { suppressUnauthorized?: boolean }) =>
+      fetchApi(
+        `/api/Evaluations/node-results/${encodeURIComponent(problemNodeId)}${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`,
+        { suppressUnauthorized: opts?.suppressUnauthorized },
+      ),
   },
   identity: {
     /** GET /api/Profiles/professional-identity?userId= */
