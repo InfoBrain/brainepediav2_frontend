@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { GraduationCap, Plus, Loader2, Calendar, Users, RefreshCw } from "lucide-react";
+import { GraduationCap, Plus, Loader2, Calendar, Users, RefreshCw, Eye } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 
 const schema = z.object({
@@ -24,6 +24,7 @@ type FormData = z.infer<typeof schema>;
 
 type Challenge = {
   id: string;
+  assignmentId: string;
   challengeName: string;
   problemNodeId: string;
   problemNodeTitle?: string;
@@ -33,6 +34,26 @@ type Challenge = {
   completedCount?: number;
   professions?: string[];
   createdAt?: string;
+};
+
+type Participant = {
+  id: string;
+  userId: string;
+  fullName: string;
+  profession: string;
+  attemptedAt?: string;
+  completed: boolean;
+  score: string;
+  passed: boolean;
+  problemNodeId: string;
+};
+
+type ChallengeParticipants = {
+  challengeName: string;
+  totalAssigned: number;
+  totalCompleted: number;
+  completionRate: number;
+  participants: Participant[];
 };
 
 export default function PrivateChallenges() {
@@ -48,6 +69,11 @@ export default function PrivateChallenges() {
   const [selectedDistrictId, setSelectedDistrictId] = useState("");
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingNodes, setLoadingNodes] = useState(false);
+  const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
+  const [participants, setParticipants] = useState<ChallengeParticipants | null>(null);
+  const [participantsLoading, setParticipantsLoading] = useState(false);
+  const [result, setResult] = useState<any | null>(null);
+  const [resultLoading, setResultLoading] = useState(false);
 
   const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -109,6 +135,30 @@ export default function PrivateChallenges() {
   };
 
   const isExpired = (date: string) => new Date(date) < new Date();
+
+  const openChallenge = async (challenge: Challenge) => {
+    setSelectedChallenge(challenge);
+    setParticipants(null);
+    setParticipantsLoading(true);
+    const res = await api.employers.challengeParticipants(challenge.assignmentId || challenge.id);
+    setParticipantsLoading(false);
+    if (res.ok) {
+      setParticipants(normParticipants(res.data, challenge));
+    } else {
+      toast({ title: "Unable to load participants", description: res.error, variant: "destructive" });
+    }
+  };
+
+  const viewResult = async (participant: Participant) => {
+    const problemNodeId = participant.problemNodeId || selectedChallenge?.problemNodeId;
+    if (!problemNodeId || !participant.userId) return;
+    setResultLoading(true);
+    setResult(null);
+    const res = await api.evaluations.getNodeResult(problemNodeId, participant.userId);
+    setResultLoading(false);
+    if (res.ok) setResult(res.data);
+    else toast({ title: "Unable to load assessment result", description: res.error, variant: "destructive" });
+  };
 
   return (
     <DashboardShell nav={EMPLOYER_NAV} title="Team Challenges" subtitle="// employer.team.training" theme="employer">
@@ -225,7 +275,16 @@ export default function PrivateChallenges() {
             {challenges.map((ch) => {
               const expired = isExpired(ch.endDate);
               return (
-                <div key={ch.id} className="bg-[#0d1119] border border-white/5 rounded-xl p-5 space-y-3">
+                <div
+                  key={ch.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openChallenge(ch)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") openChallenge(ch);
+                  }}
+                  className="bg-[#0d1119] border border-white/5 rounded-xl p-5 space-y-3 cursor-pointer transition hover:border-[#9D4EDD]/50 hover:bg-[#9D4EDD]/5"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-lg bg-[#9D4EDD]/15 flex items-center justify-center shrink-0 border border-[#9D4EDD]/30">
@@ -277,12 +336,90 @@ export default function PrivateChallenges() {
                   <p className="text-[10px] text-muted-foreground/60 font-mono break-all">
                     Node: {ch.problemNodeId}
                   </p>
+                  <Button variant="outline" size="sm" className="w-full" onClick={(event) => { event.stopPropagation(); openChallenge(ch); }}>
+                    <Users className="mr-2 h-3.5 w-3.5" />
+                    View Participants
+                  </Button>
                 </div>
               );
             })}
           </div>
         )}
       </div>
+      <Dialog open={Boolean(selectedChallenge)} onOpenChange={(open) => !open && setSelectedChallenge(null)}>
+        <DialogContent className="max-w-5xl bg-[#0d1119] border border-white/10">
+          <DialogHeader>
+            <DialogTitle>{selectedChallenge?.challengeName ?? "Challenge Participants"}</DialogTitle>
+            <DialogDescription>Challenge summary, participant attempts, and completed results.</DialogDescription>
+          </DialogHeader>
+          {participantsLoading ? (
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 py-16 text-sm text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin text-[#9D4EDD]" />
+              Loading participants...
+            </div>
+          ) : participants ? (
+            <div className="space-y-5">
+              <div className="grid gap-3 sm:grid-cols-4">
+                <SummaryCard label="Challenge Name" value={participants.challengeName} />
+                <SummaryCard label="Total Assigned" value={participants.totalAssigned.toLocaleString()} />
+                <SummaryCard label="Total Completed" value={participants.totalCompleted.toLocaleString()} />
+                <SummaryCard label="Completion Rate" value={`${participants.completionRate}%`} />
+              </div>
+              <div className="overflow-x-auto rounded-xl border border-white/5">
+                <table className="w-full min-w-[860px] text-sm">
+                  <thead>
+                    <tr className="border-b border-white/5 text-left text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                      <th className="px-4 py-3">Full Name</th>
+                      <th className="px-4 py-3">Profession</th>
+                      <th className="px-4 py-3">Attempted At</th>
+                      <th className="px-4 py-3">Completed</th>
+                      <th className="px-4 py-3">Score</th>
+                      <th className="px-4 py-3">Passed</th>
+                      <th className="px-4 py-3">Result</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {participants.participants.map((participant) => (
+                      <tr key={participant.id} className="border-b border-white/5 last:border-0">
+                        <td className="px-4 py-3 font-medium">{participant.fullName}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{participant.profession}</td>
+                        <td className="px-4 py-3">{participant.attemptedAt ? new Date(participant.attemptedAt).toLocaleString() : "—"}</td>
+                        <td className="px-4 py-3">{participant.completed ? "Completed" : "Not Completed"}</td>
+                        <td className="px-4 py-3">{participant.score}</td>
+                        <td className="px-4 py-3">{participant.passed ? "Passed" : "Not Passed"}</td>
+                        <td className="px-4 py-3">
+                          {participant.completed && (
+                            <Button variant="outline" size="sm" onClick={() => viewResult(participant)}>
+                              <Eye className="mr-2 h-3.5 w-3.5" />
+                              View Result
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={Boolean(result) || resultLoading} onOpenChange={(open) => !open && setResult(null)}>
+        <DialogContent className="max-w-2xl bg-[#0d1119] border border-white/10">
+          <DialogHeader>
+            <DialogTitle>Assessment Result</DialogTitle>
+            <DialogDescription>Completed challenge evaluation outcome.</DialogDescription>
+          </DialogHeader>
+          {resultLoading ? (
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 py-16 text-sm text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" />
+              Loading assessment result...
+            </div>
+          ) : result ? (
+            <AssessmentResult result={result} />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </DashboardShell>
   );
 }
@@ -290,7 +427,8 @@ export default function PrivateChallenges() {
 function normChallenges(d: any): Challenge[] {
   const arr = Array.isArray(d) ? d : d?.challenges ?? d?.items ?? [];
   return arr.map((x: any) => ({
-    id: String(x.id ?? x.challengeId ?? Math.random()),
+    id: String(x.id ?? x.challengeId ?? x.assignmentId ?? x.AssignmentId ?? Math.random()),
+    assignmentId: String(x.assignmentId ?? x.AssignmentId ?? x.id ?? x.challengeId ?? ""),
     challengeName: x.challengeName ?? x.name ?? "Challenge",
     problemNodeId: x.problemNodeId ?? x.nodeId ?? "",
     problemNodeTitle: x.problemNodeTitle ?? x.problemNodeName ?? x.problemNode?.title ?? x.ProblemNodeTitle,
@@ -301,4 +439,88 @@ function normChallenges(d: any): Challenge[] {
     professions: Array.isArray(x.professions) ? x.professions : [],
     createdAt: x.createdAt ?? x.dateCreated,
   }));
+}
+
+function normParticipants(data: any, challenge: Challenge): ChallengeParticipants {
+  const root = data?.data ?? data?.summary ?? data;
+  const participants = (Array.isArray(root?.participants) ? root.participants : Array.isArray(root) ? root : root?.items ?? []).map((item: any) =>
+    normParticipant(item, challenge.problemNodeId),
+  );
+  const totalAssigned = Number(root?.totalAssigned ?? root?.TotalAssigned ?? root?.totalAssignedEmployees ?? root?.TotalAssignedEmployees ?? participants.length);
+  const totalCompleted = Number(root?.totalCompleted ?? root?.TotalCompleted ?? root?.completedCount ?? root?.CompletedCount ?? participants.filter((p: Participant) => p.completed).length);
+  const completionRate = Number(root?.completionRate ?? root?.CompletionRate ?? (totalAssigned ? Math.round((totalCompleted / totalAssigned) * 100) : 0));
+  return {
+    challengeName: text(root?.challengeName ?? root?.ChallengeName ?? challenge.challengeName, challenge.challengeName),
+    totalAssigned,
+    totalCompleted,
+    completionRate,
+    participants,
+  };
+}
+
+function normParticipant(item: any, fallbackProblemNodeId: string): Participant {
+  const completed = Boolean(item?.completed ?? item?.Completed ?? item?.hasCompleted ?? item?.HasCompleted ?? item?.completedAt ?? item?.CompletedAt);
+  const passValue = item?.passed ?? item?.Passed ?? item?.isPassed ?? item?.IsPassed ?? item?.passStatus ?? item?.PassStatus;
+  return {
+    id: String(item?.id ?? item?.participantId ?? item?.ParticipantId ?? item?.userId ?? item?.UserId ?? Math.random()),
+    userId: text(item?.userId ?? item?.UserId ?? item?.participantUserId ?? item?.ParticipantUserId ?? item?.employeeUserId ?? item?.EmployeeUserId, ""),
+    fullName: text(item?.fullName ?? item?.FullName ?? item?.name ?? item?.Name ?? `${item?.firstName ?? item?.FirstName ?? ""} ${item?.lastName ?? item?.LastName ?? ""}`.trim(), "Participant"),
+    profession: text(item?.profession ?? item?.Profession ?? item?.professionName ?? item?.ProfessionName, "—"),
+    attemptedAt: item?.attemptedAt ?? item?.AttemptedAt ?? item?.submittedAt ?? item?.SubmittedAt ?? item?.completedAt ?? item?.CompletedAt,
+    completed,
+    score: text(item?.score ?? item?.Score ?? item?.evaluationScore ?? item?.EvaluationScore, "—"),
+    passed: typeof passValue === "string" ? /pass|success/i.test(passValue) : Boolean(passValue),
+    problemNodeId: text(item?.problemNodeId ?? item?.ProblemNodeId ?? fallbackProblemNodeId, ""),
+  };
+}
+
+function SummaryCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function AssessmentResult({ result }: { result: any }) {
+  const root = result?.data ?? result?.result ?? result?.evaluation ?? result;
+  const passValue = root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed ?? root?.passFail ?? root?.PassFail ?? root?.status ?? root?.Status;
+  const passed = typeof passValue === "string" ? /pass|success/i.test(passValue) : Boolean(passValue);
+  const rows: [string, string][] = [
+    ["Mission Title", text(root?.missionTitle ?? root?.MissionTitle ?? root?.title ?? root?.Title, "Assessment mission")],
+    ["Score", text(root?.score ?? root?.Score ?? root?.percentageScore ?? root?.PercentageScore, "—")],
+    ["Strengths", resultText(root?.strengths ?? root?.Strengths ?? root?.Feedback?.Strengths, "No strengths returned.")],
+    ["Weaknesses", resultText(root?.weaknesses ?? root?.Weaknesses ?? root?.Feedback?.Weaknesses, "No weaknesses returned.")],
+    ["Improvement Areas", resultText(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement ?? root?.Feedback?.ImprovementAreas, "No improvement areas returned.")],
+    ["AI Evaluation Summary", resultText(root?.aiEvaluationSummary ?? root?.AiEvaluationSummary ?? root?.summary ?? root?.Summary ?? root?.rawAiReasoning ?? root?.RawAiReasoning ?? root?.aiReasoning ?? root?.AiReasoning, "No AI evaluation summary returned.")],
+  ];
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] p-4">
+        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Pass Status</p>
+        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-red-400/40 bg-red-400/10 text-red-300"}`}>
+          {passed ? "Passed" : "Not Passed"}
+        </span>
+      </div>
+      {rows.map(([label, value]) => (
+        <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm">{value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function resultText(value: unknown, fallback: string): string {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => text(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  if (value && typeof value === "object") {
+    const items = Object.values(value).map((item) => text(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  return text(value, fallback);
 }

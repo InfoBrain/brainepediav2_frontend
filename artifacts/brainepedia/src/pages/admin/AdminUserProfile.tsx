@@ -86,8 +86,7 @@ type ActivityItem = {
   id: string;
   activity: string;
   createdAt: string;
-  module: string;
-  action: string;
+  source: string;
 };
 
 function normDetail(d: any): ProfileDetail {
@@ -135,7 +134,7 @@ function normDetail(d: any): ProfileDetail {
 }
 
 function normDossier(d: any): DossierData {
-  const x = d?.profile || d?.data || d || {};
+  const x = d?.publicProfile || d?.PublicProfile || d?.dossier || d?.Dossier || d?.profile || d?.data || d || {};
   const badges: Badge[] = (() => {
     const arr =
       x.badges || x.earnedBadges || x.userBadges || x.achievements || [];
@@ -189,18 +188,22 @@ function normDossier(d: any): DossierData {
 function normActivity(d: any): ActivityItem[] {
   const arr = Array.isArray(d) ? d : d?.data || d?.logs || d?.items || [];
   if (!Array.isArray(arr)) return [];
-  return arr.map((x: any) => ({
-    id: String(x.id || x.activityId || Math.random()),
-    activity:
-      x.activity ||
-      x.action ||
-      x.description ||
-      x.activityType ||
-      "Activity",
-    createdAt: x.createdAt || x.date || x.timestamp || x.performedAt || "",
-    module: x.module || x.moduleName || x.area || "Platform",
-    action: x.action || x.actionName || x.activityType || "Activity",
-  }));
+  return arr
+    .map((x: any) => ({
+      id: String(x.id || x.activityId || Math.random()),
+      activity:
+        x.activity ||
+        x.Activity ||
+        x.action ||
+        x.Action ||
+        x.description ||
+        x.Description ||
+        x.activityType ||
+        "Activity",
+      createdAt: x.createdAt || x.CreatedAt || x.dateCreated || x.DateCreated || x.date || x.timestamp || x.performedAt || "",
+      source: x.source || x.Source || x.module || x.Module || x.moduleName || x.area || "Platform",
+    }))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 const TABS = ["overview", "activity", "dossier", "security"] as const;
@@ -633,9 +636,8 @@ function ActivityTab({
           <thead className="border-b border-white/5 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-4 py-3 text-left">Activity</th>
-              <th className="px-4 py-3 text-left">Date</th>
-              <th className="px-4 py-3 text-left">Module</th>
-              <th className="px-4 py-3 text-left">Action</th>
+              <th className="px-4 py-3 text-left">Source</th>
+              <th className="px-4 py-3 text-left">Date Created</th>
             </tr>
           </thead>
           <tbody>
@@ -648,11 +650,10 @@ function ActivityTab({
                 className="border-b border-white/5 last:border-0"
               >
                 <td className="px-4 py-3 text-foreground">{item.activity}</td>
+                <td className="px-4 py-3 text-muted-foreground">{item.source}</td>
                 <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                   {item.createdAt ? new Date(item.createdAt).toLocaleString() : "—"}
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{item.module}</td>
-                <td className="px-4 py-3"><span className="rounded-full border border-[#6366F1]/30 bg-[#6366F1]/15 px-2 py-0.5 text-xs text-[#A5B4FC]">{item.action}</span></td>
               </motion.tr>
             ))}
           </tbody>

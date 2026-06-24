@@ -1,28 +1,52 @@
 import { useEffect, useState } from "react";
-import { BarChart3, Loader2, Trophy, Flame, Target, Users } from "lucide-react";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-} from "recharts";
+import { Loader2, Trophy, Users } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
+import { text } from "@/lib/jobData";
 
-type Employee = {
+type OverviewMetrics = {
+  organizationSize: number;
+  totalAssignedMissions: number;
+  totalCompletedMissions: number;
+  teamCompletionRate: number;
+  averageTeamEvaluationScore: number;
+};
+
+type AssignedMission = {
+  missionName: string;
+  score: string;
+  completed: boolean;
+  passed: boolean;
+};
+
+type RosterMember = {
   userId: string;
-  name: string;
+  fullName: string;
   profession?: string;
-  totalXP: number;
+  rankTitle?: string;
+  xp: number;
+  vx: number;
   problemsSolved: number;
   dayStreak: number;
-  verifiedExperience?: number;
+  missions: number;
+  completedMissions: number;
+  assignedMissions: AssignedMission[];
+};
+
+type LeaderboardMember = {
+  rank: number;
+  fullName: string;
+  profession?: string;
+  xp: number;
+  vx: number;
+  completedMissions: number;
 };
 
 type AnalyticsData = {
-  organizationSize: number;
-  employees: Employee[];
-  professionDistribution: { profession: string; count: number }[];
-  averageXP: number;
+  overviewMetrics: OverviewMetrics;
+  detailedRoster: RosterMember[];
+  performanceLeaderboard: LeaderboardMember[];
 };
 
 function StatPill({ label, value, color = "#00D2FF" }: { label: string; value: string | number; color?: string }) {
@@ -37,23 +61,17 @@ function StatPill({ label, value, color = "#00D2FF" }: { label: string; value: s
 export default function TeamAnalytics() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     api.employers.teamAnalytics().then((res) => {
       if (res.ok) setData(normAnalytics(res.data));
+      else setError(res.error || "Unable to load team analytics.");
       setLoading(false);
     });
   }, []);
 
-  const xpChartData = (data?.employees ?? [])
-    .sort((a, b) => b.totalXP - a.totalXP)
-    .slice(0, 10)
-    .map((e) => ({ name: e.name.split(" ")[0], xp: e.totalXP }));
-
-  const radarData = (data?.professionDistribution ?? []).slice(0, 6).map((p) => ({
-    subject: p.profession,
-    count: p.count,
-  }));
+  const overview = data?.overviewMetrics;
 
   return (
     <DashboardShell nav={EMPLOYER_NAV} title="Team Analytics" subtitle="// employer.insights.performance" theme="employer">
@@ -62,145 +80,150 @@ export default function TeamAnalytics() {
           <Loader2 className="h-5 w-5 animate-spin" />
           <span className="font-mono text-sm">Loading analytics…</span>
         </div>
-      ) : !data ? (
+      ) : error ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">
+          {error}
+        </div>
+      ) : !data || !overview ? (
         <div className="py-16 text-center text-sm text-muted-foreground font-mono border border-dashed border-white/10 rounded-lg">
           No analytics data available yet. Add team members to see insights.
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Summary stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatPill label="Team Size" value={data.organizationSize} color="#00D2FF" />
-            <StatPill label="Avg Verified XP" value={Math.round(data.averageXP).toLocaleString()} color="#9D4EDD" />
-            <StatPill
-              label="Top Streak"
-              value={Math.max(0, ...data.employees.map((e) => e.dayStreak))}
-              color="#FFD700"
-            />
-            <StatPill
-              label="Problems Solved"
-              value={data.employees.reduce((s, e) => s + e.problemsSolved, 0)}
-              color="#22c55e"
-            />
+          <div className="rounded-2xl border border-[#00D2FF]/30 bg-gradient-to-br from-[#00D2FF]/15 to-[#0d1119] p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#00D2FF]">Team Members Count</p>
+                <h2 className="mt-1 text-5xl font-black text-[#00D2FF]">{overview.organizationSize.toLocaleString()}</h2>
+              </div>
+              <Users className="h-12 w-12 text-[#00D2FF]/60" />
+            </div>
           </div>
 
-          {/* XP Bar Chart */}
-          {xpChartData.length > 0 && (
-            <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-              <h3 className="text-base font-bold mb-4 flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-[#00D2FF]" />
-                Top 10 by Verified XP
-              </h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={xpChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 12 }} />
-                    <YAxis tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} />
-                    <Tooltip
-                      contentStyle={{ background: "#0d1119", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8 }}
-                      labelStyle={{ color: "#fff" }}
-                      itemStyle={{ color: "#00D2FF" }}
-                    />
-                    <Bar dataKey="xp" fill="#00D2FF" fillOpacity={0.85} radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Profession Distribution */}
-            {radarData.length > 0 && (
-              <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-                <h3 className="text-base font-bold mb-4 flex items-center gap-2">
-                  <Users className="h-4 w-4 text-[#9D4EDD]" />
-                  Profession Distribution
-                </h3>
-                <div className="h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart data={radarData} outerRadius="70%">
-                      <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: "rgba(255,255,255,0.7)", fontSize: 11 }} />
-                      <PolarRadiusAxis angle={30} domain={[0, "auto"]} tick={false} axisLine={false} />
-                      <Radar dataKey="count" stroke="#9D4EDD" fill="#9D4EDD" fillOpacity={0.3} />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
-
-            {/* Employee Leaderboard */}
-            <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-              <h3 className="text-base font-bold mb-4 flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-[#FFD700]" />
-                Performance Leaderboard
-              </h3>
-              <div className="space-y-2">
-                {data.employees
-                  .sort((a, b) => b.totalXP - a.totalXP)
-                  .slice(0, 8)
-                  .map((emp, i) => (
-                    <div key={emp.userId} className="flex items-center gap-3 py-1.5 border-b border-white/5 last:border-0">
-                      <span className={`text-xs font-mono w-5 shrink-0 ${
-                        i === 0 ? "text-[#FFD700]" : i === 1 ? "text-gray-300" : i === 2 ? "text-orange-400" : "text-muted-foreground"
-                      }`}>
-                        #{i + 1}
-                      </span>
-                      <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#00D2FF]/20 to-[#9D4EDD]/20 flex items-center justify-center text-xs font-bold shrink-0">
-                        {emp.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{emp.name}</p>
-                        {emp.profession && (
-                          <p className="text-xs text-muted-foreground font-mono truncate">{emp.profession}</p>
-                        )}
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-mono text-[#00D2FF]">{emp.totalXP.toLocaleString()} XP</p>
-                        <p className="text-[10px] text-muted-foreground font-mono flex items-center justify-end gap-1">
-                          <Flame className="h-2.5 w-2.5 text-orange-400" />
-                          {emp.dayStreak}d · <Target className="h-2.5 w-2.5 text-[#9D4EDD] ml-0.5" />
-                          {emp.problemsSolved}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+            <StatPill label="Organization Size" value={overview.organizationSize.toLocaleString()} color="#00D2FF" />
+            <StatPill label="Total Assigned Missions" value={overview.totalAssignedMissions.toLocaleString()} color="#9D4EDD" />
+            <StatPill label="Total Completed Missions" value={overview.totalCompletedMissions.toLocaleString()} color="#22c55e" />
+            <StatPill label="Team Completion Rate" value={`${overview.teamCompletionRate}%`} color="#FFD700" />
+            <StatPill label="Avg Team Evaluation Score" value={`${overview.averageTeamEvaluationScore}%`} color="#f97316" />
           </div>
 
           <div className="rounded-xl border border-white/5 bg-[#0d1119] p-6">
             <h3 className="mb-4 flex items-center gap-2 text-base font-bold">
               <Users className="h-4 w-4 text-[#00D2FF]" />
-              Team Members
+              Detailed Roster
             </h3>
-            {data.employees.length === 0 ? (
+            {data.detailedRoster.length === 0 ? (
               <div className="rounded-lg border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
                 No team member analytics were returned yet.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] text-sm">
+                <table className="w-full min-w-[980px] text-sm">
                   <thead>
                     <tr className="border-b border-white/5 text-left text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                      <th className="px-3 py-3">Name</th>
+                      <th className="px-3 py-3">Full Name</th>
                       <th className="px-3 py-3">Profession</th>
+                      <th className="px-3 py-3">Rank Title</th>
                       <th className="px-3 py-3">XP</th>
+                      <th className="px-3 py-3">VX</th>
                       <th className="px-3 py-3">Problems Solved</th>
                       <th className="px-3 py-3">Day Streak</th>
-                      <th className="px-3 py-3">Verified Experience</th>
+                      <th className="px-3 py-3">Missions</th>
+                      <th className="px-3 py-3">Completed Missions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.employees.map((employee) => (
+                    {data.detailedRoster.map((employee) => (
                       <tr key={employee.userId} className="border-b border-white/5 last:border-0">
-                        <td className="px-3 py-3 font-medium">{employee.name}</td>
+                        <td className="px-3 py-3 font-medium">{employee.fullName}</td>
                         <td className="px-3 py-3 text-muted-foreground">{employee.profession || "—"}</td>
-                        <td className="px-3 py-3 font-mono text-[#00D2FF]">{employee.totalXP.toLocaleString()} XP</td>
+                        <td className="px-3 py-3">{employee.rankTitle || "—"}</td>
+                        <td className="px-3 py-3 font-mono text-[#00D2FF]">{employee.xp.toLocaleString()} XP</td>
+                        <td className="px-3 py-3">{employee.vx.toLocaleString()} VX</td>
                         <td className="px-3 py-3">{employee.problemsSolved.toLocaleString()}</td>
                         <td className="px-3 py-3">{employee.dayStreak.toLocaleString()} days</td>
-                        <td className="px-3 py-3">{employee.verifiedExperience?.toLocaleString() ?? "—"}</td>
+                        <td className="px-3 py-3">{employee.missions.toLocaleString()}</td>
+                        <td className="px-3 py-3">{employee.completedMissions.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-white/5 bg-[#0d1119] p-6">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-bold">
+              <Users className="h-4 w-4 text-[#9D4EDD]" />
+              Assigned Missions
+            </h3>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {data.detailedRoster.map((employee) => (
+                <div key={`${employee.userId}-missions`} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+                  <h4 className="font-semibold">{employee.fullName}</h4>
+                  {employee.assignedMissions.length === 0 ? (
+                    <p className="mt-3 text-sm text-muted-foreground">No assigned missions returned.</p>
+                  ) : (
+                    <div className="mt-3 overflow-x-auto">
+                      <table className="w-full min-w-[520px] text-xs">
+                        <thead>
+                          <tr className="border-b border-white/5 text-left font-mono uppercase tracking-wider text-muted-foreground">
+                            <th className="px-2 py-2">Mission Name</th>
+                            <th className="px-2 py-2">Score</th>
+                            <th className="px-2 py-2">Completed Status</th>
+                            <th className="px-2 py-2">Pass Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {employee.assignedMissions.map((mission, index) => (
+                            <tr key={`${employee.userId}-${mission.missionName}-${index}`} className="border-b border-white/5 last:border-0">
+                              <td className="px-2 py-2">{mission.missionName}</td>
+                              <td className="px-2 py-2">{mission.score}</td>
+                              <td className="px-2 py-2">{mission.completed ? "Completed" : "Not Completed"}</td>
+                              <td className="px-2 py-2">{mission.passed ? "Passed" : "Not Passed"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-white/5 bg-[#0d1119] p-6">
+            <h3 className="mb-4 flex items-center gap-2 text-base font-bold">
+              <Trophy className="h-4 w-4 text-[#FFD700]" />
+              Performance Leaderboard
+            </h3>
+            {data.performanceLeaderboard.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+                No leaderboard data was returned yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[760px] text-sm">
+                  <thead>
+                    <tr className="border-b border-white/5 text-left text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                      <th className="px-3 py-3">Rank</th>
+                      <th className="px-3 py-3">Full Name</th>
+                      <th className="px-3 py-3">Profession</th>
+                      <th className="px-3 py-3">XP</th>
+                      <th className="px-3 py-3">VX</th>
+                      <th className="px-3 py-3">Completed Missions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.performanceLeaderboard.map((employee) => (
+                      <tr key={`${employee.rank}-${employee.fullName}`} className="border-b border-white/5 last:border-0">
+                        <td className="px-3 py-3 font-mono text-[#FFD700]">#{employee.rank}</td>
+                        <td className="px-3 py-3 font-medium">{employee.fullName}</td>
+                        <td className="px-3 py-3 text-muted-foreground">{employee.profession || "—"}</td>
+                        <td className="px-3 py-3 font-mono text-[#00D2FF]">{employee.xp.toLocaleString()} XP</td>
+                        <td className="px-3 py-3">{employee.vx.toLocaleString()} VX</td>
+                        <td className="px-3 py-3">{employee.completedMissions.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -216,33 +239,80 @@ export default function TeamAnalytics() {
 
 function normAnalytics(d: any): AnalyticsData {
   const root = d?.data ?? d?.analytics ?? d;
-  const employees: Employee[] = (
-    Array.isArray(root?.employees)
-      ? root.employees
-      : Array.isArray(root?.teamMembers)
-      ? root.teamMembers
-      : Array.isArray(root?.members)
-      ? root.members
-      : []
-  ).map((x: any) => ({
-    userId: String(x.userId ?? x.UserId ?? x.id ?? x.Id ?? Math.random()),
-    name: x.name ?? x.Name ?? x.fullName ?? x.FullName ?? (`${x.firstName ?? x.FirstName ?? ""} ${x.lastName ?? x.LastName ?? ""}`.trim() || "Team member"),
-    profession: x.profession ?? x.Profession ?? x.role ?? x.Role,
-    totalXP: Number(x.totalXP ?? x.TotalXP ?? x.totalXp ?? x.TotalXp ?? x.xp ?? x.XP ?? x.verifiedXp ?? x.VerifiedXp ?? 0),
-    problemsSolved: Number(x.problemsSolved ?? x.ProblemsSolved ?? x.challengesSolved ?? x.ChallengesSolved ?? x.solved ?? x.Solved ?? 0),
-    dayStreak: Number(x.dayStreak ?? x.DayStreak ?? x.streak ?? x.Streak ?? 0),
-    verifiedExperience: Number(x.verifiedExperience ?? x.VerifiedExperience ?? x.verifiedExperienceYears ?? x.VerifiedExperienceYears ?? x.verifiedXp ?? x.VerifiedXp ?? 0),
-  }));
-
-  const profMap: Record<string, number> = {};
-  employees.forEach((e) => {
-    if (e.profession) profMap[e.profession] = (profMap[e.profession] ?? 0) + 1;
-  });
-
+  const overview = root?.overviewMetrics ?? root?.OverviewMetrics ?? root;
+  const detailedRoster = arrayOf(root?.detailedRoster ?? root?.DetailedRoster ?? root?.employees ?? root?.teamMembers ?? root?.members).map(normRosterMember);
+  const performanceLeaderboard = arrayOf(root?.performanceLeaderboard ?? root?.PerformanceLeaderboard).map(normLeaderboardMember);
+  const fallbackLeaderboard = detailedRoster
+    .slice()
+    .sort((a, b) => b.xp - a.xp)
+    .map((member, index) => ({
+      rank: index + 1,
+      fullName: member.fullName,
+      profession: member.profession,
+      xp: member.xp,
+      vx: member.vx,
+      completedMissions: member.completedMissions,
+    }));
   return {
-    organizationSize: root?.organizationSize ?? root?.OrganizationSize ?? root?.teamSize ?? root?.TeamSize ?? employees.length,
-    employees,
-    professionDistribution: Object.entries(profMap).map(([profession, count]) => ({ profession, count })),
-    averageXP: employees.length ? employees.reduce((s, e) => s + e.totalXP, 0) / employees.length : 0,
+    overviewMetrics: {
+      organizationSize: numberOf(overview?.organizationSize ?? overview?.OrganizationSize ?? detailedRoster.length),
+      totalAssignedMissions: numberOf(overview?.totalAssignedMissions ?? overview?.TotalAssignedMissions ?? sum(detailedRoster, "missions")),
+      totalCompletedMissions: numberOf(overview?.totalCompletedMissions ?? overview?.TotalCompletedMissions ?? sum(detailedRoster, "completedMissions")),
+      teamCompletionRate: numberOf(overview?.teamCompletionRate ?? overview?.TeamCompletionRate),
+      averageTeamEvaluationScore: numberOf(overview?.averageTeamEvaluationScore ?? overview?.AverageTeamEvaluationScore),
+    },
+    detailedRoster,
+    performanceLeaderboard: performanceLeaderboard.length ? performanceLeaderboard : fallbackLeaderboard,
   };
+}
+
+function normRosterMember(x: any): RosterMember {
+  const missions = arrayOf(x?.assignedMissions ?? x?.AssignedMissions ?? x?.missionsAssigned ?? x?.MissionsAssigned ?? x?.missions ?? x?.Missions);
+  const completedMissions = numberOf(x?.completedMissions ?? x?.CompletedMissions ?? x?.totalCompletedMissions ?? x?.TotalCompletedMissions);
+  return {
+    userId: String(x?.userId ?? x?.UserId ?? x?.id ?? x?.Id ?? `${text(x?.fullName ?? x?.FullName ?? x?.name, "member")}-${Math.random()}`),
+    fullName: text(x?.fullName ?? x?.FullName ?? x?.name ?? x?.Name ?? `${x?.firstName ?? x?.FirstName ?? ""} ${x?.lastName ?? x?.LastName ?? ""}`.trim(), "Team member"),
+    profession: text(x?.profession ?? x?.Profession ?? x?.professionName ?? x?.ProfessionName, ""),
+    rankTitle: text(x?.rankTitle ?? x?.RankTitle ?? x?.rank ?? x?.Rank, ""),
+    xp: numberOf(x?.xp ?? x?.XP ?? x?.totalXP ?? x?.TotalXP ?? x?.totalXp ?? x?.TotalXp),
+    vx: numberOf(x?.vx ?? x?.VX ?? x?.verifiedExperience ?? x?.VerifiedExperience ?? x?.verifiedExperienceYears ?? x?.VerifiedExperienceYears),
+    problemsSolved: numberOf(x?.problemsSolved ?? x?.ProblemsSolved ?? x?.solved ?? x?.Solved),
+    dayStreak: numberOf(x?.dayStreak ?? x?.DayStreak ?? x?.streak ?? x?.Streak),
+    missions: numberOf(x?.missions ?? x?.Missions ?? x?.totalMissions ?? x?.TotalMissions ?? missions.length),
+    completedMissions: completedMissions || missions.filter((mission) => Boolean(mission?.completed ?? mission?.Completed ?? mission?.isCompleted ?? mission?.IsCompleted)).length,
+    assignedMissions: missions.map(normAssignedMission),
+  };
+}
+
+function normAssignedMission(mission: any): AssignedMission {
+  return {
+    missionName: text(mission?.missionName ?? mission?.MissionName ?? mission?.challengeName ?? mission?.ChallengeName ?? mission?.name ?? mission?.Name, "Mission"),
+    score: text(mission?.score ?? mission?.Score ?? mission?.evaluationScore ?? mission?.EvaluationScore, "—"),
+    completed: Boolean(mission?.completed ?? mission?.Completed ?? mission?.isCompleted ?? mission?.IsCompleted ?? mission?.hasCompleted ?? mission?.HasCompleted),
+    passed: Boolean(mission?.passed ?? mission?.Passed ?? mission?.isPassed ?? mission?.IsPassed),
+  };
+}
+
+function normLeaderboardMember(x: any, index: number): LeaderboardMember {
+  return {
+    rank: numberOf(x?.rank ?? x?.Rank ?? x?.position ?? x?.Position) || index + 1,
+    fullName: text(x?.fullName ?? x?.FullName ?? x?.name ?? x?.Name, "Team member"),
+    profession: text(x?.profession ?? x?.Profession ?? x?.professionName ?? x?.ProfessionName, ""),
+    xp: numberOf(x?.xp ?? x?.XP ?? x?.totalXP ?? x?.TotalXP ?? x?.totalXp ?? x?.TotalXp),
+    vx: numberOf(x?.vx ?? x?.VX ?? x?.verifiedExperience ?? x?.VerifiedExperience),
+    completedMissions: numberOf(x?.completedMissions ?? x?.CompletedMissions ?? x?.totalCompletedMissions ?? x?.TotalCompletedMissions),
+  };
+}
+
+function arrayOf(value: any): any[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function numberOf(value: unknown): number {
+  const parsed = typeof value === "number" ? value : Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function sum(items: RosterMember[], key: "missions" | "completedMissions"): number {
+  return items.reduce((total, item) => total + item[key], 0);
 }

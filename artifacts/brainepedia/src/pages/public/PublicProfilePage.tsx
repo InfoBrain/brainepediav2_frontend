@@ -4,10 +4,17 @@ import { motion } from "framer-motion";
 import {
   Trophy, Shield, Zap, Globe, Twitter, Linkedin, Link2,
   Copy, CheckCircle2, ArrowLeft, Star, Target, Medal,
-  Download, BookOpen, Calendar, Award, User,
+  Download, BookOpen, Calendar, Award, User, Eye, Loader2,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 /* ── Types ── */
 type BadgeItem = {
@@ -28,6 +35,8 @@ type MissionItem = {
   Title?: string;
   districtName?: string;
   DistrictName?: string;
+  problemNodeId?: string;
+  ProblemNodeId?: string;
   score?: number;
   Score?: number;
   completionDate?: string;
@@ -113,6 +122,9 @@ export default function PublicProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [performance, setPerformance] = useState<any | null>(null);
+  const [performanceLoading, setPerformanceLoading] = useState(false);
+  const [performanceError, setPerformanceError] = useState("");
 
   /* resolve helper fields */
   const name       = profile?.DisplayName || profile?.displayName || "Brainepedia Member";
@@ -186,6 +198,20 @@ export default function PublicProfilePage() {
     } else {
       handleCopy();
     }
+  };
+
+  const viewPerformance = async (problemNodeId: string) => {
+    if (!problemNodeId) return;
+    setPerformance(null);
+    setPerformanceError("");
+    setPerformanceLoading(true);
+    const res = await api.evaluations.getNodeResult(problemNodeId, userId, { suppressUnauthorized: true });
+    setPerformanceLoading(false);
+    if (!res.ok) {
+      setPerformanceError(res.error || "Unable to load mission performance.");
+      return;
+    }
+    setPerformance(res.data);
   };
 
   if (loading) return <PageSkeleton />;
@@ -361,24 +387,36 @@ export default function PublicProfilePage() {
                 const dName  = m.districtName  || m.DistrictName  || "";
                 const score  = m.score ?? m.Score ?? 0;
                 const date   = m.completionDate || m.CompletionDate || m.completedAt || "";
+                const problemNodeId = m.problemNodeId || m.ProblemNodeId || "";
                 return (
                   <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.05 + i * 0.03 }}
-                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/2 transition-colors">
+                    className="flex flex-col gap-3 px-5 py-3.5 hover:bg-white/2 transition-colors sm:flex-row sm:items-center">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white font-medium truncate">{mTitle}</p>
                       {dName && <p className="text-xs text-white/35 font-mono mt-0.5 truncate">{dName}</p>}
                     </div>
-                    <div className="shrink-0 text-right">
-                      {score > 0 && (
-                        <p className="text-sm font-bold font-mono text-[#00D2FF]">{score}%</p>
-                      )}
-                      {date && (
-                        <p className="text-[10px] text-white/25 font-mono flex items-center gap-1 justify-end mt-0.5">
-                          <Calendar className="w-2.5 h-2.5" />
-                          {new Date(date).toLocaleDateString()}
-                        </p>
+                    <div className="flex shrink-0 flex-wrap items-center gap-3 text-left sm:justify-end sm:text-right">
+                      <div>
+                        {score > 0 && (
+                          <p className="text-sm font-bold font-mono text-[#00D2FF]">{score}%</p>
+                        )}
+                        {date && (
+                          <p className="text-[10px] text-white/25 font-mono flex items-center gap-1 sm:justify-end mt-0.5">
+                            <Calendar className="w-2.5 h-2.5" />
+                            {new Date(date).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      {problemNodeId && (
+                        <button
+                          onClick={() => viewPerformance(problemNodeId)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-[#00D2FF]/25 bg-[#00D2FF]/8 px-3 py-1.5 text-xs font-mono text-[#00D2FF] transition hover:bg-[#00D2FF]/15"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View Performance
+                        </button>
                       )}
                     </div>
                   </motion.div>
@@ -422,6 +460,32 @@ export default function PublicProfilePage() {
           </div>
         </motion.div>
 
+        <Dialog open={Boolean(performance) || performanceLoading || Boolean(performanceError)} onOpenChange={(open) => {
+          if (!open) {
+            setPerformance(null);
+            setPerformanceError("");
+          }
+        }}>
+          <DialogContent className="max-w-2xl bg-[#0d1119] border border-white/10 text-white">
+            <DialogHeader>
+              <DialogTitle>Mission Performance</DialogTitle>
+              <DialogDescription>Evaluation result for this completed mission.</DialogDescription>
+            </DialogHeader>
+            {performanceLoading ? (
+              <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 py-16 text-sm text-white/40">
+                <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" />
+                Loading mission performance...
+              </div>
+            ) : performanceError ? (
+              <div className="rounded-xl border border-red-400/30 bg-red-400/10 p-5 text-sm text-red-200">
+                {performanceError}
+              </div>
+            ) : performance ? (
+              <PerformanceResult result={performance} />
+            ) : null}
+          </DialogContent>
+        </Dialog>
+
         {/* ── Footer ── */}
         <div className="text-center pt-4 pb-8">
           <p className="text-[10px] font-mono text-white/15">
@@ -433,4 +497,52 @@ export default function PublicProfilePage() {
       </div>
     </div>
   );
+}
+
+function PerformanceResult({ result }: { result: any }) {
+  const root = result?.data ?? result?.result ?? result?.evaluation ?? result;
+  const passValue = root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed ?? root?.passFail ?? root?.PassFail ?? root?.status ?? root?.Status;
+  const passed = typeof passValue === "string" ? /pass|success/i.test(passValue) : Boolean(passValue);
+  const rows: [string, string][] = [
+    ["Mission Title", displayText(root?.missionTitle ?? root?.MissionTitle ?? root?.title ?? root?.Title, "Mission")],
+    ["Score", displayText(root?.score ?? root?.Score ?? root?.percentageScore ?? root?.PercentageScore, "—")],
+    ["Strengths", resultText(root?.strengths ?? root?.Strengths ?? root?.Feedback?.Strengths, "No strengths returned.")],
+    ["Weaknesses", resultText(root?.weaknesses ?? root?.Weaknesses ?? root?.Feedback?.Weaknesses, "No weaknesses returned.")],
+    ["Improvement Areas", resultText(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement ?? root?.Feedback?.ImprovementAreas, "No improvement areas returned.")],
+    ["AI Evaluation Summary", resultText(root?.aiEvaluationSummary ?? root?.AiEvaluationSummary ?? root?.summary ?? root?.Summary ?? root?.rawAiReasoning ?? root?.RawAiReasoning ?? root?.aiReasoning ?? root?.AiReasoning, "No AI evaluation summary returned.")],
+  ];
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] p-4">
+        <p className="text-xs font-mono uppercase tracking-wider text-white/35">Pass Status</p>
+        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-red-400/40 bg-red-400/10 text-red-300"}`}>
+          {passed ? "Passed" : "Not Passed"}
+        </span>
+      </div>
+      {rows.map(([label, value]) => (
+        <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+          <p className="text-xs font-mono uppercase tracking-wider text-white/35">{label}</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm text-white/85">{value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function resultText(value: unknown, fallback: string): string {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => displayText(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  if (value && typeof value === "object") {
+    const items = Object.values(value).map((item) => displayText(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  return displayText(value, fallback);
+}
+
+function displayText(value: unknown, fallback = "—"): string {
+  if (value === null || value === undefined) return fallback;
+  const output = String(value).trim();
+  return output || fallback;
 }

@@ -5,6 +5,7 @@ import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { normalizeSubscriptionDetails, type NormalizedSubscriptionDetails } from "@/lib/subscription";
 
 type BillingData = {
   billingCycleStart?: string;
@@ -54,6 +55,7 @@ function InfoCard({
 
 export default function BillingSeats() {
   const [billing, setBilling] = useState<BillingData | null>(null);
+  const [subscription, setSubscription] = useState<NormalizedSubscriptionDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -65,9 +67,12 @@ export default function BillingSeats() {
       getUserId() ? api.subscriptions.details(getUserId() as string) : Promise.resolve(null),
       api.employers.myTeamRoster(),
     ]);
+    if (subscriptionRes?.ok) setSubscription(normalizeSubscriptionDetails(subscriptionRes.data));
+    const roster = rosterRes.ok ? asArray(rosterRes.data) : [];
     if (res.ok) {
-      const roster = rosterRes.ok ? asArray(rosterRes.data) : [];
       setBilling(normBilling(res.data, subscriptionRes?.ok ? subscriptionRes.data : null, roster));
+    } else if (subscriptionRes?.ok) {
+      setBilling(normBilling({}, subscriptionRes.data, roster));
     } else setError(res.error || "Failed to load billing data.");
     setLoading(false);
   };
@@ -104,6 +109,15 @@ export default function BillingSeats() {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {subscription && (
+                <>
+                  <InfoCard icon={Gem} label="Tier" value={subscription.currentTier} sub="Subscription tier" color="#FFD700" />
+                  <InfoCard icon={CreditCard} label="Status" value={subscription.status} sub={subscription.active ? "Access enabled" : "Upgrade recommended"} color={subscription.active ? "#22c55e" : "#f87171"} />
+                  <InfoCard icon={Users} label="Corporate Provider" value={subscription.corporateProvider} sub="Associated provider" color="#9D4EDD" />
+                  <InfoCard icon={Calendar} label="Expiry Date" value={subscription.expiryDate} sub="Subscription expiry" color="#f97316" />
+                  <InfoCard icon={CreditCard} label="Subscription Type" value={subscription.subscriptionType} sub="Billing contract type" color="#00D2FF" />
+                </>
+              )}
               <InfoCard
                 icon={Gem}
                 label="Current Plan"

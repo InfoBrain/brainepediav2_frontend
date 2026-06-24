@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BarChart3, BriefcaseBusiness, Loader2, MessageSquare, Users } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, Loader2, MessageSquare } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
@@ -24,24 +24,73 @@ export default function AdminAnalytics() {
           <Loader2 className="h-5 w-5 animate-spin text-[#A5B4FC]" /> Loading analytics...
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Metric icon={Users} title="User Metrics" value={stats?.totalUsers ?? stats?.userCount ?? "—"} detail="Learners and professionals" />
-          <Metric icon={BriefcaseBusiness} title="Employer Metrics" value={stats?.totalEmployers ?? stats?.employerCount ?? "—"} detail="Recruitment organizations" />
-          <Metric icon={BarChart3} title="Jobs Metrics" value={stats?.totalJobs ?? stats?.jobCount ?? "—"} detail="Job postings and applicant flow" />
-          <Metric icon={MessageSquare} title="Community Metrics" value={stats?.forumThreads ?? stats?.communityCount ?? "—"} detail="Forum discussions and engagement" />
+        <div className="space-y-6">
+          <MetricSection
+            title="Employer Metrics"
+            icon={BriefcaseBusiness}
+            metrics={[
+              ["Total Employers", valueOf(stats, ["totalEmployers", "employerCount", "employers"])],
+              ["Active Employers", valueOf(stats, ["activeEmployers", "activeEmployerCount"])],
+              ["Grandmaster Employers", valueOf(stats, ["grandmasterEmployers", "grandmasterEmployerCount", "grandmasterSubscriptions"])],
+            ]}
+          />
+          <MetricSection
+            title="Job Metrics"
+            icon={BarChart3}
+            metrics={[
+              ["Total Jobs", valueOf(stats, ["totalJobs", "jobCount", "jobs"])],
+              ["Active Jobs", valueOf(stats, ["activeJobs", "activeJobCount"])],
+              ["Applications", valueOf(stats, ["applications", "totalApplications", "applicationCount"])],
+            ]}
+          />
+          <MetricSection
+            title="Community Metrics"
+            icon={MessageSquare}
+            metrics={[
+              ["Users", valueOf(stats, ["totalUsers", "userCount", "users"])],
+              ["Threads", valueOf(stats, ["threads", "forumThreads", "threadCount"])],
+              ["Posts", valueOf(stats, ["posts", "forumPosts", "postCount", "replies"])],
+              ["Engagement", valueOf(stats, ["engagement", "communityEngagement", "engagementRate"])],
+            ]}
+          />
         </div>
       )}
     </DashboardShell>
   );
 }
 
-function Metric({ icon: Icon, title, value, detail }: { icon: React.ComponentType<{ className?: string }>; title: string; value: unknown; detail: string }) {
+function MetricSection({
+  title,
+  icon: Icon,
+  metrics,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  metrics: [string, unknown][];
+}) {
   return (
-    <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
-      <Icon className="mb-3 h-6 w-6 text-[#A5B4FC]" />
-      <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{title}</p>
-      <p className="mt-2 text-3xl font-black text-[#A5B4FC]">{String(value)}</p>
-      <p className="mt-2 text-sm text-muted-foreground">{detail}</p>
-    </div>
+    <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Icon className="h-5 w-5 text-[#A5B4FC]" />
+        <h2 className="text-lg font-bold">{title}</h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {metrics.map(([label, value]) => (
+          <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+            <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className="mt-2 text-3xl font-black text-[#A5B4FC]">{String(value ?? "—")}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
+}
+
+function valueOf(stats: any, keys: string[]): unknown {
+  for (const key of keys) {
+    if (stats?.[key] !== undefined && stats?.[key] !== null) return stats[key];
+    const pascal = key.charAt(0).toUpperCase() + key.slice(1);
+    if (stats?.[pascal] !== undefined && stats?.[pascal] !== null) return stats[pascal];
+  }
+  return "—";
 }

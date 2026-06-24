@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, Award, Bookmark, BriefcaseBusiness, Crown, Loader2, RefreshCw, ShieldCheck, Trophy, Zap } from "lucide-react";
+import { ArrowLeft, Award, Bookmark, BriefcaseBusiness, Crown, Eye, Loader2, RefreshCw, ShieldCheck, Trophy, Zap } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -8,6 +8,13 @@ import { asList, candidateAvatar, candidateName, formatNumber, idOf, initials, t
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function CandidateDossier() {
   const [, params] = useRoute("/employer/candidates/:userId");
@@ -18,6 +25,8 @@ export default function CandidateDossier() {
   const [error, setError] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [performance, setPerformance] = useState<any | null>(null);
+  const [performanceLoading, setPerformanceLoading] = useState(false);
 
   const load = async () => {
     if (!userId) return;
@@ -47,6 +56,19 @@ export default function CandidateDossier() {
       return;
     }
     toast({ title: "Candidate saved", description: "Notes were stored with this saved candidate." });
+  };
+
+  const viewPerformance = async (problemNodeId: string) => {
+    if (!problemNodeId) return;
+    setPerformanceLoading(true);
+    setPerformance(null);
+    const res = await api.evaluations.getNodeResult(problemNodeId, userId);
+    setPerformanceLoading(false);
+    if (!res.ok) {
+      toast({ title: "Unable to load mission performance", description: res.error || "Please try again.", variant: "destructive" });
+      return;
+    }
+    setPerformance(res.data);
   };
 
   if (!userId) {
@@ -146,17 +168,53 @@ export default function CandidateDossier() {
                 <Empty label="No mission evidence returned for this dossier." />
               ) : (
                 <div className="grid gap-3 md:grid-cols-2">
-                  {missions.map((mission, index) => (
-                    <div key={idOf(mission) || index} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
-                      <h4 className="font-semibold">{text(mission?.title ?? mission?.missionTitle ?? mission?.name, "Mission")}</h4>
-                      <p className="mt-1 text-xs text-muted-foreground">{text(mission?.districtName ?? mission?.professionName ?? mission?.status, "Verified mission evidence")}</p>
-                    </div>
-                  ))}
+                  {missions.map((mission, index) => {
+                    const problemNodeId = text(mission?.problemNodeId ?? mission?.ProblemNodeId, "");
+                    return (
+                      <div key={idOf(mission) || problemNodeId || index} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <h4 className="font-semibold">{text(mission?.title ?? mission?.missionTitle ?? mission?.MissionTitle ?? mission?.name, "Mission")}</h4>
+                            <p className="mt-1 text-xs text-muted-foreground">{text(mission?.districtName ?? mission?.DistrictName ?? mission?.professionName ?? mission?.status, "Verified mission evidence")}</p>
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                              {mission?.score !== undefined || mission?.Score !== undefined ? (
+                                <span className="rounded-full border border-[#00D2FF]/30 bg-[#00D2FF]/10 px-2 py-0.5 text-[#00D2FF]">
+                                  Score {text(mission?.score ?? mission?.Score, "—")}%
+                                </span>
+                              ) : null}
+                              {mission?.completedAt || mission?.CompletedAt ? (
+                                <span>{new Date(String(mission?.completedAt ?? mission?.CompletedAt)).toLocaleDateString()}</span>
+                              ) : null}
+                            </div>
+                          </div>
+                          {problemNodeId && (
+                            <Button variant="outline" size="sm" onClick={() => viewPerformance(problemNodeId)}>
+                              <Eye className="mr-2 h-3.5 w-3.5" />
+                              View Performance
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </section>
           </>
         )}
+        <Dialog open={Boolean(performance) || performanceLoading} onOpenChange={(open) => !open && setPerformance(null)}>
+          <DialogContent className="max-w-2xl bg-[#0d1119] border border-white/10">
+            <DialogHeader>
+              <DialogTitle>Mission Performance</DialogTitle>
+              <DialogDescription>Evaluation result for this completed mission.</DialogDescription>
+            </DialogHeader>
+            {performanceLoading ? (
+              <State label="Loading mission performance..." />
+            ) : performance ? (
+              <PerformanceResult result={performance} />
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardShell>
   );
@@ -183,4 +241,46 @@ function State({ label }: { label: string }) {
 
 function Empty({ label }: { label: string }) {
   return <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">{label}</div>;
+}
+
+function PerformanceResult({ result }: { result: any }) {
+  const root = result?.data ?? result?.result ?? result?.evaluation ?? result;
+  const passValue = root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed ?? root?.passFail ?? root?.PassFail ?? root?.status ?? root?.Status;
+  const passed = typeof passValue === "string" ? /pass|success/i.test(passValue) : Boolean(passValue);
+  const rows: [string, string][] = [
+    ["Mission Title", text(root?.missionTitle ?? root?.MissionTitle ?? root?.title ?? root?.Title, "Mission")],
+    ["Score", text(root?.score ?? root?.Score ?? root?.percentageScore ?? root?.PercentageScore, "—")],
+    ["Strengths", resultText(root?.strengths ?? root?.Strengths ?? root?.Feedback?.Strengths, "No strengths returned.")],
+    ["Weaknesses", resultText(root?.weaknesses ?? root?.Weaknesses ?? root?.Feedback?.Weaknesses, "No weaknesses returned.")],
+    ["Improvement Areas", resultText(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement ?? root?.Feedback?.ImprovementAreas, "No improvement areas returned.")],
+    ["AI Evaluation Summary", resultText(root?.aiEvaluationSummary ?? root?.AiEvaluationSummary ?? root?.summary ?? root?.Summary ?? root?.rawAiReasoning ?? root?.RawAiReasoning ?? root?.aiReasoning ?? root?.AiReasoning, "No AI evaluation summary returned.")],
+  ];
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] p-4">
+        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Pass Status</p>
+        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-red-400/40 bg-red-400/10 text-red-300"}`}>
+          {passed ? "Passed" : "Not Passed"}
+        </span>
+      </div>
+      {rows.map(([label, value]) => (
+        <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm">{value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function resultText(value: unknown, fallback: string): string {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => text(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  if (value && typeof value === "object") {
+    const items = Object.values(value).map((item) => text(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  return text(value, fallback);
 }

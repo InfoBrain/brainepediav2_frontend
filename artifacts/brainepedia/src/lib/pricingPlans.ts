@@ -63,6 +63,7 @@ export const USER_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       "Faster XP growth",
       "Priority submission processing",
       "Leaderboard ranking",
+      "Instant Job Notifications from Employers",
       "2GB project asset upload allocation",
       "Verified badges for LinkedIn and public dossier",
     ],
@@ -104,4 +105,5 @@ export const PLAN_COMPARISON_FEATURES = [
   { label: "XP growth", initiate: "Basic", architect: "Faster" },
   { label: "Project uploads", initiate: "50MB", architect: "2GB" },
   { label: "Badges / status", initiate: "Community leaderboard", architect: "Verified badges" },
+  { label: "Job notifications", initiate: "Standard discovery", architect: "Instant employer notifications" },
 ];

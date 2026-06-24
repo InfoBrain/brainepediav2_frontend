@@ -17,19 +17,24 @@ export function asList(data: any): any[] {
     data?.applications ??
     data?.applicants ??
     data?.savedCandidates ??
+    data?.subscriptions ??
+    data?.Subscriptions ??
     data?.threads ??
     [];
-  return Array.isArray(candidate) ? candidate : [];
+  if (Array.isArray(candidate)) return candidate;
+  const nested = candidate?.items ?? candidate?.results ?? candidate?.subscriptions ?? candidate?.Subscriptions;
+  return Array.isArray(nested) ? nested : [];
 }
 
 export function listMeta(data: any, fallbackPage = 1, fallbackPageSize = 10): ListMeta {
-  const totalCount = numberish(data?.totalCount ?? data?.total ?? data?.count);
-  const pageSize = numberish(data?.pageSize ?? data?.perPage) ?? fallbackPageSize;
+  const meta = data?.data && !Array.isArray(data.data) ? data.data : data;
+  const totalCount = numberish(meta?.totalCount ?? meta?.TotalCount ?? meta?.total ?? meta?.Total ?? meta?.count ?? meta?.Count);
+  const pageSize = numberish(meta?.pageSize ?? meta?.PageSize ?? meta?.perPage) ?? fallbackPageSize;
   return {
-    page: numberish(data?.page ?? data?.currentPage) ?? fallbackPage,
+    page: numberish(meta?.page ?? meta?.Page ?? meta?.currentPage ?? meta?.CurrentPage) ?? fallbackPage,
     pageSize,
     totalCount,
-    totalPages: numberish(data?.totalPages) ?? (totalCount ? Math.ceil(totalCount / pageSize) : undefined),
+    totalPages: numberish(meta?.totalPages ?? meta?.TotalPages) ?? (totalCount ? Math.ceil(totalCount / pageSize) : undefined),
   };
 }
 
