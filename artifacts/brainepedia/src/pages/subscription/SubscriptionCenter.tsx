@@ -20,6 +20,7 @@ import {
   PLAN_COMPARISON_FEATURES,
   USER_SUBSCRIPTION_PLANS,
 } from "@/lib/pricingPlans";
+import { normalizeSubscriptionDetails, type NormalizedSubscriptionDetails } from "@/lib/subscription";
 
 /* ─── Tier data ─────────────────────────────────────────────────────────── */
 const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Architect" };
@@ -57,15 +58,6 @@ const BRAINIAC_TIPS = [
   "The XP boost from Architect accelerates your climb to the top of the leaderboard.",
 ];
 
-type SubscriptionDetails = {
-  currentTier: string;
-  active: boolean;
-  startDate: string;
-  expiry: string;
-  corporateSeat: boolean;
-  corporateProvider: string;
-};
-
 /* ─── Component ──────────────────────────────────────────────────────────── */
 export default function SubscriptionCenter() {
   usePageTitle("Subscription");
@@ -81,17 +73,17 @@ export default function SubscriptionCenter() {
   const [upgradeTarget, setUpgradeTarget] = useState<string | null>(null);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
-  const [subscriptionDetails, setSubscriptionDetails] = useState<SubscriptionDetails | null>(null);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<NormalizedSubscriptionDetails | null>(null);
 
   useEffect(() => {
     if (!userId) { navigate("/auth/login"); return; }
     (async () => {
       const detailsRes = await api.subscriptions.details(userId);
       if (detailsRes.ok) {
-        const details = normSubscriptionDetails(detailsRes.data);
+        const details = normalizeSubscriptionDetails(detailsRes.data);
         setSubscriptionDetails(details);
         setEmployerPlan(details.currentTier);
-        setCurrentTier(details.currentTier.toLowerCase().includes("architect") ? 1 : 0);
+        setCurrentTier(details.currentTier.toLowerCase().includes("architect") || details.currentTier.toLowerCase().includes("grandmaster") ? 1 : 0);
         setLoading(false);
         return;
       }
@@ -143,19 +135,23 @@ export default function SubscriptionCenter() {
     }
   };
 
-  const currentTierName = isEmployer ? employerPlan : (SUB_NAMES[Math.min(currentTier, 1)] ?? "Initiate");
+  const currentTierName = isEmployer ? employerPlan : (subscriptionDetails?.currentTier ?? SUB_NAMES[Math.min(currentTier, 1)] ?? "Initiate");
+  const isExpired = Boolean(subscriptionDetails?.expired);
+  const isCorporateSeat = Boolean(subscriptionDetails?.corporateSeatBypass);
   const employerGrandmasterActive = isEmployer && currentTierName.toLowerCase().includes("grandmaster");
 
   const headerRight = (
     <div className="hidden sm:flex items-center gap-2">
       <span className={`px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider border ${
-        employerGrandmasterActive
+        employerGrandmasterActive || isCorporateSeat
           ? "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/40"
+          : isExpired
+          ? "bg-red-500/10 text-red-300 border-red-500/30"
           : currentTierName === "Architect"
           ? "bg-[#7C3AED]/15 text-[#A78BFA] border-[#7C3AED]/40"
           : "bg-slate-800 text-slate-400 border-slate-700"
       }`}>
-        {currentTierName}
+        {isExpired ? "Expired" : currentTierName}
       </span>
     </div>
   );
@@ -227,9 +223,9 @@ export default function SubscriptionCenter() {
           {subscriptionDetails && (
             <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
               <h3 className="text-lg font-bold">Subscription Status</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Current tier is {subscriptionDetails.currentTier}; active status is {subscriptionDetails.active ? "Active" : "Inactive"}.
-              </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Current tier is {subscriptionDetails.currentTier}; active status is {subscriptionDetails.active ? "Active" : "Subscription Expired"}.
+                  </p>
             </div>
           )}
         </div>
@@ -260,26 +256,32 @@ export default function SubscriptionCenter() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-xs font-mono uppercase tracking-[0.2em] text-white/30">Current Tier</p>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border ${
-                    currentTierName === "Architect" ? "bg-[#7C3AED]/15 text-[#A78BFA] border-[#7C3AED]/30"
+                    isExpired ? "bg-red-500/10 text-red-300 border-red-500/30"
+                    : currentTierName === "Architect" ? "bg-[#7C3AED]/15 text-[#A78BFA] border-[#7C3AED]/30"
                     : "bg-slate-800/60 text-slate-400 border-slate-700"
-                  }`}>Active</span>
+                  }`}>{isExpired ? "Expired" : subscriptionDetails?.active ? "Active" : "Inactive"}</span>
                 </div>
                 <h2 className={`text-3xl font-black mt-1 ${
-                  currentTierName === "Architect" ? "text-[#A78BFA]"
+                  isExpired ? "text-red-300"
+                  : currentTierName === "Architect" ? "text-[#A78BFA]"
                   : "text-white"
                 }`}>{currentTierName}</h2>
                 <p className="text-sm text-white/40 mt-0.5">
-                  {currentTierName === "Architect"
+                  {isCorporateSeat
+                    ? `Provided by ${subscriptionDetails?.corporateProvider || "your corporate provider"}.`
+                    : isExpired
+                    ? "Subscription Expired. Upgrade to restore Architect access."
+                    : currentTierName === "Architect"
                     ? "Advanced challenge access and enhanced Brainiac guidance active."
                     : "Upgrade to unlock Architect abilities."}
                 </p>
               </div>
-              {currentTierName === "Initiate" && (
+              {!isCorporateSeat && (isExpired || currentTierName === "Initiate") && (
                 <Button
                   onClick={() => setUpgradeTarget("Architect")}
                   className="shrink-0 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold shadow-[0_0_15px_rgba(124,58,237,0.35)]"
                 >
-                  Upgrade to Architect
+                  {isExpired ? "Upgrade Now" : "Upgrade to Architect"}
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               )}
@@ -528,32 +530,41 @@ export default function SubscriptionCenter() {
   );
 }
 
-function SubscriptionDetailsCard({ details }: { details: SubscriptionDetails }) {
+function SubscriptionDetailsCard({ details }: { details: NormalizedSubscriptionDetails }) {
   return (
     <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-mono uppercase tracking-[0.2em] text-white/40">Subscription Details</p>
           <h3 className="mt-1 text-xl font-black">
-            {details.corporateSeat ? "Grandmaster (Corporate Seat)" : details.currentTier}
+            {details.corporateSeatBypass ? "Grandmaster" : details.expired ? "Subscription Expired" : details.currentTier}
           </h3>
-          {details.corporateSeat && (
+          {details.corporateSeatBypass && (
             <p className="mt-1 text-sm text-muted-foreground">Provided by: {details.corporateProvider}</p>
+          )}
+          {details.expired && !details.corporateSeatBypass && (
+            <p className="mt-1 text-sm text-red-300">Subscription Expired</p>
           )}
         </div>
         <span className={`rounded-full border px-3 py-1 text-xs font-mono uppercase tracking-wider ${
           details.active ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-white/10 bg-white/5 text-muted-foreground"
         }`}>
-          {details.active ? "Active" : "Inactive"}
+          {details.active ? "Active" : "Subscription Expired"}
         </span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Detail label="Current Tier" value={details.currentTier} />
-        <Detail label="Active" value={details.active ? "Yes" : "No"} />
+        <Detail label="Active Status" value={details.status} />
         <Detail label="Start Date" value={details.startDate} />
-        <Detail label="Expiry" value={details.expiry} />
-        <Detail label="Corporate Seat" value={details.corporateSeat ? "Yes" : "No"} />
+        <Detail label="Expiry Date" value={details.expiryDate} />
+        <Detail label="Corporate Provider" value={details.corporateSeatBypass ? details.corporateProvider : "—"} />
       </div>
+      {details.expired && !details.corporateSeatBypass && (
+        <div className="mt-4 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED]/10 p-4">
+          <p className="text-sm font-semibold text-[#A78BFA]">Upgrade Recommendation</p>
+          <p className="mt-1 text-sm text-muted-foreground">Upgrade to Architect to restore premium access.</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -565,24 +576,5 @@ function Detail({ label, value }: { label: string; value: string }) {
       <p className="mt-1 text-sm font-semibold">{value}</p>
     </div>
   );
-}
-
-function normSubscriptionDetails(data: any): SubscriptionDetails {
-  const root = data?.data ?? data?.subscription ?? data;
-  const corporateSeat = Boolean(root?.corporateSeat ?? root?.CorporateSeat ?? root?.isCorporateSeat ?? root?.IsCorporateSeat);
-  return {
-    currentTier: String(root?.currentTier ?? root?.CurrentTier ?? root?.tier ?? root?.Tier ?? root?.planName ?? root?.PlanName ?? "Initiate"),
-    active: Boolean(root?.active ?? root?.Active ?? root?.isActive ?? root?.IsActive),
-    startDate: formatDate(root?.startDate ?? root?.StartDate ?? root?.createdAt ?? root?.CreatedAt),
-    expiry: formatDate(root?.expiry ?? root?.Expiry ?? root?.expiryDate ?? root?.ExpiryDate),
-    corporateSeat,
-    corporateProvider: String(root?.corporateProvider ?? root?.CorporateProvider ?? root?.companyName ?? root?.CompanyName ?? "—"),
-  };
-}
-
-function formatDate(value: unknown): string {
-  if (!value) return "—";
-  const date = new Date(String(value));
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 

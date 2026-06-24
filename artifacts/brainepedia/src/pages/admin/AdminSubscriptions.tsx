@@ -4,19 +4,26 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { api } from "@/lib/api";
-import { asList, formatDisplayDate, text } from "@/lib/jobData";
+import { asList, formatDisplayDate, listMeta, text, type ListMeta } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function AdminSubscriptions() {
   usePageTitle("Admin Subscriptions");
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [tier, setTier] = useState("");
+  const [activeFilter, setActiveFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState<ListMeta>({ page: 1, pageSize: 10 });
+  const pageSize = 10;
 
   const load = async () => {
     setLoading(true);
     setError("");
-    const res = await api.subscriptions.listAll();
+    const res = await api.subscriptions.listAll({ search, tier, isActive: activeFilter, page, pageSize });
     setLoading(false);
     if (!res.ok) {
       setError(res.error || "Unable to load subscriptions.");
@@ -24,9 +31,19 @@ export default function AdminSubscriptions() {
       return;
     }
     setSubscriptions(asList(res.data));
+    setMeta(listMeta(res.data, page, pageSize));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [page, tier, activeFilter]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setPage(1);
+      load();
+    }, 350);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const summary = useMemo(() => {
     const active = subscriptions.filter((item) => Boolean(item?.active ?? item?.Active ?? item?.isActive ?? item?.IsActive)).length;
@@ -55,6 +72,32 @@ export default function AdminSubscriptions() {
           <Card icon={CreditCard} title="Employer Subscriptions" value="Grandmaster Corporate accounts" />
           <Card icon={Users} title="User Subscriptions" value="Initiate / Architect" />
         </div>
+        <div className="grid gap-3 rounded-2xl border border-white/5 bg-[#0d1119] p-4 md:grid-cols-4">
+          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search user or email" />
+          <select
+            value={tier}
+            onChange={(event) => { setTier(event.target.value); setPage(1); }}
+            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="">All tiers</option>
+            <option value="Initiate">Initiate</option>
+            <option value="Architect">Architect</option>
+            <option value="Grandmaster">Grandmaster</option>
+          </select>
+          <select
+            value={activeFilter}
+            onChange={(event) => { setActiveFilter(event.target.value); setPage(1); }}
+            className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="">All statuses</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+          <Button onClick={load} variant="outline" disabled={loading}>
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+            Apply Filters
+          </Button>
+        </div>
         {loading ? (
           <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin text-[#A5B4FC]" /> Loading subscriptions...
@@ -71,12 +114,12 @@ export default function AdminSubscriptions() {
               <thead>
                 <tr className="border-b border-white/5 text-left text-xs font-mono uppercase tracking-wider text-muted-foreground">
                   <th className="px-4 py-3">User</th>
-                  <th className="px-4 py-3">Current Tier</th>
-                  <th className="px-4 py-3">Active</th>
+                  <th className="px-4 py-3">Tier</th>
+                  <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Start Date</th>
                   <th className="px-4 py-3">Expiry</th>
-                  <th className="px-4 py-3">Corporate Seat</th>
-                  <th className="px-4 py-3">Corporate Provider</th>
+                  <th className="px-4 py-3">Paystack Reference</th>
+                  <th className="px-4 py-3">Subscription Plan Code</th>
                 </tr>
               </thead>
               <tbody>
@@ -85,17 +128,34 @@ export default function AdminSubscriptions() {
                   return (
                     <tr key={`${row.user}-${index}`} className="border-b border-white/5 last:border-0">
                       <td className="px-4 py-3">{row.user}</td>
-                      <td className="px-4 py-3 font-semibold">{row.currentTier}</td>
-                      <td className="px-4 py-3">{row.active ? "Active" : "Inactive"}</td>
+                      <td className="px-4 py-3 font-semibold">{row.tier}</td>
+                      <td className="px-4 py-3">{row.status}</td>
                       <td className="px-4 py-3">{row.startDate}</td>
                       <td className="px-4 py-3">{row.expiry}</td>
-                      <td className="px-4 py-3">{row.corporateSeat ? "Yes" : "No"}</td>
-                      <td className="px-4 py-3">{row.corporateProvider}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{row.paystackReference}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{row.subscriptionPlanCode}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
+            <div className="flex items-center justify-between border-t border-white/5 px-4 py-3 text-sm text-muted-foreground">
+              <span>
+                Page {meta.page} of {meta.totalPages ?? Math.max(1, Math.ceil(subscriptions.length / pageSize))}
+                {meta.totalCount !== undefined ? ` · ${meta.totalCount.toLocaleString()} subscriptions` : ""}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => setPage((p) => Math.max(1, p - 1))}>Previous</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={loading || (meta.totalPages !== undefined ? page >= meta.totalPages : subscriptions.length < pageSize)}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -104,14 +164,19 @@ export default function AdminSubscriptions() {
 }
 
 function normSubscription(item: any) {
+  const active = Boolean(item?.active ?? item?.Active ?? item?.isActive ?? item?.IsActive);
+  const expiryValue = item?.expiry ?? item?.Expiry ?? item?.expiryDate ?? item?.ExpiryDate;
+  const expiryDate = expiryValue ? new Date(String(expiryValue)) : null;
+  const expired = Boolean(expiryDate && !Number.isNaN(expiryDate.getTime()) && expiryDate.getTime() < Date.now());
   return {
     user: text(item?.userName ?? item?.UserName ?? item?.email ?? item?.Email ?? item?.userId ?? item?.UserId, "User unavailable"),
-    currentTier: text(item?.currentTier ?? item?.CurrentTier ?? item?.tier ?? item?.Tier ?? item?.planName ?? item?.PlanName, "—"),
-    active: Boolean(item?.active ?? item?.Active ?? item?.isActive ?? item?.IsActive),
+    tier: text(item?.currentTier ?? item?.CurrentTier ?? item?.tier ?? item?.Tier ?? item?.planName ?? item?.PlanName, "—"),
+    active,
+    status: active && !expired ? "Active" : "Inactive",
     startDate: formatDisplayDate(item?.startDate ?? item?.StartDate ?? item?.createdAt ?? item?.CreatedAt, "—"),
-    expiry: formatDisplayDate(item?.expiry ?? item?.Expiry ?? item?.expiryDate ?? item?.ExpiryDate, "—"),
-    corporateSeat: Boolean(item?.corporateSeat ?? item?.CorporateSeat ?? item?.isCorporateSeat ?? item?.IsCorporateSeat),
-    corporateProvider: text(item?.corporateProvider ?? item?.CorporateProvider ?? item?.companyName ?? item?.CompanyName, "—"),
+    expiry: formatDisplayDate(expiryValue, "—"),
+    paystackReference: text(item?.paystackReference ?? item?.PaystackReference ?? item?.reference ?? item?.Reference, "—"),
+    subscriptionPlanCode: text(item?.subscriptionPlanCode ?? item?.SubscriptionPlanCode ?? item?.planCode ?? item?.PlanCode, "—"),
   };
 }
 

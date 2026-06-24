@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 import { ChevronLeft, Eye, Clock, MessageCircle, Send, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
-import { usePageTitle } from "@/hooks/usePageTitle";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { setPageMeta } from "@/lib/seo";
 
 interface ThreadAuthor {
   nickName: string;
@@ -122,7 +122,13 @@ export default function ForumThreadPage() {
   const [submitting, setSubmitting] = useState(false);
   const [categoryId, setCategoryId] = useState<string | null>(null);
 
-  usePageTitle(thread?.title ?? "Discussion");
+  useEffect(() => {
+    if (!thread) return;
+    setPageMeta({
+      title: thread.title,
+      description: thread.content,
+    });
+  }, [thread]);
 
   const fetchThread = useCallback(async () => {
     const res = await api.forum.getThread(threadId);

@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { HtmlContent } from "@/components/editor/HtmlContent";
+import { setPageMeta } from "@/lib/seo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -102,8 +103,10 @@ export default function JobDetails() {
 
   useEffect(() => {
     if (!job) return;
-    document.title = `${title} at ${company} | Brainepedia Jobs`;
-    setMeta("description", `${company} is hiring ${title} in ${location}. ${description.slice(0, 140)}`);
+    setPageMeta({
+      title,
+      description,
+    });
     setMeta("keywords", [title, company, profession, location, "Brainepedia", "Verified Experience", "Proof of Skill"].filter(Boolean).join(", "));
     setMeta("author", company);
   }, [company, description, job, location, profession, title]);

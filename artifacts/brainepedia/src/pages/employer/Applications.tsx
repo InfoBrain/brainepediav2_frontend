@@ -70,7 +70,7 @@ function ApplicationPostingPicker() {
         <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-[#0d1119] p-5 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-xl font-bold">Choose a posting</h2>
-            <p className="text-sm text-muted-foreground">Applications are scoped to a job posting in Swagger.</p>
+            <p className="text-sm text-muted-foreground">Select a job posting to view applicants and assessment performance.</p>
           </div>
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

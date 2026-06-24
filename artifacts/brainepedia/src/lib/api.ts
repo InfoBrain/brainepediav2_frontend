@@ -43,6 +43,13 @@ export function extractApiMessage(data: any): string {
   if (typeof data === "string") {
     const trimmed = data.trim();
     const isHtml = trimmed.startsWith("<") || /<!doctype/i.test(trimmed);
+    if (!isHtml && (trimmed.startsWith("{") || trimmed.startsWith("["))) {
+      try {
+        return extractApiMessage(JSON.parse(trimmed));
+      } catch {
+        // Fall through to returning the raw non-HTML body.
+      }
+    }
     return isHtml ? "" : trimmed;
   }
   if (typeof data !== "object") return "";
@@ -227,11 +234,20 @@ export const api = {
     /** GET /api/Subscriptions/verify-employer-payment?reference=xxx */
     verifyEmployerPayment: (reference: string) =>
       fetchApi(`/api/Subscriptions/verify-employer-payment?reference=${encodeURIComponent(reference)}`),
-    /** GET /api/users/{userId}/subscription-details — shared subscription contract for all roles */
+    /** GET /api/Subscriptions/users/{userId}/subscription-details — shared subscription contract for all roles */
     details: (userId: string) =>
-      fetchApi(`/api/users/${encodeURIComponent(userId)}/subscription-details`),
-    /** Admin subscription list, when exposed by the backend. */
-    listAll: () => fetchApi("/api/Subscriptions"),
+      fetchApi(`/api/Subscriptions/users/${encodeURIComponent(userId)}/subscription-details`),
+    /** GET /api/Subscriptions/admin/subscriptions */
+    listAll: (params: { search?: string; tier?: string; isActive?: string; page?: number; pageSize?: number } = {}) => {
+      const q = new URLSearchParams();
+      if (params.search) q.set("search", params.search);
+      if (params.tier) q.set("tier", params.tier);
+      if (params.isActive) q.set("isActive", params.isActive);
+      if (params.page) q.set("page", String(params.page));
+      if (params.pageSize) q.set("pageSize", String(params.pageSize));
+      const qs = q.toString();
+      return fetchApi(`/api/Subscriptions/admin/subscriptions${qs ? `?${qs}` : ""}`);
+    },
   },
   admin: {
     /** GET /api/Dashboard/stats — global system stats (totalUsers, activeSubscriptions, totalXpAwarded) */
@@ -275,9 +291,9 @@ export const api = {
     /** DELETE /api/Professions/{id}?userId=... */
     delete: (id: string, userId: string) =>
       fetchApi(`/api/Professions/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
-    /** POST /api/Professions/generate-seed?count=N — AI-generates N professions */
+    /** POST /api/Districts/generate-profession — AI-generates professions */
     generateSeed: (count: number) =>
-      fetchApi(`/api/Professions/generate-seed?count=${count}`, { method: "POST" }),
+      fetchApi(`/api/Districts/generate-profession?count=${count}`, { method: "POST" }),
   },
   districts: {
     byProfession: (professionId: string) =>
@@ -418,6 +434,9 @@ export const api = {
       fetchApi("/api/Employers/team/private-challenges/create", { method: "POST", body: JSON.stringify(data) }),
     /** GET /api/Employers/team/private-challenges */
     listChallenges: () => fetchApi("/api/Employers/team/private-challenges"),
+    /** GET /api/Employers/team/challenges/{assignmentId}/participants */
+    challengeParticipants: (assignmentId: string) =>
+      fetchApi(`/api/Employers/team/challenges/${encodeURIComponent(assignmentId)}/participants`),
     /** POST /api/Employers/candidates/assign-private-mission */
     assignMission: (data: { candidateEmail: string; firstName: string; lastName: string; problemNodeId: string }) =>
       fetchApi("/api/Employers/candidates/assign-private-mission", { method: "POST", body: JSON.stringify(data) }),

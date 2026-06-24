@@ -65,7 +65,7 @@ const RARITY_COLORS: Record<number, { card: string; badge: string }> = {
 };
 
 function normDossier(d: any, userId: string): DossierData {
-  const x = d?.profile || d?.data || d || {};
+  const x = d?.publicProfile || d?.PublicProfile || d?.dossier || d?.Dossier || d?.profile || d?.data || d || {};
   const badges: Badge[] = (() => {
     const arr =
       x.badges || x.earnedBadges || x.userBadges || x.achievements || [];
