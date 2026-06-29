@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { ClipboardList, Eye, Loader2, RefreshCw, Save, Search, UserCheck } from "lucide-react";
+import { ClipboardList, Eye, Save, Search, UserCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +28,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { useApiFeedback } from "@/hooks/useApiFeedback";
 
 const APPLICATION_STATUSES = ["Applied", "Reviewing", "Shortlisted", "Interviewing", "Rejected", "Recruited", "Hired"];
 
@@ -79,11 +82,17 @@ function ApplicationPostingPicker() {
         </div>
 
         {loading ? (
-          <State label="Loading postings..." />
+          <LoadingState label="Loading postings..." variant="card" rows={3} />
         ) : error ? (
-          <ErrorState message={error} onRetry={load} />
+          <ErrorState message={error} onRetry={load} dashboardHref="/employer/overview" />
         ) : filtered.length === 0 ? (
-          <Empty title="No job postings found" body="Create a job posting before reviewing applications." cta="/employer/jobs/create" ctaText="Create job" />
+          <EmptyState
+            icon={ClipboardList}
+            title="No job postings found"
+            description="Create a job posting before reviewing applications."
+            actionLabel="Create job"
+            actionHref="/employer/jobs/create"
+          />
         ) : (
           <div className="grid gap-4">
             {filtered.map((job, index) => {
@@ -110,7 +119,7 @@ function ApplicationPostingPicker() {
 }
 
 function ApplicationsForJob({ jobId }: { jobId: string }) {
-  const { toast } = useToast();
+  const { showSuccess, showError } = useApiFeedback();
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -165,10 +174,13 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
     });
     setSavingId("");
     if (!res.ok) {
-      toast({ title: "Unable to update application", description: res.error || "Please try again.", variant: "destructive" });
+      showError(res.error || "Please try again.", { title: "Unable to update application" });
       return;
     }
-    toast({ title: "Application updated", description: res.message || "Status and notes were saved." });
+    showSuccess({
+      title: "Application updated",
+      description: res.message || "Status and notes were saved.",
+    });
     load();
   };
 
@@ -178,7 +190,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
     const res = await api.evaluations.getNodeResult(problemNodeId, candidateUserId);
     setResultLoading(false);
     if (!res.ok) {
-      toast({ title: "Unable to load assessment result", description: res.error || "Please try again.", variant: "destructive" });
+      showError(res.error || "Please try again.", { title: "Unable to load assessment result" });
       return;
     }
     setResult(res.data);
@@ -192,11 +204,17 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
         </Button>
 
         {loading ? (
-          <State label="Loading applications..." />
+          <LoadingState label="Loading applications..." variant="card" rows={3} />
         ) : error ? (
-          <ErrorState message={error} onRetry={load} />
+          <ErrorState message={error} onRetry={load} dashboardHref="/employer/overview" />
         ) : applications.length === 0 ? (
-          <Empty title="No applications yet" body="Applicants will appear here after users apply from Job Details." cta="/employer/jobs" ctaText="View postings" />
+          <EmptyState
+            icon={ClipboardList}
+            title="No applications yet"
+            description="Applicants will appear here after users apply from Job Details."
+            actionLabel="View postings"
+            actionHref="/employer/jobs"
+          />
         ) : (
           <div className="grid gap-4">
             {applications.map((application, index) => {
@@ -250,7 +268,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                           {problemNodeId && (
                             <Button
                               variant="outline"
-                              disabled={!canViewResult}
+                              disabled={!canViewResult || resultLoading}
                               title={!canViewResult ? "View Result is available after the assessment is completed." : undefined}
                               onClick={() => canViewResult && viewAssessmentResult(problemNodeId, String(userId))}
                             >
@@ -287,8 +305,9 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                         />
                       </div>
                       <Button onClick={() => save(id)} disabled={savingId === id} className="w-full bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
-                        {savingId === id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        Save status
+                        <ButtonLoading loading={savingId === id}>
+                          <><Save className="mr-2 h-4 w-4" /> Save status</>
+                        </ButtonLoading>
                       </Button>
                     </div>
                   </div>
@@ -304,7 +323,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
               <DialogDescription>Linked problem-node evaluation for this applicant.</DialogDescription>
             </DialogHeader>
             {resultLoading ? (
-              <State label="Loading assessment result..." />
+              <LoadingState label="Loading assessment result..." variant="spinner" />
             ) : result ? (
               <AssessmentResult result={result} />
             ) : null}
@@ -397,35 +416,4 @@ function assessmentState(application: any): { status: string; hasCompleted: bool
     applicationProblemNodeId(application) ? "Not Started" : "Not Started",
   );
   return { status: hasCompleted ? "Completed" : rawStatus, hasCompleted };
-}
-
-function State({ label }: { label: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
-      <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" />
-      <span className="font-mono">{label}</span>
-    </div>
-  );
-}
-
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
-      <p className="mb-4 text-sm text-destructive">{message}</p>
-      <Button onClick={onRetry} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
-    </div>
-  );
-}
-
-function Empty({ title, body, cta, ctaText }: { title: string; body: string; cta: string; ctaText: string }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1119] p-10 text-center">
-      <ClipboardList className="mx-auto mb-3 h-10 w-10 text-[#00D2FF]" />
-      <h2 className="text-2xl font-black">{title}</h2>
-      <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">{body}</p>
-      <Button asChild className="mt-6 bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
-        <Link href={cta}>{ctaText}</Link>
-      </Button>
-    </div>
-  );
 }

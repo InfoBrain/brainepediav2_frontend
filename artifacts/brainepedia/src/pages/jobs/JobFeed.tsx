@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { BriefcaseBusiness, Building2, CalendarDays, ChevronLeft, ChevronRight, Loader2, MapPin, RefreshCw, Search, ShieldCheck, WalletCards } from "lucide-react";
+import { BriefcaseBusiness, Building2, CalendarDays, ChevronLeft, ChevronRight, MapPin, Search, ShieldCheck, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
@@ -12,6 +12,9 @@ import { Input } from "@/components/ui/input";
 import { getUserRole } from "@/lib/auth";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
 
 type JobRow = {
   id: string;
@@ -88,11 +91,26 @@ export default function JobFeed() {
         </section>
 
         {loading ? (
-          <Loading label="Loading verified opportunities..." />
+          <LoadingState label="Loading verified opportunities..." />
         ) : error ? (
-          <ErrorState message={error} onRetry={() => load(page)} showLogin={!role && error.toLowerCase().includes("requires login")} />
+          <div className="space-y-3">
+            <ErrorState message={error} onRetry={() => load(page)} showDashboardLink={!!role} />
+            {!role && error.toLowerCase().includes("login") && (
+              <div className="flex justify-center">
+                <Button asChild>
+                  <Link href="/auth/login">Login to view jobs</Link>
+                </Button>
+              </div>
+            )}
+          </div>
         ) : filtered.length === 0 ? (
-          <EmptyState />
+          <EmptyState
+            icon={BriefcaseBusiness}
+            title="No jobs found"
+            description="Keep building XP and VX while employers publish new opportunities for verified problem solvers."
+            actionLabel="Continue your journey"
+            actionHref="/profession/select"
+          />
         ) : (
           <div className="grid gap-4">
             {filtered.map((job) => (
@@ -184,38 +202,4 @@ function formatDate(value: unknown): string {
   if (!value) return "Posted date unavailable";
   const date = new Date(String(value));
   return Number.isNaN(date.getTime()) ? text(value, "Posted date unavailable") : date.toLocaleDateString();
-}
-
-function Loading({ label }: { label: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
-      <Loader2 className="h-5 w-5 animate-spin text-[#FFD700]" />
-      <span className="font-mono">{label}</span>
-    </div>
-  );
-}
-
-function ErrorState({ message, onRetry, showLogin = false }: { message: string; onRetry: () => void; showLogin?: boolean }) {
-  return (
-    <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
-      <p className="mb-4 text-sm text-destructive">{message}</p>
-      <div className="flex flex-wrap justify-center gap-3">
-        <Button onClick={onRetry} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
-        {showLogin && <Button asChild><Link href="/auth/login">Login to view jobs</Link></Button>}
-      </div>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="rounded-xl border border-dashed border-white/10 bg-[#0d1119] p-10 text-center">
-      <BriefcaseBusiness className="mx-auto mb-3 h-10 w-10 text-[#FFD700]" />
-      <h3 className="text-lg font-bold">No jobs found</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-        Keep building XP and VX while employers publish new opportunities for verified problem solvers.
-      </p>
-      <Button asChild className="mt-5"><Link href="/profession/select">Continue your journey</Link></Button>
-    </div>
-  );
 }

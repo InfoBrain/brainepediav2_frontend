@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Bookmark, Loader2, RefreshCw, Search, ShieldCheck } from "lucide-react";
+import { Bookmark, Search, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { asList, candidateAvatar, candidateName, formatNumber, idOf, initials, text } from "@/lib/jobData";
-import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
 
 export default function SavedCandidates() {
   const [items, setItems] = useState<any[]>([]);
@@ -44,26 +46,17 @@ export default function SavedCandidates() {
   return (
     <DashboardShell nav={EMPLOYER_NAV} title="Saved Candidates" subtitle="// recruitment.saved-shortlist" theme="employer">
       {loading ? (
-        <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" />
-          <span className="font-mono">Loading saved candidates...</span>
-        </div>
+        <LoadingState label="Loading saved candidates..." variant="card" rows={4} />
       ) : error ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
-          <p className="mb-4 text-sm text-destructive">{error}</p>
-          <Button onClick={load} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
-        </div>
+        <ErrorState message={error} onRetry={load} dashboardHref="/employer/overview" />
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1119] p-10 text-center">
-          <Bookmark className="mx-auto mb-3 h-10 w-10 text-[#00D2FF]" />
-          <h2 className="text-2xl font-black">No saved candidates yet</h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-            Save candidates from the explorer to keep hiring notes and compare verified experience proof.
-          </p>
-          <Button asChild className="mt-6 bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
-            <Link href="/employer/candidates"><Search className="mr-2 h-4 w-4" /> Explore candidates</Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={Bookmark}
+          title="No saved candidates yet"
+          description="Save candidates from the explorer to keep hiring notes and compare verified experience proof."
+          actionLabel="Explore candidates"
+          actionHref="/employer/candidates"
+        />
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
           {items.map((item, index) => {

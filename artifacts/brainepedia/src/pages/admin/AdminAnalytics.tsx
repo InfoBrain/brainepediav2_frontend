@@ -1,60 +1,93 @@
-import { useEffect, useState } from "react";
-import { BarChart3, BriefcaseBusiness, Loader2, MessageSquare } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { BarChart3, BriefcaseBusiness, MessageSquare, RefreshCw } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { PageHeader } from "@/components/ux/PageHeader";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
 export default function AdminAnalytics() {
   usePageTitle("Admin Analytics");
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadStats = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    const res = await api.admin.stats();
+    if (res.ok) {
+      setStats(res.data);
+    } else {
+      setStats(null);
+      setError(res.error || "Unable to load analytics.");
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    api.admin.stats().then((res) => {
-      if (res.ok) setStats(res.data);
-      setLoading(false);
-    });
-  }, []);
+    loadStats();
+  }, [loadStats]);
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="Analytics" subtitle="// platform.metrics" theme="admin">
-      {loading ? (
-        <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-20 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin text-[#A5B4FC]" /> Loading analytics...
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <MetricSection
-            title="Employer Metrics"
-            icon={BriefcaseBusiness}
-            metrics={[
-              ["Total Employers", valueOf(stats, ["totalEmployers", "employerCount", "employers"])],
-              ["Active Employers", valueOf(stats, ["activeEmployers", "activeEmployerCount"])],
-              ["Grandmaster Employers", valueOf(stats, ["grandmasterEmployers", "grandmasterEmployerCount", "grandmasterSubscriptions"])],
-            ]}
+      <div className="space-y-6">
+        <PageHeader
+          title="Platform Metrics"
+          subtitle="Employer, job, and community performance across Brainepedia."
+          actions={
+            <Button variant="outline" size="sm" onClick={loadStats} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          }
+        />
+
+        {loading ? (
+          <LoadingState variant="grid" rows={3} label="Loading analytics…" />
+        ) : error ? (
+          <ErrorState
+            title="Unable to load analytics"
+            message={error}
+            onRetry={loadStats}
+            showDashboardLink={false}
           />
-          <MetricSection
-            title="Job Metrics"
-            icon={BarChart3}
-            metrics={[
-              ["Total Jobs", valueOf(stats, ["totalJobs", "jobCount", "jobs"])],
-              ["Active Jobs", valueOf(stats, ["activeJobs", "activeJobCount"])],
-              ["Applications", valueOf(stats, ["applications", "totalApplications", "applicationCount"])],
-            ]}
-          />
-          <MetricSection
-            title="Community Metrics"
-            icon={MessageSquare}
-            metrics={[
-              ["Users", valueOf(stats, ["totalUsers", "userCount", "users"])],
-              ["Threads", valueOf(stats, ["threads", "forumThreads", "threadCount"])],
-              ["Posts", valueOf(stats, ["posts", "forumPosts", "postCount", "replies"])],
-              ["Engagement", valueOf(stats, ["engagement", "communityEngagement", "engagementRate"])],
-            ]}
-          />
-        </div>
-      )}
+        ) : (
+          <>
+            <MetricSection
+              title="Employer Metrics"
+              icon={BriefcaseBusiness}
+              metrics={[
+                ["Total Employers", valueOf(stats, ["totalEmployers", "employerCount", "employers"])],
+                ["Active Employers", valueOf(stats, ["activeEmployers", "activeEmployerCount"])],
+                ["Grandmaster Employers", valueOf(stats, ["grandmasterEmployers", "grandmasterEmployerCount", "grandmasterSubscriptions"])],
+              ]}
+            />
+            <MetricSection
+              title="Job Metrics"
+              icon={BarChart3}
+              metrics={[
+                ["Total Jobs", valueOf(stats, ["totalJobs", "jobCount", "jobs"])],
+                ["Active Jobs", valueOf(stats, ["activeJobs", "activeJobCount"])],
+                ["Applications", valueOf(stats, ["applications", "totalApplications", "applicationCount"])],
+              ]}
+            />
+            <MetricSection
+              title="Community Metrics"
+              icon={MessageSquare}
+              metrics={[
+                ["Users", valueOf(stats, ["totalUsers", "userCount", "users"])],
+                ["Threads", valueOf(stats, ["threads", "forumThreads", "threadCount"])],
+                ["Posts", valueOf(stats, ["posts", "forumPosts", "postCount", "replies"])],
+                ["Engagement", valueOf(stats, ["engagement", "communityEngagement", "engagementRate"])],
+              ]}
+            />
+          </>
+        )}
+      </div>
     </DashboardShell>
   );
 }

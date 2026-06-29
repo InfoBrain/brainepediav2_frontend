@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentType, ReactNode } from "react";
 import { Link } from "wouter";
-import { Clock, Hash, Loader2, MessageCircle, Plus, Search, TrendingUp } from "lucide-react";
+import { Clock, Hash, MessageCircle, Plus, Search, TrendingUp } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { api } from "@/lib/api";
 import { getUserRole } from "@/lib/auth";
@@ -10,13 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { USER_NAV } from "@/lib/userNav";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { Nav } from "@/components/landing/Nav";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { useApiFeedback } from "@/hooks/useApiFeedback";
 
 type Mode = "categories" | "discussions";
 type Category = { id: string; name: string; description: string };
@@ -25,11 +28,12 @@ type Thread = { id: string; title: string; categoryName: string; authorName: str
 export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mode }) {
   usePageTitle(mode === "categories" ? "Forum Categories" : "Discussions");
   const role = getUserRole();
-  const { toast } = useToast();
+  const { handleApiResult } = useApiFeedback();
   const nav = role === "GlobalAdmin" ? ADMIN_NAV : role === "Employer" ? EMPLOYER_NAV : USER_NAV;
   const [categories, setCategories] = useState<Category[]>([]);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [categoryName, setCategoryName] = useState("");
@@ -40,9 +44,14 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
 
   const loadForum = async (cancelledRef?: { cancelled: boolean }) => {
     setLoading(true);
+    setError("");
     const cats = await api.forum.getCategories();
     if (!cats.ok) {
-      if (!cancelledRef?.cancelled) setLoading(false);
+      const message = cats.error || "Could not load forum.";
+      if (!cancelledRef?.cancelled) {
+        setError(message);
+        setLoading(false);
+      }
       return;
     }
     const categoryRows = asList(cats.data).map(normCategory);
@@ -80,13 +89,10 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
     setCreating(true);
     const res = await api.forum.createCategory({ Name: categoryName.trim(), Description: categoryDescription.trim() });
     setCreating(false);
-    if (!res.ok) {
-      const message = res.error || "Failed to create category.";
-      setCreateError(message);
-      toast({ title: "Category creation failed", description: message, variant: "destructive" });
+    if (!handleApiResult(res, { title: "Category created", description: res.ok ? (res.message || categoryName.trim()) : undefined }, { title: "Category creation failed" })) {
+      setCreateError(res.error || "Failed to create category.");
       return;
     }
-    toast({ title: "Category created", description: res.message || categoryName.trim() });
     setCategoryName("");
     setCategoryDescription("");
     setCreateOpen(false);
@@ -139,9 +145,9 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" /> Loading forum...
-          </div>
+          <LoadingState label="Loading forum..." />
+        ) : error ? (
+          <ErrorState message={error} onRetry={() => loadForum()} showDashboardLink={!!role} />
         ) : mode === "categories" ? (
           <div className="space-y-8">
             <CommunitySection title="Categories" icon={Hash}>
@@ -153,7 +159,14 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
                     <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{category.description || "Community category"}</p>
                   </Link>
                 ))}
-                {filteredCategories.length === 0 && <Empty label="No categories found." />}
+                {filteredCategories.length === 0 && (
+                  <EmptyState
+                    icon={Hash}
+                    title="No categories found"
+                    description={search.trim() ? "Try a different search term." : "Forum categories will appear here once they are created."}
+                    className="col-span-full"
+                  />
+                )}
               </div>
             </CommunitySection>
             <CommunitySection title="Recent Discussions" icon={Clock}>
@@ -169,7 +182,11 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
         ) : (
           <div className="rounded-2xl border border-white/5 bg-[#0d1119]">
             {filteredThreads.length === 0 ? (
-              <Empty label="No discussions found." />
+              <EmptyState
+                icon={MessageCircle}
+                title="No discussions found"
+                description={search.trim() ? "Try a different search term." : "Be the first to start a conversation in the forum."}
+              />
             ) : filteredThreads.map((thread) => (
               <Link key={thread.id} href={`/forum/thread/${thread.id}`} className="block border-b border-white/5 p-4 transition-colors last:border-0 hover:bg-white/[0.03]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -214,8 +231,7 @@ export default function ForumDashboardPage({ mode = "categories" }: { mode?: Mod
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={creating} className="bg-[#6366F1] text-white hover:bg-[#4F46E5]">
-                {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Category
+                <ButtonLoading loading={creating}>Create Category</ButtonLoading>
               </Button>
             </div>
           </form>
@@ -265,10 +281,6 @@ function normThread(item: any, categoryName: string): Thread {
   };
 }
 
-function Empty({ label }: { label: string }) {
-  return <div className="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-muted-foreground">{label}</div>;
-}
-
 function CommunitySection({ title, icon: Icon, children }: { title: string; icon: ComponentType<{ className?: string }>; children: ReactNode }) {
   return (
     <section>
@@ -281,7 +293,15 @@ function CommunitySection({ title, icon: Icon, children }: { title: string; icon
 }
 
 function ThreadList({ threads }: { threads: Thread[] }) {
-  if (threads.length === 0) return <Empty label="No discussions found." />;
+  if (threads.length === 0) {
+    return (
+      <EmptyState
+        icon={MessageCircle}
+        title="No discussions found"
+        description="Discussions will appear here as the community shares ideas."
+      />
+    );
+  }
   return (
     <div className="rounded-2xl border border-white/5 bg-[#0d1119]">
       {threads.map((thread) => (

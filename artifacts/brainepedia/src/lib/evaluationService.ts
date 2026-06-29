@@ -50,16 +50,13 @@ export async function processEvaluation(
 ): Promise<{ ok: boolean; data?: ProcessResult; error?: string }> {
   let lastError = "";
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    console.log(`[evaluationService] processEvaluation attempt ${attempt + 1} for submission: ${submissionId}`);
     const res = await api.evaluations.process(submissionId);
-    console.log(`[evaluationService] process response:`, { ok: res.ok, status: res.status, data: res.data, error: res.error });
 
     if (res.ok) {
       return { ok: true, data: res.data as ProcessResult };
     }
 
     if (res.status === 401) {
-      console.log(`[evaluationService] processEvaluation got 401 — session expired, not retrying`);
       return { ok: false, error: "Your session has expired. Please log in again." };
     }
 
@@ -67,7 +64,6 @@ export async function processEvaluation(
 
     if (attempt < maxRetries) {
       const delay = 2000 * (attempt + 1);
-      console.log(`[evaluationService] retrying in ${delay}ms…`);
       await new Promise(r => setTimeout(r, delay));
     }
   }
@@ -93,9 +89,7 @@ export async function getEvaluationBySession(
 ): Promise<{ ok: boolean; data?: EvaluationResult; notFound?: boolean; error?: string }> {
   let lastError = "";
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    console.log(`[evaluationService] getEvaluationBySession attempt ${attempt + 1} for session: ${sessionId}`);
     const res = await api.evaluations.getResult(sessionId);
-    console.log(`[evaluationService] getResult response:`, { ok: res.ok, status: res.status, data: res.data, error: res.error });
 
     if (res.ok) {
       if (isNotFoundResponse(res)) {
@@ -105,7 +99,6 @@ export async function getEvaluationBySession(
     }
 
     if (res.status === 401) {
-      console.log(`[evaluationService] getEvaluationBySession got 401 — session expired, not retrying`);
       return { ok: false, error: "Your session has expired. Please log in again." };
     }
 
@@ -117,7 +110,6 @@ export async function getEvaluationBySession(
 
     if (attempt < maxRetries) {
       const delay = 2000 * (attempt + 1);
-      console.log(`[evaluationService] retrying in ${delay}ms…`);
       await new Promise(r => setTimeout(r, delay));
     }
   }

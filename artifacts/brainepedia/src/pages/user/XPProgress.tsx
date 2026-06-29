@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { BarChart3, Loader2, TrendingUp, Zap } from "lucide-react";
+import { BarChart3, TrendingUp, Zap } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { asList, text } from "@/lib/jobData";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { XPChart } from "@/components/charts/XPChart";
+import { ConceptTooltip, TOOLTIP_COPY, InfoTooltip } from "@/components/ux/InfoTooltip";
 
 type XPEntry = { id: string; amount: number; reason: string; date: string; source: string };
 
@@ -53,11 +56,12 @@ export default function XPProgress() {
   return (
     <DashboardShell nav={USER_NAV} title="XP Progress" subtitle="// timeline.sources.analytics">
       {loading ? (
-        <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-20 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin text-[#FFD700]" /> Loading XP analytics...
-        </div>
+        <LoadingState label="Loading XP analytics..." />
       ) : (
         <div className="space-y-6">
+          <p className="text-sm text-muted-foreground">
+            <InfoTooltip label="About XP">{TOOLTIP_COPY.xp}</InfoTooltip>
+          </p>
           <div className="grid gap-4 md:grid-cols-3">
             <Metric icon={Zap} label="Total XP" value={totalXP.toLocaleString()} />
             <Metric icon={TrendingUp} label="XP Events" value={entries.length.toLocaleString()} />
@@ -67,24 +71,23 @@ export default function XPProgress() {
           <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
             <h2 className="mb-4 text-lg font-bold">XP Growth Chart</h2>
             {timeline.length > 1 ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <LineChart data={timeline}>
-                  <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,.45)", fontSize: 11 }} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,.45)", fontSize: 11 }} />
-                  <Tooltip contentStyle={{ background: "#0d1119", border: "1px solid rgba(255,215,0,.25)", borderRadius: 12 }} />
-                  <Line type="monotone" dataKey="cumulative" stroke="#FFD700" strokeWidth={2} dot={false} name="Cumulative XP" />
-                  <Line type="monotone" dataKey="xp" stroke="#00D2FF" strokeWidth={2} dot={false} name="Daily XP" />
-                </LineChart>
-              </ResponsiveContainer>
+              <XPChart data={timeline} />
             ) : (
-              <p className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">Complete missions to build your XP timeline.</p>
+              <EmptyState
+                title="No XP timeline yet"
+                description="Complete missions to build your XP growth chart."
+                actionLabel="Start a mission"
+                actionHref="/profession/select"
+              />
             )}
           </section>
 
           <div className="grid gap-6 lg:grid-cols-2">
             <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
               <h2 className="mb-4 text-lg font-bold">XP Sources</h2>
-              {sources.length === 0 ? <Empty /> : sources.map(([source, amount]) => (
+              {sources.length === 0 ? (
+                <EmptyState title="No XP sources" description={TOOLTIP_COPY.experienceCredits} />
+              ) : sources.map(([source, amount]) => (
                 <div key={source} className="mb-3 rounded-xl border border-white/5 bg-white/[0.03] p-3">
                   <div className="flex items-center justify-between text-sm"><span>{source}</span><span className="font-mono text-[#FFD700]">{amount.toLocaleString()} XP</span></div>
                 </div>
@@ -92,7 +95,9 @@ export default function XPProgress() {
             </section>
             <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
               <h2 className="mb-4 text-lg font-bold">XP Timeline</h2>
-              {entries.length === 0 ? <Empty /> : entries.slice(0, 12).map((entry) => (
+              {entries.length === 0 ? (
+                <EmptyState title="No XP records" description="Your experience credit ledger will appear here after your first mission." />
+              ) : entries.slice(0, 12).map((entry) => (
                 <div key={entry.id} className="flex gap-3 border-b border-white/5 py-3 last:border-0">
                   <span className="font-mono text-sm text-[#FFD700]">+{entry.amount}</span>
                   <div className="min-w-0 flex-1">
@@ -122,8 +127,4 @@ function normEntry(item: any): XPEntry {
 
 function Metric({ icon: Icon, label, value }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }) {
   return <div className="rounded-xl border border-white/5 bg-[#0d1119] p-5"><Icon className="mb-3 h-5 w-5 text-[#FFD700]" /><p className="text-xs font-mono uppercase text-muted-foreground">{label}</p><p className="mt-1 text-3xl font-black text-[#FFD700]">{value}</p></div>;
-}
-
-function Empty() {
-  return <p className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">No XP records yet.</p>;
 }

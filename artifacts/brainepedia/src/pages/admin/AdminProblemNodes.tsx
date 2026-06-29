@@ -20,12 +20,16 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { PageHeader } from "@/components/ux/PageHeader";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { useApiFeedback } from "@/hooks/useApiFeedback";
 
 
 type Profession = { id: string; name: string };
@@ -167,7 +171,7 @@ function DynamicList({
 
 export default function AdminProblemNodes() {
   const [, navigate] = useLocation();
-  const { toast } = useToast();
+  const { showSuccess, showError, handleApiResult } = useApiFeedback();
   const userId = getUserId();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -178,8 +182,11 @@ export default function AdminProblemNodes() {
   const [difficulties, setDifficulties] = useState<Difficulty[]>([]);
   const [nodes, setNodes] = useState<ProblemNode[]>([]);
   const [profLoading, setProfLoading] = useState(true);
+  const [profError, setProfError] = useState("");
   const [distLoading, setDistLoading] = useState(false);
+  const [distError, setDistError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [nodesError, setNodesError] = useState("");
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [deleteState, setDeleteState] = useState<DeleteState>({ open: false });
   const [saving, setSaving] = useState(false);
@@ -189,36 +196,52 @@ export default function AdminProblemNodes() {
   const [ai, setAi] = useState<AIState>({ open: false, loading: false, preview: null });
   const [aiForm, setAiForm] = useState({ topic: "", districtId: "", difficultyId: "" });
 
-  useEffect(() => {
-    (async () => {
-      setProfLoading(true);
-      const [profRes, diffRes] = await Promise.all([
-        api.professions.list(),
-        api.difficulties.list(),
-      ]);
-      setProfLoading(false);
-      if (profRes.ok) setProfessions(normProfessions(profRes.data));
-      if (diffRes.ok) setDifficulties(normDifficulties(diffRes.data));
-    })();
+  const loadInitialData = useCallback(async () => {
+    setProfLoading(true);
+    setProfError("");
+    const [profRes, diffRes] = await Promise.all([
+      api.professions.list(),
+      api.difficulties.list(),
+    ]);
+    setProfLoading(false);
+    if (profRes.ok) {
+      setProfessions(normProfessions(profRes.data));
+    } else {
+      setProfessions([]);
+      setProfError(profRes.error || "Unable to load professions.");
+    }
+    if (diffRes.ok) setDifficulties(normDifficulties(diffRes.data));
   }, []);
 
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
   const loadDistricts = useCallback(async (profId: string) => {
-    if (!profId) { setDistricts([]); setSelectedDistId(""); return; }
+    if (!profId) { setDistricts([]); setSelectedDistId(""); setDistError(""); return; }
     setDistLoading(true);
+    setDistError("");
     const res = await api.districts.byProfession(profId);
     setDistLoading(false);
     if (res.ok) setDistricts(normDistricts(res.data));
-    else setDistricts([]);
+    else {
+      setDistricts([]);
+      setDistError(res.error || "Unable to load districts.");
+    }
     setSelectedDistId("");
   }, []);
 
   const loadNodes = useCallback(async (distId: string) => {
-    if (!distId) { setNodes([]); return; }
+    if (!distId) { setNodes([]); setNodesError(""); return; }
     setLoading(true);
+    setNodesError("");
     const res = await api.problemNodes.byDistrict(distId);
     setLoading(false);
     if (res.ok) setNodes(normNodes(res.data));
-    else setNodes([]);
+    else {
+      setNodes([]);
+      setNodesError(res.error || "Unable to load problem nodes.");
+    }
   }, []);
 
   useEffect(() => { loadDistricts(selectedProfId); }, [selectedProfId, loadDistricts]);
@@ -269,7 +292,7 @@ export default function AdminProblemNodes() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim()) {
-      toast({ title: "Title is required", variant: "destructive" });
+      showError("Title is required.", { title: "Validation error" });
       return;
     }
     if (!userId) { navigate("/auth/login"); return; }
@@ -291,12 +314,18 @@ export default function AdminProblemNodes() {
       : await api.problemNodes.create(userId, fd);
 
     setSaving(false);
-    if (res.ok) {
-      toast({ title: modal.open && modal.mode === "edit" ? "Problem node updated" : "Problem node created" });
+    if (handleApiResult(
+      res,
+      {
+        title: modal.open && modal.mode === "edit" ? "Problem node updated" : "Problem node created",
+        description: modal.open && modal.mode === "edit"
+          ? "Your changes have been saved."
+          : "The new challenge is now available in this district.",
+      },
+      { title: "Save failed" },
+    )) {
       closeModal();
       loadNodes(selectedDistId);
-    } else {
-      toast({ title: "Error", description: res.error, variant: "destructive" });
     }
   }
 
@@ -306,18 +335,19 @@ export default function AdminProblemNodes() {
     setDeleting(true);
     const res = await api.problemNodes.delete(deleteState.node.id, userId);
     setDeleting(false);
-    if (res.ok) {
-      toast({ title: "Problem node deleted" });
+    if (handleApiResult(
+      res,
+      { title: "Problem node deleted", description: `"${deleteState.node.title}" has been removed.` },
+      { title: "Delete failed" },
+    )) {
       setDeleteState({ open: false });
       loadNodes(selectedDistId);
-    } else {
-      toast({ title: "Error", description: res.error, variant: "destructive" });
     }
   }
 
   async function runAiGenerate() {
     if (!aiForm.topic.trim()) {
-      toast({ title: "Topic is required", variant: "destructive" });
+      showError("Topic is required.", { title: "Validation error" });
       return;
     }
     if (!userId) { navigate("/auth/login"); return; }
@@ -329,8 +359,12 @@ export default function AdminProblemNodes() {
     });
     const nodeData = res.ok ? (res.data?.problemNodes || res.data) : null;
     setAi(s => ({ ...s, loading: false, preview: nodeData }));
-    if (res.ok && res.data?.message) toast({ title: res.data.message });
-    if (!res.ok) toast({ title: "AI generation failed", description: res.error, variant: "destructive" });
+    if (res.ok && res.data?.message) {
+      showSuccess({ title: res.data.message });
+    }
+    if (!res.ok) {
+      showError(res.error || "", { title: "AI generation failed" });
+    }
   }
 
   async function handleAiGenerate(e: React.FormEvent) {
@@ -360,12 +394,13 @@ export default function AdminProblemNodes() {
     fd.append("DistrictId", aiForm.districtId || selectedDistId);
     const res = await api.problemNodes.create(userId, fd);
     setSaving(false);
-    if (res.ok) {
-      toast({ title: "AI problem node saved!" });
+    if (handleApiResult(
+      res,
+      { title: "AI problem node saved", description: "The generated challenge is now live in this district." },
+      { title: "Error saving" },
+    )) {
       setAi({ open: false, loading: false, preview: null });
       loadNodes(selectedDistId);
-    } else {
-      toast({ title: "Error saving", description: res.error, variant: "destructive" });
     }
   }
 
@@ -374,36 +409,43 @@ export default function AdminProblemNodes() {
   return (
     <DashboardShell nav={ADMIN_NAV} title="Challenges">
       <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Challenges</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Manage challenges within districts</p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setAi({ open: true, loading: false, preview: null })}
-              variant="outline"
-              className="border-[#9D4EDD]/40 text-[#9D4EDD] hover:bg-[#9D4EDD]/10 gap-2"
-            >
-              <Wand2 className="w-4 h-4" />
-              AI Generate
-            </Button>
-            <Button
-              onClick={openCreate}
-              disabled={!selectedDistId}
-              className="bg-[#00D2FF] hover:bg-[#00D2FF]/80 text-black font-semibold gap-2 disabled:opacity-40"
-            >
-              <Plus className="w-4 h-4" />
-              New Node
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Challenges"
+          subtitle="Manage challenges within districts"
+          actions={
+            <>
+              <Button
+                onClick={() => setAi({ open: true, loading: false, preview: null })}
+                variant="outline"
+                className="border-[#9D4EDD]/40 text-[#9D4EDD] hover:bg-[#9D4EDD]/10 gap-2"
+              >
+                <Wand2 className="w-4 h-4" />
+                AI Generate
+              </Button>
+              <Button
+                onClick={openCreate}
+                disabled={!selectedDistId}
+                className="bg-[#00D2FF] hover:bg-[#00D2FF]/80 text-black font-semibold gap-2 disabled:opacity-40"
+              >
+                <Plus className="w-4 h-4" />
+                New Node
+              </Button>
+            </>
+          }
+        />
 
         {/* Cascade Filters */}
         <div className="flex items-center gap-3 flex-wrap">
           {profLoading ? (
-            <Loader2 className="w-4 h-4 text-[#00D2FF] animate-spin" />
+            <LoadingState variant="spinner" label="Loading professions…" className="py-4" />
+          ) : profError ? (
+            <ErrorState
+              title="Unable to load professions"
+              message={profError}
+              onRetry={loadInitialData}
+              showDashboardLink={false}
+              compact
+            />
           ) : (
             <>
               <div className="flex items-center gap-2">
@@ -424,6 +466,11 @@ export default function AdminProblemNodes() {
                     <label className="text-sm text-gray-400 whitespace-nowrap">District:</label>
                     {distLoading ? (
                       <Loader2 className="w-4 h-4 text-[#00D2FF] animate-spin" />
+                    ) : distError ? (
+                      <Button size="sm" variant="outline" onClick={() => loadDistricts(selectedProfId)}>
+                        <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                        Retry districts
+                      </Button>
                     ) : (
                       <select
                         value={selectedDistId}
@@ -444,19 +491,33 @@ export default function AdminProblemNodes() {
         {/* Table */}
         <div className="rounded-xl border border-[#00D2FF]/20 bg-[#0D1117] overflow-hidden">
           {!selectedDistId ? (
-            <div className="flex flex-col items-center justify-center h-48 text-gray-500">
-              <Database className="w-10 h-10 mb-2 opacity-40" />
-              <p className="text-sm">Select a profession and district to view problem nodes</p>
-            </div>
+            <EmptyState
+              icon={Database}
+              title="Select a district"
+              description="Choose a profession and district to view and manage problem nodes."
+              className="border-0 rounded-none bg-transparent"
+            />
           ) : loading ? (
-            <div className="flex items-center justify-center h-48">
-              <Loader2 className="w-7 h-7 text-[#00D2FF] animate-spin" />
-            </div>
+            <LoadingState variant="table" rows={5} label="Loading problem nodes…" className="border-0 rounded-none" />
+          ) : nodesError ? (
+            <ErrorState
+              title="Unable to load problem nodes"
+              message={nodesError}
+              onRetry={() => loadNodes(selectedDistId)}
+              showDashboardLink={false}
+              className="border-0 rounded-none"
+            />
           ) : nodes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 text-gray-500">
-              <Database className="w-10 h-10 mb-2 opacity-40" />
-              <p className="text-sm">No problem nodes yet. Create one or use AI Generate.</p>
-            </div>
+            <EmptyState
+              icon={Database}
+              title="No problem nodes yet"
+              description="Create one manually or use AI Generate to seed challenges for this district."
+              actionLabel="New Node"
+              onAction={openCreate}
+              secondaryActionLabel="AI Generate"
+              onSecondaryAction={() => setAi({ open: true, loading: false, preview: null })}
+              className="border-0 rounded-none bg-transparent"
+            />
           ) : (
             <table className="w-full">
               <thead>

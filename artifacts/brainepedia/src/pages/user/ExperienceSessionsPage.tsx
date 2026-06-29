@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CalendarCheck, CalendarClock, Loader2, RefreshCw } from "lucide-react";
+import { Activity, CalendarCheck, CalendarClock, RefreshCw } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
@@ -7,6 +7,9 @@ import { getUserId } from "@/lib/auth";
 import { asList, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
 
 type SessionRow = {
   id: string;
@@ -57,8 +60,12 @@ export default function ExperienceSessionsPage() {
               <p className="mt-2 text-sm text-muted-foreground">This page intentionally shows experience sessions only, not generic activity logs.</p>
             </div>
             <Button onClick={load} variant="outline" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              Refresh
+              <ButtonLoading loading={loading}>
+                <>
+                  {!loading && <RefreshCw className="mr-2 h-4 w-4" />}
+                  Refresh
+                </>
+              </ButtonLoading>
             </Button>
           </div>
         </section>
@@ -70,15 +77,15 @@ export default function ExperienceSessionsPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" /> Loading sessions...
-          </div>
+          <LoadingState label="Loading sessions..." />
         ) : error ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-sm text-destructive">{error}</div>
+          <ErrorState message={error} onRetry={load} />
         ) : sessions.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1119] p-10 text-center text-sm text-muted-foreground">
-            No mission sessions found. Start a District mission to create your first experience session.
-          </div>
+          <EmptyState
+            icon={Activity}
+            title="No mission sessions"
+            description="Start a District mission to create your first experience session."
+          />
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#0d1119]">
             <table className="w-full min-w-[760px] text-sm">

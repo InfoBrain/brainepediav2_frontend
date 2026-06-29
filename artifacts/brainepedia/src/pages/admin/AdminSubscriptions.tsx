@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { CreditCard, DollarSign, Gem, Loader2, RefreshCw, Users } from "lucide-react";
+import { CreditCard, DollarSign, Gem, RefreshCw, Users } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { PageHeader } from "@/components/ux/PageHeader";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { api } from "@/lib/api";
@@ -51,27 +55,29 @@ export default function AdminSubscriptions() {
     return { active, revenue };
   }, [subscriptions]);
 
+  const hasFilters = Boolean(search || tier || activeFilter);
+
   return (
     <DashboardShell nav={ADMIN_NAV} title="Subscriptions" subtitle="// plans.revenue.access" theme="admin">
       <div className="space-y-6">
-        <section className="rounded-2xl border border-[#A5B4FC]/20 bg-gradient-to-br from-[#6366F1]/15 to-[#0d1119] p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#A5B4FC]">Subscription command</p>
-              <h2 className="mt-1 text-2xl font-black">Active plans, revenue metrics, employer subscriptions, and user subscriptions.</h2>
-            </div>
+        <PageHeader
+          title="Subscription command"
+          subtitle="Active plans, revenue metrics, employer subscriptions, and user subscriptions."
+          actions={
             <Button onClick={load} variant="outline" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
-          </div>
-        </section>
+          }
+        />
+
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <Card icon={Gem} title="Active Plans" value={loading ? "Loading..." : summary.active.toLocaleString()} />
+          <Card icon={Gem} title="Active Plans" value={loading ? "Loading…" : summary.active.toLocaleString()} />
           <Card icon={DollarSign} title="Revenue Metrics" value={summary.revenue ? formatCurrency(summary.revenue) : "—"} />
           <Card icon={CreditCard} title="Employer Subscriptions" value="Grandmaster Corporate accounts" />
           <Card icon={Users} title="User Subscriptions" value="Initiate / Architect" />
         </div>
+
         <div className="grid gap-3 rounded-2xl border border-white/5 bg-[#0d1119] p-4 md:grid-cols-4">
           <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search user or email" />
           <select
@@ -94,20 +100,41 @@ export default function AdminSubscriptions() {
             <option value="false">Inactive</option>
           </select>
           <Button onClick={load} variant="outline" disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Apply Filters
           </Button>
         </div>
+
         {loading ? (
-          <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin text-[#A5B4FC]" /> Loading subscriptions...
-          </div>
+          <LoadingState variant="table" rows={6} label="Loading subscriptions…" />
         ) : error ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-sm text-destructive">{error}</div>
+          <ErrorState
+            title="Unable to load subscriptions"
+            message={error}
+            onRetry={load}
+            showDashboardLink={false}
+          />
         ) : subscriptions.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1119] p-10 text-center text-sm text-muted-foreground">
-            No subscriptions were returned by the backend.
-          </div>
+          <EmptyState
+            icon={CreditCard}
+            title="No subscriptions found"
+            description={
+              hasFilters
+                ? "No subscriptions match your current filters."
+                : "No subscriptions were returned by the backend."
+            }
+            actionLabel={hasFilters ? "Clear filters" : undefined}
+            onAction={
+              hasFilters
+                ? () => {
+                    setSearch("");
+                    setTier("");
+                    setActiveFilter("");
+                    setPage(1);
+                  }
+                : undefined
+            }
+          />
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#0d1119]">
             <table className="w-full min-w-[860px] text-sm">
