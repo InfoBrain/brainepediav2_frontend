@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { Bookmark, ChevronLeft, ChevronRight, Loader2, RefreshCw, Search, ShieldCheck, Trophy } from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, Search, ShieldCheck, Trophy } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { asList, candidateAvatar, candidateName, formatNumber, idOf, initials, listMeta, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { useApiFeedback } from "@/hooks/useApiFeedback";
 
 type CandidateRow = {
   id: string;
@@ -23,7 +26,7 @@ type CandidateRow = {
 };
 
 export default function CandidateExplorer() {
-  const { toast } = useToast();
+  const { showSuccess, showError } = useApiFeedback();
   const [profession, setProfession] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState<number | undefined>();
@@ -54,7 +57,7 @@ export default function CandidateExplorer() {
     load(1);
     api.professions.list().then((res) => {
       if (!res.ok) {
-        toast({ title: "Unable to load professions", description: res.error, variant: "destructive" });
+        showError(res.error || "Please try again.", { title: "Unable to load professions" });
         return;
       }
       setProfessionOptions(
@@ -79,10 +82,13 @@ export default function CandidateExplorer() {
     });
     setSavingId("");
     if (!res.ok) {
-      toast({ title: "Unable to save candidate", description: res.error || "Please try again.", variant: "destructive" });
+      showError(res.error || "Please try again.", { title: "Unable to save candidate" });
       return;
     }
-    toast({ title: "Candidate saved", description: `${candidate.name} was added to Saved Candidates.` });
+    showSuccess({
+      title: "Candidate saved",
+      description: `${candidate.name} was added to Saved Candidates.`,
+    });
   };
 
   return (
@@ -113,8 +119,9 @@ export default function CandidateExplorer() {
                 </select>
               </div>
               <Button onClick={() => load(1)} disabled={loading} className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                Search
+                <ButtonLoading loading={loading}>
+                  <><Search className="mr-2 h-4 w-4" /> Search</>
+                </ButtonLoading>
               </Button>
             </div>
           </div>
@@ -138,11 +145,20 @@ export default function CandidateExplorer() {
         </section>
 
         {loading ? (
-          <State label="Exploring candidates..." />
+          <LoadingState label="Exploring candidates..." variant="card" rows={4} />
         ) : error ? (
-          <ErrorState message={error} onRetry={() => load(page)} />
+          <ErrorState message={error} onRetry={() => load(page)} dashboardHref="/employer/overview" />
         ) : candidates.length === 0 ? (
-          <EmptyState />
+          <EmptyState
+            icon={Trophy}
+            title="No candidates found"
+            description="Try another profession filter or clear the search to discover more verified professionals."
+            actionLabel="Clear filter"
+            onAction={() => {
+              setProfession("");
+              load(1);
+            }}
+          />
         ) : (
           <div className="grid gap-4 xl:grid-cols-2">
             {candidates.map((candidate) => (
@@ -184,9 +200,14 @@ export default function CandidateExplorer() {
                   <Button asChild variant="outline">
                     <Link href={`/employer/candidates/${encodeURIComponent(candidate.id)}`}><ShieldCheck className="mr-2 h-4 w-4" /> View dossier</Link>
                   </Button>
-                  <Button onClick={() => saveCandidate(candidate)} disabled={savingId === candidate.id} className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
-                    {savingId === candidate.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bookmark className="mr-2 h-4 w-4" />}
-                    Save
+                  <Button
+                    onClick={() => saveCandidate(candidate)}
+                    disabled={savingId === candidate.id}
+                    className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]"
+                  >
+                    <ButtonLoading loading={savingId === candidate.id}>
+                      <><Bookmark className="mr-2 h-4 w-4" /> Save</>
+                    </ButtonLoading>
                   </Button>
                 </div>
               </article>
@@ -229,36 +250,6 @@ function Metric({ label, value }: { label: string; value: string }) {
     <div className="rounded-lg border border-white/5 bg-white/[0.03] p-2">
       <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="font-bold text-[#00D2FF]">{value}</p>
-    </div>
-  );
-}
-
-function State({ label }: { label: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
-      <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" />
-      <span className="font-mono">{label}</span>
-    </div>
-  );
-}
-
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
-      <p className="mb-4 text-sm text-destructive">{message}</p>
-      <Button onClick={onRetry} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="rounded-xl border border-dashed border-white/10 bg-[#0d1119] p-10 text-center">
-      <Trophy className="mx-auto mb-3 h-10 w-10 text-[#00D2FF]" />
-      <h3 className="text-lg font-bold">No candidates found</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-        Try another profession filter or clear the search to discover more verified professionals.
-      </p>
     </div>
   );
 }

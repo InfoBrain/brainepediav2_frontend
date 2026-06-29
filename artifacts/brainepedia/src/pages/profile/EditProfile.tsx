@@ -104,7 +104,6 @@ export default function EditProfile() {
         description: "Your dossier has been saved and reflected across the empire.",
       });
       if (imageUrl) {
-        console.log("[EditProfile] Avatar URL from API response:", imageUrl);
         setImagePreview(imageUrl);
       }
       if (userId) {
@@ -153,17 +152,14 @@ export default function EditProfile() {
       let d: any = null;
 
       const fetchId = authProfileId || userId;
-      console.log("[EditProfile] Fetching profile for id:", fetchId);
 
       const res = await api.profiles.get(fetchId);
-      console.log("[EditProfile] GET /api/Profiles response:", { ok: res.ok, data: res.data });
 
       if (!cancelled && res.ok && res.data && typeof res.data === "object") {
         d = res.data;
       }
 
       if (!d) {
-        console.log("[EditProfile] Direct fetch failed — falling back to search");
         const all = await api.profiles.search({});
         if (!cancelled && all.ok && Array.isArray(all.data)) {
           d = all.data.find((x: any) =>
@@ -171,14 +167,12 @@ export default function EditProfile() {
             x.userId === userId ||
             x.profileId === fetchId
           ) || null;
-          console.log("[EditProfile] Search fallback result:", d);
         }
       }
 
       if (!cancelled) {
         if (d) {
           const resolvedProfileId = d.profileId || d.id || null;
-          console.log("[EditProfile] Resolved profileId:", resolvedProfileId);
           setProfileId(resolvedProfileId);
 
           const dob = d.dateOfBirth ? String(d.dateOfBirth).slice(0, 10) : "";
@@ -206,7 +200,6 @@ export default function EditProfile() {
           });
 
           const avatarSrc = d.imageUrl || d.avatarUrl || d.profileImage || null;
-          console.log("[EditProfile] Avatar URL from profile:", avatarSrc);
           setImagePreview(avatarSrc);
         }
         setLoading(false);
@@ -231,14 +224,12 @@ export default function EditProfile() {
     }
     setImageFile(f);
     setImagePreview(URL.createObjectURL(f));
-    console.log("[EditProfile] Image selected:", f.name, `(${(f.size / 1024).toFixed(1)} KB)`);
   };
 
   const onSubmit = async (vals: FormVals) => {
     if (!userId) return;
 
     const resolvedProfileId = profileId || authProfileId || userId || "";
-    console.log("[EditProfile] Submitting with profileId:", resolvedProfileId, "userId:", userId);
 
     await updateProfile(resolvedProfileId, userId, {
       firstName: vals.firstName,

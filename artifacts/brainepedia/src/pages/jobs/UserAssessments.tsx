@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Building2, Calendar, ClipboardCheck, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import { Building2, Calendar, ClipboardCheck, Sparkles } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
@@ -12,6 +12,9 @@ import {
   storeMissionAssignmentContext,
 } from "@/lib/missionAssignmentContext";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
 
 export default function UserAssessments() {
   const [items, setItems] = useState<any[]>([]);
@@ -38,24 +41,17 @@ export default function UserAssessments() {
   return (
     <DashboardShell nav={USER_NAV} title="Assessments" subtitle="// career.assessment-center" theme="user">
       {loading ? (
-        <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin text-[#FFD700]" />
-          <span className="font-mono">Loading assigned assessments...</span>
-        </div>
+        <LoadingState label="Loading assigned assessments..." />
       ) : error ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
-          <p className="mb-4 text-sm text-destructive">{error}</p>
-          <Button onClick={load} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
-        </div>
+        <ErrorState message={error} onRetry={load} />
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1119] p-10 text-center">
-          <ClipboardCheck className="mx-auto mb-3 h-10 w-10 text-[#FFD700]" />
-          <h2 className="text-2xl font-black">No assessments assigned yet</h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-            Employer assessments will appear here when a company links a private challenge to your career process.
-          </p>
-          <Button asChild className="mt-6"><Link href="/jobs">Explore jobs</Link></Button>
-        </div>
+        <EmptyState
+          icon={ClipboardCheck}
+          title="No assessments assigned yet"
+          description="Employer assessments will appear here when a company links a private challenge to your career process."
+          actionLabel="Explore jobs"
+          actionHref="/jobs"
+        />
       ) : (
         <div className="grid gap-4">
           {items.map((item, index) => {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { CheckCircle2, Clock, Info, Loader2, Percent, RefreshCw, Sparkles, Target, Trophy, Zap } from "lucide-react";
+import { CheckCircle2, Clock, Info, Percent, RefreshCw, Sparkles, Target, Zap } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
@@ -14,9 +14,11 @@ import {
 } from "@/lib/missionAssignmentContext";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { useApiFeedback } from "@/hooks/useApiFeedback";
 
 type MissionRow = {
   id: string;
@@ -40,7 +42,7 @@ type MissionStats = {
 
 export default function UserMissions() {
   usePageTitle("Missions");
-  const { toast } = useToast();
+  const { showError } = useApiFeedback();
   const [stats, setStats] = useState<MissionStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -54,7 +56,7 @@ export default function UserMissions() {
       setError(message);
       setStats(null);
       setLoading(false);
-      toast({ title: "Missions unavailable", description: message, variant: "destructive" });
+      showError(message, { title: "Missions unavailable" });
       return;
     }
     const res = await api.dashboard.userMissionStatistics(userId);
@@ -63,7 +65,7 @@ export default function UserMissions() {
       setError(message);
       setStats(null);
       setLoading(false);
-      toast({ title: "Missions unavailable", description: message, variant: "destructive" });
+      showError(message, { title: "Missions unavailable" });
       return;
     }
     setStats(normStats(res.data));
@@ -84,16 +86,23 @@ export default function UserMissions() {
               <h2 className="mt-1 text-2xl font-black">Track active missions, completed work, and assessment history.</h2>
             </div>
             <Button onClick={load} variant="outline" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              Refresh
+              <ButtonLoading loading={loading}>
+                <>
+                  {!loading && <RefreshCw className="mr-2 h-4 w-4" />}
+                  Refresh
+                </>
+              </ButtonLoading>
             </Button>
           </div>
         </section>
 
         {loading ? (
-          <MissionSkeleton />
+          <div className="space-y-5">
+            <LoadingState variant="grid" rows={5} className="md:grid-cols-2 xl:grid-cols-5" />
+            <LoadingState variant="table" rows={6} />
+          </div>
         ) : error ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-sm text-destructive">{error}</div>
+          <ErrorState message={error} onRetry={load} />
         ) : (
           <>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
@@ -154,12 +163,14 @@ function MissionSection({ title, rows, empty }: { title: string; rows: MissionRo
     <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
       <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-white/70">{title}</h3>
       {rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
-          <p className="text-sm text-muted-foreground">{empty}</p>
-          <Button asChild className="mt-4 bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
-            <Link href="/profession/select">Start a Mission</Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={Target}
+          title="No missions yet"
+          description={empty}
+          actionLabel="Start a Mission"
+          actionHref="/profession/select"
+          className="border-none bg-transparent"
+        />
       ) : (
         <div className="divide-y divide-white/5">
           {rows.slice(0, 12).map((row, index) => (
@@ -229,13 +240,3 @@ function Metric({ icon: Icon, label, value, color, tooltip }: { icon: React.Comp
   );
 }
 
-function MissionSkeleton() {
-  return (
-    <div className="space-y-5">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {[...Array(5)].map((_, index) => <Skeleton key={index} className="h-32 bg-white/10" />)}
-      </div>
-      <Skeleton className="h-64 bg-white/10" />
-    </div>
-  );
-}

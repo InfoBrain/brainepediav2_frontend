@@ -1,18 +1,22 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSessionTimeout } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { RequireAuth } from "@/components/dashboard/RequireAuth";
 import { ForbiddenWatcher } from "@/components/dashboard/ForbiddenWatcher";
+import { createAppQueryClient } from "@/lib/queryClient";
+import { SkipToContent } from "@/components/ux/SkipToContent";
+import { GlobalErrorBoundary } from "@/components/errors/ErrorBoundary";
+import { ScopedErrorBoundary } from "@/components/errors/ScopedErrorBoundary";
 
 // Global widget
 import { BrainiacWidget } from "@/components/app/BrainiacWidget";
 import { OnboardingGuide } from "@/components/app/OnboardingGuide";
 
-const queryClient = new QueryClient();
+const queryClient = createAppQueryClient();
 
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Home = lazy(() => import("@/pages/Home"));
@@ -503,15 +507,20 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <SessionGuard />
-          <ForbiddenWatcher />
-          <Suspense fallback={<RouteFallback />}>
-            <Router />
-          </Suspense>
-          <BrainiacWidget />
-          <OnboardingGuide />
-        </WouterRouter>
+        <GlobalErrorBoundary>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <SkipToContent />
+            <SessionGuard />
+            <ForbiddenWatcher />
+            <ScopedErrorBoundary>
+              <Suspense fallback={<RouteFallback />}>
+                <Router />
+              </Suspense>
+            </ScopedErrorBoundary>
+            <BrainiacWidget />
+            <OnboardingGuide />
+          </WouterRouter>
+        </GlobalErrorBoundary>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

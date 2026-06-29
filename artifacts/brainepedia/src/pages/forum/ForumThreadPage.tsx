@@ -1,12 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronLeft, Eye, Clock, MessageCircle, Send, Loader2 } from "lucide-react";
+import { ChevronLeft, Eye, Clock, MessageCircle, Send } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { setPageMeta } from "@/lib/seo";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { useApiFeedback, SUCCESS_COPY } from "@/hooks/useApiFeedback";
 
 interface ThreadAuthor {
   nickName: string;
@@ -112,12 +115,13 @@ export default function ForumThreadPage() {
   const params = useParams<{ threadId: string }>();
   const threadId = params.threadId;
   const [, navigate] = useLocation();
-  const { toast } = useToast();
+  const { handleApiResult, showError } = useApiFeedback();
   const user = getUser();
 
   const [thread, setThread] = useState<ThreadDetails | null>(null);
   const [replies, setReplies] = useState<Reply[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [replyText, setReplyText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [categoryId, setCategoryId] = useState<string | null>(null);
@@ -131,6 +135,8 @@ export default function ForumThreadPage() {
   }, [thread]);
 
   const fetchThread = useCallback(async () => {
+    setLoading(true);
+    setError("");
     const res = await api.forum.getThread(threadId);
     if (res.ok && res.data) {
       setThread(res.data.threadDetails ?? null);
@@ -138,6 +144,10 @@ export default function ForumThreadPage() {
       if (res.data.threadDetails?.categoryId) {
         setCategoryId(res.data.threadDetails.categoryId);
       }
+    } else {
+      setThread(null);
+      setReplies([]);
+      setError(res.error || "Could not load this thread.");
     }
     setLoading(false);
   }, [threadId]);
@@ -150,35 +160,46 @@ export default function ForumThreadPage() {
     e.preventDefault();
     if (!replyText.trim()) return;
     if (!user) {
-      toast({ title: "Login required", description: "Please log in to reply.", variant: "destructive" });
+      showError("Please log in to reply.", { title: "Login required" });
       navigate("/auth/login");
       return;
     }
     setSubmitting(true);
     const res = await api.forum.createReply(threadId, { content: replyText.trim() });
     setSubmitting(false);
-    if (res.ok) {
+    if (handleApiResult(res, SUCCESS_COPY.replyAdded, { title: "Failed to post reply" })) {
       setReplyText("");
-      toast({ title: "Reply posted!" });
       fetchThread();
-    } else {
-      toast({ title: "Failed to post reply", description: res.error, variant: "destructive" });
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <LoadingState label="Loading thread..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 px-4">
+        <ErrorState message={error} onRetry={fetchThread} showDashboardLink={false} className="w-full max-w-lg" />
+        <Link href="/forum" className="text-primary hover:underline text-sm">← Back to Forum</Link>
       </div>
     );
   }
 
   if (!thread) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <h2 className="text-xl font-semibold">Thread not found</h2>
-        <Link href="/forum" className="text-primary hover:underline text-sm">← Back to Forum</Link>
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <EmptyState
+          icon={MessageCircle}
+          title="Thread not found"
+          description="This discussion may have been removed or the link is incorrect."
+          actionLabel="Back to Forum"
+          actionHref="/forum"
+        />
       </div>
     );
   }
@@ -293,12 +314,12 @@ export default function ForumThreadPage() {
                   disabled={submitting || !replyText.trim()}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_12px_rgba(0,210,255,0.3)] gap-2"
                 >
-                  {submitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                  Post Reply
+                  <ButtonLoading loading={submitting}>
+                    <>
+                      {!submitting && <Send className="h-4 w-4" />}
+                      Post Reply
+                    </>
+                  </ButtonLoading>
                 </Button>
               </div>
             </form>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { BriefcaseBusiness, ClipboardCheck, FileText, Loader2, MapPin, RefreshCw } from "lucide-react";
+import { BriefcaseBusiness, ClipboardCheck, FileText, MapPin, RefreshCw } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
@@ -11,7 +11,10 @@ import {
   storeMissionAssignmentContext,
 } from "@/lib/missionAssignmentContext";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { useApiFeedback } from "@/hooks/useApiFeedback";
 
 type ApplicationRow = {
   id: string;
@@ -29,7 +32,7 @@ type ApplicationRow = {
 };
 
 export default function UserApplications() {
-  const { toast } = useToast();
+  const { showError } = useApiFeedback();
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -43,7 +46,7 @@ export default function UserApplications() {
       const message = res.error || "Unable to load applications.";
       setError(message);
       setApplications([]);
-      toast({ title: "Applications unavailable", description: message, variant: "destructive" });
+      showError(message, { title: "Applications unavailable" });
       return;
     }
     setApplications(asList(res.data).map(normApplication));
@@ -61,30 +64,28 @@ export default function UserApplications() {
               <h2 className="mt-1 text-2xl font-black">Track roles connected to your verified experience.</h2>
             </div>
             <Button onClick={load} variant="outline" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-              Refresh
+              <ButtonLoading loading={loading}>
+                <>
+                  {!loading && <RefreshCw className="mr-2 h-4 w-4" />}
+                  Refresh
+                </>
+              </ButtonLoading>
             </Button>
           </div>
         </section>
 
         {loading ? (
-          <State label="Loading applications..." />
+          <LoadingState label="Loading applications..." />
         ) : error ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
-            <p className="mb-4 text-sm text-destructive">{error}</p>
-            <Button onClick={load} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
-          </div>
+          <ErrorState message={error} onRetry={load} />
         ) : applications.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1119] p-10 text-center">
-            <FileText className="mx-auto mb-3 h-10 w-10 text-[#FFD700]" />
-            <h2 className="text-2xl font-black">No applications yet</h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-              Browse jobs, review assessment requirements, then apply when the role matches your proof-of-skill history.
-            </p>
-            <Button asChild className="mt-6 bg-[#FFD700] text-black hover:bg-[#F3C800]">
-              <Link href="/jobs"><BriefcaseBusiness className="mr-2 h-4 w-4" /> Open Job Feed</Link>
-            </Button>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="No applications yet"
+            description="Browse jobs, review assessment requirements, then apply when the role matches your proof-of-skill history."
+            actionLabel="Open Job Feed"
+            actionHref="/jobs"
+          />
         ) : (
           <div className="grid gap-4">
             {applications.map((application) => (
@@ -181,11 +182,3 @@ function normApplication(item: any): ApplicationRow {
   };
 }
 
-function State({ label }: { label: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
-      <Loader2 className="h-5 w-5 animate-spin text-[#FFD700]" />
-      <span className="font-mono">{label}</span>
-    </div>
-  );
-}

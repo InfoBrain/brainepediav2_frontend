@@ -1,6 +1,17 @@
 import { getToken } from "./auth";
+import {
+  extractApiMessage,
+  getApiErrorMessage,
+  isAbortError,
+  isOfflineError,
+  parseApiError,
+  sanitizeErrorForDisplay,
+} from "./apiErrorHandler";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.brainepedia.com";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.brainepedia.com";
+const BASE_URL = API_BASE_URL;
+const DEFAULT_TIMEOUT_MS = 30_000;
+const AI_TIMEOUT_MS = 120_000;
 
 export type ApiResult<T = any> = {
   ok: boolean;
@@ -36,51 +47,22 @@ type FetchApiOptions = RequestInit & {
   suppressUnauthorized?: boolean;
   suppressForbidden?: boolean;
   skipAuth?: boolean;
+  timeoutMs?: number;
+  signal?: AbortSignal;
 };
 
-export function extractApiMessage(data: any): string {
-  if (!data) return "";
-  if (typeof data === "string") {
-    const trimmed = data.trim();
-    const isHtml = trimmed.startsWith("<") || /<!doctype/i.test(trimmed);
-    if (!isHtml && (trimmed.startsWith("{") || trimmed.startsWith("["))) {
-      try {
-        return extractApiMessage(JSON.parse(trimmed));
-      } catch {
-        // Fall through to returning the raw non-HTML body.
-      }
-    }
-    return isHtml ? "" : trimmed;
+export { extractApiMessage, getApiErrorMessage, parseApiError, sanitizeErrorForDisplay };
+
+function resolveTimeoutMs(endpoint: string, explicit?: number): number {
+  if (explicit != null) return explicit;
+  if (/\/Evaluations\/|\/ai-generate|\/generate-profession|\/seed-districts/i.test(endpoint)) {
+    return AI_TIMEOUT_MS;
   }
-  if (typeof data !== "object") return "";
-  const message = data.Message ?? data.message;
-  if (message) return String(message);
-  const status = data.Status ?? data.status;
-  if (status) return String(status);
-  const direct =
-    data.data?.Message ??
-    data.data?.message ??
-    data.data?.Status ??
-    data.data?.status ??
-    data.error ??
-    data.Error ??
-    data.detail ??
-    data.Detail ??
-    data.title ??
-    data.Title;
-  if (direct) return String(direct);
-  const errors = data.errors ?? data.Errors;
-  if (typeof errors === "string") return errors;
-  if (Array.isArray(errors)) return errors.map(String).join(" ");
-  if (errors && typeof errors === "object") {
-    const first = Object.values(errors).flat().filter(Boolean).map(String);
-    if (first.length) return first.join(" ");
-  }
-  return "";
+  return DEFAULT_TIMEOUT_MS;
 }
 
 async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}): Promise<ApiResult<T>> {
-  const { suppressUnauthorized, suppressForbidden, skipAuth, ...fetchOptions } = options;
+  const { suppressUnauthorized, suppressForbidden, skipAuth, timeoutMs, signal, ...fetchOptions } = options;
   const headers: Record<string, string> = {
     ...((fetchOptions.headers as any) || {}),
   };
@@ -101,10 +83,21 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
     headers["X-Token"] = `Bearer ${token}`;
   }
 
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), resolveTimeoutMs(endpoint, timeoutMs));
+  const onExternalAbort = () => controller.abort();
+  signal?.addEventListener("abort", onExternalAbort);
+
   try {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      const offline = parseApiError({ error: new TypeError("Failed to fetch") });
+      return { ok: false, error: offline.message, message: offline.message };
+    }
+
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       ...fetchOptions,
       headers,
+      signal: controller.signal,
     });
 
     const isJson = response.headers.get("content-type")?.includes("application/json");
@@ -114,36 +107,46 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
     }
 
     if (!response.ok) {
-      let errorMsg = extractApiMessage(data);
-      if (!errorMsg && response.status === 401) {
-        // Session expired or token rejected — clear credentials and signal the app
-        // to redirect to login. Callers that pass suppressUnauthorized (e.g. optional
-        // authenticated features on public pages) skip the redirect so the page
-        // can degrade gracefully rather than booting the user to /login.
+      const parsed = parseApiError({ status: response.status, data });
+      let errorMsg = sanitizeErrorForDisplay(parsed.message);
+
+      if (response.status === 401) {
         const { clearToken } = await import("./auth");
         clearToken();
         if (!suppressUnauthorized) {
           window.dispatchEvent(new CustomEvent("api-unauthorized"));
         }
-        errorMsg = "Your session has expired. Please log in again.";
-      } else if (!errorMsg && response.status === 403) {
-        errorMsg = "Access restricted. Upgrade your subscription to unlock this District.";
-      } else if (!errorMsg && response.status === 404) {
-        errorMsg = "The requested resource was not found. Please try again.";
-      } else if (!errorMsg && response.status >= 500) {
-        errorMsg = "Server error. Please try again later.";
+        if (!extractApiMessage(data)) {
+          errorMsg = "Your session has expired. Please log in again.";
+        }
       }
-      if (!errorMsg) errorMsg = `Request failed (${response.status}). Please try again.`;
+
       if (response.status === 403 && !suppressForbidden) {
         window.dispatchEvent(new CustomEvent("api-forbidden", { detail: { message: errorMsg } }));
       }
+
       return { ok: false, error: errorMsg, message: errorMsg, status: response.status };
     }
 
     return { ok: true, data, message: extractApiMessage(data), status: response.status };
   } catch (err: any) {
-    const errorMsg = err.message || "Network error. Please try again.";
+    if (isAbortError(err)) {
+      if (signal?.aborted) {
+        return { ok: false, error: "Request cancelled.", message: "Request cancelled." };
+      }
+      const timeoutError = parseApiError({ error: new Error("Request timed out") });
+      return { ok: false, error: timeoutError.message, message: timeoutError.message };
+    }
+    if (isOfflineError(err)) {
+      const offline = parseApiError({ error: err });
+      return { ok: false, error: offline.message, message: offline.message };
+    }
+    const parsed = parseApiError({ error: err });
+    const errorMsg = sanitizeErrorForDisplay(parsed.message);
     return { ok: false, error: errorMsg, message: errorMsg };
+  } finally {
+    window.clearTimeout(timeout);
+    signal?.removeEventListener("abort", onExternalAbort);
   }
 }
 

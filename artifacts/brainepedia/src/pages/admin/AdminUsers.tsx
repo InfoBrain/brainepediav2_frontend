@@ -14,12 +14,16 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { PageHeader } from "@/components/ux/PageHeader";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { useApiFeedback } from "@/hooks/useApiFeedback";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import {
   AlertDialog,
@@ -83,10 +87,11 @@ export default function AdminUsers() {
   usePageTitle("User Management · Admin");
   const [, navigate] = useLocation();
   const adminUserId = getUserId();
-  const { toast } = useToast();
+  const { showSuccess, showError } = useApiFeedback();
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [professionFilter, setProfessionFilter] = useState("");
   const [sortXp, setSortXp] = useState<"asc" | "desc" | null>(null);
@@ -96,8 +101,14 @@ export default function AdminUsers() {
 
   const loadProfiles = useCallback(async () => {
     setLoading(true);
+    setError("");
     const res = await api.profiles.search();
-    setProfiles(res.ok ? normProfiles(res.data) : []);
+    if (res.ok) {
+      setProfiles(normProfiles(res.data));
+    } else {
+      setProfiles([]);
+      setError(res.error || "Unable to load users.");
+    }
     setLoading(false);
   }, []);
 
@@ -141,18 +152,17 @@ export default function AdminUsers() {
     setResetting(false);
     setResetTarget(null);
     if (res.ok) {
-      toast({
-        title: "Password Reset Sent",
+      showSuccess({
+        title: "Password reset sent",
         description: `A temporary password has been emailed to ${resetTarget.email}.`,
       });
     } else {
-      toast({
-        title: "Reset Failed",
-        description: res.error || "An error occurred. Please try again.",
-        variant: "destructive",
+      showError(res.error || "", {
+        title: "Reset failed",
+        fallback: "An error occurred. Please try again.",
       });
     }
-  }, [resetTarget, adminUserId, toast]);
+  }, [resetTarget, adminUserId, showError, showSuccess]);
 
   const toggleSort = () => {
     setSortXp((v) => (v === "desc" ? "asc" : v === "asc" ? null : "desc"));
@@ -167,27 +177,27 @@ export default function AdminUsers() {
       theme="admin"
     >
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold">All Users</h2>
-            <p className="text-xs text-muted-foreground font-mono mt-0.5">
-              {loading
-                ? "Loading users…"
-                : `${filtered.length.toLocaleString()} of ${profiles.length.toLocaleString()} users`}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadProfiles}
-            disabled={loading}
-          >
-            <RefreshCw
-              className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-        </div>
+        <PageHeader
+          title="All Users"
+          subtitle={
+            loading
+              ? "Loading users…"
+              : `${filtered.length.toLocaleString()} of ${profiles.length.toLocaleString()} users`
+          }
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadProfiles}
+              disabled={loading}
+            >
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
+          }
+        />
 
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -230,6 +240,38 @@ export default function AdminUsers() {
         </div>
 
         <div className="bg-[#0d1119] border border-white/5 rounded-xl overflow-hidden">
+          {loading ? (
+            <LoadingState variant="table" rows={6} label="Loading users…" className="border-0 rounded-none" />
+          ) : error ? (
+            <ErrorState
+              title="Unable to load users"
+              message={error}
+              onRetry={loadProfiles}
+              showDashboardLink={false}
+              className="border-0 rounded-none"
+            />
+          ) : paginated.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="No users found"
+              description={
+                search || professionFilter
+                  ? "Try adjusting your search or filters."
+                  : "No user profiles have been created yet."
+              }
+              actionLabel={search || professionFilter ? "Clear filters" : undefined}
+              onAction={
+                search || professionFilter
+                  ? () => {
+                      setSearch("");
+                      setProfessionFilter("");
+                      setPage(1);
+                    }
+                  : undefined
+              }
+              className="border-0 rounded-none"
+            />
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -245,54 +287,7 @@ export default function AdminUsers() {
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i} className="border-b border-white/5">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-white/5 animate-pulse shrink-0" />
-                          <div className="h-4 w-32 rounded bg-white/5 animate-pulse" />
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        <div className="h-4 w-40 rounded bg-white/5 animate-pulse" />
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <div className="h-4 w-16 rounded bg-white/5 animate-pulse" />
-                      </td>
-                      <td className="px-4 py-3 hidden lg:table-cell">
-                        <div className="h-4 w-28 rounded bg-white/5 animate-pulse" />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="h-4 w-12 rounded bg-white/5 animate-pulse" />
-                      </td>
-                      <td className="px-4 py-3 hidden xl:table-cell">
-                        <div className="h-4 w-24 rounded bg-white/5 animate-pulse" />
-                      </td>
-                      <td className="px-4 py-3 hidden lg:table-cell">
-                        <div className="h-4 w-20 rounded bg-white/5 animate-pulse" />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="h-8 w-24 rounded bg-white/5 animate-pulse ml-auto" />
-                      </td>
-                    </tr>
-                  ))
-                ) : paginated.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-20 text-center">
-                      <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground/20" />
-                      <p className="text-sm font-medium text-muted-foreground">
-                        No users found
-                      </p>
-                      <p className="text-xs text-muted-foreground/60 mt-1">
-                        {search || professionFilter
-                          ? "Try adjusting your search or filters"
-                          : "No user profiles have been created yet"}
-                      </p>
-                    </td>
-                  </tr>
-                ) : (
-                  paginated.map((profile, i) => (
+                  {paginated.map((profile, i) => (
                     <motion.tr
                       key={profile.profileId}
                       initial={{ opacity: 0, y: 4 }}
@@ -382,13 +377,13 @@ export default function AdminUsers() {
                         </div>
                       </td>
                     </motion.tr>
-                  ))
-                )}
+                  ))}
               </tbody>
             </table>
           </div>
+          )}
 
-          {!loading && totalPages > 1 && (
+          {!loading && !error && totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-white/5">
               <span className="text-xs text-muted-foreground font-mono">
                 Page {page} of {totalPages} &middot;{" "}

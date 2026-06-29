@@ -1,12 +1,17 @@
-import { useEffect, useState } from "react";
-import { Building2, Loader2, ChevronLeft, ChevronRight, Search, ExternalLink } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Building2, ChevronLeft, ChevronRight, Search, ExternalLink, RefreshCw } from "lucide-react";
 import { useLocation } from "wouter";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { PageHeader } from "@/components/ux/PageHeader";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 type Employer = {
   id: string;
@@ -21,30 +26,37 @@ type Employer = {
 const PAGE_SIZE = 15;
 
 export default function AdminEmployers() {
+  usePageTitle("Employer Management · Admin");
   const [, setLocation] = useLocation();
   const user = getUser();
   const [employers, setEmployers] = useState<Employer[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (!user?.userId) { setLocation("/auth/login"); return; }
   }, [user, setLocation]);
 
-  const fetchEmployers = async (p: number) => {
+  const fetchEmployers = useCallback(async (p: number) => {
     setLoading(true);
+    setError("");
     const res = await api.employers.admin.allEmployers(p, PAGE_SIZE);
     if (res.ok) {
       const d = res.data as any;
       setEmployers(normEmployers(Array.isArray(d) ? d : d?.items ?? d?.employers ?? d?.data ?? []));
       setTotal(d?.total ?? d?.totalCount ?? d?.count ?? (Array.isArray(d) ? d.length : 0));
+    } else {
+      setEmployers([]);
+      setTotal(0);
+      setError(res.error || "Unable to load employers.");
     }
     setLoading(false);
-  };
+  }, []);
 
-  useEffect(() => { fetchEmployers(page); }, [page]);
+  useEffect(() => { fetchEmployers(page); }, [page, fetchEmployers]);
 
   const filtered = employers.filter(
     (e) =>
@@ -58,29 +70,51 @@ export default function AdminEmployers() {
   return (
     <DashboardShell nav={ADMIN_NAV} title="Employer Management" subtitle="// admin.employers.registry" theme="admin">
       <div className="space-y-5">
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search employers…"
-              className="pl-9"
-            />
-          </div>
-          <p className="text-xs text-muted-foreground font-mono">{total} employer{total !== 1 ? "s" : ""} registered</p>
+        <PageHeader
+          title="Employer Registry"
+          subtitle={`${total} employer${total !== 1 ? "s" : ""} registered`}
+          actions={
+            <Button variant="outline" size="sm" onClick={() => fetchEmployers(page)} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          }
+        />
+
+        <div className="relative flex-1 max-w-sm">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search employers…"
+            className="pl-9"
+          />
         </div>
 
         <div className="bg-[#0d1119] border border-white/5 rounded-xl overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center py-20 text-muted-foreground gap-3">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="font-mono text-sm">Loading employers…</span>
-            </div>
+            <LoadingState variant="table" rows={5} label="Loading employers…" className="border-0 rounded-none" />
+          ) : error ? (
+            <ErrorState
+              title="Unable to load employers"
+              message={error}
+              onRetry={() => fetchEmployers(page)}
+              showDashboardLink={false}
+              className="border-0 rounded-none"
+            />
           ) : filtered.length === 0 ? (
-            <div className="py-16 text-center text-sm text-muted-foreground font-mono border border-dashed border-white/10 rounded-lg m-4">
-              {search ? "No employers match your search." : "No employers registered yet."}
-            </div>
+            <EmptyState
+              icon={Building2}
+              title={search ? "No employers match your search" : "No employers registered yet"}
+              description={
+                search
+                  ? "Try a different company name or email address."
+                  : "Employer accounts will appear here once organizations sign up."
+              }
+              actionLabel={search ? "Clear search" : undefined}
+              onAction={search ? () => setSearch("") : undefined}
+              className="border-0 rounded-none"
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -139,8 +173,7 @@ export default function AdminEmployers() {
           )}
         </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+        {!loading && !error && totalPages > 1 && (
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span className="font-mono">Page {page} of {totalPages}</span>
             <div className="flex gap-2">

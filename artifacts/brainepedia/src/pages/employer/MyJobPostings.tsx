@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { BriefcaseBusiness, CalendarDays, ClipboardList, Edit3, Eye, FilePlus2, Loader2, MapPin, RefreshCw, WalletCards } from "lucide-react";
+import { BriefcaseBusiness, CalendarDays, ClipboardList, Edit3, Eye, FilePlus2, MapPin, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -15,15 +15,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { useApiFeedback } from "@/hooks/useApiFeedback";
 
 export default function MyJobPostings() {
-  const { toast } = useToast();
+  const { showSuccess, showError } = useApiFeedback();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [preview, setPreview] = useState<any | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewJobId, setPreviewJobId] = useState("");
   const [statusLoadingId, setStatusLoadingId] = useState("");
 
   const load = async () => {
@@ -45,11 +49,13 @@ export default function MyJobPostings() {
 
   const openPreview = async (jobId: string) => {
     setPreviewLoading(true);
+    setPreviewJobId(jobId);
     setPreview(null);
     const res = await api.jobs.myJob(jobId);
     setPreviewLoading(false);
+    setPreviewJobId("");
     if (!res.ok && res.status !== 404) {
-      toast({ title: "Unable to preview job", description: res.error || "Please try again.", variant: "destructive" });
+      showError(res.error || "Please try again.", { title: "Unable to preview job" });
       return;
     }
     if (res.ok) {
@@ -58,11 +64,14 @@ export default function MyJobPostings() {
     }
     const fallback = jobs.find((job) => idOf(job) === jobId);
     if (fallback) {
-      toast({ title: "Showing posting preview", description: "The dedicated job preview endpoint is not available yet, so this preview uses My Job Postings data." });
+      showSuccess({
+        title: "Showing posting preview",
+        description: "The dedicated job preview endpoint is not available yet, so this preview uses My Job Postings data.",
+      });
       setPreview(fallback);
       return;
     }
-    toast({ title: "Unable to preview job", description: res.error || "Please try again.", variant: "destructive" });
+    showError(res.error || "Please try again.", { title: "Unable to preview job" });
   };
 
   const toggleStatus = async (jobId: string, nextActive: boolean) => {
@@ -70,34 +79,35 @@ export default function MyJobPostings() {
     const res = await api.jobs.updateJobStatus(jobId, nextActive);
     setStatusLoadingId("");
     if (!res.ok) {
-      toast({ title: "Unable to update status", description: res.error || "Please try again.", variant: "destructive" });
+      showError(res.error || "Please try again.", { title: "Unable to update status" });
       return;
     }
-    toast({ title: "Job status updated", description: `Posting is now ${nextActive ? "Active" : "Inactive"}.` });
+    showSuccess({
+      title: "Job status updated",
+      description: `Posting is now ${nextActive ? "Active" : "Inactive"}.`,
+    });
     load();
   };
 
   return (
     <DashboardShell nav={EMPLOYER_NAV} title="My Job Postings" subtitle="// jobs.posting-command-center" theme="employer">
       {loading ? (
-        <State label="Loading job postings..." />
+        <LoadingState label="Loading job postings..." variant="card" rows={3} />
       ) : error ? (
-        <ErrorState message={error} onRetry={load} />
+        <ErrorState message={error} onRetry={load} dashboardHref="/employer/overview" />
       ) : jobs.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-white/10 bg-[#0d1119] p-10 text-center">
-          <BriefcaseBusiness className="mx-auto mb-3 h-10 w-10 text-[#00D2FF]" />
-          <h2 className="text-2xl font-black">No job postings yet</h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">
-            Create a posting and connect it to profession proof, salary context, location, and optional assessments.
-          </p>
-          <Button asChild className="mt-6 bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
-            <Link href="/employer/jobs/create"><FilePlus2 className="mr-2 h-4 w-4" /> Create job</Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={BriefcaseBusiness}
+          title="No job postings yet"
+          description="Create a posting and connect it to profession proof, salary context, location, and optional assessments."
+          actionLabel="Create job"
+          actionHref="/employer/jobs/create"
+        />
       ) : (
         <div className="grid gap-4">
           {jobs.map((job, index) => {
             const id = idOf(job) || String(index);
+            const isPreviewLoading = previewLoading && previewJobId === id;
             return (
               <article key={id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -135,8 +145,14 @@ export default function MyJobPostings() {
                     <Button asChild variant="outline" className="w-full sm:w-auto">
                       <Link href={`/employer/jobs/${encodeURIComponent(id)}/edit`}><Edit3 className="mr-2 h-4 w-4" /> Edit</Link>
                     </Button>
-                    <Button onClick={() => openPreview(id)} className="w-full bg-[#00D2FF] text-black hover:bg-[#00B8DD] sm:w-auto">
-                      <Eye className="mr-2 h-4 w-4" /> Preview
+                    <Button
+                      onClick={() => openPreview(id)}
+                      disabled={isPreviewLoading}
+                      className="w-full bg-[#00D2FF] text-black hover:bg-[#00B8DD] sm:w-auto"
+                    >
+                      <ButtonLoading loading={isPreviewLoading}>
+                        <><Eye className="mr-2 h-4 w-4" /> Preview</>
+                      </ButtonLoading>
                     </Button>
                   </div>
                 </div>
@@ -153,7 +169,7 @@ export default function MyJobPostings() {
           </DialogHeader>
           <div className="max-h-[calc(90vh-96px)] overflow-y-auto px-5 py-5">
             {previewLoading ? (
-              <State label="Loading job preview..." />
+              <LoadingState label="Loading job preview..." variant="spinner" />
             ) : preview ? (
             <div className="space-y-4 text-sm">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -186,15 +202,6 @@ export default function MyJobPostings() {
   );
 }
 
-function State({ label }: { label: string }) {
-  return (
-    <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 bg-[#0d1119] py-16 text-sm text-muted-foreground">
-      <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" />
-      <span className="font-mono">{label}</span>
-    </div>
-  );
-}
-
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
@@ -208,13 +215,4 @@ function isActive(job: any): boolean {
   const raw = job?.isActive ?? job?.active ?? job?.status ?? job?.Status;
   if (typeof raw === "boolean") return raw;
   return !String(raw ?? "Active").toLowerCase().includes("inactive");
-}
-
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center">
-      <p className="mb-4 text-sm text-destructive">{message}</p>
-      <Button onClick={onRetry} variant="outline"><RefreshCw className="mr-2 h-4 w-4" /> Retry</Button>
-    </div>
-  );
 }

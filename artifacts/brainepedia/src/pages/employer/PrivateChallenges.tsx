@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { GraduationCap, Plus, Loader2, Calendar, Users, RefreshCw, Eye } from "lucide-react";
+import { GraduationCap, Plus, Calendar, Users, RefreshCw, Eye } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -10,10 +10,13 @@ import { asList, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { useApiFeedback } from "@/hooks/useApiFeedback";
 
 const schema = z.object({
   challengeName: z.string().min(1, "Challenge name required"),
@@ -57,9 +60,10 @@ type ChallengeParticipants = {
 };
 
 export default function PrivateChallenges() {
-  const { toast } = useToast();
+  const { showSuccess, showError } = useApiFeedback();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
   const [professions, setProfessions] = useState<any[]>([]);
   const [districts, setDistricts] = useState<any[]>([]);
@@ -72,8 +76,10 @@ export default function PrivateChallenges() {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [participants, setParticipants] = useState<ChallengeParticipants | null>(null);
   const [participantsLoading, setParticipantsLoading] = useState(false);
+  const [participantsError, setParticipantsError] = useState("");
   const [result, setResult] = useState<any | null>(null);
   const [resultLoading, setResultLoading] = useState(false);
+  const [resultLoadingUserId, setResultLoadingUserId] = useState("");
 
   const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -81,9 +87,15 @@ export default function PrivateChallenges() {
 
   const fetchChallenges = async () => {
     setLoading(true);
+    setError("");
     const res = await api.employers.listChallenges();
-    if (res.ok) setChallenges(normChallenges(res.data));
     setLoading(false);
+    if (!res.ok) {
+      setError(res.error || "Unable to load challenges.");
+      setChallenges([]);
+      return;
+    }
+    setChallenges(normChallenges(res.data));
   };
 
   useEffect(() => {
@@ -122,7 +134,10 @@ export default function PrivateChallenges() {
   const onSubmit = async (data: FormData) => {
     const res = await api.employers.createChallenge(data);
     if (res.ok) {
-      toast({ title: "Challenge created", description: `"${data.challengeName}" is now live.` });
+      showSuccess({
+        title: "Challenge created",
+        description: `"${data.challengeName}" is now live.`,
+      });
       reset();
       setSelectedProfessionId("");
       setSelectedProfessionName("");
@@ -130,7 +145,7 @@ export default function PrivateChallenges() {
       setOpen(false);
       fetchChallenges();
     } else {
-      toast({ title: "Failed to create challenge", description: res.error, variant: "destructive" });
+      showError(res.error || "Please try again.", { title: "Failed to create challenge" });
     }
   };
 
@@ -139,13 +154,15 @@ export default function PrivateChallenges() {
   const openChallenge = async (challenge: Challenge) => {
     setSelectedChallenge(challenge);
     setParticipants(null);
+    setParticipantsError("");
     setParticipantsLoading(true);
     const res = await api.employers.challengeParticipants(challenge.assignmentId || challenge.id);
     setParticipantsLoading(false);
     if (res.ok) {
       setParticipants(normParticipants(res.data, challenge));
     } else {
-      toast({ title: "Unable to load participants", description: res.error, variant: "destructive" });
+      setParticipantsError(res.error || "Unable to load participants.");
+      showError(res.error || "Please try again.", { title: "Unable to load participants" });
     }
   };
 
@@ -153,11 +170,13 @@ export default function PrivateChallenges() {
     const problemNodeId = participant.problemNodeId || selectedChallenge?.problemNodeId;
     if (!problemNodeId || !participant.userId) return;
     setResultLoading(true);
+    setResultLoadingUserId(participant.userId);
     setResult(null);
     const res = await api.evaluations.getNodeResult(problemNodeId, participant.userId);
     setResultLoading(false);
+    setResultLoadingUserId("");
     if (res.ok) setResult(res.data);
-    else toast({ title: "Unable to load assessment result", description: res.error, variant: "destructive" });
+    else showError(res.error || "Please try again.", { title: "Unable to load assessment result" });
   };
 
   return (
@@ -168,8 +187,10 @@ export default function PrivateChallenges() {
             Create private team training challenges using profession, district, and mission selections.
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={fetchChallenges}>
-              <RefreshCw className="h-4 w-4" />
+            <Button variant="outline" size="icon" onClick={fetchChallenges} disabled={loading} aria-label="Refresh challenges">
+              <ButtonLoading loading={loading}>
+                <RefreshCw className="h-4 w-4" />
+              </ButtonLoading>
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
@@ -252,8 +273,9 @@ export default function PrivateChallenges() {
                   </div>
                   <Button type="submit" className="w-full font-bold" disabled={isSubmitting}
                     style={{ background: "#9D4EDD" }}>
-                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    {isSubmitting ? "Creating…" : "Create Challenge"}
+                    <ButtonLoading loading={isSubmitting}>
+                      {isSubmitting ? "Creating…" : "Create Challenge"}
+                    </ButtonLoading>
                   </Button>
                 </form>
               </DialogContent>
@@ -262,14 +284,17 @@ export default function PrivateChallenges() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground gap-3">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="font-mono text-sm">Loading challenges…</span>
-          </div>
+          <LoadingState label="Loading challenges…" variant="card" rows={3} />
+        ) : error ? (
+          <ErrorState message={error} onRetry={fetchChallenges} dashboardHref="/employer/overview" />
         ) : challenges.length === 0 ? (
-          <div className="py-16 text-center text-sm text-muted-foreground font-mono border border-dashed border-white/10 rounded-lg">
-            No challenges yet. Create your first private challenge above.
-          </div>
+          <EmptyState
+            icon={GraduationCap}
+            title="No challenges yet"
+            description="Create your first private team training challenge to assess and develop your workforce."
+            actionLabel="Create Challenge"
+            onAction={() => setOpen(true)}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {challenges.map((ch) => {
@@ -353,10 +378,14 @@ export default function PrivateChallenges() {
             <DialogDescription>Challenge summary, participant attempts, and completed results.</DialogDescription>
           </DialogHeader>
           {participantsLoading ? (
-            <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 py-16 text-sm text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin text-[#9D4EDD]" />
-              Loading participants...
-            </div>
+            <LoadingState label="Loading participants..." variant="table" rows={5} />
+          ) : participantsError ? (
+            <ErrorState
+              message={participantsError}
+              onRetry={() => selectedChallenge && openChallenge(selectedChallenge)}
+              dashboardHref="/employer/overview"
+              compact
+            />
           ) : participants ? (
             <div className="space-y-5">
               <div className="grid gap-3 sm:grid-cols-4">
@@ -365,41 +394,58 @@ export default function PrivateChallenges() {
                 <SummaryCard label="Total Completed" value={participants.totalCompleted.toLocaleString()} />
                 <SummaryCard label="Completion Rate" value={`${participants.completionRate}%`} />
               </div>
-              <div className="overflow-x-auto rounded-xl border border-white/5">
-                <table className="w-full min-w-[860px] text-sm">
-                  <thead>
-                    <tr className="border-b border-white/5 text-left text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                      <th className="px-4 py-3">Full Name</th>
-                      <th className="px-4 py-3">Profession</th>
-                      <th className="px-4 py-3">Attempted At</th>
-                      <th className="px-4 py-3">Completed</th>
-                      <th className="px-4 py-3">Score</th>
-                      <th className="px-4 py-3">Passed</th>
-                      <th className="px-4 py-3">Result</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {participants.participants.map((participant) => (
-                      <tr key={participant.id} className="border-b border-white/5 last:border-0">
-                        <td className="px-4 py-3 font-medium">{participant.fullName}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{participant.profession}</td>
-                        <td className="px-4 py-3">{participant.attemptedAt ? new Date(participant.attemptedAt).toLocaleString() : "—"}</td>
-                        <td className="px-4 py-3">{participant.completed ? "Completed" : "Not Completed"}</td>
-                        <td className="px-4 py-3">{participant.score}</td>
-                        <td className="px-4 py-3">{participant.passed ? "Passed" : "Not Passed"}</td>
-                        <td className="px-4 py-3">
-                          {participant.completed && (
-                            <Button variant="outline" size="sm" onClick={() => viewResult(participant)}>
-                              <Eye className="mr-2 h-3.5 w-3.5" />
-                              View Result
-                            </Button>
-                          )}
-                        </td>
+              {participants.participants.length === 0 ? (
+                <EmptyState
+                  icon={Users}
+                  title="No participants yet"
+                  description="Team members assigned to this challenge will appear here once they attempt the mission."
+                />
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-white/5">
+                  <table className="w-full min-w-[860px] text-sm">
+                    <thead>
+                      <tr className="border-b border-white/5 text-left text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                        <th className="px-4 py-3">Full Name</th>
+                        <th className="px-4 py-3">Profession</th>
+                        <th className="px-4 py-3">Attempted At</th>
+                        <th className="px-4 py-3">Completed</th>
+                        <th className="px-4 py-3">Score</th>
+                        <th className="px-4 py-3">Passed</th>
+                        <th className="px-4 py-3">Result</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {participants.participants.map((participant) => {
+                        const isResultLoading = resultLoading && resultLoadingUserId === participant.userId;
+                        return (
+                          <tr key={participant.id} className="border-b border-white/5 last:border-0">
+                            <td className="px-4 py-3 font-medium">{participant.fullName}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{participant.profession}</td>
+                            <td className="px-4 py-3">{participant.attemptedAt ? new Date(participant.attemptedAt).toLocaleString() : "—"}</td>
+                            <td className="px-4 py-3">{participant.completed ? "Completed" : "Not Completed"}</td>
+                            <td className="px-4 py-3">{participant.score}</td>
+                            <td className="px-4 py-3">{participant.passed ? "Passed" : "Not Passed"}</td>
+                            <td className="px-4 py-3">
+                              {participant.completed && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={isResultLoading}
+                                  onClick={() => viewResult(participant)}
+                                >
+                                  <ButtonLoading loading={isResultLoading}>
+                                    <><Eye className="mr-2 h-3.5 w-3.5" /> View Result</>
+                                  </ButtonLoading>
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           ) : null}
         </DialogContent>
@@ -411,10 +457,7 @@ export default function PrivateChallenges() {
             <DialogDescription>Completed challenge evaluation outcome.</DialogDescription>
           </DialogHeader>
           {resultLoading ? (
-            <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 py-16 text-sm text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" />
-              Loading assessment result...
-            </div>
+            <LoadingState label="Loading assessment result..." variant="spinner" />
           ) : result ? (
             <AssessmentResult result={result} />
           ) : null}

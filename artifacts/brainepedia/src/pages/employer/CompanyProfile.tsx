@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Building2, Loader2, Save, Globe, Phone, Mail, Image, AlignLeft, MapPin } from "lucide-react";
+import { Building2, Save, Globe, Phone, Mail, Image, AlignLeft, MapPin } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -10,7 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
+import { ErrorState } from "@/components/ux/ErrorState";
+import { useApiFeedback, SUCCESS_COPY } from "@/hooks/useApiFeedback";
 
 const schema = z.object({
   companyName: z.string().min(1, "Company name is required"),
@@ -23,8 +25,9 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function CompanyProfile() {
-  const { toast } = useToast();
+  const { showSuccess, showError } = useApiFeedback();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [logoPreview, setLogoPreview] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [profileMeta, setProfileMeta] = useState<any>(null);
@@ -33,24 +36,33 @@ export default function CompanyProfile() {
     resolver: zodResolver(schema),
   });
 
-  useEffect(() => {
-    api.employers.myCompanyProfile().then((res) => {
-      if (res.ok && res.data) {
-        const d = res.data as any;
-        setProfileMeta(d);
-        reset({
-          companyName: d.companyName ?? d.CompanyName ?? d.name ?? "",
-          companyEmail: d.companyEmail ?? d.email ?? "",
-          companyPhone: d.companyPhone ?? d.companyPhoneNumber ?? d.phoneNumber ?? "",
-          companyAddress: d.companyAddress ?? d.address ?? "",
-          websiteUrl: d.companyWebsite ?? d.websiteUrl ?? d.website ?? "",
-          aboutCompany: d.aboutCompany ?? d.about ?? "",
-        });
-        if (d.companyLogoUrl) setLogoPreview(d.companyLogoUrl);
-      }
-      setLoading(false);
-    });
+  const loadProfile = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    const res = await api.employers.myCompanyProfile();
+    setLoading(false);
+    if (!res.ok) {
+      setError(res.error || "Unable to load company profile.");
+      return;
+    }
+    if (res.data) {
+      const d = res.data as any;
+      setProfileMeta(d);
+      reset({
+        companyName: d.companyName ?? d.CompanyName ?? d.name ?? "",
+        companyEmail: d.companyEmail ?? d.email ?? "",
+        companyPhone: d.companyPhone ?? d.companyPhoneNumber ?? d.phoneNumber ?? "",
+        companyAddress: d.companyAddress ?? d.address ?? "",
+        websiteUrl: d.companyWebsite ?? d.websiteUrl ?? d.website ?? "",
+        aboutCompany: d.aboutCompany ?? d.about ?? "",
+      });
+      if (d.companyLogoUrl) setLogoPreview(d.companyLogoUrl);
+    }
   }, [reset]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   const onSubmit = async (data: FormData) => {
     const fd = new FormData();
@@ -63,19 +75,18 @@ export default function CompanyProfile() {
     if (logoFile) fd.append("LogoFile", logoFile);
     const res = await api.employers.updateCompanyProfile(fd);
     if (res.ok) {
-      toast({ title: "Profile updated", description: "Corporate details saved successfully." });
+      showSuccess(SUCCESS_COPY.companyUpdated);
     } else {
-      toast({ title: "Update failed", description: res.error, variant: "destructive" });
+      showError(res.error || "Please try again.", { title: "Update failed" });
     }
   };
 
   return (
     <DashboardShell nav={EMPLOYER_NAV} title="Company Profile" subtitle="// employer.profile.settings" theme="employer">
       {loading ? (
-        <div className="flex items-center justify-center py-24 text-muted-foreground gap-3">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span className="font-mono text-sm">Loading profile…</span>
-        </div>
+        <LoadingState label="Loading profile…" variant="profile" />
+      ) : error ? (
+        <ErrorState message={error} onRetry={loadProfile} dashboardHref="/employer/overview" />
       ) : (
         <div className="max-w-2xl space-y-6">
           {/* Logo preview */}
@@ -151,8 +162,9 @@ export default function CompanyProfile() {
               disabled={isSubmitting}
               className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)]"
             >
-              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              {isSubmitting ? "Saving…" : "Save Changes"}
+              <ButtonLoading loading={isSubmitting}>
+                <><Save className="mr-2 h-4 w-4" /> {isSubmitting ? "Saving…" : "Save Changes"}</>
+              </ButtonLoading>
             </Button>
           </form>
         </div>

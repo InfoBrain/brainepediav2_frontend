@@ -4,7 +4,6 @@ import {
   Activity,
   CreditCard,
   LayoutDashboard,
-  Loader2,
   Map,
   Trophy,
   User as UserIcon,
@@ -32,6 +31,9 @@ import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/ux/LoadingState";
+import { EmptyState } from "@/components/ux/EmptyState";
+import { ErrorState } from "@/components/ux/ErrorState";
 
 type ActivityLog = {
   activity: string;
@@ -424,25 +426,25 @@ export default function ActivityFeed() {
           </div>
 
           {subLoading && (
-            <div className="flex items-center justify-center h-24">
-              <Loader2 className="h-6 w-6 text-[#00D2FF] animate-spin" />
-            </div>
+            <LoadingState label="Loading mission history..." className="py-8" />
           )}
 
           {!subLoading && subError && (
-            <div className="rounded-xl border border-dashed border-red-500/20 bg-red-500/5 px-6 py-8 text-center">
-              <XCircle className="h-8 w-8 text-red-400/40 mx-auto mb-2" />
-              <p className="text-sm text-red-400/70">Could not load mission history.</p>
-              <p className="text-xs text-white/20 mt-1">Please refresh the page to try again.</p>
-            </div>
+            <ErrorState
+              compact
+              title="Mission history unavailable"
+              message="Could not load mission history. Please try again."
+              onRetry={fetchData}
+              showDashboardLink={false}
+            />
           )}
 
           {!subLoading && !subError && submissions.length === 0 && (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/2 px-6 py-8 text-center">
-              <Zap className="h-8 w-8 text-white/15 mx-auto mb-2" />
-              <p className="text-sm text-white/30">No challenge submissions yet.</p>
-              <p className="text-xs text-white/20 mt-1">Complete challenges to see your results here.</p>
-            </div>
+            <EmptyState
+              icon={Zap}
+              title="No challenge submissions yet"
+              description="Complete challenges to see your results here."
+            />
           )}
 
           {!subLoading && !subError && submissions.length > 0 && (() => {
@@ -563,16 +565,13 @@ export default function ActivityFeed() {
           )}
 
           {!subLoading && !subError && isSubFiltered && filteredSubs.length === 0 && (
-            <div className="rounded-xl border border-dashed border-white/10 bg-white/2 px-6 py-8 text-center">
-              <Filter className="h-8 w-8 text-white/15 mx-auto mb-2" />
-              <p className="text-sm text-white/30">No challenges match this filter.</p>
-              <button
-                onClick={() => { handleSubStatusChange("all"); handleSubDifficultyChange("all"); }}
-                className="mt-3 text-xs font-mono text-[#00D2FF]/70 hover:text-[#00D2FF] transition-colors underline underline-offset-2"
-              >
-                Clear filters
-              </button>
-            </div>
+            <EmptyState
+              icon={Filter}
+              title="No challenges match this filter"
+              description="Try adjusting your status or difficulty filters."
+              actionLabel="Clear filters"
+              onAction={() => { handleSubStatusChange("all"); handleSubDifficultyChange("all"); }}
+            />
           )}
 
           {!subLoading && !subError && submissions.length > 0 && filteredSubs.length > 0 && (
@@ -844,40 +843,21 @@ export default function ActivityFeed() {
 
           {/* Loading skeleton */}
           {loading && (
-            <div className="flex items-center justify-center h-48">
-              <Loader2 className="h-8 w-8 text-[#FFD700] animate-spin" />
-            </div>
+            <LoadingState label="Loading activity history..." />
           )}
 
-          {/* Empty state */}
           {!loading && filtered.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-24 text-center"
-            >
-              <div className="h-24 w-24 rounded-full bg-[#0d1119] border-2 border-dashed border-gray-700 flex items-center justify-center mb-5">
-                <Activity className="h-10 w-10 text-gray-600" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-400 mb-2">
-                {filter === "all" ? "No activity yet" : `No ${activeFilterLabel.toLowerCase()} events`}
-              </h3>
-              <p className="text-sm text-gray-600 max-w-xs">
-                {filter === "all"
+            <EmptyState
+              icon={Activity}
+              title={filter === "all" ? "No activity yet" : `No ${activeFilterLabel.toLowerCase()} events`}
+              description={
+                filter === "all"
                   ? "Your actions will appear here as you progress through the Empire."
-                  : "Try selecting a different filter to see other events."}
-              </p>
-              {filter !== "all" && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleFilterChange("all")}
-                  className="mt-4 text-[#FFD700] hover:text-[#FFD700]/80"
-                >
-                  Show all events
-                </Button>
-              )}
-            </motion.div>
+                  : "Try selecting a different filter to see other events."
+              }
+              actionLabel={filter !== "all" ? "Show all events" : undefined}
+              onAction={filter !== "all" ? () => handleFilterChange("all") : undefined}
+            />
           )}
 
           {/* Timeline */}
