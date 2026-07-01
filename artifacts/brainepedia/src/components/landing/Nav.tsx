@@ -1,6 +1,7 @@
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "wouter";
-import logo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
+import lightLogo from "@assets/branepedia_logo_1777539679828.png";
+import darkLogo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
 import { cn } from "@/lib/utils";
 import { getUser, getUserRole, getDashboardPath } from "@/lib/auth";
 import { useState, type MouseEvent } from "react";
@@ -39,9 +40,14 @@ export function Nav() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           <img
-            src={logo}
+            src={lightLogo}
             alt="Brainepedia"
-            className="h-8 w-auto drop-shadow-[0_0_8px_rgba(0,210,255,0.35)] group-hover:drop-shadow-[0_0_12px_rgba(0,210,255,0.6)] transition-all duration-300"
+            className="h-8 w-auto drop-shadow-[0_0_8px_rgba(106,61,240,0.18)] transition-all duration-300 dark:hidden"
+          />
+          <img
+            src={darkLogo}
+            alt="Brainepedia"
+            className="hidden h-8 w-auto drop-shadow-[0_0_8px_rgba(0,210,255,0.35)] transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(0,210,255,0.6)] dark:block"
           />
           <span className="font-bold text-xl tracking-tight text-foreground">Brainepedia</span>
         </Link>
