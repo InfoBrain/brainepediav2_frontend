@@ -193,12 +193,12 @@ export default function AdminEmployers() {
 
 function normEmployers(arr: any[]): Employer[] {
   return arr.map((x) => ({
-    id: String(x.id ?? x.employerId ?? x.userId ?? Math.random()),
+    id: String(x.employerProfileId ?? x.EmployerProfileId ?? x.employerId ?? x.EmployerId ?? x.id ?? x.Id ?? ""),
     companyName: x.companyName ?? x.name ?? x.company ?? "Unknown",
     websiteUrl: x.websiteUrl ?? x.website ?? "",
     email: x.email ?? x.companyEmail ?? x.ownerEmail ?? "",
     dateRegistered: x.dateRegistered ?? x.createdAt ?? x.registrationDate ?? "",
     activeJobs: x.activeJobs ?? x.jobCount,
     teamMembers: x.teamMembers ?? x.memberCount ?? x.employees,
-  }));
+  })).filter((employer) => employer.id);
 }

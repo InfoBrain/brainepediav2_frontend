@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Loader2, Trophy, Users } from "lucide-react";
+import { Link } from "wouter";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -31,6 +32,8 @@ type RosterMember = {
   dayStreak: number;
   missions: number;
   completedMissions: number;
+  completionRate: number;
+  status: string;
   assignedMissions: AssignedMission[];
 };
 
@@ -122,15 +125,13 @@ export default function TeamAnalytics() {
                 <table className="w-full min-w-[980px] text-sm">
                   <thead>
                     <tr className="border-b border-white/5 text-left text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                      <th className="px-3 py-3">Full Name</th>
+                      <th className="px-3 py-3">Name</th>
                       <th className="px-3 py-3">Profession</th>
-                      <th className="px-3 py-3">Rank Title</th>
                       <th className="px-3 py-3">XP</th>
                       <th className="px-3 py-3">VX</th>
-                      <th className="px-3 py-3">Problems Solved</th>
-                      <th className="px-3 py-3">Day Streak</th>
-                      <th className="px-3 py-3">Missions</th>
-                      <th className="px-3 py-3">Completed Missions</th>
+                      <th className="px-3 py-3">Completion %</th>
+                      <th className="px-3 py-3">Status</th>
+                      <th className="px-3 py-3">Assigned Missions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -138,59 +139,28 @@ export default function TeamAnalytics() {
                       <tr key={employee.userId} className="border-b border-white/5 last:border-0">
                         <td className="px-3 py-3 font-medium">{employee.fullName}</td>
                         <td className="px-3 py-3 text-muted-foreground">{employee.profession || "—"}</td>
-                        <td className="px-3 py-3">{employee.rankTitle || "—"}</td>
                         <td className="px-3 py-3 font-mono text-[#00D2FF]">{employee.xp.toLocaleString()} XP</td>
                         <td className="px-3 py-3">{employee.vx.toLocaleString()} VX</td>
-                        <td className="px-3 py-3">{employee.problemsSolved.toLocaleString()}</td>
-                        <td className="px-3 py-3">{employee.dayStreak.toLocaleString()} days</td>
-                        <td className="px-3 py-3">{employee.missions.toLocaleString()}</td>
-                        <td className="px-3 py-3">{employee.completedMissions.toLocaleString()}</td>
+                        <td className="px-3 py-3">{employee.completionRate}%</td>
+                        <td className="px-3 py-3">
+                          <span className={`rounded-full border px-2.5 py-1 text-xs font-mono ${employee.status === "Completed" ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : employee.status === "In Progress" ? "border-[#00D2FF]/40 bg-[#00D2FF]/10 text-[#00D2FF]" : "border-white/10 bg-white/5 text-muted-foreground"}`}>
+                            {employee.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3">
+                          <Link
+                            href={`/employer/analytics/${encodeURIComponent(employee.userId)}/missions?name=${encodeURIComponent(employee.fullName)}`}
+                            className="inline-flex min-h-8 items-center justify-center rounded-md border px-3 text-xs font-medium text-[#00D2FF] hover:bg-[#00D2FF]/10"
+                          >
+                            View Assigned Missions
+                          </Link>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-          </div>
-
-          <div className="rounded-xl border border-white/5 bg-[#0d1119] p-6">
-            <h3 className="mb-4 flex items-center gap-2 text-base font-bold">
-              <Users className="h-4 w-4 text-[#9D4EDD]" />
-              Assigned Missions
-            </h3>
-            <div className="grid gap-4 lg:grid-cols-2">
-              {data.detailedRoster.map((employee) => (
-                <div key={`${employee.userId}-missions`} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
-                  <h4 className="font-semibold">{employee.fullName}</h4>
-                  {employee.assignedMissions.length === 0 ? (
-                    <p className="mt-3 text-sm text-muted-foreground">No assigned missions returned.</p>
-                  ) : (
-                    <div className="mt-3 overflow-x-auto">
-                      <table className="w-full min-w-[520px] text-xs">
-                        <thead>
-                          <tr className="border-b border-white/5 text-left font-mono uppercase tracking-wider text-muted-foreground">
-                            <th className="px-2 py-2">Mission Name</th>
-                            <th className="px-2 py-2">Score</th>
-                            <th className="px-2 py-2">Completed Status</th>
-                            <th className="px-2 py-2">Pass Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {employee.assignedMissions.map((mission, index) => (
-                            <tr key={`${employee.userId}-${mission.missionName}-${index}`} className="border-b border-white/5 last:border-0">
-                              <td className="px-2 py-2">{mission.missionName}</td>
-                              <td className="px-2 py-2">{mission.score}</td>
-                              <td className="px-2 py-2">{mission.completed ? "Completed" : "Not Completed"}</td>
-                              <td className="px-2 py-2">{mission.passed ? "Passed" : "Not Passed"}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
           </div>
 
           <div className="rounded-xl border border-white/5 bg-[#0d1119] p-6">
@@ -269,6 +239,9 @@ function normAnalytics(d: any): AnalyticsData {
 function normRosterMember(x: any): RosterMember {
   const missions = arrayOf(x?.assignedMissions ?? x?.AssignedMissions ?? x?.missionsAssigned ?? x?.MissionsAssigned ?? x?.missions ?? x?.Missions);
   const completedMissions = numberOf(x?.completedMissions ?? x?.CompletedMissions ?? x?.totalCompletedMissions ?? x?.TotalCompletedMissions);
+  const totalMissions = numberOf(x?.missions ?? x?.Missions ?? x?.totalMissions ?? x?.TotalMissions ?? missions.length);
+  const completed = completedMissions || missions.filter((mission) => Boolean(mission?.completed ?? mission?.Completed ?? mission?.isCompleted ?? mission?.IsCompleted)).length;
+  const completionRate = totalMissions ? Math.round((completed / totalMissions) * 100) : 0;
   return {
     userId: String(x?.userId ?? x?.UserId ?? x?.id ?? x?.Id ?? `${text(x?.fullName ?? x?.FullName ?? x?.name, "member")}-${Math.random()}`),
     fullName: text(x?.fullName ?? x?.FullName ?? x?.name ?? x?.Name ?? `${x?.firstName ?? x?.FirstName ?? ""} ${x?.lastName ?? x?.LastName ?? ""}`.trim(), "Team member"),
@@ -278,8 +251,10 @@ function normRosterMember(x: any): RosterMember {
     vx: numberOf(x?.vx ?? x?.VX ?? x?.verifiedExperience ?? x?.VerifiedExperience ?? x?.verifiedExperienceYears ?? x?.VerifiedExperienceYears),
     problemsSolved: numberOf(x?.problemsSolved ?? x?.ProblemsSolved ?? x?.solved ?? x?.Solved),
     dayStreak: numberOf(x?.dayStreak ?? x?.DayStreak ?? x?.streak ?? x?.Streak),
-    missions: numberOf(x?.missions ?? x?.Missions ?? x?.totalMissions ?? x?.TotalMissions ?? missions.length),
-    completedMissions: completedMissions || missions.filter((mission) => Boolean(mission?.completed ?? mission?.Completed ?? mission?.isCompleted ?? mission?.IsCompleted)).length,
+    missions: totalMissions,
+    completedMissions: completed,
+    completionRate,
+    status: completionRate >= 100 ? "Completed" : completionRate > 0 ? "In Progress" : "Not Started",
     assignedMissions: missions.map(normAssignedMission),
   };
 }

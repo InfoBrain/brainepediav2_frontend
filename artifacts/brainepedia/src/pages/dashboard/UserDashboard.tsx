@@ -16,6 +16,7 @@ import { getUser, getUserId, getProfileId } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { normalizeSubscriptionDetails, type NormalizedSubscriptionDetails } from "@/lib/subscription";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type Stats = {
@@ -156,6 +157,7 @@ export default function UserDashboard() {
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [earnedBadges, setEarnedBadges] = useState<EarnedBadge[]>([]);
   const [newBadges, setNewBadges] = useState<EarnedBadge[]>([]);
+  const [subscriptionDetails, setSubscriptionDetails] = useState<NormalizedSubscriptionDetails | null>(null);
   const newBadgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -193,7 +195,7 @@ export default function UserDashboard() {
       setLeaderboardLoading(true);
 
       const pid = getProfileId() || userId;
-      const [s, m, a, pDirect, b, ds, lb, vi, ms] = await Promise.all([
+      const [s, m, a, pDirect, b, ds, lb, vi, ms, subDetails] = await Promise.all([
         api.profiles.stats(userId),
         api.profiles.map(userId),
         api.activityLogs.forUser(userId),
@@ -203,6 +205,7 @@ export default function UserDashboard() {
         api.dashboard.leaderboard(userId, 20),
         api.identity.professionalIdentity(userId),
         api.dashboard.userMissionStatistics(userId),
+        api.subscriptions.details(userId),
       ]);
       if (cancelled) return;
 
@@ -217,6 +220,9 @@ export default function UserDashboard() {
       }
       if (ms.ok && ms.data && typeof ms.data === "object") {
         setMissionStats(normMissionStats(ms.data));
+      }
+      if (subDetails.ok) {
+        setSubscriptionDetails(normalizeSubscriptionDetails(subDetails.data));
       }
 
       // VX professional identity
@@ -465,9 +471,10 @@ export default function UserDashboard() {
   const totalXP    = dashStats?.totalXP ?? stats?.totalXP ?? 0;
   const dayStreak  = dashStats?.dayStreak ?? stats?.dayStreak ?? 0;
   const solved     = missionStats?.completedMissions ?? dashStats?.problemsSolved ?? stats?.problemsSolvedCount ?? 0;
-  const rawSubName = dashStats?.subscription ?? SUB_NAMES[stats?.currentSubscription ?? 0] ?? "Initiate";
+  const rawSubName = subscriptionDetails?.currentTier ?? dashStats?.subscription ?? SUB_NAMES[stats?.currentSubscription ?? 0] ?? "Initiate";
   const subName    = rawSubName === "Grandmaster" ? "Architect" : rawSubName;
   const subStyle   = SUB_STYLE[subName] ?? SUB_STYLE.Initiate;
+  const subscriptionStatus = getSubscriptionStatus(subscriptionDetails);
   const hasBadges  = dashStats?.hasBadges ?? earnedBadges.length > 0;
   const hasDistricts = dashStats?.hasDistricts ?? districts.length > 0;
   const totalDist  = dashStats?.totalDistricts ?? districts.length;
@@ -497,6 +504,13 @@ export default function UserDashboard() {
       </div>
       <div className={`px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider border ${subStyle.bg} ${subStyle.text} ${subStyle.border} ${subStyle.glow}`}>
         {subName}
+      </div>
+      <div className="hidden lg:block text-right">
+        <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">Expires</div>
+        <div className="text-xs font-bold text-muted-foreground">{subscriptionStatus.expiryDate}</div>
+      </div>
+      <div className={`hidden xl:block px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider border ${subscriptionStatus.badgeClass}`}>
+        {subscriptionStatus.status}
       </div>
       {avatarUrl ? (
         <img src={avatarUrl} alt={displayName} className="h-9 w-9 rounded-full object-cover border-2 border-amber-400/60 shadow-[0_0_12px_rgba(255,215,0,0.4)]" />
@@ -867,9 +881,7 @@ export default function UserDashboard() {
               <div className="bg-gradient-to-br from-[#00D2FF]/10 to-[#0d1119] border border-[#00D2FF]/30 rounded-2xl p-6 shadow-[0_0_18px_rgba(0,210,255,0.12)] flex flex-col">
                 <Zap className="h-6 w-6 text-[#00D2FF] mb-3" />
                 <h3 className="text-lg font-bold text-[#00D2FF] mb-1">Architect Active</h3>
-                <p className="text-sm text-white/40 mb-5 flex-1">
-                  You are on the highest individual plan. Grandmaster is reserved for organizations and employer teams.
-                </p>
+                <SubscriptionStatusDetails plan={subName} status={subscriptionStatus.status} expiryDate={subscriptionStatus.expiryDate} />
                 <Link href="/user/subscription"
                   className="block text-center text-xs font-mono uppercase tracking-wider text-[#00D2FF]/70 hover:text-[#00D2FF] transition-colors border border-[#00D2FF]/20 rounded-lg py-2.5">
                   Manage Subscription →
@@ -887,6 +899,7 @@ export default function UserDashboard() {
                 <p className="text-sm text-muted-foreground mb-5 flex-1">
                   Unlock advanced missions, premium badges, and priority Brainiac access.
                 </p>
+                <SubscriptionStatusDetails plan={subName} status={subscriptionStatus.status} expiryDate={subscriptionStatus.expiryDate} />
                 <Button
                   className="w-full font-bold bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_14px_rgba(124,58,237,0.3)]"
                   onClick={handleUpgrade}
@@ -930,6 +943,43 @@ export default function UserDashboard() {
 }
 
 /* ─── Sub-components ─────────────────────────────────────────────────────── */
+
+function SubscriptionStatusDetails({ plan, expiryDate, status }: { plan: string; expiryDate: string; status: string }) {
+  return (
+    <div className="mb-5 grid gap-2 rounded-xl border border-white/8 bg-white/4 p-3 text-sm">
+      <DetailRow label="Current Plan" value={plan} />
+      <DetailRow label="Expiry Date" value={expiryDate} />
+      <DetailRow label="Status" value={status} />
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-right font-semibold">{value}</span>
+    </div>
+  );
+}
+
+function getSubscriptionStatus(details: NormalizedSubscriptionDetails | null): { status: string; expiryDate: string; badgeClass: string } {
+  if (!details) {
+    return { status: "Active", expiryDate: "-", badgeClass: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" };
+  }
+  const expiryDate = details.expiryDate || "-";
+  const expiry = details.expiryDateRaw ? new Date(details.expiryDateRaw) : null;
+  const daysUntilExpiry = expiry && !Number.isNaN(expiry.getTime())
+    ? Math.ceil((expiry.getTime() - Date.now()) / 86_400_000)
+    : null;
+  if (details.expired) {
+    return { status: "Expired", expiryDate, badgeClass: "border-red-400/30 bg-red-400/10 text-red-300" };
+  }
+  if (daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 7) {
+    return { status: "Expiring Soon", expiryDate, badgeClass: "border-amber-400/30 bg-amber-400/10 text-amber-300" };
+  }
+  return { status: "Active", expiryDate, badgeClass: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" };
+}
 
 function AnimatedXP({ value }: { value: number }) {
   const [display, setDisplay] = useState(0);

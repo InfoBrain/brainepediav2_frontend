@@ -1,25 +1,22 @@
 import { useEffect, useState } from "react";
-import { Users, Lock, UserCheck, CreditCard, Zap, Building2, Loader2, BriefcaseBusiness, Bookmark } from "lucide-react";
+import {
+  Activity,
+  Building2,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Loader2,
+  Bookmark,
+  BriefcaseBusiness,
+  UserCheck,
+  Users,
+  Zap,
+} from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
-import { asList } from "@/lib/jobData";
-
-type BillingData = {
-  billingCycleStart?: string;
-  uniqueActiveEmployees?: number;
-  planType?: string;
-  totalSeats?: number;
-  activeSeats?: number;
-};
-
-type AnalyticsData = {
-  organizationSize?: number;
-  totalChallenges?: number;
-  totalCandidates?: number;
-  employees?: any[];
-};
+import { formatDisplayDate, text } from "@/lib/jobData";
 
 type ProfileData = {
   companyName?: string;
@@ -28,10 +25,25 @@ type ProfileData = {
   planType?: string;
 };
 
-type JobsOverview = {
-  totalJobs: number;
-  totalApplicants: number;
-  savedCandidates: number;
+type DashboardSummary = {
+  totalJobsPosted: number;
+  activeJobsCount: number;
+  totalApplicantsCount: number;
+  pendingApplicantsCount: number;
+  totalActiveTeamMembers: number;
+  totalSavedCandidatesCount: number;
+  activeSubscriptionTier: string;
+  nextBillingDate: string;
+  billingStatus: string;
+  globalTeamCompletionRate: number;
+  recentActivities: ActivityItem[];
+};
+
+type ActivityItem = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
 };
 
 function StatCard({
@@ -66,31 +78,26 @@ function StatCard({
 
 export default function EmployerOverview() {
   const user = getUser();
-  const [billing, setBilling] = useState<BillingData | null>(null);
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [jobsOverview, setJobsOverview] = useState<JobsOverview>({ totalJobs: 0, totalApplicants: 0, savedCandidates: 0 });
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function load() {
-      const [bRes, aRes, pRes, jobsRes, savedRes] = await Promise.all([
-        api.employers.billingSeats(),
-        api.employers.teamAnalytics(),
+      setLoading(true);
+      setError("");
+      const [summaryRes, profileRes] = await Promise.all([
+        api.dashboard.summary(),
         api.employers.myProfile(),
-        api.jobs.myPostings(),
-        api.jobs.savedCandidates(),
       ]);
-      if (bRes.ok) setBilling(normBilling(bRes.data));
-      if (aRes.ok) setAnalytics(normAnalytics(aRes.data));
-      if (pRes.ok) setProfile(normProfile(pRes.data));
-      const postings = jobsRes.ok ? asList(jobsRes.data) : [];
-      const saved = savedRes.ok ? asList(savedRes.data) : [];
-      setJobsOverview({
-        totalJobs: postings.length,
-        totalApplicants: postings.reduce((sum, job) => sum + Number(job?.applicantCount ?? job?.applicationsCount ?? job?.totalApplicants ?? 0), 0),
-        savedCandidates: saved.length,
-      });
+      if (summaryRes.ok) {
+        setSummary(normSummary(summaryRes.data));
+      } else {
+        setSummary(null);
+        setError(summaryRes.error || "Unable to load dashboard summary.");
+      }
+      if (profileRes.ok) setProfile(normProfile(profileRes.data));
       setLoading(false);
     }
     load();
@@ -100,14 +107,8 @@ export default function EmployerOverview() {
   const logoUrl = profile?.companyLogoUrl;
 
   return (
-    <DashboardShell
-      nav={EMPLOYER_NAV}
-      title="Employer Dashboard"
-      subtitle="// employer.command.center"
-      theme="employer"
-    >
+    <DashboardShell nav={EMPLOYER_NAV} title="Employer Dashboard" subtitle="// employer.command.center" theme="employer">
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center gap-4">
           {logoUrl ? (
             <img src={logoUrl} alt={companyName} className="h-14 w-14 rounded-xl object-cover border border-white/10" />
@@ -119,7 +120,7 @@ export default function EmployerOverview() {
           <div>
             <h2 className="text-xl font-bold">{companyName}</h2>
             <p className="text-sm text-muted-foreground font-mono">
-              {profile?.planType ? `Plan: ${profile.planType}` : "Employer Account"}
+              {summary?.activeSubscriptionTier ? `Plan: ${summary.activeSubscriptionTier}` : profile?.planType ? `Plan: ${profile.planType}` : "Employer Account"}
             </p>
           </div>
         </div>
@@ -127,43 +128,26 @@ export default function EmployerOverview() {
         {loading ? (
           <div className="flex items-center justify-center py-24 text-muted-foreground gap-3">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="font-mono text-sm">Loading overview…</span>
+            <span className="font-mono text-sm">Loading overview...</span>
           </div>
-        ) : (
+        ) : error ? (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">
+            {error}
+          </div>
+        ) : summary ? (
           <>
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard
-                icon={BriefcaseBusiness}
-                label="Total Jobs"
-                value={jobsOverview.totalJobs}
-                sub="Active postings"
-                color="#00D2FF"
-              />
-              <StatCard
-                icon={UserCheck}
-                label="Total Applicants"
-                value={jobsOverview.totalApplicants}
-                sub="Across job postings"
-                color="#9D4EDD"
-              />
-              <StatCard
-                icon={Bookmark}
-                label="Saved Candidates"
-                value={jobsOverview.savedCandidates}
-                sub="Shortlisted talent"
-                color="#FFD700"
-              />
-              <StatCard
-                icon={Users}
-                label="Team Size"
-                value={analytics?.organizationSize ?? analytics?.employees?.length ?? "—"}
-                sub="Provisioned members"
-                color="#22c55e"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <StatCard icon={BriefcaseBusiness} label="TotalJobsPosted" value={summary.totalJobsPosted} sub="All postings created" color="#00D2FF" />
+              <StatCard icon={CheckCircle2} label="ActiveJobsCount" value={summary.activeJobsCount} sub="Currently open roles" color="#19C37D" />
+              <StatCard icon={UserCheck} label="TotalApplicantsCount" value={summary.totalApplicantsCount} sub="Across job postings" color="#9D4EDD" />
+              <StatCard icon={Clock} label="PendingApplicantsCount" value={summary.pendingApplicantsCount} sub="Awaiting review" color="#3284FF" />
+              <StatCard icon={Users} label="TotalActiveTeamMembers" value={summary.totalActiveTeamMembers} sub="Active team seats" color="#22c55e" />
+              <StatCard icon={Bookmark} label="TotalSavedCandidatesCount" value={summary.totalSavedCandidatesCount} sub="Shortlisted talent" color="#FFD700" />
+              <StatCard icon={Zap} label="ActiveSubscriptionTier" value={summary.activeSubscriptionTier} sub="Organization plan" color="#FFD700" />
+              <StatCard icon={CreditCard} label="BillingStatus" value={summary.billingStatus} sub={`NextBillingDate: ${summary.nextBillingDate}`} color="#f97316" />
+              <StatCard icon={Activity} label="GlobalTeamCompletionRate" value={`${summary.globalTeamCompletionRate}%`} sub="Team mission completion" color="#00D2FF" />
             </div>
 
-            {/* Quick Actions */}
             <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
               <h3 className="text-base font-bold mb-4">Quick Actions</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -172,79 +156,48 @@ export default function EmployerOverview() {
                   { label: "Create Job", href: "/employer/jobs/create", color: "#9D4EDD" },
                   { label: "Review Applicants", href: "/employer/applications", color: "#FFD700" },
                   { label: "Explore Candidates", href: "/employer/candidates", color: "#22c55e" },
-                ].map((a) => (
+                ].map((action) => (
                   <a
-                    key={a.href}
-                    href={a.href}
+                    key={action.href}
+                    href={action.href}
                     className="rounded-lg p-3 text-center text-sm font-medium border transition-all hover:scale-[1.02]"
-                    style={{
-                      background: `${a.color}10`,
-                      borderColor: `${a.color}30`,
-                      color: a.color,
-                    }}
+                    style={{ background: `${action.color}10`, borderColor: `${action.color}30`, color: action.color }}
                   >
-                    {a.label}
+                    {action.label}
                   </a>
                 ))}
               </div>
             </div>
 
-            {/* Recent Team Members */}
-            {(analytics?.employees?.length ?? 0) > 0 && (
-              <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-                <h3 className="text-base font-bold mb-4 flex items-center gap-2">
-                  <Users className="h-4 w-4 text-[#00D2FF]" />
-                  Team Members
-                </h3>
-                <div className="space-y-2">
-                  {analytics!.employees!.slice(0, 5).map((emp: any, i: number) => (
-                    <div key={i} className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#00D2FF]/30 to-[#7C3AED]/20 flex items-center justify-center text-xs font-bold shrink-0">
-                        {(emp.firstName || emp.name || "?").charAt(0).toUpperCase()}
+            <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
+              <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+                <Activity className="h-4 w-4 text-[#00D2FF]" />
+                RecentActivities
+              </h3>
+              {summary.recentActivities.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
+                  No recent activity returned yet.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {summary.recentActivities.map((item) => (
+                    <div key={item.id} className="relative flex gap-4 border-l border-[#00D2FF]/25 pl-4">
+                      <span className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-[#00D2FF] shadow-[0_0_12px_rgba(0,210,255,0.5)]" />
+                      <div className="min-w-0">
+                        <p className="font-semibold">{item.title}</p>
+                        {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
+                        <p className="mt-1 text-xs font-mono text-muted-foreground">{formatDisplayDate(item.date, "Date unavailable")}</p>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
-                          {emp.firstName && emp.lastName ? `${emp.firstName} ${emp.lastName}` : emp.name || "Employee"}
-                        </p>
-                        <p className="text-xs text-muted-foreground font-mono truncate">{emp.profession || emp.email || "—"}</p>
-                      </div>
-                      {emp.totalXP !== undefined && (
-                        <span className="text-xs font-mono text-[#00D2FF] shrink-0">{emp.totalXP} XP</span>
-                      )}
                     </div>
                   ))}
                 </div>
-                {analytics!.employees!.length > 5 && (
-                  <a href="/employer/analytics" className="text-xs text-[#00D2FF] hover:underline mt-3 inline-block">
-                    View all {analytics!.employees!.length} members →
-                  </a>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </>
-        )}
+        ) : null}
       </div>
     </DashboardShell>
   );
-}
-
-function normBilling(d: any): BillingData {
-  return {
-    billingCycleStart: d?.billingCycleStart ?? d?.cycleStart,
-    uniqueActiveEmployees: d?.uniqueActiveEmployees ?? d?.activeEmployees ?? d?.activeSeats,
-    planType: d?.planType ?? d?.plan ?? d?.tier,
-    totalSeats: d?.totalSeats,
-    activeSeats: d?.activeSeats,
-  };
-}
-
-function normAnalytics(d: any): AnalyticsData {
-  return {
-    organizationSize: d?.organizationSize ?? d?.teamSize ?? d?.totalMembers,
-    totalChallenges: d?.totalChallenges ?? d?.activeChallenges,
-    totalCandidates: d?.totalCandidates ?? d?.candidates,
-    employees: Array.isArray(d?.employees) ? d.employees : Array.isArray(d?.members) ? d.members : [],
-  };
 }
 
 function normProfile(d: any): ProfileData {
@@ -254,4 +207,36 @@ function normProfile(d: any): ProfileData {
     aboutCompany: d?.aboutCompany ?? d?.about,
     planType: d?.planType ?? d?.plan,
   };
+}
+
+function normSummary(data: any): DashboardSummary {
+  const root = data?.data ?? data?.summary ?? data ?? {};
+  return {
+    totalJobsPosted: numberOf(root?.totalJobsPosted ?? root?.TotalJobsPosted),
+    activeJobsCount: numberOf(root?.activeJobsCount ?? root?.ActiveJobsCount),
+    totalApplicantsCount: numberOf(root?.totalApplicantsCount ?? root?.TotalApplicantsCount),
+    pendingApplicantsCount: numberOf(root?.pendingApplicantsCount ?? root?.PendingApplicantsCount),
+    totalActiveTeamMembers: numberOf(root?.totalActiveTeamMembers ?? root?.TotalActiveTeamMembers),
+    totalSavedCandidatesCount: numberOf(root?.totalSavedCandidatesCount ?? root?.TotalSavedCandidatesCount),
+    activeSubscriptionTier: text(root?.activeSubscriptionTier ?? root?.ActiveSubscriptionTier, "-"),
+    nextBillingDate: formatDisplayDate(root?.nextBillingDate ?? root?.NextBillingDate, "-"),
+    billingStatus: text(root?.billingStatus ?? root?.BillingStatus, "-"),
+    globalTeamCompletionRate: numberOf(root?.globalTeamCompletionRate ?? root?.GlobalTeamCompletionRate),
+    recentActivities: activityList(root?.recentActivities ?? root?.RecentActivities),
+  };
+}
+
+function activityList(value: any): ActivityItem[] {
+  const rows = Array.isArray(value) ? value : [];
+  return rows.map((item, index) => ({
+    id: text(item?.id ?? item?.Id ?? item?.activityId ?? item?.ActivityId ?? index, String(index)),
+    title: text(item?.title ?? item?.Title ?? item?.activity ?? item?.Activity ?? item?.message ?? item?.Message, "Activity"),
+    description: text(item?.description ?? item?.Description ?? item?.details ?? item?.Details, ""),
+    date: text(item?.createdAt ?? item?.CreatedAt ?? item?.dateCreated ?? item?.DateCreated ?? item?.timestamp ?? item?.Timestamp, ""),
+  }));
+}
+
+function numberOf(value: unknown): number {
+  const parsed = typeof value === "number" ? value : Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
 }

@@ -348,6 +348,8 @@ export const api = {
       fetchApi(`/api/Submissions/user/${encodeURIComponent(userId)}`),
   },
   dashboard: {
+    /** GET /api/Dashboard/dashboard/summary — employer dashboard summary */
+    summary: () => fetchApi("/api/Dashboard/dashboard/summary"),
     /** GET /api/Dashboard/stats/{userId} */
     stats: (userId: string) => fetchApi(`/api/Dashboard/stats/${encodeURIComponent(userId)}`),
     /** GET /api/Dashboard/leaderboard?userId=&count=N */
