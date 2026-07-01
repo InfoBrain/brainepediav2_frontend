@@ -143,10 +143,10 @@ export default function SubscriptionCenter() {
   const headerRight = (
     <div className="hidden sm:flex items-center gap-2">
       <span className={`px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider border ${
-        employerGrandmasterActive || isCorporateSeat
-          ? "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/40"
-          : isExpired
+        isExpired
           ? "bg-red-500/10 text-red-300 border-red-500/30"
+          : employerGrandmasterActive || isCorporateSeat
+          ? "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/40"
           : currentTierName === "Architect"
           ? "bg-[#7C3AED]/15 text-[#A78BFA] border-[#7C3AED]/40"
           : "bg-slate-800 text-slate-400 border-slate-700"
@@ -562,12 +562,16 @@ function SubscriptionDetailsCard({
           {details.corporateSeatBypass && (
             <p className="mt-1 text-sm text-muted-foreground">Provided by: {details.corporateProvider}</p>
           )}
-          {details.expired && !details.corporateSeatBypass && (
+          {details.expired && (
             <p className="mt-1 text-sm text-red-300">Subscription Expired</p>
           )}
         </div>
         <span className={`rounded-full border px-3 py-1 text-xs font-mono uppercase tracking-wider ${
-          details.active ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-white/10 bg-white/5 text-muted-foreground"
+          details.expired
+            ? "border-red-400/30 bg-red-500/10 text-red-300"
+            : details.active
+            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+            : "border-white/10 bg-white/5 text-muted-foreground"
         }`}>
           {details.status}
         </span>
@@ -580,7 +584,7 @@ function SubscriptionDetailsCard({
         <Detail label="Expiry Date" value={details.expiryDate} />
         <Detail label="Corporate Provider" value={details.corporateSeatBypass ? details.corporateProvider : "—"} />
       </div>
-      {details.expired && !details.corporateSeatBypass && (
+      {details.expired && (
         <div className="mt-4 flex flex-col gap-3 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED]/10 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-[#A78BFA]">Subscription Expired</p>
