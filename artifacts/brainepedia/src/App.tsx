@@ -526,7 +526,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="brainepedia.theme">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="brainepedia.theme">
           <GlobalErrorBoundary>
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
               <SkipToContent />

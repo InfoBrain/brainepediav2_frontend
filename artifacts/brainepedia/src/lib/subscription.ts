@@ -2,6 +2,7 @@ import { formatDisplayDate, text } from "./jobData";
 
 export type NormalizedSubscriptionDetails = {
   currentTier: string;
+  effectiveTier: string;
   active: boolean;
   status: string;
   startDate: string;
@@ -34,8 +35,9 @@ export function normalizeSubscriptionDetails(
   const expiryDate = expiryValue ? new Date(String(expiryValue)) : null;
   const expiryPassed = Boolean(expiryDate && !Number.isNaN(expiryDate.getTime()) && expiryDate.getTime() < Date.now());
   const rawActive = root?.isActive ?? root?.IsActive ?? root?.active ?? root?.Active;
-  const active = corporateSeatBypass ? true : Boolean(rawActive) && !expiryPassed;
-  const expired = !corporateSeatBypass && (!active || expiryPassed);
+  const personalExpired = Boolean(root?.isPersonalExpired ?? root?.IsPersonalExpired);
+  const active = Boolean(rawActive) && !expiryPassed;
+  const expired = expiryPassed || (!corporateSeatBypass && (personalExpired || !active));
   const provider = text(
     root?.associatedCorporateProvider ??
       root?.AssociatedCorporateProvider ??
@@ -46,11 +48,14 @@ export function normalizeSubscriptionDetails(
     "—",
   );
   const tier = text(root?.currentTier ?? root?.CurrentTier ?? root?.tier ?? root?.Tier ?? root?.planName ?? root?.PlanName, "Initiate");
+  const effectiveTier = text(root?.effectiveTier ?? root?.EffectiveTier ?? tier, tier);
+  const displayTier = corporateSeatBypass && options.corporateSeatAsTier ? effectiveTier : tier;
 
   return {
-    currentTier: corporateSeatBypass && options.corporateSeatAsTier ? "Grandmaster" : personalTierName(tier),
+    currentTier: displayTier,
+    effectiveTier,
     active,
-    status: corporateSeatBypass ? "Provided by corporate seat" : active ? "Active" : "Subscription Expired",
+    status: expired ? "Expired" : corporateSeatBypass ? "Provided by corporate seat" : active ? "Active" : "Inactive",
     startDate: formatDisplayDate(root?.startDate ?? root?.StartDate ?? root?.createdAt ?? root?.CreatedAt, "—"),
     expiryDate: formatDisplayDate(expiryValue, "—"),
     expiryDateRaw: expiryValue ? String(expiryValue) : undefined,
@@ -61,8 +66,4 @@ export function normalizeSubscriptionDetails(
     paystackReference: text(root?.paystackReference ?? root?.PaystackReference ?? root?.reference ?? root?.Reference, "—"),
     subscriptionPlanCode: text(root?.subscriptionPlanCode ?? root?.SubscriptionPlanCode ?? root?.planCode ?? root?.PlanCode, "—"),
   };
-}
-
-function personalTierName(tier: string): string {
-  return tier.toLowerCase().includes("grandmaster") ? "Architect" : tier;
 }

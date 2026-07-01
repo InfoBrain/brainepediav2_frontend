@@ -138,15 +138,15 @@ export default function SubscriptionCenter() {
   const currentTierName = isEmployer ? employerPlan : (subscriptionDetails?.currentTier ?? SUB_NAMES[Math.min(currentTier, 1)] ?? "Initiate");
   const isExpired = Boolean(subscriptionDetails?.expired);
   const isCorporateSeat = Boolean(subscriptionDetails?.corporateSeatBypass);
-  const employerGrandmasterActive = isEmployer && currentTierName.toLowerCase().includes("grandmaster");
+  const employerGrandmasterActive = isEmployer && currentTierName.toLowerCase().includes("grandmaster") && !isExpired;
 
   const headerRight = (
     <div className="hidden sm:flex items-center gap-2">
       <span className={`px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider border ${
-        employerGrandmasterActive || isCorporateSeat
-          ? "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/40"
-          : isExpired
+        isExpired
           ? "bg-red-500/10 text-red-300 border-red-500/30"
+          : employerGrandmasterActive || isCorporateSeat
+          ? "bg-[#FFD700]/15 text-[#FFD700] border-[#FFD700]/40"
           : currentTierName === "Architect"
           ? "bg-[#7C3AED]/15 text-[#A78BFA] border-[#7C3AED]/40"
           : "bg-slate-800 text-slate-400 border-slate-700"
@@ -175,7 +175,13 @@ export default function SubscriptionCenter() {
       ) : (
         isEmployer ? (
         <div className="max-w-5xl space-y-6">
-          {subscriptionDetails && <SubscriptionDetailsCard details={subscriptionDetails} />}
+          {subscriptionDetails && (
+            <SubscriptionDetailsCard
+              details={subscriptionDetails}
+              actionLabel={isExpired ? "Make Payment" : undefined}
+              onAction={isExpired ? () => setUpgradeTarget("Grandmaster") : undefined}
+            />
+          )}
           <section className="rounded-2xl border border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/15 via-[#0d1119] to-[#00D2FF]/10 p-8 shadow-[0_0_35px_rgba(255,215,0,0.18)]">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div>
@@ -192,7 +198,7 @@ export default function SubscriptionCenter() {
                 ) : (
                   <Button onClick={() => setUpgradeTarget("Grandmaster")} disabled={upgradeLoading} className="mt-5 bg-[#FFD700] text-black hover:bg-[#F3C800]">
                     {upgradeLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Crown className="mr-2 h-4 w-4" />}
-                    Upgrade to Grandmaster Corporate
+                    {isExpired ? "Make Payment" : "Upgrade to Grandmaster Corporate"}
                   </Button>
                 )}
               </div>
@@ -224,7 +230,7 @@ export default function SubscriptionCenter() {
             <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
               <h3 className="text-lg font-bold">Subscription Status</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Current tier is {subscriptionDetails.currentTier}; active status is {subscriptionDetails.active ? "Active" : "Subscription Expired"}.
+                    Current tier is {subscriptionDetails.currentTier}; active status is {subscriptionDetails.status}.
                   </p>
             </div>
           )}
@@ -233,7 +239,13 @@ export default function SubscriptionCenter() {
         <div className="space-y-8 max-w-6xl">
 
           {/* ── CURRENT TIER HERO ── */}
-          {subscriptionDetails && <SubscriptionDetailsCard details={subscriptionDetails} />}
+          {subscriptionDetails && (
+            <SubscriptionDetailsCard
+              details={subscriptionDetails}
+              actionLabel={isExpired ? "Make Payment" : undefined}
+              onAction={isExpired ? () => setUpgradeTarget("Architect") : undefined}
+            />
+          )}
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
             className={`relative overflow-hidden rounded-2xl border p-6 ${
               currentTierName === "Architect"
@@ -530,39 +542,59 @@ export default function SubscriptionCenter() {
   );
 }
 
-function SubscriptionDetailsCard({ details }: { details: NormalizedSubscriptionDetails }) {
+function SubscriptionDetailsCard({
+  details,
+  actionLabel,
+  onAction,
+}: {
+  details: NormalizedSubscriptionDetails;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
   return (
     <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-mono uppercase tracking-[0.2em] text-white/40">Subscription Details</p>
           <h3 className="mt-1 text-xl font-black">
-            {details.corporateSeatBypass ? "Grandmaster" : details.expired ? "Subscription Expired" : details.currentTier}
+            {details.expired ? "Subscription Expired" : details.currentTier}
           </h3>
           {details.corporateSeatBypass && (
             <p className="mt-1 text-sm text-muted-foreground">Provided by: {details.corporateProvider}</p>
           )}
-          {details.expired && !details.corporateSeatBypass && (
+          {details.expired && (
             <p className="mt-1 text-sm text-red-300">Subscription Expired</p>
           )}
         </div>
         <span className={`rounded-full border px-3 py-1 text-xs font-mono uppercase tracking-wider ${
-          details.active ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-white/10 bg-white/5 text-muted-foreground"
+          details.expired
+            ? "border-red-400/30 bg-red-500/10 text-red-300"
+            : details.active
+            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+            : "border-white/10 bg-white/5 text-muted-foreground"
         }`}>
-          {details.active ? "Active" : "Subscription Expired"}
+          {details.status}
         </span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <Detail label="Current Tier" value={details.currentTier} />
+        <Detail label="Effective Tier" value={details.effectiveTier} />
         <Detail label="Active Status" value={details.status} />
         <Detail label="Start Date" value={details.startDate} />
         <Detail label="Expiry Date" value={details.expiryDate} />
         <Detail label="Corporate Provider" value={details.corporateSeatBypass ? details.corporateProvider : "—"} />
       </div>
-      {details.expired && !details.corporateSeatBypass && (
-        <div className="mt-4 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED]/10 p-4">
-          <p className="text-sm font-semibold text-[#A78BFA]">Upgrade Recommendation</p>
-          <p className="mt-1 text-sm text-muted-foreground">Upgrade to Architect to restore premium access.</p>
+      {details.expired && (
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED]/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#A78BFA]">Subscription Expired</p>
+            <p className="mt-1 text-sm text-muted-foreground">Make payment to restore access to your plan.</p>
+          </div>
+          {actionLabel && onAction && (
+            <Button onClick={onAction} className="bg-[#7C3AED] text-white hover:bg-[#6D28D9]">
+              {actionLabel}
+            </Button>
+          )}
         </div>
       )}
     </div>

@@ -232,7 +232,20 @@
 @layer utilities {
   .light [class*="bg-[#0d1119]"],
   .light [class*="bg-[#0A0E14]"],
-  .light [class*="bg-[#0d1117]"] {
+  .light [class*="bg-[#0d1117]"],
+  .light [class*="bg-[#111827]"],
+  .light [class*="bg-[#131822"] {
+    background-color: #FFFFFF !important;
+  }
+
+  .light [class*="via-[#0d1119]"],
+  .light [class*="to-[#0d1119]"],
+  .light [class*="to-[#0A0E14]"],
+  .light [class*="to-[#0d1117]"],
+  .light [class*="from-[#0d1119]"],
+  .light [class*="from-[#0A0E14]"],
+  .light [class*="from-[#0d1117]"] {
+    background-image: linear-gradient(135deg, rgba(106, 61, 240, 0.11), rgba(50, 132, 255, 0.08), rgba(255, 255, 255, 0.98)) !important;
     background-color: #FFFFFF !important;
   }
 
@@ -248,13 +261,24 @@
   .light [class*="text-white/50"],
   .light [class*="text-white/60"],
   .light [class*="text-white/70"] {
-    color: hsl(var(--muted-foreground)) !important;
+    color: #50627f !important;
   }
 
   .light [class*="text-white/80"],
   .light [class*="text-white/85"],
   .light [class*="text-white"] {
-    color: hsl(var(--foreground)) !important;
+    color: #18263D !important;
+  }
+
+  .light [class*="text-white/15"],
+  .light [class*="text-white/20"],
+  .light [class*="text-white/25"],
+  .light [class*="text-white/30"],
+  .light [class*="text-white/40"],
+  .light [class*="text-white/50"],
+  .light [class*="text-white/60"],
+  .light [class*="text-white/70"] {
+    color: #50627f !important;
   }
 
   .light [class*="bg-white/2"],
@@ -263,7 +287,29 @@
   .light [class*="bg-white/5"],
   .light [class*="bg-white/8"],
   .light [class*="bg-white/10"] {
-    background-color: hsl(var(--muted)) !important;
+    background-color: #F2F5FA !important;
+  }
+
+  .light .text-muted-foreground {
+    color: #50627f !important;
+  }
+
+  .light input,
+  .light textarea,
+  .light select {
+    background-color: #FFFFFF;
+    color: #18263D;
+    border-color: #C9D3E3;
+  }
+
+  .light input::placeholder,
+  .light textarea::placeholder {
+    color: #71829d;
+  }
+
+  .light table thead,
+  .light [role="dialog"] {
+    color: #18263D;
   }
 }
 
