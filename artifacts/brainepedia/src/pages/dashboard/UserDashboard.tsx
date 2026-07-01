@@ -79,6 +79,7 @@ const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "A
 
 const SUB_STYLE: Record<string, { bg: string; text: string; border: string; glow: string }> = {
   Architect:   { bg: "bg-[#00D2FF]/12", text: "text-[#00D2FF]", border: "border-[#00D2FF]/40", glow: "shadow-[0_0_14px_rgba(0,210,255,0.4)]" },
+  Grandmaster: { bg: "bg-[#FFD700]/15", text: "text-[#B7791F] dark:text-[#FFD700]", border: "border-[#FFD700]/40", glow: "shadow-[0_0_14px_rgba(255,215,0,0.35)]" },
   Initiate:    { bg: "bg-gray-800/60",  text: "text-gray-400",  border: "border-gray-700",     glow: "" },
 };
 
@@ -472,7 +473,7 @@ export default function UserDashboard() {
   const dayStreak  = dashStats?.dayStreak ?? stats?.dayStreak ?? 0;
   const solved     = missionStats?.completedMissions ?? dashStats?.problemsSolved ?? stats?.problemsSolvedCount ?? 0;
   const rawSubName = subscriptionDetails?.currentTier ?? dashStats?.subscription ?? SUB_NAMES[stats?.currentSubscription ?? 0] ?? "Initiate";
-  const subName    = rawSubName === "Grandmaster" ? "Architect" : rawSubName;
+  const subName    = rawSubName;
   const subStyle   = SUB_STYLE[subName] ?? SUB_STYLE.Initiate;
   const subscriptionStatus = getSubscriptionStatus(subscriptionDetails);
   const hasBadges  = dashStats?.hasBadges ?? earnedBadges.length > 0;
@@ -877,11 +878,21 @@ export default function UserDashboard() {
                 : <HexGrid districts={districts} />
               }
             </div>
-            {subName === "Architect" ? (
+            {subName === "Architect" || subName === "Grandmaster" ? (
               <div className="bg-gradient-to-br from-[#00D2FF]/10 to-[#0d1119] border border-[#00D2FF]/30 rounded-2xl p-6 shadow-[0_0_18px_rgba(0,210,255,0.12)] flex flex-col">
                 <Zap className="h-6 w-6 text-[#00D2FF] mb-3" />
-                <h3 className="text-lg font-bold text-[#00D2FF] mb-1">Architect Active</h3>
+                <h3 className="text-lg font-bold text-[#00D2FF] mb-1">
+                  {subscriptionStatus.status === "Expired" ? `${subName} Expired` : `${subName} Active`}
+                </h3>
                 <SubscriptionStatusDetails plan={subName} status={subscriptionStatus.status} expiryDate={subscriptionStatus.expiryDate} />
+                {subscriptionStatus.status === "Expired" && (
+                  <Button
+                    className="mb-3 w-full font-bold bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
+                    onClick={() => navigate("/user/subscription")}
+                  >
+                    Make Payment
+                  </Button>
+                )}
                 <Link href="/user/subscription"
                   className="block text-center text-xs font-mono uppercase tracking-wider text-[#00D2FF]/70 hover:text-[#00D2FF] transition-colors border border-[#00D2FF]/20 rounded-lg py-2.5">
                   Manage Subscription →
@@ -907,7 +918,7 @@ export default function UserDashboard() {
                 >
                   {upgradeLoading
                     ? "Preparing…"
-                    : "Upgrade — $19.99/mo"}
+                    : subscriptionStatus.status === "Expired" ? "Make Payment" : "Upgrade — $19.99/mo"}
                 </Button>
                 <Link href="/user/subscription"
                   className="block mt-3 text-center text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400 transition-colors">
