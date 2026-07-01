@@ -11,6 +11,7 @@ import { createAppQueryClient } from "@/lib/queryClient";
 import { SkipToContent } from "@/components/ux/SkipToContent";
 import { GlobalErrorBoundary } from "@/components/errors/ErrorBoundary";
 import { ScopedErrorBoundary } from "@/components/errors/ScopedErrorBoundary";
+import { ThemeProvider } from "next-themes";
 
 // Global widget
 import { BrainiacWidget } from "@/components/app/BrainiacWidget";
@@ -49,8 +50,11 @@ const EmployerOverview = lazy(() => import("@/pages/employer/EmployerOverview"))
 const CompanyProfile = lazy(() => import("@/pages/employer/CompanyProfile"));
 const TeamMembers = lazy(() => import("@/pages/employer/TeamMembers"));
 const PrivateChallenges = lazy(() => import("@/pages/employer/PrivateChallenges"));
+const ChallengeParticipants = lazy(() => import("@/pages/employer/ChallengeParticipants"));
+const ChallengeParticipantResult = lazy(() => import("@/pages/employer/ChallengeParticipantResult"));
 const CandidateAssessments = lazy(() => import("@/pages/employer/CandidateAssessments"));
 const TeamAnalytics = lazy(() => import("@/pages/employer/TeamAnalytics"));
+const TeamMemberMissions = lazy(() => import("@/pages/employer/TeamMemberMissions"));
 const BillingSeats = lazy(() => import("@/pages/employer/BillingSeats"));
 const EmployerSettings = lazy(() => import("@/pages/employer/EmployerSettings"));
 const CandidateExplorer = lazy(() => import("@/pages/employer/CandidateExplorer"));
@@ -354,6 +358,16 @@ function Router() {
           <TeamMembers />
         </RequireAuth>
       </Route>
+      <Route path="/employer/challenges/:assignmentId/participants/:userId/result">
+        <RequireAuth allow={["Employer"]}>
+          <ChallengeParticipantResult />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/challenges/:assignmentId/participants">
+        <RequireAuth allow={["Employer"]}>
+          <ChallengeParticipants />
+        </RequireAuth>
+      </Route>
       <Route path="/employer/challenges">
         <RequireAuth allow={["Employer"]}>
           <PrivateChallenges />
@@ -362,6 +376,11 @@ function Router() {
       <Route path="/employer/assessments">
         <RequireAuth allow={["Employer"]}>
           <CandidateAssessments />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/analytics/:userId/missions">
+        <RequireAuth allow={["Employer"]}>
+          <TeamMemberMissions />
         </RequireAuth>
       </Route>
       <Route path="/employer/analytics">
@@ -507,21 +526,23 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <GlobalErrorBoundary>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <SkipToContent />
-            <SessionGuard />
-            <ForbiddenWatcher />
-            <ScopedErrorBoundary>
-              <Suspense fallback={<RouteFallback />}>
-                <Router />
-              </Suspense>
-            </ScopedErrorBoundary>
-            <BrainiacWidget />
-            <OnboardingGuide />
-          </WouterRouter>
-        </GlobalErrorBoundary>
-        <Toaster />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="brainepedia.theme">
+          <GlobalErrorBoundary>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <SkipToContent />
+              <SessionGuard />
+              <ForbiddenWatcher />
+              <ScopedErrorBoundary>
+                <Suspense fallback={<RouteFallback />}>
+                  <Router />
+                </Suspense>
+              </ScopedErrorBoundary>
+              <BrainiacWidget />
+              <OnboardingGuide />
+            </WouterRouter>
+          </GlobalErrorBoundary>
+          <Toaster />
+        </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

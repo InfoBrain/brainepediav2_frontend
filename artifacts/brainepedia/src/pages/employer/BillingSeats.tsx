@@ -67,7 +67,7 @@ export default function BillingSeats() {
       getUserId() ? api.subscriptions.details(getUserId() as string) : Promise.resolve(null),
       api.employers.myTeamRoster(),
     ]);
-    if (subscriptionRes?.ok) setSubscription(normalizeSubscriptionDetails(subscriptionRes.data));
+    if (subscriptionRes?.ok) setSubscription(normalizeSubscriptionDetails(subscriptionRes.data, { corporateSeatAsTier: true }));
     const roster = rosterRes.ok ? asArray(rosterRes.data) : [];
     if (res.ok) {
       setBilling(normBilling(res.data, subscriptionRes?.ok ? subscriptionRes.data : null, roster));
@@ -218,12 +218,13 @@ export default function BillingSeats() {
 
 function normBilling(d: any, subscription: any, roster: any[]): BillingData {
   const sub = subscription?.data ?? subscription?.subscription ?? subscription;
+  const activeMembers = roster.filter((member) => Boolean(member?.isActive ?? member?.IsActive ?? member?.active ?? member?.Active ?? true)).length;
   const paidSeats = roster.filter((member) => Boolean(member?.isGrandmasterSeatPaid ?? member?.IsGrandmasterSeatPaid ?? member?.grandmasterSeatPaid ?? member?.GrandmasterSeatPaid)).length;
   return {
-    billingCycleStart: d?.billingCycleStart ?? d?.cycleStart ?? d?.startDate,
+    billingCycleStart: sub?.startDate ?? sub?.StartDate ?? d?.billingCycleStart ?? d?.cycleStart ?? d?.startDate,
     billingCycleEnd: d?.billingCycleEnd ?? d?.cycleEnd ?? d?.endDate,
-    uniqueActiveEmployees: d?.uniqueActiveEmployees ?? d?.activeEmployees ?? d?.activeSeats,
-    activeTeamSeats: d?.activeTeamSeats ?? d?.activeSeats ?? d?.uniqueActiveEmployees,
+    uniqueActiveEmployees: d?.uniqueActiveEmployees ?? d?.activeEmployees ?? d?.activeSeats ?? activeMembers,
+    activeTeamSeats: d?.numberOfActiveTeamMembers ?? d?.NumberOfActiveTeamMembers ?? d?.activeTeamMembers ?? d?.ActiveTeamMembers ?? activeMembers,
     totalPaidSeats: d?.totalPaidSeats ?? d?.paidSeats ?? paidSeats,
     planType: d?.planType ?? d?.plan ?? d?.tier ?? d?.subscriptionTier,
     totalSeats: d?.totalSeats ?? d?.seats,

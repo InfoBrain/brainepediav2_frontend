@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { GraduationCap, Plus, Calendar, Users, RefreshCw, Eye } from "lucide-react";
+import { Link } from "wouter";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -302,13 +303,7 @@ export default function PrivateChallenges() {
               return (
                 <div
                   key={ch.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => openChallenge(ch)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") openChallenge(ch);
-                  }}
-                  className="bg-[#0d1119] border border-white/5 rounded-xl p-5 space-y-3 cursor-pointer transition hover:border-[#9D4EDD]/50 hover:bg-[#9D4EDD]/5"
+                  className="bg-[#0d1119] border border-white/5 rounded-xl p-5 space-y-3 transition hover:border-[#9D4EDD]/50 hover:bg-[#9D4EDD]/5"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -361,9 +356,11 @@ export default function PrivateChallenges() {
                   <p className="text-[10px] text-muted-foreground/60 font-mono break-all">
                     Node: {ch.problemNodeId}
                   </p>
-                  <Button variant="outline" size="sm" className="w-full" onClick={(event) => { event.stopPropagation(); openChallenge(ch); }}>
+                  <Button asChild variant="outline" size="sm" className="w-full" disabled={!ch.assignmentId}>
+                    <Link href={participantsHref(ch)}>
                     <Users className="mr-2 h-3.5 w-3.5" />
                     View Participants
+                    </Link>
                   </Button>
                 </div>
               );
@@ -470,10 +467,10 @@ export default function PrivateChallenges() {
 function normChallenges(d: any): Challenge[] {
   const arr = Array.isArray(d) ? d : d?.challenges ?? d?.items ?? [];
   return arr.map((x: any) => ({
-    id: String(x.id ?? x.challengeId ?? x.assignmentId ?? x.AssignmentId ?? Math.random()),
-    assignmentId: String(x.assignmentId ?? x.AssignmentId ?? x.id ?? x.challengeId ?? ""),
+    id: String(x.employerChallengeAssignmentId ?? x.EmployerChallengeAssignmentId ?? x.assignmentId ?? x.AssignmentId ?? x.id ?? x.challengeId ?? ""),
+    assignmentId: String(x.employerChallengeAssignmentId ?? x.EmployerChallengeAssignmentId ?? x.assignmentId ?? x.AssignmentId ?? ""),
     challengeName: x.challengeName ?? x.name ?? "Challenge",
-    problemNodeId: x.problemNodeId ?? x.nodeId ?? "",
+    problemNodeId: x.problemNodeId ?? x.ProblemNodeId ?? x.nodeId ?? x.NodeId ?? "",
     problemNodeTitle: x.problemNodeTitle ?? x.problemNodeName ?? x.problemNode?.title ?? x.ProblemNodeTitle,
     targetProfession: x.targetProfession ?? x.profession ?? x.professionName ?? x.TargetProfession,
     endDate: x.endDate ?? x.expiryDate ?? new Date().toISOString(),
@@ -482,6 +479,14 @@ function normChallenges(d: any): Challenge[] {
     professions: Array.isArray(x.professions) ? x.professions : [],
     createdAt: x.createdAt ?? x.dateCreated,
   }));
+}
+
+function participantsHref(challenge: Challenge): string {
+  const params = new URLSearchParams();
+  if (challenge.problemNodeId) params.set("problemNodeId", challenge.problemNodeId);
+  if (challenge.challengeName) params.set("challengeName", challenge.challengeName);
+  const query = params.toString();
+  return `/employer/challenges/${encodeURIComponent(challenge.assignmentId)}/participants${query ? `?${query}` : ""}`;
 }
 
 function normParticipants(data: any, challenge: Challenge): ChallengeParticipants {

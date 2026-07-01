@@ -15,7 +15,10 @@ export type NormalizedSubscriptionDetails = {
   subscriptionPlanCode: string;
 };
 
-export function normalizeSubscriptionDetails(data: any): NormalizedSubscriptionDetails {
+export function normalizeSubscriptionDetails(
+  data: any,
+  options: { corporateSeatAsTier?: boolean } = {},
+): NormalizedSubscriptionDetails {
   const root = data?.data ?? data?.subscriptionDetails ?? data?.subscription ?? data;
   const corporateSeatBypass = Boolean(
     root?.isCorporateSeatBypass ??
@@ -45,7 +48,7 @@ export function normalizeSubscriptionDetails(data: any): NormalizedSubscriptionD
   const tier = text(root?.currentTier ?? root?.CurrentTier ?? root?.tier ?? root?.Tier ?? root?.planName ?? root?.PlanName, "Initiate");
 
   return {
-    currentTier: corporateSeatBypass ? "Grandmaster" : tier,
+    currentTier: corporateSeatBypass && options.corporateSeatAsTier ? "Grandmaster" : personalTierName(tier),
     active,
     status: corporateSeatBypass ? "Provided by corporate seat" : active ? "Active" : "Subscription Expired",
     startDate: formatDisplayDate(root?.startDate ?? root?.StartDate ?? root?.createdAt ?? root?.CreatedAt, "—"),
@@ -58,4 +61,8 @@ export function normalizeSubscriptionDetails(data: any): NormalizedSubscriptionD
     paystackReference: text(root?.paystackReference ?? root?.PaystackReference ?? root?.reference ?? root?.Reference, "—"),
     subscriptionPlanCode: text(root?.subscriptionPlanCode ?? root?.SubscriptionPlanCode ?? root?.planCode ?? root?.PlanCode, "—"),
   };
+}
+
+function personalTierName(tier: string): string {
+  return tier.toLowerCase().includes("grandmaster") ? "Architect" : tier;
 }

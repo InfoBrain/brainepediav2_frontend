@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ThemeToggle } from "@/components/app/ThemeToggle";
 
 export type NavItem = {
   href: string;
@@ -98,9 +99,9 @@ export function DashboardShell({
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0E14] text-foreground flex">
+    <div className="min-h-screen bg-background text-foreground flex transition-colors duration-300">
       {/* Sidebar - desktop */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-white/5 bg-[#0d1119] sticky top-0 h-screen">
+      <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card sticky top-0 h-screen transition-colors duration-300">
         <SidebarContent
           nav={nav}
           location={location}
@@ -126,7 +127,7 @@ export function DashboardShell({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "tween", duration: 0.25 }}
-              className="fixed left-0 top-0 bottom-0 w-72 bg-[#0d1119] border-r border-white/5 z-50 md:hidden flex flex-col"
+              className="fixed left-0 top-0 bottom-0 w-72 bg-card border-r border-border z-50 md:hidden flex flex-col transition-colors duration-300"
             >
               <SidebarContent
                 nav={nav}
@@ -142,7 +143,7 @@ export function DashboardShell({
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 border-b border-white/5 bg-[#0A0E14]/80 backdrop-blur-md">
+        <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md transition-colors duration-300">
           <div className="flex items-center justify-between px-4 md:px-8 py-4 gap-4">
             <div className="flex items-center gap-3 min-w-0">
               <Button
@@ -163,6 +164,7 @@ export function DashboardShell({
             </div>
             <div className="flex items-center gap-3">
               {headerRight}
+              <ThemeToggle />
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-muted-foreground">
                 <span>{user?.email || user?.userName || "operator"}</span>
               </div>
@@ -174,7 +176,7 @@ export function DashboardShell({
         </header>
 
         <main id="main-content" className="flex-1 px-4 md:px-8 py-6 md:py-8" tabIndex={-1}>{children}</main>
-        <CopyrightBar className="border-t border-white/5" />
+        <CopyrightBar className="border-t border-border" />
       </div>
 
       {showBrainiac && <BrainiacWidget />}
@@ -220,7 +222,7 @@ function SidebarContent({
 }) {
   return (
     <>
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-white/5">
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-border">
         <img src={logoUrl} alt="Brainepedia" className="h-9 w-9" />
         <div>
           <div className="font-bold tracking-wide text-sm">Brainepedia</div>
@@ -254,7 +256,7 @@ function SidebarContent({
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
                       active
                         ? `${theme.accent} ${theme.accentText} ${theme.accentBorder} border`
-                        : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent"
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
@@ -272,10 +274,10 @@ function SidebarContent({
         })}
       </nav>
 
-      <div className="border-t border-white/5 p-3">
+      <div className="border-t border-border p-3">
         <button
           onClick={onLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
           <LogOut className="h-4 w-4" />
           <span>Sign out</span>

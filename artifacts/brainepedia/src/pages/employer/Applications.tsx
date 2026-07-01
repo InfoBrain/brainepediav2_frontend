@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
-import { ClipboardList, Eye, Save, Search, UserCheck } from "lucide-react";
+import { ClipboardList, Eye, FileText, Save, Search, UserCheck, Users } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -32,6 +32,7 @@ import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
 import { EmptyState } from "@/components/ux/EmptyState";
 import { ErrorState } from "@/components/ux/ErrorState";
 import { useApiFeedback } from "@/hooks/useApiFeedback";
+import { AssessmentResultCard } from "@/components/employer/AssessmentResultCard";
 
 const APPLICATION_STATUSES = ["Applied", "Reviewing", "Shortlisted", "Interviewing", "Rejected", "Recruited", "Hired"];
 
@@ -97,16 +98,65 @@ function ApplicationPostingPicker() {
           <div className="grid gap-4">
             {filtered.map((job, index) => {
               const id = idOf(job) || String(index);
+              const jobTitle = text(job?.title ?? job?.jobTitle ?? job?.JobTitle, "Untitled role");
+              const profession = text(job?.professionName ?? job?.ProfessionName ?? job?.profession ?? job?.Profession, "Open profession");
+              const location = text(job?.location ?? job?.Location, "Location not specified");
+              const salary = text(job?.salaryRange ?? job?.SalaryRange ?? job?.salary ?? job?.Salary, "Salary undisclosed");
+              const posted = formatDate(job?.datePosted ?? job?.DatePosted ?? job?.postedDate ?? job?.PostedDate ?? job?.createdAt ?? job?.CreatedAt, "Date unavailable");
+              const expiry = formatDate(job?.expiryDate ?? job?.ExpiryDate ?? job?.expiresAt ?? job?.ExpiresAt, "No expiry date");
+              const active = Boolean(job?.isActive ?? job?.IsActive ?? job?.active ?? job?.Active);
+              const hasAssessment = Boolean(
+                job?.hasLinkedAssessment ??
+                  job?.HasLinkedAssessment ??
+                  job?.linkAssessmentNodeId ??
+                  job?.LinkAssessmentNodeId ??
+                  job?.assessmentProblemNodeId ??
+                  job?.AssessmentProblemNodeId,
+              );
               return (
                 <article key={id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold">{text(job?.title ?? job?.jobTitle, "Untitled role")}</h3>
-                      <p className="text-sm text-muted-foreground">{text(job?.professionName ?? job?.profession, "Open profession")}</p>
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-lg font-bold">{jobTitle}</h3>
+                          <p className="text-sm text-muted-foreground">{profession}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <span className={`rounded-full border px-2.5 py-1 text-xs font-mono ${active ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-red-400/40 bg-red-400/10 text-red-300"}`}>
+                            {active ? "Active" : "Inactive"}
+                          </span>
+                          <span className={`rounded-full border px-2.5 py-1 text-xs font-mono ${hasAssessment ? "border-[#00D2FF]/40 bg-[#00D2FF]/10 text-[#00D2FF]" : "border-white/10 bg-white/5 text-muted-foreground"}`}>
+                            {hasAssessment ? "Assessment linked" : "No assessment"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        <PostingMetric label="Job Title" value={jobTitle} />
+                        <PostingMetric label="Profession" value={profession} />
+                        <PostingMetric label="Location" value={location} />
+                        <PostingMetric label="Salary" value={salary} />
+                        <PostingMetric label="Posted Date" value={posted} />
+                        <PostingMetric label="Expiry Date" value={expiry} />
+                      </div>
                     </div>
-                    <Button asChild className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
-                      <Link href={`/employer/applications/${encodeURIComponent(id)}`}>View applications</Link>
-                    </Button>
+                    <div className="flex w-full flex-col gap-2 sm:w-auto">
+                      <Button asChild className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
+                        <Link href={`/employer/applications/${encodeURIComponent(id)}`}>
+                          <ClipboardList className="mr-2 h-4 w-4" /> Applications
+                        </Link>
+                      </Button>
+                      <Button asChild variant="outline">
+                        <Link href={`/employer/jobs/${encodeURIComponent(id)}/edit`}>
+                          <FileText className="mr-2 h-4 w-4" /> Preview
+                        </Link>
+                      </Button>
+                      <Button asChild variant="outline">
+                        <Link href={`/employer/applications/${encodeURIComponent(id)}`}>
+                          <Users className="mr-2 h-4 w-4" /> View Applicants
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 </article>
               );
@@ -325,7 +375,7 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
             {resultLoading ? (
               <LoadingState label="Loading assessment result..." variant="spinner" />
             ) : result ? (
-              <AssessmentResult result={result} />
+              <AssessmentResultCard result={result} />
             ) : null}
           </DialogContent>
         </Dialog>
@@ -344,37 +394,6 @@ function mergeApplicationLists(primary: any[], withProfileDetails: any[]): any[]
   });
 }
 
-function AssessmentResult({ result }: { result: any }) {
-  const root = result?.data ?? result?.result ?? result?.evaluation ?? result;
-  const passValue = root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed ?? root?.passFail ?? root?.PassFail ?? root?.status ?? root?.Status;
-  const passed = typeof passValue === "string" ? /pass|success/i.test(passValue) : Boolean(passValue);
-  const rows: [string, string][] = [
-    ["Mission Title", text(root?.missionTitle ?? root?.MissionTitle ?? root?.title ?? root?.Title, "Assessment mission")],
-    ["Score", text(root?.score ?? root?.Score ?? root?.percentageScore ?? root?.PercentageScore, "—")],
-    ["Strengths", listText(root?.strengths ?? root?.Strengths ?? root?.Feedback?.Strengths, "No strengths returned.")],
-    ["Weaknesses", listText(root?.weaknesses ?? root?.Weaknesses ?? root?.Feedback?.Weaknesses, "No weaknesses returned.")],
-    ["Improvement Areas", listText(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement ?? root?.Feedback?.ImprovementAreas, "No improvement areas returned.")],
-    ["Positive Feedback", listText(root?.positiveFeedback ?? root?.PositiveFeedback ?? root?.feedback ?? root?.Feedback?.PositiveFeedback, "No positive feedback returned.")],
-    ["AI Evaluation Summary", listText(root?.aiEvaluationSummary ?? root?.AiEvaluationSummary ?? root?.summary ?? root?.Summary ?? root?.rawAiReasoning ?? root?.RawAiReasoning ?? root?.aiReasoning ?? root?.AiReasoning, "No AI evaluation summary returned.")],
-  ];
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] p-4">
-        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Passed / Failed</p>
-        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-red-400/40 bg-red-400/10 text-red-300"}`}>
-          {passed ? "Passed" : "Failed"}
-        </span>
-      </div>
-      {rows.map(([label, value]) => (
-        <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
-          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
-          <p className="mt-1 whitespace-pre-wrap text-sm">{value}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function ApplicantMetric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-white/5 bg-white/[0.03] p-3">
@@ -384,16 +403,13 @@ function ApplicantMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function listText(value: unknown, fallback: string): string {
-  if (Array.isArray(value)) {
-    const items = value.map((item) => text(item, "")).filter(Boolean);
-    return items.length ? items.join("\n") : fallback;
-  }
-  if (value && typeof value === "object") {
-    const items = Object.values(value).map((item) => text(item, "")).filter(Boolean);
-    return items.length ? items.join("\n") : fallback;
-  }
-  return text(value, fallback);
+function PostingMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-white/5 bg-white/[0.03] p-3">
+      <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-white/85">{value}</p>
+    </div>
+  );
 }
 
 function assessmentState(application: any): { status: string; hasCompleted: boolean } {

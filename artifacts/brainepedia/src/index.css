@@ -66,7 +66,6 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
@@ -76,45 +75,45 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 216 33% 6%;
-  --foreground: 210 40% 98%;
-  --border: 216 33% 15%;
-  --card: 216 33% 8%;
-  --card-foreground: 210 40% 98%;
-  --card-border: 216 33% 15%;
+  --background: 0 0% 98%;
+  --foreground: 217 43% 17%;
+  --border: 216 24% 88%;
+  --card: 0 0% 100%;
+  --card-foreground: 217 43% 17%;
+  --card-border: 216 24% 88%;
   
-  --sidebar: 216 33% 6%;
-  --sidebar-foreground: 210 40% 98%;
-  --sidebar-border: 216 33% 15%;
-  --sidebar-primary: 191 100% 50%;
-  --sidebar-primary-foreground: 216 33% 6%;
-  --sidebar-accent: 216 33% 15%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-ring: 191 100% 50%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 217 43% 17%;
+  --sidebar-border: 216 24% 88%;
+  --sidebar-primary: 256 86% 59%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 217 100% 92%;
+  --sidebar-accent-foreground: 217 43% 17%;
+  --sidebar-ring: 212 100% 60%;
 
-  --popover: 216 33% 6%;
-  --popover-foreground: 210 40% 98%;
-  --popover-border: 216 33% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 217 43% 17%;
+  --popover-border: 216 24% 88%;
 
-  --primary: 191 100% 50%;
-  --primary-foreground: 216 33% 6%;
-  --secondary: 216 33% 15%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 216 33% 12%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 46 100% 50%;
-  --accent-foreground: 216 33% 6%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
+  --primary: 256 86% 59%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 212 100% 60%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 218 33% 94%;
+  --muted-foreground: 217 20% 42%;
+  --accent: 44 100% 48%;
+  --accent-foreground: 217 43% 17%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
 
-  --input: 216 33% 15%;
-  --ring: 191 100% 50%;
+  --input: 216 24% 88%;
+  --ring: 212 100% 60%;
   
-  --chart-1: 191 100% 50%;
-  --chart-2: 46 100% 50%;
-  --chart-3: 197 37% 24%;
-  --chart-4: 43 74% 66%;
-  --chart-5: 27 87% 67%;
+  --chart-1: 256 86% 59%;
+  --chart-2: 212 100% 60%;
+  --chart-3: 153 77% 43%;
+  --chart-4: 44 100% 48%;
+  --chart-5: 0 72% 51%;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-serif: Georgia, serif;
@@ -213,6 +212,58 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body, main, aside, header, section, article, div, button, input, textarea, select, table {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+  }
+}
+
+@layer utilities {
+  .light [class*="bg-[#0d1119]"],
+  .light [class*="bg-[#0A0E14]"],
+  .light [class*="bg-[#0d1117]"] {
+    background-color: #FFFFFF !important;
+  }
+
+  .light [class*="border-white/5"],
+  .light [class*="border-white/6"],
+  .light [class*="border-white/8"],
+  .light [class*="border-white/10"] {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  .light [class*="text-white/30"],
+  .light [class*="text-white/40"],
+  .light [class*="text-white/50"],
+  .light [class*="text-white/60"],
+  .light [class*="text-white/70"] {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  .light [class*="text-white/80"],
+  .light [class*="text-white/85"],
+  .light [class*="text-white"] {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .light [class*="bg-white/2"],
+  .light [class*="bg-white/3"],
+  .light [class*="bg-white/4"],
+  .light [class*="bg-white/5"],
+  .light [class*="bg-white/8"],
+  .light [class*="bg-white/10"] {
+    background-color: hsl(var(--muted)) !important;
   }
 }
 

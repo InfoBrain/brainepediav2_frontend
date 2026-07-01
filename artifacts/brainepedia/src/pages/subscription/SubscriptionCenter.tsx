@@ -80,7 +80,7 @@ export default function SubscriptionCenter() {
     (async () => {
       const detailsRes = await api.subscriptions.details(userId);
       if (detailsRes.ok) {
-        const details = normalizeSubscriptionDetails(detailsRes.data);
+        const details = normalizeSubscriptionDetails(detailsRes.data, { corporateSeatAsTier: isEmployer });
         setSubscriptionDetails(details);
         setEmployerPlan(details.currentTier);
         setCurrentTier(details.currentTier.toLowerCase().includes("architect") || details.currentTier.toLowerCase().includes("grandmaster") ? 1 : 0);
