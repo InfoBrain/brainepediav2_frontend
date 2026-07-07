@@ -20,6 +20,7 @@ const APPLY = process.argv.includes("--apply");
 
 const BAD_TITLE_RE =
   /\bundefined\b|Solution Design|Enterprise .*Transformation|Production .*Crisis|Guided .*Audit|Root Cause Investigation|Master Trial|Foundations Quest|Real-World Scenario/i;
+const SIMILAR_TITLE_THRESHOLD = 0.62;
 
 const BACKEND_MERGES = new Map([
   ["Database Design & SQL", "Database Reliability & Query Design"],
@@ -412,7 +413,7 @@ function planCatalogue(catalogue, defaultDifficultyId) {
       for (const node of district.nodes) {
         const duplicate = seen.find((candidate) => {
           const exact = normalizeText(candidate.title) === normalizeText(node.title);
-          const similar = jaccard(candidate.title, node.title) >= 0.82;
+          const similar = jaccard(candidate.title, node.title) >= SIMILAR_TITLE_THRESHOLD;
           return exact || similar;
         });
         if (duplicate) {
