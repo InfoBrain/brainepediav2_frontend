@@ -457,9 +457,12 @@ function summarize(catalogue, actions) {
 }
 
 async function main() {
+  const auth = APPLY ? await login() : null;
   let difficulties = [];
   try {
-    difficulties = asList(await request("/api/Difficulties")).map((item) => ({
+    difficulties = asList(await request("/api/Difficulties", {
+      headers: auth ? authHeaders(auth.token) : undefined,
+    })).map((item) => ({
       id: String(item.id ?? item.difficultyId ?? ""),
       level: Number(item.level ?? 0),
     })).filter((item) => item.id);
@@ -491,7 +494,6 @@ async function main() {
     return;
   }
 
-  const auth = await login();
   const failures = [];
 
   for (const action of actions) {
