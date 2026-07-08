@@ -30,5 +30,6 @@ export const EMPLOYER_NAV: NavItem[] = [
   { href: "/employer/company-profile", label: "Company Profile", icon: Building2, section: "Organization", tooltip: "Public-facing employer identity, contact details, website, logo, and company overview." },
   { href: "/employer/subscription", label: "Subscription", icon: Gem, tooltip: "Grandmaster Corporate Plan for candidate discovery, jobs, assessments, and analytics." },
   { href: "/employer/billing", label: "Billing", icon: CreditCard, tooltip: "Current month seats, team payment initialization, and employer billing status." },
+  { href: "/employer/transactions", label: "Transactions", icon: CreditCard, tooltip: "Review corporate ledger payments, statuses, payment types, and transaction details." },
   { href: "/employer/settings", label: "Settings", icon: Settings, section: "Account", tooltip: "Employer account security and access settings." },
 ];

@@ -55,7 +55,7 @@ export { extractApiMessage, getApiErrorMessage, parseApiError, sanitizeErrorForD
 
 function resolveTimeoutMs(endpoint: string, explicit?: number): number {
   if (explicit != null) return explicit;
-  if (/\/Evaluations\/|\/ai-generate|\/generate-profession|\/seed-districts/i.test(endpoint)) {
+  if (/\/Evaluations\/|\/ai-generate|\/generate-profession|\/seed-districts|\/restructure|\/generate-smart-cv/i.test(endpoint)) {
     return AI_TIMEOUT_MS;
   }
   return DEFAULT_TIMEOUT_MS;
@@ -150,6 +150,35 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
   }
 }
 
+function queryString(params: Record<string, any> = {}): string {
+  const q = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") q.set(key, String(value));
+  });
+  const qs = q.toString();
+  return qs ? `?${qs}` : "";
+}
+
+function portfolioList(endpoint: string, params: { page?: number; pageSize?: number } = {}) {
+  return fetchApi(`${endpoint}/list${queryString(params)}`);
+}
+
+function portfolioWrite(endpoint: string, data: any) {
+  if (typeof FormData !== "undefined" && data instanceof FormData) {
+    return fetchApi(endpoint, { method: "POST", body: data });
+  }
+  return fetchApi(endpoint, { method: "POST", body: JSON.stringify(data) });
+}
+
+function crudPortfolio(base: string) {
+  return {
+    list: (params: { page?: number; pageSize?: number } = {}) => portfolioList(base, params),
+    add: (data: any) => portfolioWrite(`${base}/add`, data),
+    edit: (data: any) => portfolioWrite(`${base}/edit`, data),
+    delete: (id: string) => fetchApi(`${base}/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  };
+}
+
 export const api = {
   auth: {
     register: (data: any, recaptchaToken?: string) =>
@@ -199,6 +228,11 @@ export const api = {
       fetchApi("/api/Profiles", { method: "POST", body: formData }),
     update: (profileId: string, userId: string, formData: FormData) =>
       fetchApi(`/api/Profiles/edit/${encodeURIComponent(profileId)}?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
+    publicPortfolio: (userId: string, opts?: { public?: boolean }) =>
+      fetchApi(`/api/Profiles/public-portfolio/${encodeURIComponent(userId)}`, {
+        skipAuth: opts?.public,
+        suppressUnauthorized: opts?.public,
+      }),
   },
   userProgresses: {
     /** Legacy alias kept for any remaining callers */
@@ -294,9 +328,47 @@ export const api = {
     /** DELETE /api/Professions/{id}?userId=... */
     delete: (id: string, userId: string) =>
       fetchApi(`/api/Professions/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
-    /** POST /api/Districts/generate-profession — AI-generates professions */
-    generateSeed: (count: number) =>
-      fetchApi(`/api/Districts/generate-profession?count=${count}`, { method: "POST" }),
+    /** POST /api/Professions/generate-profession — body: { ProfessionName, DistrictCount } */
+    generateSeed: (data: { ProfessionName: string; DistrictCount: number }) =>
+      fetchApi("/api/Professions/generate-profession", { method: "POST", body: JSON.stringify(data) }),
+    restructure: (data: { TargetModule: string; OriginalText: string; ToneInstruction?: string | null }) =>
+      fetchApi("/api/Professions/restructure", { method: "POST", body: JSON.stringify(data) }),
+    generateSmartCv: (dynamicCustomRequest: any) =>
+      fetchApi("/api/Professions/generate-smart-cv", { method: "POST", body: JSON.stringify({ dynamicCustomRequest }) }),
+  },
+  portfolio: {
+    education: {
+      list: (params: { page?: number; pageSize?: number } = {}) => {
+        const q = new URLSearchParams();
+        if (params.page) q.set("page", String(params.page));
+        if (params.pageSize) q.set("pageSize", String(params.pageSize));
+        const qs = q.toString();
+        return fetchApi(`/api/portfolio/education/list${qs ? `?${qs}` : ""}`);
+      },
+      add: (data: any) => fetchApi("/api/portfolio/education/add", { method: "POST", body: JSON.stringify(data) }),
+      edit: (data: any) => fetchApi("/api/portfolio/education/edit", { method: "POST", body: JSON.stringify(data) }),
+      delete: (id: string) => fetchApi(`/api/portfolio/education/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    },
+    workExperience: crudPortfolio("/api/portfolio/work-experience"),
+    skills: crudPortfolio("/api/portfolio/skills"),
+    interests: crudPortfolio("/api/portfolio/interests"),
+    services: crudPortfolio("/api/portfolio/services"),
+    projects: {
+      list: (params: { page?: number; pageSize?: number } = {}) => portfolioList("/api/portfolio/projects", params),
+      add: (data: any) => portfolioWrite("/api/portfolio/projects/add", data),
+      edit: (data: any) => portfolioWrite("/api/portfolio/projects/edit", data),
+      delete: (id: string) => fetchApi(`/api/portfolio/projects/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    },
+  },
+  billing: {
+    personalLedger: (params: Record<string, any> = {}) =>
+      fetchApi(`/api/billing/transactions/my-personal-ledger${queryString(params)}`),
+    adminAll: (params: Record<string, any> = {}) =>
+      fetchApi(`/api/billing/transactions/admin/all${queryString(params)}`),
+    corporateLedger: (params: Record<string, any> = {}) =>
+      fetchApi(`/api/billing/transactions/corporate-ledger${queryString(params)}`),
+    transactionDetails: (id: string) =>
+      fetchApi(`/api/billing/transactions/${encodeURIComponent(id)}`),
   },
   districts: {
     byProfession: (professionId: string) =>

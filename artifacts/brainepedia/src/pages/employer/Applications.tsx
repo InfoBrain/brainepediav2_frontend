@@ -59,7 +59,13 @@ function ApplicationPostingPicker() {
       setError(res.error || "Unable to load job postings.");
       return;
     }
-    setJobs(asList(res.data));
+    const postings = asList(res.data);
+    const withApplicants = await Promise.all(postings.map(async (job, index) => {
+      const id = idOf(job) || String(index);
+      const applicants = await api.jobs.postingApplicants(id);
+      return applicants.ok && asList(applicants.data).length > 0 ? job : null;
+    }));
+    setJobs(withApplicants.filter(Boolean));
   };
 
   useEffect(() => {

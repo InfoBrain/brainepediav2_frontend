@@ -59,15 +59,16 @@ export default function AdminDashboard() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [s, u, xp] = await Promise.all([
+      const [s, u, xp, tx] = await Promise.all([
         api.admin.stats(),
         api.admin.users({}),
         api.admin.xpSummary(),
+        api.billing.adminAll({ page: 1, pageSize: 500 }),
       ]);
       if (cancelled) return;
       const baseStats = s.ok ? normalizeStats(s.data) : {};
       const xpStats = xp.ok ? normalizeXpSummary(xp.data) : {};
-      setStats({ ...baseStats, ...xpStats });
+      setStats({ ...baseStats, ...xpStats, ...(tx.ok ? { totalSubscriptionRevenue: successfulRevenue(tx.data) } : {}) });
       if (s.ok) setNodes(normalizeNodes(s.data));
       if (u.ok) setUsers(normalizeUsers(u.data));
       setLoading(false);
@@ -98,11 +99,14 @@ export default function AdminDashboard() {
     }
     setSeeding(true);
     setSeedResult("");
-    const res = await api.professions.generateSeed(Math.max(1, Math.min(50, seedCount)));
+    const res = await api.professions.generateSeed({
+      ProfessionName: seedName.trim(),
+      DistrictCount: Math.max(1, Math.min(50, seedCount)),
+    });
     setSeeding(false);
     setSeedResult(
       res.ok
-        ? `Seeded "${seedName}" with ${seedCount} districts. New nodes will appear shortly.`
+        ? (res.message || "Problem Nodes seeded successfully")
         : res.error || "Seed failed."
     );
   };
@@ -446,4 +450,11 @@ function normalizeUsers(d: any): AdminUser[] {
     name: x.fullName || x.name || `${x.firstName || ""} ${x.lastName || ""}`.trim() || x.username,
     role: x.role || x.subscriptionTier || (Array.isArray(x.roles) ? x.roles[0] : x.roles) || "User",
   })).filter((u: AdminUser) => u.id);
+}
+
+function successfulRevenue(data: any): number {
+  const rows = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : Array.isArray(data?.data) ? data.data : Array.isArray(data?.transactions) ? data.transactions : [];
+  return rows
+    .filter((row: any) => /success|paid|complete/i.test(String(row?.status ?? row?.Status ?? "")))
+    .reduce((sum: number, row: any) => sum + Number(row?.amount ?? row?.Amount ?? row?.totalAmount ?? 0), 0);
 }

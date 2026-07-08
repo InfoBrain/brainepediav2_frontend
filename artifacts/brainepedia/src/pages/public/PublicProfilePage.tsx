@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
@@ -134,8 +135,18 @@ export default function PublicProfilePage() {
   const totalXP    = profile?.TotalXp ?? profile?.totalXp ?? profile?.TotalXP ?? profile?.totalXP ?? 0;
   const vxYears    = profile?.VerifiedExperienceYears ?? profile?.verifiedExperienceYears ?? 0;
   const rankNum    = profile?.GlobalLeaderboardRank ?? profile?.globalLeaderboardRank ?? 0;
-  const badges     = profile?.EarnedBadges ?? profile?.earnedBadges ?? [];
-  const missions   = profile?.CompletedMissions ?? profile?.completedMissions ?? [];
+  const portfolioRoot = (profile as any)?.portfolio ?? (profile as any)?.Portfolio ?? profile;
+  const personalStatement = displayText((portfolioRoot as any)?.personalStatement ?? (portfolioRoot as any)?.PersonalStatement ?? (portfolioRoot as any)?.aboutMe ?? (portfolioRoot as any)?.AboutMe, "");
+  const education = list((portfolioRoot as any)?.education ?? (portfolioRoot as any)?.Education);
+  const experience = list((portfolioRoot as any)?.workExperience ?? (portfolioRoot as any)?.WorkExperience ?? (portfolioRoot as any)?.experience ?? (portfolioRoot as any)?.Experience);
+  const skills = list((portfolioRoot as any)?.skills ?? (portfolioRoot as any)?.Skills);
+  const projects = list((portfolioRoot as any)?.projects ?? (portfolioRoot as any)?.Projects);
+  const services = list((portfolioRoot as any)?.services ?? (portfolioRoot as any)?.Services);
+  const interests = list((portfolioRoot as any)?.interests ?? (portfolioRoot as any)?.Interests);
+  const missionStats = (profile as any)?.missionStats ?? (profile as any)?.MissionStats ?? {};
+  const achievements = list((profile as any)?.achievements ?? (profile as any)?.Achievements);
+  const badges     = profile?.EarnedBadges ?? profile?.earnedBadges ?? (profile as any)?.badges ?? [];
+  const missions   = profile?.CompletedMissions ?? profile?.completedMissions ?? (profile as any)?.completedMissions ?? (profile as any)?.missionHistory ?? [];
 
   const publicUrl  = `${window.location.origin}/public-profile/${userId}`;
 
@@ -167,7 +178,7 @@ export default function PublicProfilePage() {
     if (!userId) { setError("Invalid profile link."); setLoading(false); return; }
     (async () => {
       setLoading(true);
-      const res = await api.identity.publicProfile(userId);
+      const res = await api.profiles.publicPortfolio(userId, { public: true });
       if (res.ok && res.data) {
         setProfile(res.data as PublicProfileData);
       } else {
@@ -330,6 +341,65 @@ export default function PublicProfilePage() {
         </motion.div>
 
         {/* ── BADGES ── */}
+        <PortfolioSection title="Personal Statement" icon={<User className="w-3.5 h-3.5 text-[#00D2FF]" />} empty="No personal statement added yet.">
+          {personalStatement && <p className="whitespace-pre-wrap text-sm leading-7 text-white/70">{personalStatement}</p>}
+        </PortfolioSection>
+
+        <PortfolioSection title="Education" icon={<BookOpen className="w-3.5 h-3.5 text-[#FFD700]" />} count={education.length} empty="No education entries added yet.">
+          <CardGrid items={education} fields={["institution", "degree", "courseOfStudy", "fromDate", "endDate"]} />
+        </PortfolioSection>
+
+        <PortfolioSection title="Experience" icon={<BriefcaseIcon />} count={experience.length} empty="No work experience entries added yet.">
+          <CardGrid items={experience} fields={["company", "role", "location", "start", "end", "description"]} />
+        </PortfolioSection>
+
+        <PortfolioSection title="Skills" icon={<Star className="w-3.5 h-3.5 text-[#9D4EDD]" />} count={skills.length} empty="No skills added yet.">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {skills.map((skill, index) => {
+              const rating = Math.max(0, Math.min(100, Number((skill as any)?.rating ?? (skill as any)?.Rating ?? 0)));
+              return (
+                <div key={index} className="rounded-xl border border-white/6 bg-[#0d1119] p-4">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="font-semibold">{displayText((skill as any)?.skill ?? (skill as any)?.name ?? (skill as any)?.Skill, "Skill")}</p>
+                    <span className="text-xs font-mono text-[#00D2FF]">{rating}/100</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-[#00D2FF]" style={{ width: `${rating}%` }} /></div>
+                </div>
+              );
+            })}
+          </div>
+        </PortfolioSection>
+
+        <PortfolioSection title="Projects" icon={<CodeIcon />} count={projects.length} empty="No projects added yet.">
+          <CardGrid items={projects} fields={["projectName", "description", "projectUrl"]} />
+        </PortfolioSection>
+
+        <PortfolioSection title="Services" icon={<SparkleIcon />} count={services.length} empty="No services added yet.">
+          <CardGrid items={services} fields={["service", "description"]} />
+        </PortfolioSection>
+
+        <PortfolioSection title="Interests" icon={<Star className="w-3.5 h-3.5 text-[#00D2FF]" />} count={interests.length} empty="No interests added yet.">
+          <div className="flex flex-wrap gap-2">
+            {interests.map((interest, index) => (
+              <span key={index} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70">
+                {displayText((interest as any)?.interest ?? (interest as any)?.name ?? interest, "Interest")}
+              </span>
+            ))}
+          </div>
+        </PortfolioSection>
+
+        <PortfolioSection title="Mission Stats" icon={<Target className="w-3.5 h-3.5 text-[#9D4EDD]" />} empty="">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {Object.entries(missionStats).slice(0, 8).map(([key, value]) => (
+              <div key={key} className="rounded-xl border border-white/6 bg-[#0d1119] p-4">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-white/30">{splitLabel(key)}</p>
+                <p className="mt-1 font-bold text-[#00D2FF]">{displayText(value, "—")}</p>
+              </div>
+            ))}
+          </div>
+        </PortfolioSection>
+
+        {/* ── BADGES ── */}
         <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
           <h2 className="text-xs font-mono text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
             <Trophy className="w-3.5 h-3.5 text-[#FFD700]" /> Earned Badges
@@ -367,6 +437,10 @@ export default function PublicProfilePage() {
             </div>
           )}
         </motion.section>
+
+        <PortfolioSection title="Achievements" icon={<Award className="w-3.5 h-3.5 text-[#FFD700]" />} count={achievements.length} empty="No achievements returned yet.">
+          <CardGrid items={achievements} fields={["title", "name", "description", "createdAt"]} />
+        </PortfolioSection>
 
         {/* ── COMPLETED MISSIONS ── */}
         <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
@@ -545,4 +619,70 @@ function displayText(value: unknown, fallback = "—"): string {
   if (value === null || value === undefined) return fallback;
   const output = String(value).trim();
   return output || fallback;
+}
+
+function PortfolioSection({ title, icon, count, empty, children }: { title: string; icon: ReactNode; count?: number; empty: string; children: ReactNode }) {
+  const hasContent = count !== undefined ? count > 0 : Boolean(children);
+  if (!hasContent && !empty) return null;
+  return (
+    <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+      <h2 className="mb-3 flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-white/30">
+        {icon} {title} {count !== undefined && count > 0 ? <span className="text-[#00D2FF]/50">({count})</span> : null}
+      </h2>
+      {!hasContent ? (
+        <div className="rounded-xl border border-white/6 bg-[#0d1119] p-8 text-center text-sm text-white/20 font-mono">{empty}</div>
+      ) : (
+        <div className="rounded-xl border border-white/6 bg-[#0d1119] p-5">{children}</div>
+      )}
+    </motion.section>
+  );
+}
+
+function CardGrid({ items, fields }: { items: any[]; fields: string[] }) {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {items.map((item, index) => (
+        <article key={index} className="rounded-xl border border-white/6 bg-white/[0.03] p-4">
+          <h3 className="mb-3 font-bold text-white">{displayText(item?.projectName ?? item?.ProjectName ?? item?.company ?? item?.Company ?? item?.institution ?? item?.Institution ?? item?.service ?? item?.Service ?? item?.title ?? item?.name, "Portfolio item")}</h3>
+          <div className="grid gap-2">
+            {fields.map((field) => {
+              const value = item?.[field] ?? item?.[field.charAt(0).toUpperCase() + field.slice(1)];
+              if (!value) return null;
+              return (
+                <div key={field}>
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-white/30">{splitLabel(field)}</p>
+                  <p className="text-sm text-white/70">{field.toLowerCase().includes("date") || field === "start" || field === "end" ? formatMaybeDate(value) : displayText(value)}</p>
+                </div>
+              );
+            })}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function list(value: any): any[] {
+  return Array.isArray(value) ? value : Array.isArray(value?.items) ? value.items : Array.isArray(value?.data) ? value.data : [];
+}
+
+function splitLabel(value: string): string {
+  return value.replace(/([A-Z])/g, " $1").replace(/[_-]/g, " ").trim();
+}
+
+function formatMaybeDate(value: any): string {
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? displayText(value) : date.toLocaleDateString();
+}
+
+function BriefcaseIcon() {
+  return <span className="inline-block h-3.5 w-3.5 rounded-sm border border-[#00D2FF] text-[#00D2FF]" />;
+}
+
+function CodeIcon() {
+  return <span className="font-mono text-[#9D4EDD]">&lt;/&gt;</span>;
+}
+
+function SparkleIcon() {
+  return <span className="text-[#FFD700]">✦</span>;
 }
