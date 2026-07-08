@@ -413,7 +413,7 @@ export default function PublicProfilePage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {badges.map((b, i) => {
+              {badges.map((b: BadgeItem, i: number) => {
                 const bName = b.name || b.Name || "Badge";
                 const bDesc = b.description || b.Description || "";
                 const bRarity = b.rarity || b.Rarity;
@@ -456,7 +456,7 @@ export default function PublicProfilePage() {
             </div>
           ) : (
             <div className="rounded-xl border border-white/6 bg-[#0d1119] divide-y divide-white/5 overflow-hidden">
-              {missions.slice(0, 20).map((m, i) => {
+              {missions.slice(0, 20).map((m: MissionItem, i: number) => {
                 const mTitle = m.missionTitle || m.MissionTitle || m.title || m.Title || "Challenge";
                 const dName  = m.districtName  || m.DistrictName  || "";
                 const score  = m.score ?? m.Score ?? 0;

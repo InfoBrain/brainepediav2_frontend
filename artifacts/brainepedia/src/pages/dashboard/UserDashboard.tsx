@@ -4,6 +4,7 @@ import {
   Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown,
   User as UserIcon, LayoutDashboard, Compass, TrendingUp, CheckCircle2,
   Medal, Star, Zap, Share2, Link2, ExternalLink, Shield, MessageSquare,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
