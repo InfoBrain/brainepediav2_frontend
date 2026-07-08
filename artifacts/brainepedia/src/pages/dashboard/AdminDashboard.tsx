@@ -423,7 +423,7 @@ function normalizeXpSummary(d: any): Pick<Stats, "totalXpAwarded"> {
 }
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value);
+  return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 2 }).format(value);
 }
 function normalizeNodes(d: any): ProblemNode[] {
   const arr =
