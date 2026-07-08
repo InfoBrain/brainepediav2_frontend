@@ -63,7 +63,7 @@ export default function AdminDashboard() {
         api.admin.stats(),
         api.admin.users({}),
         api.admin.xpSummary(),
-        api.billing.adminAll({ page: 1, pageSize: 500 }),
+        api.billing.adminAll({ pageNumber: 1, pageSize: 500 }),
       ]);
       if (cancelled) return;
       const baseStats = s.ok ? normalizeStats(s.data) : {};

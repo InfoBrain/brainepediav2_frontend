@@ -178,9 +178,20 @@ export default function PublicProfilePage() {
     if (!userId) { setError("Invalid profile link."); setLoading(false); return; }
     (async () => {
       setLoading(true);
-      const res = await api.profiles.publicPortfolio(userId, { public: true });
-      if (res.ok && res.data) {
-        setProfile(res.data as PublicProfileData);
+      const [publicRes, portfolioRes] = await Promise.all([
+        api.identity.publicProfile(userId),
+        api.profiles.publicPortfolio(userId, { public: true }),
+      ]);
+      if (publicRes.ok && publicRes.data) {
+        setProfile({
+          ...(publicRes.data as any),
+          portfolio: portfolioRes.ok ? portfolioRes.data : undefined,
+        } as PublicProfileData);
+      } else if (portfolioRes.ok && portfolioRes.data) {
+        setProfile({
+          ...(portfolioRes.data as any),
+          portfolio: portfolioRes.data,
+        } as PublicProfileData);
       } else {
         setError("This profile is not available or doesn't exist.");
       }

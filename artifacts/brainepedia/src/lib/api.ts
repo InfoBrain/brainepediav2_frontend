@@ -361,12 +361,22 @@ export const api = {
     },
   },
   billing: {
-    personalLedger: (params: Record<string, any> = {}) =>
-      fetchApi(`/api/billing/transactions/my-personal-ledger${queryString(params)}`),
-    adminAll: (params: Record<string, any> = {}) =>
-      fetchApi(`/api/billing/transactions/admin/all${queryString(params)}`),
-    corporateLedger: (params: Record<string, any> = {}) =>
-      fetchApi(`/api/billing/transactions/corporate-ledger${queryString(params)}`),
+    personalLedger: (params: { pageNumber?: number; pageSize?: number } = {}) =>
+      fetchApi(`/api/billing/transactions/my-personal-ledger${queryString({
+        pageNumber: params.pageNumber ?? 1,
+        pageSize: params.pageSize ?? 20,
+      })}`),
+    adminAll: (params: { searchEmail?: string; pageNumber?: number; pageSize?: number } = {}) =>
+      fetchApi(`/api/billing/transactions/admin/all${queryString({
+        searchEmail: params.searchEmail,
+        pageNumber: params.pageNumber ?? 1,
+        pageSize: params.pageSize ?? 20,
+      })}`),
+    corporateLedger: (params: { pageNumber?: number; pageSize?: number } = {}) =>
+      fetchApi(`/api/billing/transactions/corporate-ledger${queryString({
+        pageNumber: params.pageNumber ?? 1,
+        pageSize: params.pageSize ?? 20,
+      })}`),
     transactionDetails: (id: string) =>
       fetchApi(`/api/billing/transactions/${encodeURIComponent(id)}`),
   },

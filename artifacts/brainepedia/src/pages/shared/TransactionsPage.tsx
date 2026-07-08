@@ -23,10 +23,10 @@ export default function TransactionsPage({ mode }: { mode: Mode }) {
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [filters, setFilters] = useState({ search: "", status: "", paymentType: "", amount: "", fromDate: "", toDate: "" });
+  const [searchEmail, setSearchEmail] = useState("");
   const [selected, setSelected] = useState<any | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
-  const pageSize = 15;
+  const pageSize = 20;
 
   const nav = mode === "admin" ? ADMIN_NAV : mode === "employer" ? EMPLOYER_NAV : USER_NAV;
   const theme = mode === "admin" ? "admin" : mode === "employer" ? "employer" : "user";
@@ -35,8 +35,11 @@ export default function TransactionsPage({ mode }: { mode: Mode }) {
   const load = async () => {
     setLoading(true);
     setError("");
-    const params = { ...filters, page, pageSize };
-    const res = mode === "admin" ? await api.billing.adminAll(params) : mode === "employer" ? await api.billing.corporateLedger(params) : await api.billing.personalLedger(params);
+    const res = mode === "admin"
+      ? await api.billing.adminAll({ searchEmail, pageNumber: page, pageSize })
+      : mode === "employer"
+        ? await api.billing.corporateLedger({ pageNumber: page, pageSize })
+        : await api.billing.personalLedger({ pageNumber: page, pageSize });
     setLoading(false);
     if (!res.ok) {
       setError(res.error || "Unable to load transactions.");
@@ -52,8 +55,8 @@ export default function TransactionsPage({ mode }: { mode: Mode }) {
   }, [mode, page]);
 
   const applyFilters = () => {
-    setPage(1);
-    load();
+    if (page === 1) load();
+    else setPage(1);
   };
 
   const viewDetails = async (row: any) => {
@@ -70,23 +73,26 @@ export default function TransactionsPage({ mode }: { mode: Mode }) {
     <DashboardShell nav={nav} title={title} subtitle="// billing.ledger" theme={theme}>
       <div className="space-y-5">
         <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
-          <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-            <label className="md:col-span-2 xl:col-span-2">
-              <span className="sr-only">Search</span>
-              <div className="relative">
+          {mode === "admin" ? (
+            <>
+              <div className="relative max-w-xl">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input value={filters.search} onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))} placeholder="Search transactions" className="pl-9" />
+                <Input
+                  value={searchEmail}
+                  onChange={(event) => setSearchEmail(event.target.value)}
+                  placeholder="Search by email"
+                  className="pl-9"
+                />
               </div>
-            </label>
-            <Input value={filters.status} onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))} placeholder="Status" />
-            <Input value={filters.paymentType} onChange={(event) => setFilters((prev) => ({ ...prev, paymentType: event.target.value }))} placeholder="Payment Type" />
-            {mode === "admin" && <Input value={filters.amount} onChange={(event) => setFilters((prev) => ({ ...prev, amount: event.target.value }))} placeholder="Amount" />}
-            <Input type="date" value={filters.fromDate} onChange={(event) => setFilters((prev) => ({ ...prev, fromDate: event.target.value }))} />
-            <Input type="date" value={filters.toDate} onChange={(event) => setFilters((prev) => ({ ...prev, toDate: event.target.value }))} />
-          </div>
-          <div className="mt-3 flex justify-end">
-            <Button onClick={applyFilters} className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">Apply Filters</Button>
-          </div>
+              <div className="mt-3 flex justify-end">
+                <Button onClick={applyFilters} className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">Search Email</Button>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Showing page {page} of your {mode === "employer" ? "corporate" : "personal"} transaction ledger.
+            </p>
+          )}
         </section>
 
         <section className="overflow-hidden rounded-2xl border border-white/5 bg-[#0d1119]">
@@ -127,11 +133,13 @@ export default function TransactionsPage({ mode }: { mode: Mode }) {
             </div>
           )}
         </section>
-        {total > pageSize && (
+        {(total > pageSize || page > 1 || rows.length === pageSize) && (
           <div className="flex items-center justify-end gap-2">
             <Button variant="outline" disabled={page === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</Button>
-            <span className="text-xs font-mono text-muted-foreground">Page {page}</span>
-            <Button variant="outline" disabled={page * pageSize >= total} onClick={() => setPage((value) => value + 1)}>Next</Button>
+            <span className="text-xs font-mono text-muted-foreground">
+              Page {page}{total > 0 ? ` · ${total.toLocaleString()} total` : ""}
+            </span>
+            <Button variant="outline" disabled={total > 0 ? page * pageSize >= total : rows.length < pageSize} onClick={() => setPage((value) => value + 1)}>Next</Button>
           </div>
         )}
       </div>
@@ -168,7 +176,7 @@ function listOf(data: any): any[] {
   return Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : Array.isArray(data?.data) ? data.data : Array.isArray(data?.transactions) ? data.transactions : [];
 }
 function totalOf(data: any): number {
-  return Number(data?.totalCount ?? data?.total ?? data?.count ?? listOf(data).length ?? 0);
+  return Number(data?.totalCount ?? data?.totalRecords ?? data?.totalItems ?? data?.total ?? data?.count ?? 0);
 }
 function idOf(row: any): string {
   return String(row?.id ?? row?.Id ?? row?.transactionId ?? row?.TransactionId ?? "");

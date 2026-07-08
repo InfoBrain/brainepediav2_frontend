@@ -33,13 +33,19 @@ export default function CandidateDossier() {
     if (!userId) return;
     setLoading(true);
     setError("");
-    const res = await api.profiles.publicPortfolio(userId);
+    const [dossierRes, portfolioRes] = await Promise.all([
+      api.jobs.candidateDossier(userId),
+      api.profiles.publicPortfolio(userId),
+    ]);
     setLoading(false);
-    if (!res.ok) {
-      setError(res.error || "Unable to load candidate dossier.");
+    if (!dossierRes.ok) {
+      setError(dossierRes.error || "Unable to load candidate dossier.");
       return;
     }
-    setDossier(res.data);
+    setDossier({
+      ...(dossierRes.data as any),
+      portfolio: portfolioRes.ok ? portfolioRes.data : undefined,
+    });
   };
 
   useEffect(() => {
