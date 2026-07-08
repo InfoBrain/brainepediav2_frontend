@@ -241,6 +241,7 @@ export default function AdminUserProfile() {
   const [activityLoading, setActivityLoading] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const resolvedUserId = profile?.userId || profileId;
 
   usePageTitle(
     profile ? `${profile.fullName} · Admin` : "User Profile · Admin"
@@ -267,24 +268,29 @@ export default function AdminUserProfile() {
   }, [profileId]);
 
   useEffect(() => {
-    if (tab !== "dossier" || !profile?.userId) return;
+    if (tab !== "dossier" || !resolvedUserId) return;
     let cancelled = false;
     setDossierLoading(true);
-    api.identity.publicProfile(profile.userId).then((res) => {
+    Promise.all([
+      api.identity.publicProfile(resolvedUserId),
+      api.profiles.publicPortfolio(resolvedUserId),
+    ]).then(([publicRes, portfolioRes]) => {
       if (cancelled) return;
-      if (res.ok && res.data) setDossier(normDossier(res.data));
+      if (publicRes.ok && publicRes.data) {
+        setDossier(normDossier({ ...(publicRes.data as any), portfolio: portfolioRes.ok ? portfolioRes.data : undefined }));
+      }
       setDossierLoading(false);
     });
     return () => {
       cancelled = true;
     };
-  }, [tab, profile?.userId]);
+  }, [tab, resolvedUserId]);
 
   useEffect(() => {
-    if (tab !== "activity" || !profile?.userId) return;
+    if (tab !== "activity" || !resolvedUserId) return;
     let cancelled = false;
     setActivityLoading(true);
-    api.activityLogs.forUser(profile.userId).then((res) => {
+    api.activityLogs.forUser(resolvedUserId).then((res) => {
       if (cancelled) return;
       if (res.ok) setActivity(normActivity(res.data));
       setActivityLoading(false);
@@ -292,7 +298,7 @@ export default function AdminUserProfile() {
     return () => {
       cancelled = true;
     };
-  }, [tab, profile?.userId]);
+  }, [tab, resolvedUserId]);
 
   const handleReset = async () => {
     if (!profile?.email || !adminUserId) return;
@@ -390,7 +396,7 @@ export default function AdminUserProfile() {
                   size="sm"
                   className="text-[#A5B4FC] border-[#6366F1]/30 hover:bg-[#6366F1]/10"
                   onClick={() =>
-                    navigate(`/admin/users/public/${profile.userId}`)
+                    navigate(`/admin/users/public/${resolvedUserId}`)
                   }
                 >
                   <Globe className="h-4 w-4 mr-2" />
