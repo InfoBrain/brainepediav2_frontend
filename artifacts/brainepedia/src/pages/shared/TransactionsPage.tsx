@@ -7,6 +7,7 @@ import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ServerPagination, totalPagesFrom } from "@/components/shared/ServerPagination";
 import { useToast } from "@/hooks/use-toast";
 import {
   Sheet,
@@ -103,6 +104,7 @@ export default function TransactionsPage({ mode }: { mode: Mode }) {
   };
 
   const filteredRows = rows.filter((row) => matchesStatus(row, statusFilter));
+  const totalPages = total > 0 ? totalPagesFrom(total, pageSize) : page + (rows.length === pageSize ? 1 : 0);
 
   return (
     <DashboardShell nav={nav} title={title} subtitle="// billing.ledger" theme={theme}>
@@ -190,13 +192,12 @@ export default function TransactionsPage({ mode }: { mode: Mode }) {
           )}
         </section>
         {(total > pageSize || page > 1 || rows.length === pageSize) && (
-          <div className="flex items-center justify-end gap-2">
-            <Button variant="outline" disabled={page === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</Button>
-            <span className="text-xs font-mono text-muted-foreground">
-              Page {page}{total > 0 ? ` · ${total.toLocaleString()} total` : ""}
-            </span>
-            <Button variant="outline" disabled={total > 0 ? page * pageSize >= total : rows.length < pageSize} onClick={() => setPage((value) => value + 1)}>Next</Button>
-          </div>
+          <ServerPagination
+            page={page}
+            totalPages={Math.max(totalPages, page)}
+            onPageChange={setPage}
+            className="justify-end"
+          />
         )}
       </div>
       <Sheet open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}>
