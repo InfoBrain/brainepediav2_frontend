@@ -136,12 +136,35 @@ export default function PublicProfilePage() {
   const vxYears    = profile?.VerifiedExperienceYears ?? profile?.verifiedExperienceYears ?? 0;
   const rankNum    = profile?.GlobalLeaderboardRank ?? profile?.globalLeaderboardRank ?? 0;
   const portfolioRoot = (profile as any)?.portfolio ?? (profile as any)?.Portfolio ?? profile;
-  const personalStatement = displayText((portfolioRoot as any)?.personalStatement ?? (portfolioRoot as any)?.PersonalStatement ?? (portfolioRoot as any)?.aboutMe ?? (portfolioRoot as any)?.AboutMe, "");
-  const education = list((portfolioRoot as any)?.education ?? (portfolioRoot as any)?.Education);
-  const experience = list((portfolioRoot as any)?.workExperience ?? (portfolioRoot as any)?.WorkExperience ?? (portfolioRoot as any)?.experience ?? (portfolioRoot as any)?.Experience);
+  const personalStatement = displayText(
+    (portfolioRoot as any)?.personalStatement ??
+      (portfolioRoot as any)?.PersonalStatement ??
+      (portfolioRoot as any)?.aboutMe ??
+      (portfolioRoot as any)?.AboutMe,
+    "",
+  );
+  const education = list(
+    (portfolioRoot as any)?.educationHistory ??
+      (portfolioRoot as any)?.EducationHistory ??
+      (portfolioRoot as any)?.education ??
+      (portfolioRoot as any)?.Education,
+  );
+  const experience = list(
+    (portfolioRoot as any)?.workHistory ??
+      (portfolioRoot as any)?.WorkHistory ??
+      (portfolioRoot as any)?.workExperience ??
+      (portfolioRoot as any)?.WorkExperience ??
+      (portfolioRoot as any)?.experience ??
+      (portfolioRoot as any)?.Experience,
+  );
   const skills = list((portfolioRoot as any)?.skills ?? (portfolioRoot as any)?.Skills);
   const projects = list((portfolioRoot as any)?.projects ?? (portfolioRoot as any)?.Projects);
-  const services = list((portfolioRoot as any)?.services ?? (portfolioRoot as any)?.Services);
+  const services = list(
+    (portfolioRoot as any)?.servicesOffered ??
+      (portfolioRoot as any)?.ServicesOffered ??
+      (portfolioRoot as any)?.services ??
+      (portfolioRoot as any)?.Services,
+  );
   const interests = list((portfolioRoot as any)?.interests ?? (portfolioRoot as any)?.Interests);
   const missionStats = (profile as any)?.missionStats ?? (profile as any)?.MissionStats ?? {};
   const achievements = list((profile as any)?.achievements ?? (profile as any)?.Achievements);
@@ -356,12 +379,12 @@ export default function PublicProfilePage() {
           {personalStatement && <p className="whitespace-pre-wrap text-sm leading-7 text-white/70">{personalStatement}</p>}
         </PortfolioSection>
 
-        <PortfolioSection title="Education" icon={<BookOpen className="w-3.5 h-3.5 text-[#FFD700]" />} count={education.length} empty="No education entries added yet.">
-          <CardGrid items={education} fields={["institution", "degree", "courseOfStudy", "fromDate", "endDate"]} />
+        <PortfolioSection title="Education History" icon={<BookOpen className="w-3.5 h-3.5 text-[#FFD700]" />} count={education.length} empty="No education entries added yet.">
+          <EducationTimeline items={education} />
         </PortfolioSection>
 
-        <PortfolioSection title="Experience" icon={<BriefcaseIcon />} count={experience.length} empty="No work experience entries added yet.">
-          <CardGrid items={experience} fields={["company", "role", "location", "start", "end", "description"]} />
+        <PortfolioSection title="Work Experience" icon={<BriefcaseIcon />} count={experience.length} empty="No work experience entries added yet.">
+          <ExperienceTimeline items={experience} />
         </PortfolioSection>
 
         <PortfolioSection title="Skills" icon={<Star className="w-3.5 h-3.5 text-[#9D4EDD]" />} count={skills.length} empty="No skills added yet.">
@@ -371,7 +394,7 @@ export default function PublicProfilePage() {
               return (
                 <div key={index} className="rounded-xl border border-white/6 bg-[#0d1119] p-4">
                   <div className="mb-2 flex items-center justify-between gap-3">
-                    <p className="font-semibold">{displayText((skill as any)?.skill ?? (skill as any)?.name ?? (skill as any)?.Skill, "Skill")}</p>
+                    <p className="font-semibold">{displayText((skill as any)?.mySkill ?? (skill as any)?.MySkill ?? (skill as any)?.skill ?? (skill as any)?.name ?? (skill as any)?.Skill, "Skill")}</p>
                     <span className="text-xs font-mono text-[#00D2FF]">{rating}/100</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-[#00D2FF]" style={{ width: `${rating}%` }} /></div>
@@ -381,22 +404,22 @@ export default function PublicProfilePage() {
           </div>
         </PortfolioSection>
 
-        <PortfolioSection title="Projects" icon={<CodeIcon />} count={projects.length} empty="No projects added yet.">
-          <CardGrid items={projects} fields={["projectName", "description", "projectUrl"]} />
-        </PortfolioSection>
-
-        <PortfolioSection title="Services" icon={<SparkleIcon />} count={services.length} empty="No services added yet.">
-          <CardGrid items={services} fields={["service", "description"]} />
-        </PortfolioSection>
-
         <PortfolioSection title="Interests" icon={<Star className="w-3.5 h-3.5 text-[#00D2FF]" />} count={interests.length} empty="No interests added yet.">
           <div className="flex flex-wrap gap-2">
             {interests.map((interest, index) => (
               <span key={index} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70">
-                {displayText((interest as any)?.interest ?? (interest as any)?.name ?? interest, "Interest")}
+                {displayText((interest as any)?.interest ?? (interest as any)?.Interest ?? (interest as any)?.name ?? interest, "Interest")}
               </span>
             ))}
           </div>
+        </PortfolioSection>
+
+        <PortfolioSection title="Services Offered" icon={<SparkleIcon />} count={services.length} empty="No services added yet.">
+          <ServicesGrid items={services} />
+        </PortfolioSection>
+
+        <PortfolioSection title="Projects" icon={<CodeIcon />} count={projects.length} empty="No projects added yet.">
+          <ProjectsGrid items={projects} />
         </PortfolioSection>
 
         <PortfolioSection title="Mission Stats" icon={<Target className="w-3.5 h-3.5 text-[#9D4EDD]" />} empty="">
@@ -647,6 +670,124 @@ function PortfolioSection({ title, icon, count, empty, children }: { title: stri
       )}
     </motion.section>
   );
+}
+
+function EducationTimeline({ items }: { items: any[] }) {
+  return (
+    <div className="space-y-4">
+      {items.map((item, index) => (
+        <article key={index} className="relative rounded-xl border border-white/6 bg-white/[0.03] p-4 pl-6">
+          <span className="absolute left-3 top-5 h-full w-px bg-[#FFD700]/20" />
+          <span className="absolute left-2.5 top-5 h-2 w-2 rounded-full bg-[#FFD700]" />
+          <h3 className="font-bold text-white">{fieldValue(item, "institution", "Institution")}</h3>
+          <p className="mt-1 text-sm text-[#FFD700]/80">{fieldValue(item, "degree", "Degree")}</p>
+          <p className="text-sm text-white/60">{fieldValue(item, "courseOfStudy", "CourseOfStudy")}</p>
+          <p className="mt-2 text-xs font-mono text-white/35">
+            {formatDateRange(item)}
+          </p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ExperienceTimeline({ items }: { items: any[] }) {
+  return (
+    <div className="space-y-4">
+      {items.map((item, index) => {
+        const tillDate = Boolean(item?.tillDate ?? item?.TillDate);
+        return (
+          <article key={index} className="relative rounded-xl border border-white/6 bg-white/[0.03] p-4 pl-6">
+            <span className="absolute left-3 top-5 h-full w-px bg-[#00D2FF]/20" />
+            <span className="absolute left-2.5 top-5 h-2 w-2 rounded-full bg-[#00D2FF]" />
+            <h3 className="font-bold text-white">{fieldValue(item, "companyName", "CompanyName", "company", "Company")}</h3>
+            <p className="mt-1 text-sm text-[#00D2FF]/80">{fieldValue(item, "jobRole", "JobRole", "role", "Role")}</p>
+            {fieldValue(item, "location", "Location", "", "") !== "—" && (
+              <p className="text-sm text-white/50">{fieldValue(item, "location", "Location")}</p>
+            )}
+            <p className="mt-2 text-xs font-mono text-white/35">
+              {formatDateRange(item, tillDate)}
+            </p>
+            {fieldValue(item, "jobDescription", "JobDescription", "description", "Description", "") !== "—" && (
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-white/70">
+                {fieldValue(item, "jobDescription", "JobDescription", "description", "Description")}
+              </p>
+            )}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function ServicesGrid({ items }: { items: any[] }) {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {items.map((item, index) => (
+        <article key={index} className="rounded-xl border border-white/6 bg-white/[0.03] p-4">
+          <h3 className="font-bold text-white">{fieldValue(item, "myServices", "MyServices", "service", "Service")}</h3>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-white/70">
+            {fieldValue(item, "description", "Description")}
+          </p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ProjectsGrid({ items }: { items: any[] }) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {items.map((item, index) => {
+        const mediaUrl = item?.projectFileUrl ?? item?.ProjectFileUrl ?? item?.imageUrl ?? item?.ImageUrl ?? item?.videoUrl ?? item?.VideoUrl;
+        const isVideo = Boolean(item?.isVideo ?? item?.IsVideo);
+        const projectUrl = fieldValue(item, "projectUrl", "ProjectUrl", "", "");
+        return (
+          <article key={index} className="overflow-hidden rounded-xl border border-white/6 bg-white/[0.03]">
+            {mediaUrl && (
+              <div className="border-b border-white/6 bg-black/20">
+                {isVideo ? (
+                  <video src={mediaUrl} controls className="max-h-48 w-full object-cover" />
+                ) : (
+                  <img src={mediaUrl} alt={fieldValue(item, "projectName", "ProjectName")} className="max-h-48 w-full object-cover" />
+                )}
+              </div>
+            )}
+            <div className="p-4">
+              <h3 className="font-bold text-white">{fieldValue(item, "projectName", "ProjectName")}</h3>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-white/70">
+                {fieldValue(item, "description", "Description")}
+              </p>
+              {projectUrl !== "—" && (
+                <a href={projectUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs text-[#00D2FF] hover:underline">
+                  Open project
+                </a>
+              )}
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function fieldValue(item: any, ...keys: string[]): string {
+  for (const key of keys) {
+    if (!key) continue;
+    const value = item?.[key] ?? item?.[key.charAt(0).toUpperCase() + key.slice(1)];
+    if (value !== null && value !== undefined && String(value).trim() !== "") {
+      return displayText(value);
+    }
+  }
+  return "—";
+}
+
+function formatDateRange(item: any, tillDate = false): string {
+  const from = item?.fromDate ?? item?.FromDate ?? item?.start ?? item?.Start;
+  const to = item?.endDate ?? item?.EndDate ?? item?.end ?? item?.End;
+  const fromText = from ? formatMaybeDate(from) : "—";
+  const toText = tillDate || Boolean(item?.tillDate ?? item?.TillDate) ? "Present" : to ? formatMaybeDate(to) : "—";
+  return `${fromText} – ${toText}`;
 }
 
 function CardGrid({ items, fields }: { items: any[]; fields: string[] }) {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 import {
   BriefcaseBusiness,
@@ -56,29 +56,28 @@ const FIELDS: Record<Exclude<SectionKey, "personal-statement">, Field[]> = {
     { key: "endDate", label: "End Date", type: "date" },
   ],
   "work-experience": [
-    { key: "company", label: "Company" },
-    { key: "role", label: "Job Role", ai: true },
+    { key: "companyName", label: "Company" },
+    { key: "jobRole", label: "Job Role", ai: true },
     { key: "location", label: "Location" },
-    { key: "start", label: "Start", type: "date" },
-    { key: "end", label: "End", type: "date" },
+    { key: "fromDate", label: "From Date", type: "date" },
+    { key: "endDate", label: "End Date", type: "date" },
     { key: "tillDate", label: "Till Date", type: "checkbox" },
-    { key: "description", label: "Job Description", type: "textarea", ai: true },
+    { key: "jobDescription", label: "Job Description", type: "textarea", ai: true },
   ],
   skills: [
-    { key: "skill", label: "Skill" },
+    { key: "mySkill", label: "Skill" },
     { key: "rating", label: "Rating (1-100)", type: "number" },
   ],
   interests: [{ key: "interest", label: "Interest" }],
   services: [
-    { key: "service", label: "Service" },
+    { key: "myServices", label: "Service" },
     { key: "description", label: "Description", type: "textarea", ai: true },
   ],
   projects: [
     { key: "projectName", label: "Project Name" },
     { key: "description", label: "Description", type: "textarea", ai: true },
     { key: "projectUrl", label: "Project URL", type: "url" },
-    { key: "image", label: "Upload Image", type: "file" },
-    { key: "video", label: "Upload Video", type: "file" },
+    { key: "projectFile", label: "Upload Image or Video", type: "file" },
   ],
 };
 
@@ -95,35 +94,33 @@ export default function PortfolioPage() {
   const [profile, setProfile] = useState<any>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
 
-  useEffect(() => {
+  const refreshCounts = async () => {
     if (!userId) return;
-    let cancelled = false;
-    (async () => {
-      const profileId = getProfileId() || userId;
-      const [profileRes, edu, work, skills, interests, services, projects] = await Promise.all([
-        api.profiles.get(profileId),
-        api.portfolio.education.list({ page: 1, pageSize: 1 }),
-        api.portfolio.workExperience.list({ page: 1, pageSize: 1 }),
-        api.portfolio.skills.list({ page: 1, pageSize: 1 }),
-        api.portfolio.interests.list({ page: 1, pageSize: 1 }),
-        api.portfolio.services.list({ page: 1, pageSize: 1 }),
-        api.portfolio.projects.list({ page: 1, pageSize: 1 }),
-      ]);
-      if (cancelled) return;
-      if (profileRes.ok) setProfile(profileRes.data);
-      setCounts({
-        "personal-statement": textOf(profileRes.data?.aboutMe ?? profileRes.data?.bio).trim() ? 1 : 0,
-        education: totalOf(edu.data),
-        "work-experience": totalOf(work.data),
-        skills: totalOf(skills.data),
-        interests: totalOf(interests.data),
-        services: totalOf(services.data),
-        projects: totalOf(projects.data),
-      });
-    })();
-    return () => {
-      cancelled = true;
-    };
+    const profileId = getProfileId() || userId;
+    const [profileRes, edu, work, skills, interests, services, projects] = await Promise.all([
+      api.profiles.get(profileId),
+      api.portfolio.education.list({ page: 1, pageSize: 1 }),
+      api.portfolio.workExperience.list({ page: 1, pageSize: 1 }),
+      api.portfolio.skills.list({ page: 1, pageSize: 1 }),
+      api.portfolio.interests.list({ page: 1, pageSize: 1 }),
+      api.portfolio.services.list({ page: 1, pageSize: 1 }),
+      api.portfolio.projects.list({ page: 1, pageSize: 1 }),
+    ]);
+    if (profileRes.ok) setProfile(profileRes.data);
+    setCounts({
+      "personal-statement": textOf(profileRes.data?.aboutMe ?? profileRes.data?.bio).trim() ? 1 : 0,
+      education: totalOf(edu.data),
+      "work-experience": totalOf(work.data),
+      skills: totalOf(skills.data),
+      interests: totalOf(interests.data),
+      services: totalOf(services.data),
+      projects: totalOf(projects.data),
+    });
+  };
+
+  useEffect(() => {
+    refreshCounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const completed = SECTIONS.filter((item) => (counts[item.key] ?? 0) > 0);
@@ -173,7 +170,11 @@ export default function PortfolioPage() {
           {active === "personal-statement" ? (
             <PersonalStatement profile={profile} onSaved={(next) => setCounts((prev) => ({ ...prev, "personal-statement": next.trim() ? 1 : 0 }))} />
           ) : (
-            <CrudSection section={active as Exclude<SectionKey, "personal-statement">} />
+            <CrudSection
+              key={active}
+              section={active as Exclude<SectionKey, "personal-statement">}
+              onPortfolioChange={refreshCounts}
+            />
           )}
         </div>
       </div>
@@ -249,7 +250,13 @@ function PersonalStatement({ profile, onSaved }: { profile: any; onSaved: (value
   );
 }
 
-function CrudSection({ section }: { section: Exclude<SectionKey, "personal-statement"> }) {
+function CrudSection({
+  section,
+  onPortfolioChange,
+}: {
+  section: Exclude<SectionKey, "personal-statement">;
+  onPortfolioChange: () => void;
+}) {
   const { toast } = useToast();
   const config = SECTIONS.find((item) => item.key === section)!;
   const [items, setItems] = useState<any[]>([]);
@@ -276,6 +283,12 @@ function CrudSection({ section }: { section: Exclude<SectionKey, "personal-state
     setTotal(totalOf(res.data));
   };
   useEffect(() => {
+    setEditing(null);
+    setForm(emptyFor(section));
+    setPage(1);
+    setAi(null);
+  }, [section]);
+  useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section, page]);
@@ -283,14 +296,16 @@ function CrudSection({ section }: { section: Exclude<SectionKey, "personal-state
   const startAdd = () => {
     setEditing(null);
     setForm(emptyFor(section));
+    setAi(null);
   };
   const startEdit = (item: any) => {
     setEditing(item);
-    setForm({ ...emptyFor(section), ...item });
+    setForm(itemToForm(section, item));
+    setAi(null);
   };
   const save = async () => {
     setSaving(true);
-    const payload = section === "projects" ? projectFormData(form, editing) : { ...form, id: editing?.id ?? editing?.educationId ?? editing?.portfolioId };
+    const payload = section === "projects" ? projectFormData(form, editing) : buildPayload(section, form, editing);
     const res = editing ? await service.edit(payload) : await service.add(payload);
     setSaving(false);
     if (!res.ok) {
@@ -300,7 +315,9 @@ function CrudSection({ section }: { section: Exclude<SectionKey, "personal-state
     toast({ title: editing ? "Portfolio item updated" : "Portfolio item added", description: res.message || "Your portfolio was saved." });
     setEditing(null);
     setForm(emptyFor(section));
-    load();
+    setAi(null);
+    await load();
+    onPortfolioChange();
   };
   const remove = async (item: any) => {
     const id = idOf(item);
@@ -311,7 +328,8 @@ function CrudSection({ section }: { section: Exclude<SectionKey, "personal-state
       return;
     }
     toast({ title: "Portfolio item deleted", description: res.message || "The item was removed." });
-    load();
+    await load();
+    onPortfolioChange();
   };
 
   return (
@@ -328,6 +346,7 @@ function CrudSection({ section }: { section: Exclude<SectionKey, "personal-state
           {fields.map((field) => (
             <FormField
               key={field.key}
+              section={section}
               field={field}
               value={form[field.key]}
               onChange={(value) => setForm((prev: any) => ({ ...prev, [field.key]: value }))}
@@ -375,8 +394,20 @@ function CrudSection({ section }: { section: Exclude<SectionKey, "personal-state
   );
 }
 
-function FormField({ field, value, onChange, onAi }: { field: Field; value: any; onChange: (value: any) => void; onAi?: () => void }) {
-  const id = `field-${field.key}`;
+function FormField({
+  section,
+  field,
+  value,
+  onChange,
+  onAi,
+}: {
+  section: Exclude<SectionKey, "personal-statement">;
+  field: Field;
+  value: any;
+  onChange: (value: any) => void;
+  onAi?: () => void;
+}) {
+  const id = `field-${section}-${field.key}`;
   return (
     <label className={field.type === "textarea" ? "md:col-span-2" : ""}>
       <span className="mb-1.5 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
@@ -388,7 +419,7 @@ function FormField({ field, value, onChange, onAi }: { field: Field; value: any;
       ) : field.type === "checkbox" ? (
         <div className="flex h-10 items-center gap-2 rounded-md border border-input px-3"><input id={id} type="checkbox" checked={Boolean(value)} onChange={(event) => onChange(event.target.checked)} /> <span className="text-sm">Currently active</span></div>
       ) : field.type === "file" ? (
-        <Input id={id} type="file" accept={field.key === "video" ? "video/*" : "image/*"} onChange={(event) => onChange(event.target.files?.[0] || null)} />
+        <Input id={id} type="file" accept="image/*,video/*" onChange={(event) => onChange(event.target.files?.[0] || null)} />
       ) : (
         <Input id={id} type={field.type || "text"} value={value || ""} min={field.key === "rating" ? 1 : undefined} max={field.key === "rating" ? 100 : undefined} onChange={(event) => onChange(event.target.value)} />
       )}
@@ -402,7 +433,7 @@ function PortfolioCard({ section, item, fields, onEdit, onDelete }: { section: S
     return (
       <div className="w-full rounded-xl border border-white/5 bg-white/[0.03] p-4 sm:w-72">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-bold">{textOf(item.skill ?? item.name ?? item.Skill)}</h3>
+          <h3 className="font-bold">{textOf(item.mySkill ?? item.skill ?? item.name ?? item.Skill ?? item.MySkill)}</h3>
           <CardActions onEdit={onEdit} onDelete={onDelete} />
         </div>
         <Progress value={rating} className="mt-3 h-2" />
@@ -520,25 +551,34 @@ function StatusList({ title, items, done }: { title: string; items: string[]; do
 }
 
 function MediaPreview({ form }: { form: any }) {
-  const image = form.image instanceof File ? URL.createObjectURL(form.image) : form.imageUrl || form.image;
-  const video = form.video instanceof File ? URL.createObjectURL(form.video) : form.videoUrl || form.video;
-  if (!image && !video) return null;
+  const file = form.projectFile instanceof File ? form.projectFile : null;
+  const previewUrl = file ? URL.createObjectURL(file) : form.projectFileUrl || form.imageUrl || form.videoUrl || form.ImageUrl || form.VideoUrl || "";
+  const isVideo = file ? file.type.startsWith("video/") : Boolean(form.isVideo ?? form.IsVideo);
+  if (!previewUrl) return null;
   return (
-    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-      {image && <img src={image} alt="Project preview" className="max-h-56 rounded-xl border border-white/10 object-cover" />}
-      {video && <video src={video} controls className="max-h-56 rounded-xl border border-white/10" />}
+    <div className="mt-4">
+      {isVideo ? (
+        <video src={previewUrl} controls className="max-h-56 rounded-xl border border-white/10" />
+      ) : (
+        <img src={previewUrl} alt="Project preview" className="max-h-56 rounded-xl border border-white/10 object-cover" />
+      )}
     </div>
   );
 }
 
 function ProjectLinks({ item }: { item: any }) {
-  const image = item.imageUrl ?? item.ImageUrl;
-  const video = item.videoUrl ?? item.VideoUrl;
+  const mediaUrl = item.projectFileUrl ?? item.ProjectFileUrl ?? item.imageUrl ?? item.ImageUrl ?? item.videoUrl ?? item.VideoUrl;
+  const isVideo = Boolean(item.isVideo ?? item.IsVideo);
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {item.projectUrl && <a href={item.projectUrl} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">Open project</a>}
-      {image && <a href={image} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">Image</a>}
-      {video && <a href={video} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">Video</a>}
+      {mediaUrl && (
+        isVideo ? (
+          <a href={mediaUrl} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">Video</a>
+        ) : (
+          <a href={mediaUrl} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">Image</a>
+        )
+      )}
     </div>
   );
 }
@@ -557,13 +597,120 @@ function serviceFor(section: Exclude<SectionKey, "personal-statement">): any {
 
 function projectFormData(form: any, editing: any) {
   const fd = new FormData();
-  if (editing) fd.append("Id", idOf(editing));
+  if (editing) fd.append("ProjectId", idOf(editing));
   fd.append("ProjectName", form.projectName || "");
   fd.append("Description", form.description || "");
   fd.append("ProjectUrl", form.projectUrl || "");
-  if (form.image instanceof File) fd.append("Image", form.image);
-  if (form.video instanceof File) fd.append("Video", form.video);
+  if (form.projectFile instanceof File) {
+    const isVideo = form.projectFile.type.startsWith("video/");
+    fd.append("ProjectFile", form.projectFile);
+    fd.append("IsVideo", String(isVideo));
+    fd.append("IsImage", String(!isVideo));
+  }
   return fd;
+}
+
+function buildPayload(section: Exclude<SectionKey, "personal-statement">, form: any, editing: any | null) {
+  const toDate = (value: any) => (value ? String(value) : null);
+  switch (section) {
+    case "education": {
+      const payload = {
+        institution: form.institution || "",
+        degree: form.degree || "",
+        courseOfStudy: form.courseOfStudy || "",
+        fromDate: toDate(form.fromDate),
+        endDate: toDate(form.endDate),
+      };
+      return editing ? { ...payload, educationId: idOf(editing) } : payload;
+    }
+    case "work-experience": {
+      const payload = {
+        companyName: form.companyName || "",
+        jobRole: form.jobRole || "",
+        location: form.location || "",
+        fromDate: toDate(form.fromDate),
+        endDate: toDate(form.endDate),
+        tillDate: Boolean(form.tillDate),
+        jobDescription: form.jobDescription || "",
+      };
+      return editing ? { ...payload, workExperienceId: idOf(editing) } : payload;
+    }
+    case "skills": {
+      const payload = {
+        mySkill: form.mySkill || "",
+        rating: Number(form.rating) || 0,
+      };
+      return editing ? { ...payload, skillsId: idOf(editing) } : payload;
+    }
+    case "interests": {
+      const payload = { interest: form.interest || "" };
+      return editing ? { ...payload, interestsId: idOf(editing) } : payload;
+    }
+    case "services": {
+      const payload = {
+        myServices: form.myServices || "",
+        description: form.description || "",
+      };
+      return editing ? { ...payload, userServicesId: idOf(editing) } : payload;
+    }
+    default:
+      return form;
+  }
+}
+
+function itemToForm(section: Exclude<SectionKey, "personal-statement">, item: any) {
+  const base = emptyFor(section);
+  const dateValue = (value: any) => (value ? String(value).slice(0, 10) : "");
+  switch (section) {
+    case "education":
+      return {
+        ...base,
+        institution: textOf(item.institution ?? item.Institution),
+        degree: textOf(item.degree ?? item.Degree),
+        courseOfStudy: textOf(item.courseOfStudy ?? item.CourseOfStudy),
+        fromDate: dateValue(item.fromDate ?? item.FromDate),
+        endDate: dateValue(item.endDate ?? item.EndDate),
+      };
+    case "work-experience":
+      return {
+        ...base,
+        companyName: textOf(item.companyName ?? item.CompanyName ?? item.company ?? item.Company),
+        jobRole: textOf(item.jobRole ?? item.JobRole ?? item.role ?? item.Role),
+        location: textOf(item.location ?? item.Location),
+        fromDate: dateValue(item.fromDate ?? item.FromDate ?? item.start ?? item.Start),
+        endDate: dateValue(item.endDate ?? item.EndDate ?? item.end ?? item.End),
+        tillDate: Boolean(item.tillDate ?? item.TillDate),
+        jobDescription: textOf(item.jobDescription ?? item.JobDescription ?? item.description ?? item.Description),
+      };
+    case "skills":
+      return {
+        ...base,
+        mySkill: textOf(item.mySkill ?? item.MySkill ?? item.skill ?? item.Skill),
+        rating: textOf(item.rating ?? item.Rating),
+      };
+    case "interests":
+      return {
+        ...base,
+        interest: textOf(item.interest ?? item.Interest),
+      };
+    case "services":
+      return {
+        ...base,
+        myServices: textOf(item.myServices ?? item.MyServices ?? item.service ?? item.Service),
+        description: textOf(item.description ?? item.Description),
+      };
+    case "projects":
+      return {
+        ...base,
+        projectName: textOf(item.projectName ?? item.ProjectName),
+        description: textOf(item.description ?? item.Description),
+        projectUrl: textOf(item.projectUrl ?? item.ProjectUrl),
+        projectFileUrl: item.projectFileUrl ?? item.ProjectFileUrl ?? item.imageUrl ?? item.ImageUrl ?? item.videoUrl ?? item.VideoUrl ?? "",
+        isVideo: Boolean(item.isVideo ?? item.IsVideo),
+      };
+    default:
+      return base;
+  }
 }
 
 function listOf(data: any): any[] {
@@ -573,7 +720,25 @@ function totalOf(data: any): number {
   return Number(data?.totalCount ?? data?.total ?? data?.count ?? listOf(data).length ?? 0);
 }
 function idOf(item: any): string {
-  return String(item?.id ?? item?.Id ?? item?.portfolioId ?? item?.PortfolioId ?? item?.educationId ?? item?.EducationId ?? "");
+  return String(
+    item?.id ??
+      item?.Id ??
+      item?.portfolioId ??
+      item?.PortfolioId ??
+      item?.educationId ??
+      item?.EducationId ??
+      item?.workExperienceId ??
+      item?.WorkExperienceId ??
+      item?.skillsId ??
+      item?.SkillsId ??
+      item?.interestsId ??
+      item?.InterestsId ??
+      item?.userServicesId ??
+      item?.UserServicesId ??
+      item?.projectId ??
+      item?.ProjectId ??
+      "",
+  );
 }
 function textOf(value: any): string {
   if (value === null || value === undefined) return "";
@@ -589,8 +754,8 @@ function formatValue(value: any, field: Field): string {
 }
 function primaryTitle(section: SectionKey, item: any): string {
   if (section === "education") return textOf(item.institution ?? item.Institution ?? "Education");
-  if (section === "work-experience") return textOf(item.role ?? item.Role ?? item.company ?? item.Company ?? "Experience");
-  if (section === "services") return textOf(item.service ?? item.Service ?? "Service");
+  if (section === "work-experience") return textOf(item.jobRole ?? item.JobRole ?? item.role ?? item.Role ?? item.companyName ?? item.CompanyName ?? item.company ?? item.Company ?? "Experience");
+  if (section === "services") return textOf(item.myServices ?? item.MyServices ?? item.service ?? item.Service ?? "Service");
   if (section === "projects") return textOf(item.projectName ?? item.ProjectName ?? "Project");
   return "Portfolio item";
 }
