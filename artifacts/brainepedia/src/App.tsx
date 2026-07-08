@@ -70,7 +70,8 @@ const CreateProfile = lazy(() => import("@/pages/profile/CreateProfile"));
 const BadgesPage = lazy(() => import("@/pages/user/BadgesPage"));
 const ActivityFeed = lazy(() => import("@/pages/user/ActivityFeed"));
 const SubscriptionSuccess = lazy(() => import("@/pages/user/SubscriptionSuccess"));
-const PublicPortfolioRedirect = lazy(() => import("@/pages/user/PublicPortfolioRedirect"));
+const PortfolioPage = lazy(() => import("@/pages/user/PortfolioPage"));
+const SmartCvPreview = lazy(() => import("@/pages/user/SmartCvPreview"));
 const UserMissions = lazy(() => import("@/pages/user/UserMissions"));
 const XPProgress = lazy(() => import("@/pages/user/XPProgress"));
 const VXProgress = lazy(() => import("@/pages/user/VXProgress"));
@@ -96,6 +97,7 @@ const JobFeed = lazy(() => import("@/pages/jobs/JobFeed"));
 const JobDetails = lazy(() => import("@/pages/jobs/JobDetails"));
 const UserApplications = lazy(() => import("@/pages/jobs/UserApplications"));
 const UserAssessments = lazy(() => import("@/pages/jobs/UserAssessments"));
+const TransactionsPage = lazy(() => import("@/pages/shared/TransactionsPage"));
 
 function LegacyRedirect({ to }: { to: string }) {
   const [, setLocation] = useLocation();
@@ -190,9 +192,24 @@ function Router() {
           <UserAssessments />
         </RequireAuth>
       </Route>
+      <Route path="/user/transactions">
+        <RequireAuth allow={["User"]}>
+          <TransactionsPage mode="user" />
+        </RequireAuth>
+      </Route>
       <Route path="/user/portfolio">
         <RequireAuth allow={["User"]}>
-          <PublicPortfolioRedirect />
+          <PortfolioPage />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/portfolio/cv-preview">
+        <RequireAuth allow={["User"]}>
+          <SmartCvPreview />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/portfolio/:section">
+        <RequireAuth allow={["User"]}>
+          <PortfolioPage />
         </RequireAuth>
       </Route>
       <Route path="/user/map">
@@ -279,6 +296,11 @@ function Router() {
       <Route path="/admin/subscriptions">
         <RequireAuth allow={["GlobalAdmin"]}>
           <AdminSubscriptions />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/transactions">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <TransactionsPage mode="admin" />
         </RequireAuth>
       </Route>
       <Route path="/admin/settings">
@@ -391,6 +413,11 @@ function Router() {
       <Route path="/employer/billing">
         <RequireAuth allow={["Employer"]}>
           <BillingSeats />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/transactions">
+        <RequireAuth allow={["Employer"]}>
+          <TransactionsPage mode="employer" />
         </RequireAuth>
       </Route>
       <Route path="/employer/subscription">

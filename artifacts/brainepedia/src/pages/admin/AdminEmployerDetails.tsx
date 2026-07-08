@@ -114,15 +114,15 @@ export default function AdminEmployerDetails() {
               {/* About */}
               {details.aboutCompany && (
                 <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-                  <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider mb-3">About</h3>
+                  <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider mb-3">About Company</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{details.aboutCompany}</p>
                 </div>
               )}
 
               {/* Job History */}
-              {details.jobs && details.jobs.length > 0 && (
-                <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-                  <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider mb-3">Job History</h3>
+              <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
+                <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider mb-3">Jobs Posted</h3>
+                {details.jobs && details.jobs.length > 0 ? (
                   <div className="space-y-2">
                     {details.jobs.map((job, i) => (
                       <div key={i} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
@@ -138,8 +138,10 @@ export default function AdminEmployerDetails() {
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p className="rounded-lg border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">No jobs posted returned.</p>
+                )}
+              </div>
             </div>
 
             {/* Right: Stats */}
@@ -166,7 +168,7 @@ export default function AdminEmployerDetails() {
               {/* Account Owner */}
               {(details.ownerName || details.ownerEmail) && (
                 <div className="bg-[#0d1119] border border-white/5 rounded-xl p-5">
-                  <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider mb-3">Account Owner</h3>
+                  <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider mb-3">Owner Information</h3>
                   {details.ownerName && <p className="font-medium text-sm">{details.ownerName}</p>}
                   {details.ownerEmail && <p className="text-xs text-muted-foreground font-mono mt-0.5">{details.ownerEmail}</p>}
                 </div>

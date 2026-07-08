@@ -4,6 +4,7 @@ import {
   Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown,
   User as UserIcon, LayoutDashboard, Compass, TrendingUp, CheckCircle2,
   Medal, Star, Zap, Share2, Link2, ExternalLink, Shield, MessageSquare,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -570,6 +571,8 @@ export default function UserDashboard() {
             </div>
           </motion.div>
 
+          <GuidanceCards />
+
           {/* ── VX IDENTITY CARD ── */}
           {vxIdentity && (vxIdentity.professionalTitle || vxIdentity.activeProfession || vxIdentity.verifiedExperienceYears > 0) && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
@@ -962,6 +965,32 @@ function SubscriptionStatusDetails({ plan, expiryDate, status }: { plan: string;
       <DetailRow label="Expiry Date" value={expiryDate} />
       <DetailRow label="Status" value={status} />
     </div>
+  );
+}
+
+function GuidanceCards() {
+  const cards = [
+    { title: "Complete your Portfolio", why: "Employers need structured evidence beyond mission scores.", next: "Add statement, education, experience, skills, services, and projects.", outcome: "A recruiter-friendly CV dossier.", href: "/user/portfolio", icon: UserIcon },
+    { title: "Start a Mission", why: "Missions turn learning into proof.", next: "Choose a profession and solve a real-world problem node.", outcome: "XP, progress, and portfolio evidence.", href: "/profession/select", icon: Target },
+    { title: "Improve your Rank", why: "Rank helps your profile stand out.", next: "Complete more missions and keep your streak alive.", outcome: "Higher leaderboard visibility.", href: "/user/xp-progress", icon: Trophy },
+    { title: "Apply for Jobs", why: "Your dossier is designed to support applications.", next: "Browse opportunities and submit applications.", outcome: "Employers can evaluate your verified profile.", href: "/jobs", icon: BriefcaseBusiness },
+    { title: "Join Discussions", why: "Community activity helps you learn from peers.", next: "Ask questions or contribute to forum threads.", outcome: "Stronger network and platform presence.", href: "/forum", icon: MessageSquare },
+  ];
+  return (
+    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      {cards.map((card) => {
+        const Icon = card.icon;
+        return (
+          <Link key={card.title} href={card.href} className="rounded-2xl border border-white/6 bg-[#0d1119] p-4 transition hover:border-amber-400/30 hover:bg-amber-400/5">
+            <Icon className="mb-3 h-5 w-5 text-amber-400" />
+            <h3 className="font-bold text-white">{card.title}</h3>
+            <p className="mt-2 text-xs text-white/45"><span className="font-semibold text-white/70">Why:</span> {card.why}</p>
+            <p className="mt-1 text-xs text-white/45"><span className="font-semibold text-white/70">Next:</span> {card.next}</p>
+            <p className="mt-1 text-xs text-white/45"><span className="font-semibold text-white/70">Outcome:</span> {card.outcome}</p>
+          </Link>
+        );
+      })}
+    </section>
   );
 }
 

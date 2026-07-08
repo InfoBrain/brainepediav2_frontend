@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
-import { X, ChevronRight, ChevronLeft, Map, Trophy, User, Sparkles, LayoutDashboard } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, Map, Trophy, User, Sparkles, LayoutDashboard, BriefcaseBusiness, Shield } from "lucide-react";
 import { getToken, getUserRole } from "@/lib/auth";
 
 const STORAGE_KEY = "brainepedia.onboarding.v1.done";
@@ -17,34 +17,53 @@ type Step = {
 const USER_STEPS: Step[] = [
   {
     title: "Welcome to Brainepedia",
-    body: "This is your command centre. Track your XP, streaks, and earned badges right from your dashboard.",
+    body: "Learn by solving real-world missions. Your dashboard turns practical problem solving into visible career evidence.",
     icon: <LayoutDashboard className="w-6 h-6 text-[#00D2FF]" />,
   },
   {
+    title: "Complete your Profile",
+    body: "Add your identity, title, avatar, and professional details so your dossier represents you accurately.",
+    icon: <User className="w-6 h-6 text-[#00D2FF]" />,
+    cta: "Complete Profile",
+    href: "/profile/edit",
+  },
+  {
+    title: "Build your Portfolio",
+    body: "Create your CV-style Portfolio with a personal statement, education, experience, skills, services, projects, and interests.",
+    icon: <BriefcaseBusiness className="w-6 h-6 text-[#FFD700]" />,
+    cta: "Build Portfolio",
+    href: "/user/portfolio",
+  },
+  {
     title: "Choose Your Profession",
-    body: "Start by selecting a profession. This unlocks your personalised Learning Map filled with districts to explore.",
+    body: "Select a profession to unlock your personalised Learning Map filled with districts to explore.",
     icon: <Map className="w-6 h-6 text-[#9D4EDD]" />,
     cta: "Select Profession",
     href: "/profession/select",
   },
   {
-    title: "Conquer Districts",
-    body: "Each district contains challenges — real-world problems to solve. Complete them to earn XP and climb the ranks.",
+    title: "Start your first Mission",
+    body: "Each mission is a practical challenge. Complete one to begin building verified proof of skill.",
     icon: <Sparkles className="w-6 h-6 text-[#FFD700]" />,
   },
   {
-    title: "Earn Badges",
-    body: "Complete milestones to unlock Bronze, Silver, Gold and Platinum badges. Visit your Trophy Case to see them all.",
+    title: "Earn XP",
+    body: "Successful missions award XP. XP shows progress, consistency, and practical problem-solving momentum.",
     icon: <Trophy className="w-6 h-6 text-amber-400" />,
-    cta: "View Badges",
-    href: "/user/badges",
   },
   {
-    title: "Keep Your Profile Updated",
-    body: "A complete dossier helps employers discover you. Add your bio, socials and a profile photo from Edit Profile.",
-    icon: <User className="w-6 h-6 text-[#00D2FF]" />,
-    cta: "Edit Profile",
-    href: "/profile/edit",
+    title: "Unlock VX",
+    body: "Verified Experience (VX) converts mission performance into a career-ready evidence signal.",
+    icon: <Shield className="w-6 h-6 text-[#00D2FF]" />,
+    cta: "View VX",
+    href: "/user/vx-progress",
+  },
+  {
+    title: "Become discoverable by employers",
+    body: "A complete profile and portfolio make your public dossier more recruiter friendly and easier to share.",
+    icon: <BriefcaseBusiness className="w-6 h-6 text-[#00D2FF]" />,
+    cta: "Open Portfolio",
+    href: "/user/portfolio",
   },
 ];
 
@@ -190,7 +209,7 @@ export function OnboardingGuide() {
                   onClick={next}
                   className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold font-mono rounded-xl bg-gradient-to-r from-[#9D4EDD] to-[#00D2FF] text-white hover:opacity-90 transition-opacity"
                 >
-                  {isLast ? "Get Started" : "Next"}
+                  {isLast ? "Start Now" : "Next"}
                   {!isLast && <ChevronRight className="w-3.5 h-3.5" />}
                 </button>
               </div>

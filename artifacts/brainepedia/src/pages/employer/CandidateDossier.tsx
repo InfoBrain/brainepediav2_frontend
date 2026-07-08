@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { Link, useRoute } from "wouter";
 import { ArrowLeft, Award, Bookmark, BriefcaseBusiness, Crown, Eye, Loader2, RefreshCw, ShieldCheck, Trophy, Zap } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -32,7 +33,7 @@ export default function CandidateDossier() {
     if (!userId) return;
     setLoading(true);
     setError("");
-    const res = await api.jobs.candidateDossier(userId);
+    const res = await api.profiles.publicPortfolio(userId);
     setLoading(false);
     if (!res.ok) {
       setError(res.error || "Unable to load candidate dossier.");
@@ -89,11 +90,19 @@ export default function CandidateDossier() {
   }
 
   const profile = dossier?.profile ?? dossier?.candidate ?? dossier?.user ?? dossier;
+  const portfolio = dossier?.portfolio ?? dossier?.Portfolio ?? dossier;
   const name = candidateName(profile);
   const avatarUrl = candidateAvatar(profile);
   const profession = text(profile?.professionName ?? profile?.ProfessionName ?? profile?.profession ?? profile?.Profession ?? profile?.activeProfession ?? profile?.professionalTitle ?? profile?.currentTitle, "Verified professional");
   const badges = asList(dossier?.badges ?? dossier?.topBadges ?? dossier?.earnedBadges ?? profile?.badges);
   const missions = asList(dossier?.missions ?? dossier?.completedMissions ?? dossier?.missionHistory ?? profile?.missions);
+  const education = asList(portfolio?.education ?? portfolio?.Education);
+  const experience = asList(portfolio?.workExperience ?? portfolio?.WorkExperience ?? portfolio?.experience);
+  const projects = asList(portfolio?.projects ?? portfolio?.Projects);
+  const services = asList(portfolio?.services ?? portfolio?.Services);
+  const skills = asList(portfolio?.skills ?? portfolio?.Skills);
+  const interests = asList(portfolio?.interests ?? portfolio?.Interests);
+  const statement = text(portfolio?.personalStatement ?? portfolio?.PersonalStatement ?? portfolio?.aboutMe ?? portfolio?.AboutMe, "");
 
   return (
     <DashboardShell nav={EMPLOYER_NAV} title="Candidate Dossier" subtitle="// recruitment.verified-dossier" theme="employer">
@@ -161,6 +170,35 @@ export default function CandidateDossier() {
                 </Button>
               </aside>
             </div>
+
+            <RecruiterSection title="Personal Statement" empty="No personal statement returned.">
+              {statement && <p className="whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{statement}</p>}
+            </RecruiterSection>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <RecruiterSection title="Experience" empty="No work experience returned.">
+                <MiniCards items={experience} fields={["company", "role", "location", "description"]} />
+              </RecruiterSection>
+              <RecruiterSection title="Education" empty="No education returned.">
+                <MiniCards items={education} fields={["institution", "degree", "courseOfStudy"]} />
+              </RecruiterSection>
+              <RecruiterSection title="Projects" empty="No projects returned.">
+                <MiniCards items={projects} fields={["projectName", "description", "projectUrl"]} />
+              </RecruiterSection>
+              <RecruiterSection title="Services" empty="No services returned.">
+                <MiniCards items={services} fields={["service", "description"]} />
+              </RecruiterSection>
+            </div>
+
+            <RecruiterSection title="Skills & Interests" empty="No skills or interests returned.">
+              <div className="flex flex-wrap gap-2">
+                {[...skills.map((item: any) => item?.skill ?? item?.Skill ?? item?.name), ...interests.map((item: any) => item?.interest ?? item?.Interest ?? item?.name ?? item)]
+                  .filter(Boolean)
+                  .map((label: any, index) => (
+                    <span key={index} className="rounded-full border border-[#00D2FF]/20 bg-[#00D2FF]/8 px-3 py-1.5 text-sm text-[#00D2FF]">{text(label, "Skill")}</span>
+                  ))}
+              </div>
+            </RecruiterSection>
 
             <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
               <h3 className="mb-4 flex items-center gap-2 text-lg font-bold"><BriefcaseBusiness className="h-5 w-5 text-[#00D2FF]" /> Missions</h3>
@@ -241,6 +279,39 @@ function State({ label }: { label: string }) {
 
 function Empty({ label }: { label: string }) {
   return <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-muted-foreground">{label}</div>;
+}
+
+function RecruiterSection({ title, empty, children }: { title: string; empty: string; children: ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
+      <h3 className="mb-4 text-lg font-bold">{title}</h3>
+      {children || <Empty label={empty} />}
+    </section>
+  );
+}
+
+function MiniCards({ items, fields }: { items: any[]; fields: string[] }) {
+  if (!items.length) return <Empty label="No portfolio records returned." />;
+  return (
+    <div className="grid gap-3">
+      {items.map((item, index) => (
+        <article key={idOf(item) || index} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
+          <div className="grid gap-2">
+            {fields.map((field) => {
+              const value = item?.[field] ?? item?.[field.charAt(0).toUpperCase() + field.slice(1)];
+              if (!value) return null;
+              return (
+                <div key={field}>
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{field.replace(/([A-Z])/g, " $1")}</p>
+                  <p className="text-sm">{text(value, "—")}</p>
+                </div>
+              );
+            })}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
 }
 
 function PerformanceResult({ result }: { result: any }) {

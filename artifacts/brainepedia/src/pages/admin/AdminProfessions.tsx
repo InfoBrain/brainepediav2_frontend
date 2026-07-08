@@ -155,7 +155,10 @@ export default function AdminProfessions() {
   async function runAiGenerate() {
     setAiState({ phase: "loading" });
     setAiMsgIdx(0);
-    const res = await api.professions.generateSeed(aiCount);
+    const res = await api.professions.generateSeed({
+      ProfessionName: "Generated Profession",
+      DistrictCount: aiCount,
+    });
     if (res.ok) {
       const items = normProfessions(res.data);
       setAiState({ phase: "preview", items });
