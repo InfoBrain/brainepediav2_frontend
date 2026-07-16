@@ -30,3 +30,9 @@ id = "aXzBbqPfKthLNevcjmign"
 uri = "file://Brainepedia_Platform_Review.docx"
 type = "word_document"
 title = "Brainepedia — Technical, Marketing & Business Review"
+
+[[outputs]]
+id = "eokQTPtNIqEErhPb6GJ3E"
+uri = "file://brainepedia-iis-deploy.zip"
+type = "unspecified"
+title = "brainepedia-iis-deploy.zip"

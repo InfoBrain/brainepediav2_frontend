@@ -23827,9 +23827,8 @@ var require_lib3 = __commonJS({
 var import_express = __toESM(require_express2(), 1);
 var import_cors = __toESM(require_lib3(), 1);
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
-var __dirname = path.dirname(fileURLToPath(import.meta.url));
+var serverDir = path.dirname(path.resolve(process.argv[1]));
 var UPSTREAM = "https://api.brainepedia.com";
 var PORT = process.env.PORT || 8080;
 var HOP_BY_HOP = /* @__PURE__ */ new Set([
@@ -23912,7 +23911,7 @@ app.all(/^\/api(\/.*)?$/, async (req, res) => {
     });
   }
 });
-var staticDir = path.resolve(__dirname);
+var staticDir = serverDir;
 var indexHtml = path.join(staticDir, "index.html");
 if (existsSync(indexHtml)) {
   app.use(
@@ -23922,7 +23921,7 @@ if (existsSync(indexHtml)) {
       setHeaders: (_res, filePath) => {
         const ext = path.extname(filePath);
         const base = path.basename(filePath);
-        if (ext === ".mjs" || base === "server.js" || base === "web.config" || base === "package.json") {
+        if (ext === ".mjs" || ext === ".ts" || base === "server.js" || base === "web.config" || base === "package.json") {
           _res.statusCode = 403;
           _res.end();
         }

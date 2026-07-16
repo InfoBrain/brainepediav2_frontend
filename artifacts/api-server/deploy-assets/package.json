@@ -1,0 +1,12 @@
+{
+  "name": "brainepedia",
+  "version": "1.0.0",
+  "description": "Brainepedia — IIS/iisnode deployment package",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}
