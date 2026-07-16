@@ -112,7 +112,7 @@ const PLATFORM_VIEWS = [
     description: "Share knowledge, ask questions, and build community reputation.",
     icon: MessageSquare,
     accent: "from-[#7C3AED]/20 to-transparent",
-    screenshot: undefined,
+    screenshot: "/screenshots/forum.png",
   },
 ];
 
@@ -187,7 +187,7 @@ export function PlatformScreenshots() {
                     <img
                       src={screenshot}
                       alt={`${title} screenshot`}
-                      className="h-full w-full object-cover object-top"
+                      className="h-full w-full object-contain object-top"
                       loading="lazy"
                     />
                   ) : (
