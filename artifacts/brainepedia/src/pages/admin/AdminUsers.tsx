@@ -359,7 +359,7 @@ export default function AdminUsers() {
                             title="View Public Dossier"
                             onClick={() =>
                               navigate(
-                                `/admin/users/public/${profile.userId || profile.profileId}`
+                                `/admin/users/public/${profile.userId}`
                               )
                             }
                           >

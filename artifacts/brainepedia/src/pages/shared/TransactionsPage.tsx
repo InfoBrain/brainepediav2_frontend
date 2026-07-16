@@ -282,7 +282,7 @@ function formatDate(value: any): string {
 function formatMoney(value: any): string {
   const num = Number(value);
   if (!Number.isFinite(num)) return "—";
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(num);
+  return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(num);
 }
 function flatten(obj: any, prefix = ""): Record<string, any> {
   if (!obj || typeof obj !== "object") return {};

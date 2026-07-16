@@ -77,38 +77,44 @@ const PLATFORM_VIEWS = [
     description: "Track assigned missions, XP earned, and success rate in one view.",
     icon: Target,
     accent: "from-[#FFD700]/20 to-transparent",
+    screenshot: "/screenshots/mission.png",
   },
   {
-    title: "Employer Dashboard",
-    description: "Recruit, assess, and develop talent from a single corporate console.",
+    title: "User Dashboard",
+    description: "Your personal learning hub — XP, districts, leaderboard rank at a glance.",
     icon: LayoutDashboard,
     accent: "from-[#00D2FF]/20 to-transparent",
-  },
-  {
-    title: "Forum & Discussions",
-    description: "Share knowledge, ask questions, and build community reputation.",
-    icon: MessageSquare,
-    accent: "from-[#7C3AED]/20 to-transparent",
+    screenshot: "/screenshots/dashboard.png",
   },
   {
     title: "Jobs & Applications",
     description: "Apply with verified experience instead of unverifiable credentials.",
     icon: BriefcaseBusiness,
     accent: "from-emerald-500/15 to-transparent",
+    screenshot: "/screenshots/jobs.png",
   },
   {
-    title: "Leaderboards",
-    description: "Compete on XP and climb visibility among peers in your profession.",
-    icon: Trophy,
-    accent: "from-amber-500/15 to-transparent",
-  },
-  {
-    title: "Certificates & VX",
-    description: "Convert mission proof into career-grade verified experience signals.",
+    title: "Portfolio & CV",
+    description: "Build a live recruiter-facing portfolio from your real mission evidence.",
     icon: Award,
     accent: "from-cyan-500/15 to-transparent",
+    screenshot: "/screenshots/portfolio.png",
   },
-] as const;
+  {
+    title: "Mission Results",
+    description: "AI-evaluated feedback and scores after every completed challenge.",
+    icon: Trophy,
+    accent: "from-amber-500/15 to-transparent",
+    screenshot: "/screenshots/results.png",
+  },
+  {
+    title: "Forum & Discussions",
+    description: "Share knowledge, ask questions, and build community reputation.",
+    icon: MessageSquare,
+    accent: "from-[#7C3AED]/20 to-transparent",
+    screenshot: undefined,
+  },
+];
 
 export function AudienceShowcase() {
   return (
@@ -162,7 +168,7 @@ export function PlatformScreenshots() {
           </h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {PLATFORM_VIEWS.map(({ title, description, icon: Icon, accent }) => (
+          {PLATFORM_VIEWS.map(({ title, description, icon: Icon, accent, screenshot }) => (
             <div
               key={title}
               className={`overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${accent} to-[#0d1119]`}
@@ -172,12 +178,23 @@ export function PlatformScreenshots() {
                   <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" aria-hidden="true" />
                   <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" aria-hidden="true" />
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" aria-hidden="true" />
-                  <span className="ml-2 text-xs font-mono text-muted-foreground">brainepedia.app</span>
+                  <span className="ml-2 text-xs font-mono text-muted-foreground">brainepedia.com</span>
                 </div>
               </div>
-              <div className="p-6">
-                <div className="mb-4 flex h-32 items-center justify-center rounded-xl border border-dashed border-white/10 bg-black/20">
-                  <Icon className="h-12 w-12 text-primary/60" aria-hidden="true" />
+              <div className="p-4">
+                <div className="mb-4 overflow-hidden rounded-xl border border-white/10 bg-black/20" style={{ aspectRatio: "16/9" }}>
+                  {screenshot ? (
+                    <img
+                      src={screenshot}
+                      alt={`${title} screenshot`}
+                      className="h-full w-full object-cover object-top"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <Icon className="h-12 w-12 text-primary/60" aria-hidden="true" />
+                    </div>
+                  )}
                 </div>
                 <h3 className="font-bold">{title}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{description}</p>

@@ -18,7 +18,7 @@ export default function AdminAnalytics() {
   const loadStats = useCallback(async () => {
     setLoading(true);
     setError("");
-    const res = await api.admin.stats();
+    const res = await api.admin.analytics();
     if (res.ok) {
       setStats(res.data);
     } else {

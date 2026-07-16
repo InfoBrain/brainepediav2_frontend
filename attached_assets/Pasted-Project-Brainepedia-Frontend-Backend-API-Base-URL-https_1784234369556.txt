@@ -1,0 +1,533 @@
+Project: Brainepedia Frontend
+
+Backend API Base URL:
+https://api.brainepedia.com
+
+Swagger Documentation:
+https://api.brainepedia.com/swagger/index.html
+
+
+The attached screens are for images or video loop to be created or needed 
+---
+
+# OBJECTIVE
+
+Implement ONLY the updates listed below.
+
+This is a FRONTEND ONLY task.
+
+Do NOT modify the backend.
+
+Do NOT modify API request or response contracts.
+
+Do NOT modify authentication or authorization.
+
+Do NOT change endpoint signatures.
+
+Do NOT break existing functionality.
+
+Maintain the existing project architecture, reusable components, routing, and state management.
+
+Display API error messages exactly as returned from the backend.
+
+---
+
+# ADMIN ROLE UPDATES
+
+## 1. Fix Profession Generator Endpoint
+
+The Profession Generator on the Admin Dashboard is currently calling the wrong endpoint.
+
+Replace it with:
+
+POST
+
+https://api.brainepedia.com/api/Districts/generate-profession
+
+Ensure the request body matches the backend contract.
+
+Do not append incorrect query parameters.
+
+On success, display the backend success message exactly as returned.
+
+---
+
+## 2. Fix Public Dossier Navigation
+
+Under:
+
+Admin
+→ Users
+→ View Public Dossier
+
+The frontend is currently passing:
+
+profileId
+
+instead of
+
+userId
+
+to the Public Portfolio endpoint.
+
+Current (Incorrect)
+
+GET
+/api/Profiles/public-portfolio/{profileId}
+
+Correct
+
+GET
+
+/api/Profiles/public-portfolio/{userId}
+
+Obtain the actual userId from the selected user's profile payload and pass that value.
+
+This change should be applied everywhere the Public Dossier is opened from the Admin dashboard.
+
+---
+
+## 3. Fix Employer Details Page
+
+The Employer Details page currently throws an error because the frontend expects a different response structure.
+
+Update the Employer Details page to consume and display the response below correctly.
+
+Sections to display:
+
+### Company Information
+
+• Company Logo
+• Company Name
+• Company Email
+• Company Phone Number
+• Website
+• About Company
+• Date Registered
+
+### Account Owner
+
+Display
+
+• Full Name
+• Email
+• Phone Number
+
+### Jobs Posted
+
+Display each job in a responsive table or cards.
+
+Fields
+
+• Job Title
+• Active Status
+• Date Created
+
+Use the following response contract:
+
+- employerProfileId
+- companyName
+- companyEmail
+- companyPhoneNumber
+- websiteUrl
+- companyLogoUrl
+- aboutCompany
+- dateRegistered
+- accountOwner
+- jobsPosted
+
+Do not expect any fields outside this response.
+
+---
+
+## 4. Subscription Page
+
+Currently the Subscription page displays UserId.
+
+Instead display the actual user's Full Name.
+
+Use the available user/profile payload instead of the identifier.
+
+Replace all visible UserId values with the person's readable name.
+
+---
+
+## 5. Analytics Page
+
+The Analytics page is calling the wrong endpoint.
+
+Replace it with
+
+GET
+
+https://api.brainepedia.com/api/Dashboard/analytics
+
+Update all dashboard widgets to consume the returned analytics response.
+
+Do not use the old endpoint.
+
+---
+
+# EMPLOYER ROLE UPDATE
+
+## Candidate Public Dossier
+
+The redesigned Candidate Dossier should include additional contact information.
+
+Include:
+
+• Email Address
+• Phone Number
+• LinkedIn Profile
+• GitHub Profile
+
+Display them professionally beneath the Personal Information section.
+
+If any value is empty, hide that field instead of displaying null.
+
+Ensure this applies everywhere employers view candidate dossiers:
+
+• Candidate Explorer
+• Saved Candidates
+• Applicants
+• Team Members
+• Anywhere else a Public Dossier is rendered.
+
+---
+
+# HOMEPAGE IMPROVEMENTS
+
+The homepage currently contains too much text and feels static.
+
+The objective is to create a modern, engaging landing page with stronger visual storytelling.
+
+---
+
+## 1. Replace Text with Visual Content
+
+Reduce large blocks of text.
+
+Introduce relevant high-quality illustrations, screenshots and imagery throughout the homepage.
+
+Suggested imagery includes:
+
+• Professionals collaborating
+• Developers coding
+• Engineers solving problems
+• Healthcare professionals
+• Designers
+• Business meetings
+• Students learning
+• AI-assisted work
+• Employers reviewing candidates
+
+The homepage should feel lively rather than text-heavy.
+
+---
+
+## 2. Hero Section
+
+Current right-side card:
+
+"Member Status
+Level 42 Architect"
+
+Remove this card completely.
+
+Replace it with an embedded looping screen recording (muted autoplay).
+
+The recording should demonstrate a complete Brainepedia mission workflow:
+
+• Selecting a mission
+• Reading the challenge
+• Asking Brainiac AI for hints
+• Submitting work
+• Receiving AI evaluation
+• XP reward
+• Mission completion
+
+If the final recording asset is not yet available, create a placeholder component that can easily be replaced later.
+
+---
+
+## 3. Remove Entire Section
+
+Remove completely:
+
+"Proof-first growth,
+XP + VX.
+Real challenges,
+Problem Nodes.
+Recruiter-ready,
+Public Dossiers."
+
+Do not leave empty spacing.
+
+Reflow the homepage naturally.
+
+---
+
+## 4. Platform Preview Section
+
+Replace the current icons with actual screenshots of the application.
+
+Suggested screenshots:
+
+• User Dashboard
+• Mission Page
+• Brainiac AI
+• Public Dossier
+• Employer Dashboard
+• Job Marketplace
+• Forum
+• Analytics
+
+Each screenshot should include:
+
+• subtle shadow
+• rounded corners
+• hover animation
+
+---
+
+## 5. Remove Entire Section
+
+Remove:
+
+"Your Verified Career Record."
+
+Adjust page spacing afterwards.
+
+---
+
+## 6. Testimonials
+
+Create a professional testimonial section.
+
+Include testimonials from Nigerian professionals and employers.
+
+One testimonial should be from:
+
+InfoBrain Technologies Nig. Ltd.
+
+Suggested layout:
+
+Company Logo
+
+Quote
+
+Name
+
+Role
+
+Company
+
+Professional avatar
+
+Star rating
+
+Carousel on mobile.
+
+Grid on desktop.
+
+Use realistic placeholder content if production testimonials are not yet available.
+
+---
+
+## 7. Terms of Service
+
+Update the Terms of Service.
+
+Remove every reference relating to:
+
+• Cryptocurrency
+• Crypto
+• Digital Assets
+• Tokens
+• Blockchain payments
+
+Rewrite the document to align with Brainepedia's purpose.
+
+The Terms should now focus on:
+
+• Skills verification
+• Professional portfolios
+• AI-assisted evaluations
+• Employer recruitment
+• Assessments
+• User-generated content
+• Community guidelines
+• Subscription services
+• Privacy
+• Intellectual property
+• Platform responsibilities
+
+Ensure the language is professional and legally appropriate.
+
+---
+
+## 8. Privacy Policy
+
+Similarly update the Privacy Policy.
+
+Remove all cryptocurrency-related wording.
+
+Rewrite the Privacy Policy around:
+
+• User accounts
+• Portfolio information
+• Assessments
+• Public dossiers
+• Employer recruitment
+• AI processing
+• Personal data
+• Cookies
+• Authentication
+• Billing
+• Analytics
+• Security
+• Data retention
+
+Maintain professional legal formatting.
+
+---
+
+# GENERAL UPDATE
+
+## Currency Formatting
+
+Transactions currently display:
+
+$
+
+Replace all currency formatting throughout the application with:
+
+₦
+
+Use Nigerian Naira formatting consistently.
+
+Examples
+
+₦10,000
+
+₦250,500
+
+₦1,250,000
+
+Do not display USD anywhere unless explicitly returned by another feature.
+
+Apply this to:
+
+• User Transactions
+• Employer Transactions
+• Admin Transactions
+• Billing pages
+• Subscription pages
+• Revenue widgets
+• Analytics
+• Payment history
+
+Use locale-aware number formatting where possible.
+
+---
+
+# USER EXPERIENCE REQUIREMENTS
+
+Maintain:
+
+• Existing routing
+• Existing architecture
+• Existing API services
+• Existing authentication
+
+Improve:
+
+• Responsiveness
+• Empty states
+• Skeleton loaders
+• Error handling
+• Loading indicators
+• Card layouts
+• Mobile responsiveness
+
+Use backend error messages exactly as returned.
+
+---
+
+# TEST ACCOUNTS
+
+## User
+
+Email:
+ayobamideleadepoju@gmail.com
+
+Password:
+Damochi-1992
+
+---
+
+## Employer
+
+Email:
+support@infobrainltd.com
+
+Password:
+Braintech-2017
+
+---
+
+## Admin
+
+Email:
+admin@brainepedia.com
+
+Password:
+Braintech-2017
+
+---
+
+# FINAL VALIDATION CHECKLIST
+
+Before completing the task, verify:
+
+✅ Profession Generator calls the correct endpoint.
+
+✅ Public Dossier uses userId instead of profileId.
+
+✅ Employer Details page correctly renders the returned payload.
+
+✅ Subscription page displays user names instead of UserIds.
+
+✅ Analytics page consumes `/api/Dashboard/analytics`.
+
+✅ Candidate Dossiers include Email, Phone Number, LinkedIn and GitHub.
+
+✅ Homepage uses engaging imagery instead of excessive text.
+
+✅ Hero card has been replaced with a looping mission walkthrough placeholder/video.
+
+✅ "Proof-first growth..." section has been removed.
+
+✅ Platform Preview uses application screenshots instead of icons.
+
+✅ "Your Verified Career Record" section has been removed.
+
+✅ Testimonials section has been added.
+
+✅ Terms of Service has been updated for Brainepedia and contains no cryptocurrency references.
+
+✅ Privacy Policy has been updated and contains no cryptocurrency references.
+
+✅ Every currency value displays in Nigerian Naira (₦).
+
+✅ Mobile responsiveness is preserved.
+
+✅ Existing frontend functionality remains intact.
+
+✅ No TypeScript errors.
+
+✅ No ESLint errors.
+
+✅ No build errors.
+
+Implement ONLY the updates described above while preserving the existing frontend architecture, backend contracts, routing, and overall Brainepedia user experience.

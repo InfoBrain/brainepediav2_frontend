@@ -182,24 +182,38 @@ export default function AdminEmployerDetails() {
 }
 
 function normDetails(d: any): EmployerDetails {
+  // accountOwner may be an object { fullName, email, phoneNumber } or a flat string
+  const ownerObj = d?.accountOwner;
+  const ownerIsObject = ownerObj && typeof ownerObj === "object";
+  const ownerName = ownerIsObject
+    ? (ownerObj.fullName || ownerObj.name || `${ownerObj.firstName || ""} ${ownerObj.lastName || ""}`.trim() || undefined)
+    : (typeof ownerObj === "string" ? ownerObj : undefined) ?? d?.ownerName ?? (d?.firstName && d?.lastName ? `${d.firstName} ${d.lastName}` : undefined);
+  const ownerEmail = ownerIsObject ? (ownerObj.email ?? ownerObj.emailAddress) : (d?.accountOwnerEmail ?? d?.ownerEmail);
+
+  // jobsPosted may be an array of job objects or a numeric count
+  const rawJobs = Array.isArray(d?.jobsPosted) ? d.jobsPosted
+    : Array.isArray(d?.jobs) ? d.jobs
+    : Array.isArray(d?.jobPostings) ? d.jobPostings
+    : [];
+
   return {
     id: String(d?.employerProfileId ?? d?.id ?? d?.employerId ?? ""),
     companyName: d?.companyName ?? d?.CompanyName ?? d?.name ?? "Unknown",
     companyLogoUrl: d?.companyLogoUrl ?? d?.logoUrl,
     websiteUrl: d?.companyWebsite ?? d?.websiteUrl ?? d?.website,
-    email: d?.companyEmail ?? d?.email ?? d?.ownerEmail ?? "",
-    phoneNumber: d?.companyPhone ?? d?.phoneNumber ?? d?.companyPhoneNumber,
+    email: d?.companyEmail ?? d?.email ?? ownerEmail ?? "",
+    phoneNumber: d?.companyPhoneNumber ?? d?.companyPhone ?? d?.phoneNumber,
     aboutCompany: d?.aboutCompany ?? d?.about ?? d?.description,
     dateRegistered: d?.registrationDate ?? d?.dateRegistered ?? d?.dateJoined ?? d?.createdAt,
     planType: d?.subscriptionLevel ?? d?.planType ?? d?.plan ?? d?.subscriptionTier,
     teamMembers: d?.totalTeamMembers ?? d?.teamMembers ?? d?.memberCount,
-    activeJobs: d?.jobsPosted ?? d?.totalJobsPosted ?? d?.activeJobs ?? d?.jobCount,
-    ownerName: d?.accountOwner ?? d?.ownerName ?? (d?.firstName && d?.lastName ? `${d.firstName} ${d.lastName}` : undefined),
-    ownerEmail: d?.accountOwnerEmail ?? d?.ownerEmail,
-    jobs: Array.isArray(d?.jobs) ? d.jobs.map((j: any) => ({
-      title: j.title ?? j.name ?? "Job",
-      postedAt: j.postedAt ?? j.createdAt ?? new Date().toISOString(),
-      status: j.status ?? "Unknown",
-    })) : [],
+    activeJobs: typeof d?.jobsPosted === "number" ? d.jobsPosted : (d?.totalJobsPosted ?? d?.activeJobs ?? d?.jobCount ?? rawJobs.length),
+    ownerName,
+    ownerEmail,
+    jobs: rawJobs.map((j: any) => ({
+      title: j.title ?? j.jobTitle ?? j.name ?? "Job",
+      postedAt: j.dateCreated ?? j.postedAt ?? j.createdAt ?? new Date().toISOString(),
+      status: j.isActive === true ? "Active" : j.isActive === false ? "Closed" : (j.status ?? "Unknown"),
+    })),
   };
 }

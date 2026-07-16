@@ -9,7 +9,7 @@ const sections = [
   {
     id: "scope",
     title: "1. Scope",
-    content: `This Privacy Policy applies to our websites, mobile/desktop apps, Brainiac AI tutor, Brainepedia features (Experience Elevator, Professional Exams, Portfolio & CV), BPCoin/Brainnet tools, and related services (collectively, the "Services").`,
+    content: `This Privacy Policy applies to our websites, mobile/desktop apps, Brainiac AI tutor, and all Brainepedia features including Experience Elevator, Professional Exams, Portfolio & CV, skills verification, employer recruitment tools, the community forum, and related services (collectively, the "Services").`,
   },
   {
     id: "data-we-collect",
@@ -62,23 +62,14 @@ const sections = [
     ],
   },
   {
-    id: "blockchain",
-    title: "5. Blockchain & Wallet Data",
-    items: [
-      "Wallet addresses, transaction hashes, validator activity, and on-chain events may be publicly visible by design.",
-      "We may store wallet metadata necessary to operate Brainnet/BPCoin features (e.g., staking, vesting, rewards).",
-      "Blockchain data may be immutable; requests for deletion may not be feasible for on-chain records.",
-    ],
-  },
-  {
     id: "legal-basis",
-    title: "6. Legal Basis",
+    title: "5. Legal Basis",
     content:
       "We process personal data under one or more of the following bases: consent, performance of a contract, legitimate interests (e.g., security, product improvement), legal obligation, or vital interests (rare).",
   },
   {
     id: "how-we-share",
-    title: "7. How We Share Data",
+    title: "6. How We Share Data",
     items: [
       "Service Providers: hosting, analytics, payments, communications, proctoring, KYC (where applicable).",
       "Enterprise/Education Partners: with your authorization for verification, hiring, or credential validation.",
@@ -89,25 +80,25 @@ const sections = [
   },
   {
     id: "international",
-    title: "8. International Transfers",
+    title: "7. International Transfers",
     content:
       "Your data may be processed in countries outside your own. We use appropriate safeguards (e.g., contractual clauses) where required by law.",
   },
   {
     id: "retention",
-    title: "9. Data Retention",
+    title: "8. Data Retention",
     content:
       "We retain data for as long as necessary to provide the Services, comply with legal obligations, resolve disputes, and enforce agreements. We may retain de-identified or aggregated data for analytics and model improvement.",
   },
   {
     id: "security",
-    title: "10. Security",
+    title: "9. Security",
     content:
       "We apply administrative, technical, and organizational safeguards (encryption in transit/at rest where applicable, access controls, monitoring). No system is 100% secure; you also play a role by protecting your credentials and devices.",
   },
   {
     id: "your-rights",
-    title: "11. Your Rights & Choices",
+    title: "10. Your Rights & Choices",
     items: [
       "Access, correct, or delete your personal information (subject to legal/contractual limits).",
       "Object to or restrict processing; request data portability.",
@@ -119,31 +110,31 @@ const sections = [
   },
   {
     id: "children",
-    title: "12. Children's Privacy",
+    title: "11. Children's Privacy",
     content:
       "Our Services are not directed to children under the age of digital consent unless used through an approved institution with verifiable consent. If we learn we collected such data without consent, we will delete it.",
   },
   {
     id: "cookies",
-    title: "13. Cookies & Similar Technologies",
+    title: "12. Cookies & Similar Technologies",
     content:
       "We use cookies, SDKs, and similar tools for authentication, personalization, analytics, performance, and marketing. You can manage preferences in your browser and (where available) via our cookie controls.",
   },
   {
     id: "marketing",
-    title: "14. Marketing Communications",
+    title: "13. Marketing Communications",
     content:
       "You can opt out of marketing emails by using the unsubscribe link or contacting us. We may still send transactional or service-related messages.",
   },
   {
     id: "changes",
-    title: "15. Changes to This Policy",
+    title: "14. Changes to This Policy",
     content:
       "We may update this Privacy Policy periodically. Material changes will be communicated via email or in-product notice. Your continued use after the effective date means you accept the changes.",
   },
   {
     id: "contact",
-    title: "16. Contact & Data Protection",
+    title: "15. Contact & Data Protection",
     contact: true,
   },
 ];

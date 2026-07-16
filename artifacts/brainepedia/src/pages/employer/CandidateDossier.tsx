@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, Award, Bookmark, BriefcaseBusiness, Crown, Eye, Loader2, RefreshCw, ShieldCheck, Trophy, Zap } from "lucide-react";
+import { ArrowLeft, Award, Bookmark, BriefcaseBusiness, Crown, Eye, Github, Linkedin, Loader2, Mail, Phone, RefreshCw, ShieldCheck, Trophy, Zap } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -146,6 +146,8 @@ export default function CandidateDossier() {
               </div>
             </section>
 
+            <ContactInfo profile={profile} />
+
             <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
               <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
                 <h3 className="mb-4 flex items-center gap-2 text-lg font-bold"><Trophy className="h-5 w-5 text-[#FFD700]" /> Badges</h3>
@@ -261,6 +263,41 @@ export default function CandidateDossier() {
         </Dialog>
       </div>
     </DashboardShell>
+  );
+}
+
+function ContactInfo({ profile }: { profile: any }) {
+  const email = profile?.email ?? profile?.Email ?? profile?.emailAddress ?? profile?.EmailAddress ?? "";
+  const phone = profile?.phoneNumber ?? profile?.phone ?? profile?.PhoneNumber ?? profile?.Phone ?? profile?.mobileNumber ?? "";
+  const linkedin = profile?.linkedInUrl ?? profile?.linkedIn ?? profile?.linkedin ?? profile?.linkedinUrl ?? profile?.LinkedInUrl ?? "";
+  const github = profile?.githubUrl ?? profile?.github ?? profile?.GitHub ?? profile?.githubProfile ?? profile?.GitHubUrl ?? "";
+
+  const items = [
+    email && { icon: Mail, label: "Email", value: email, href: `mailto:${email}` },
+    phone && { icon: Phone, label: "Phone", value: phone, href: `tel:${phone}` },
+    linkedin && { icon: Linkedin, label: "LinkedIn", value: linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, "").replace(/\/$/, ""), href: linkedin.startsWith("http") ? linkedin : `https://linkedin.com/in/${linkedin}` },
+    github && { icon: Github, label: "GitHub", value: github.replace(/^https?:\/\/(www\.)?github\.com\//i, "").replace(/\/$/, ""), href: github.startsWith("http") ? github : `https://github.com/${github}` },
+  ].filter(Boolean) as { icon: typeof Mail; label: string; value: string; href: string }[];
+
+  if (!items.length) return null;
+  return (
+    <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
+      <h3 className="mb-4 text-lg font-bold">Contact Information</h3>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {items.map(({ icon: Icon, label, value, href }) => (
+          <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-3 hover:border-[#00D2FF]/30 transition-colors group">
+            <div className="h-9 w-9 rounded-lg bg-[#00D2FF]/10 flex items-center justify-center shrink-0 border border-[#00D2FF]/20">
+              <Icon className="h-4 w-4 text-[#00D2FF]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{label}</p>
+              <p className="text-sm truncate group-hover:text-[#00D2FF] transition-colors">{value}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
   );
 }
 

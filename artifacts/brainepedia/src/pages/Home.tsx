@@ -4,7 +4,7 @@ import { Problem } from "@/components/landing/Problem";
 import { Solution } from "@/components/landing/Solution";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Professions } from "@/components/landing/Professions";
-import { XPLedger } from "@/components/landing/XPLedger";
+import { Testimonials } from "@/components/landing/Testimonials";
 import { Pricing } from "@/components/landing/Pricing";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { FAQ } from "@/components/landing/FAQ";
@@ -12,7 +12,7 @@ import { Footer } from "@/components/landing/Footer";
 import { AudienceShowcase, PlatformScreenshots } from "@/components/landing/AudienceShowcase";
 import { SkipToContent } from "@/components/ux/SkipToContent";
 import { Link } from "wouter";
-import { BarChart3, BriefcaseBusiness, Building2, ClipboardCheck, Search, ShieldCheck, Sparkles, Target, Trophy, Users } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, Building2, ClipboardCheck, Search, Sparkles, Target, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -22,7 +22,6 @@ export default function Home() {
       <Nav />
       <main id="main-content" tabIndex={-1}>
         <Hero />
-        <VisualProof />
         <AudienceShowcase />
         <PlatformScreenshots />
         <Problem />
@@ -31,34 +30,13 @@ export default function Home() {
         <JobsTeaser />
         <HowItWorks />
         <Professions />
-        <XPLedger />
+        <Testimonials />
         <Pricing />
         <FAQ />
         <FinalCTA />
       </main>
       <Footer />
     </div>
-  );
-}
-
-function VisualProof() {
-  const stats = [
-    { label: "Proof-first growth", value: "XP + VX", icon: Trophy },
-    { label: "Real challenges", value: "Problem Nodes", icon: Target },
-    { label: "Recruiter-ready", value: "Public Dossiers", icon: ShieldCheck },
-  ];
-  return (
-    <section className="container mx-auto px-4 py-12">
-      <div className="grid gap-4 md:grid-cols-3">
-        {stats.map(({ label, value, icon: Icon }) => (
-          <div key={label} className="rounded-2xl border border-white/10 bg-card/50 p-6 shadow-[0_0_30px_rgba(0,210,255,0.08)]">
-            <Icon className="mb-4 h-8 w-8 text-primary" />
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <h2 className="mt-1 text-2xl font-black">{value}</h2>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 }
 

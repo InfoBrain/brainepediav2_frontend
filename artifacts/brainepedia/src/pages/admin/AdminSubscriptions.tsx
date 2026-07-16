@@ -196,7 +196,7 @@ function normSubscription(item: any) {
   const expiryDate = expiryValue ? new Date(String(expiryValue)) : null;
   const expired = Boolean(expiryDate && !Number.isNaN(expiryDate.getTime()) && expiryDate.getTime() < Date.now());
   return {
-    user: text(item?.userName ?? item?.UserName ?? item?.email ?? item?.Email ?? item?.userId ?? item?.UserId, "User unavailable"),
+    user: text(item?.fullName ?? item?.FullName ?? item?.userName ?? item?.UserName ?? item?.email ?? item?.Email ?? item?.userId ?? item?.UserId, "User unavailable"),
     tier: text(item?.currentTier ?? item?.CurrentTier ?? item?.tier ?? item?.Tier ?? item?.planName ?? item?.PlanName, "—"),
     active,
     status: active && !expired ? "Active" : "Inactive",
@@ -208,7 +208,7 @@ function normSubscription(item: any) {
 }
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value);
+  return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 2 }).format(value);
 }
 
 function Card({ icon: Icon, title, value }: { icon: React.ComponentType<{ className?: string }>; title: string; value: string }) {

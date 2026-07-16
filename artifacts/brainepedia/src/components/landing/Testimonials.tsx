@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
-import { Star, Quote } from "lucide-react";
+import { Building2, Star, Quote } from "lucide-react";
 
-const TESTIMONIALS = [
+const TESTIMONIALS: {
+  name: string; role: string; city: string; avatar: string; color: string; stars: number; quote: string; company?: string;
+}[] = [
   {
     name: "Chidi Okeke",
     role: "Software Engineer",
@@ -41,6 +43,17 @@ const TESTIMONIALS = [
     stars: 5,
     quote:
       "I couldn't afford expensive bootcamps or overseas certifications. Brainepedia let me prove my skills through actual challenges — no gatekeeping. My employer specifically mentioned my VX score during my onboarding as the reason they shortlisted me.",
+  },
+  {
+    name: "Tunde Adefioye",
+    role: "Talent Acquisition Lead",
+    city: "Lagos",
+    avatar: "IT",
+    color: "from-[#9D4EDD] to-[#00D2FF]",
+    stars: 5,
+    company: "InfoBrain Technologies Nig. Ltd",
+    quote:
+      "As the company that built Brainepedia, we use it ourselves when growing our tech team. The Candidate Explorer lets us filter by VX score and mission evidence rather than CV keywords. Shortlisting that used to take weeks now takes hours — and every hire is justified before the first interview even happens.",
   },
 ];
 
@@ -124,10 +137,18 @@ export function Testimonials() {
                 >
                   {t.avatar}
                 </div>
-                <div>
-                  <div className="font-semibold text-sm">{t.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {t.role} · {t.city}, Nigeria
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm">{t.name}</span>
+                    {t.company && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 text-[10px] font-mono text-primary">
+                        <Building2 className="h-2.5 w-2.5" />
+                        Employer
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {t.role}{t.company ? ` · ${t.company}` : ` · ${t.city}, Nigeria`}
                   </div>
                 </div>
               </div>

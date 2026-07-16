@@ -9,7 +9,7 @@ const sections = [
   {
     id: "acceptance",
     title: "1. Acceptance of Terms",
-    content: `These Terms & Conditions ("Terms") form a binding agreement between you and InfoBrain Technologies Nigeria Ltd ("InfoBrain", "we", "our", or "us"). They govern your use of Brainepedia, BPCoin/Brainnet tools, Brainiac AI tutor, websites, mobile/desktop apps, and any related content or services. Supplemental terms may apply to specific features (e.g., Professional Exams, Experience Elevator, Portfolio/CV, Wallet/Blockchain). If there is a conflict, the supplemental terms control for their feature.`,
+    content: `These Terms & Conditions ("Terms") form a binding agreement between you and InfoBrain Technologies Nigeria Ltd ("InfoBrain", "we", "our", or "us"). They govern your use of Brainepedia, Brainiac AI tutor, websites, mobile/desktop apps, and any related content or services (collectively, the "Services"). Supplemental terms may apply to specific features (e.g., Professional Exams, Experience Elevator, Portfolio/CV, subscription plans). If there is a conflict, the supplemental terms control for their feature.`,
   },
   {
     id: "eligibility",
@@ -38,8 +38,8 @@ const sections = [
     id: "payments",
     title: "4. Payments, Subscriptions & Refunds",
     items: [
-      "Some features (e.g., Experience Elevator tracks, certification exams, portfolio templates) require fees. Prices may change with prior notice.",
-      "You authorize us and our payment processors to charge your selected payment method for recurring or one-time fees, taxes, and currency conversion where applicable.",
+      "Some features (e.g., Experience Elevator tracks, certification exams, portfolio templates, employer recruitment tools) require subscription fees. Prices are denominated in Nigerian Naira (₦) and may change with prior notice.",
+      "You authorise us and our payment processors (including Paystack) to charge your selected payment method for recurring or one-time fees and applicable taxes.",
       "Unless otherwise stated, paid plans renew automatically until cancelled. You can cancel in your account settings; cancellations apply to the next billing cycle.",
       "Refunds are handled per the applicable product policy and local law. Certain digital services may be non-refundable once delivered.",
     ],
@@ -48,12 +48,12 @@ const sections = [
     id: "ip",
     title: "5. Intellectual Property",
     content:
-      "All Service content, logos, trade dress, software, models, datasets, and documentation are owned by InfoBrain or its licensors and are protected by law. Except for the limited license above, no rights are granted.",
+      "All Service content, logos, trade dress, software, AI models, datasets, mission problems, and documentation are owned by InfoBrain or its licensors and are protected by applicable law. Except for the limited license above, no rights are granted.",
     subsection: {
       title: "User Content",
       items: [
-        "By uploading, posting, or submitting content (including resumes/CVs, projects, prompts, data) you grant InfoBrain a worldwide, royalty-free license to host, process, display, and use that content solely to operate, improve, and provide the Services.",
-        "You represent that you have the necessary rights to grant this license.",
+        "By uploading, posting, or submitting content (including CVs, projects, portfolio entries, mission submissions, or forum posts) you grant InfoBrain a worldwide, royalty-free licence to host, process, display, and use that content solely to operate, improve, and provide the Services.",
+        "You represent that you have the necessary rights to grant this licence and that your content does not infringe any third-party rights.",
       ],
     },
   },
@@ -63,75 +63,68 @@ const sections = [
     items: [
       "Brainiac AI Tutor & Smart Features: AI outputs may be inaccurate or incomplete. Always verify critical information. You are responsible for your use of outputs.",
       "Professional Exams & Credentials: Exam integrity rules apply. We may revoke, suspend, or audit certifications for suspected misconduct.",
-      "Experience Elevator: Simulated/accelerated experience is a structured training program and does not guarantee employment outcomes.",
-    ],
-  },
-  {
-    id: "blockchain",
-    title: "7. Blockchain, Wallets & Digital Tokens",
-    items: [
-      "Where provided, blockchain features (e.g., BPCoin, Brainnet) involve inherent risks: market volatility, regulatory changes, network congestion, smart-contract bugs, and potential loss of funds or access.",
-      "Transactions may be irreversible. You are solely responsible for wallet security, keys, and compliance with applicable laws.",
-      "Nothing in the Services constitutes financial, investment, legal, or tax advice. Consider consulting a qualified advisor.",
+      "Experience Elevator: Simulated/accelerated experience is a structured training programme and does not guarantee employment outcomes.",
+      "Skills Verification & XP: Verified Experience (VX) scores reflect performance on platform missions and are not a guarantee of employment or professional qualification.",
     ],
   },
   {
     id: "privacy",
-    title: "8. Privacy",
+    title: "7. Privacy",
     content:
-      "Your use of the Services is also governed by our Privacy Policy, which explains how we collect and process personal data, including training data for AI features where permitted.",
+      "Your use of the Services is also governed by our Privacy Policy, which explains how we collect and process personal data, including data used for AI features where permitted.",
     privacyLink: true,
   },
   {
     id: "acceptable-use",
-    title: "9. Acceptable Use & Academic Integrity",
+    title: "8. Acceptable Use & Academic Integrity",
     items: [
-      "No harassment, discrimination, or illegal content.",
-      "No cheating, plagiarism, or attempts to circumvent exam/assessment safeguards.",
-      "No uploading of malicious code, or attempts to access others' data.",
+      "No harassment, discrimination, hate speech, or illegal content.",
+      "No cheating, plagiarism, identity misrepresentation, or attempts to circumvent exam/assessment safeguards.",
+      "No uploading of malicious code, or attempts to access others' accounts or data.",
+      "Employer accounts must not post misleading job listings or contact candidates outside the platform in unsolicited or abusive ways.",
     ],
   },
   {
     id: "third-party",
-    title: "10. Third-Party Services & Links",
+    title: "9. Third-Party Services & Links",
     content:
-      "The Services may integrate third-party tools (payments, cloud, AI models, analytics, exchanges). Your use of those services is subject to their terms. We are not responsible for third-party content or actions.",
+      "The Services may integrate third-party tools (payments, cloud infrastructure, AI model providers, analytics). Your use of those services is subject to their own terms. We are not responsible for third-party content or actions.",
   },
   {
     id: "warranties",
-    title: "11. Warranties & Disclaimers",
+    title: "10. Warranties & Disclaimers",
     content:
       'THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. We do not warrant uninterrupted, error-free, or secure operation.',
     highlight: true,
   },
   {
     id: "liability",
-    title: "12. Limitation of Liability",
+    title: "11. Limitation of Liability",
     content:
       "To the maximum extent permitted by law, InfoBrain and its affiliates will not be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages, or any loss of profits, revenues, data, or goodwill. Our aggregate liability for all claims related to the Services will not exceed the greater of (a) the amounts you paid to us for the Services in the 6 months prior to the claim, or (b) ₦150,000.",
     highlight: true,
   },
   {
     id: "indemnification",
-    title: "13. Indemnification",
+    title: "12. Indemnification",
     content:
       "You agree to indemnify and hold harmless InfoBrain, its directors, employees, and partners from any claims, losses, liabilities, and expenses (including reasonable legal fees) arising from your use of the Services, your content, or your violation of these Terms or applicable law.",
   },
   {
     id: "termination",
-    title: "14. Suspension & Termination",
+    title: "13. Suspension & Termination",
     content:
-      "We may suspend or terminate access at any time for breach, fraud, security risk, or legal compliance. You may stop using the Services at any time. Certain sections survive termination (e.g., IP, payments due, disclaimers, limitation of liability, indemnity).",
+      "We may suspend or terminate access at any time for breach, fraud, security risk, or legal compliance. You may stop using the Services at any time. Sections covering IP, outstanding payments, disclaimers, limitation of liability, and indemnity survive termination.",
   },
   {
     id: "governing-law",
-    title: "15. Governing Law & Dispute Resolution",
+    title: "14. Governing Law & Dispute Resolution",
     content:
-      "These Terms are governed by the laws of the Federal Republic of Nigeria. Disputes will be resolved through good-faith negotiations; if unresolved within 30 days, by binding arbitration or the courts of Lagos State, Nigeria.",
+      "These Terms are governed by the laws of the Federal Republic of Nigeria. Disputes will be resolved through good-faith negotiations first; if unresolved within 30 days, by binding arbitration or the courts of Lagos State, Nigeria.",
   },
   {
     id: "contact",
-    title: "16. Contact",
+    title: "15. Contact",
     contact: true,
   },
 ];

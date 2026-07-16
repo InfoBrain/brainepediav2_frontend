@@ -289,6 +289,8 @@ export const api = {
   admin: {
     /** GET /api/Dashboard/stats — global system stats (totalUsers, activeSubscriptions, totalXpAwarded) */
     stats: () => fetchApi("/api/Dashboard/stats"),
+    /** GET /api/Dashboard/analytics — platform analytics metrics */
+    analytics: () => fetchApi("/api/Dashboard/analytics"),
     /** GET /api/Dashboard/users — all platform users */
     users: (params: { search?: string; role?: string } = {}) => {
       const q = new URLSearchParams();
@@ -328,9 +330,9 @@ export const api = {
     /** DELETE /api/Professions/{id}?userId=... */
     delete: (id: string, userId: string) =>
       fetchApi(`/api/Professions/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
-    /** POST /api/Professions/generate-profession — body: { ProfessionName, DistrictCount } */
+    /** POST /api/Districts/generate-profession — body: { ProfessionName, DistrictCount } */
     generateSeed: (data: { ProfessionName: string; DistrictCount: number }) =>
-      fetchApi("/api/Professions/generate-profession", { method: "POST", body: JSON.stringify(data) }),
+      fetchApi("/api/Districts/generate-profession", { method: "POST", body: JSON.stringify(data) }),
     restructure: (data: { TargetModule: string; OriginalText: string; ToneInstruction?: string | null }) =>
       fetchApi("/api/Professions/restructure", { method: "POST", body: JSON.stringify(data) }),
     generateSmartCv: (dynamicCustomRequest: any) =>
