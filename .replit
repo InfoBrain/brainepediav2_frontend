@@ -1,4 +1,4 @@
-modules = ["nodejs-24", "python-3.11"]
+modules = ["nodejs-24", "python-3.11", "postgresql-16"]
 
 [deployment]
 router = "application"
@@ -69,3 +69,6 @@ externalPort = 3000
 [userenv.shared]
 VITE_RECAPTCHA_SITE_KEY = "6LfQnv8sAAAAABr9YgnMkDL70PFT-JT1eTQOqScY"
 RECAPTCHA_SECRET_KEY = "6LfQnv8sAAAAADlIIP1i8Z0T0Ou1W0APZT3c6RNP"
+
+[nix]
+channel = "stable-25_05"
