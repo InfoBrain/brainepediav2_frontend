@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { useParams, useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { Link, useParams, useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy, Shield, Zap, Globe, Twitter, Linkedin, Link2,
   Copy, CheckCircle2, ArrowLeft, Star, Target, Medal,
   Download, BookOpen, Calendar, Award, User, Eye, Loader2,
+  MapPin, Mail, Github, MessageCircle, BadgeCheck, ChevronDown,
+  Briefcase, Sparkles, Code2, Menu, X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
@@ -16,187 +18,128 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-/* ── Types ── */
-type BadgeItem = {
-  name?: string;
-  Name?: string;
-  description?: string;
-  Description?: string;
-  rarity?: string | number;
-  Rarity?: string | number;
-  iconUrl?: string | null;
-  IconUrl?: string | null;
-};
+import { useToast } from "@/hooks/use-toast";
 
 type MissionItem = {
-  missionTitle?: string;
-  MissionTitle?: string;
-  title?: string;
-  Title?: string;
-  districtName?: string;
-  DistrictName?: string;
-  problemNodeId?: string;
-  ProblemNodeId?: string;
-  score?: number;
-  Score?: number;
-  completionDate?: string;
-  CompletionDate?: string;
-  completedAt?: string;
+  missionTitle?: string; MissionTitle?: string; title?: string; Title?: string;
+  districtName?: string; DistrictName?: string;
+  professionName?: string; ProfessionName?: string; profession?: string; Profession?: string;
+  difficulty?: string; Difficulty?: string; difficultyLevel?: string;
+  xpEarned?: number; XpEarned?: number; xp?: number; XP?: number;
+  completionDate?: string; CompletionDate?: string; completedAt?: string;
+  score?: number; Score?: number; evaluationScore?: number; EvaluationScore?: number;
+  passed?: boolean; Passed?: boolean; isPassed?: boolean; IsPassed?: boolean;
+  problemNodeId?: string; ProblemNodeId?: string;
+  feedback?: string; Feedback?: string; aiEvaluationSummary?: string;
 };
 
-type PublicProfileData = {
-  DisplayName?: string; displayName?: string;
-  ProfilePictureUrl?: string | null; profilePictureUrl?: string | null;
-  ActiveProfession?: string; activeProfession?: string;
-  ProfessionalTitle?: string; professionalTitle?: string;
-  TotalXp?: number; totalXp?: number; TotalXP?: number; totalXP?: number;
-  VerifiedExperienceYears?: number; verifiedExperienceYears?: number;
-  GlobalLeaderboardRank?: number; globalLeaderboardRank?: number;
-  EarnedBadges?: BadgeItem[]; earnedBadges?: BadgeItem[];
-  CompletedMissions?: MissionItem[]; completedMissions?: MissionItem[];
-};
+const NAV_SECTIONS = [
+  { id: "overview", label: "Overview" },
+  { id: "about", label: "About" },
+  { id: "experience", label: "Experience" },
+  { id: "education", label: "Education" },
+  { id: "skills", label: "Skills" },
+  { id: "services", label: "Services" },
+  { id: "projects", label: "Projects" },
+  { id: "interests", label: "Interests" },
+  { id: "missions", label: "Mission Achievements" },
+  { id: "contact", label: "Contact" },
+] as const;
 
-/* ── Rarity helpers ── */
-const RARITY_STYLE: Record<string, { border: string; text: string; bg: string; glow: string; label: string }> = {
-  legendary: { border: "border-[#FFD700]/40", text: "text-[#FFD700]", bg: "bg-[#FFD700]/8", glow: "shadow-[0_0_20px_rgba(255,215,0,0.25)]", label: "Legendary" },
-  epic:      { border: "border-[#9D4EDD]/40", text: "text-[#9D4EDD]", bg: "bg-[#9D4EDD]/8", glow: "shadow-[0_0_16px_rgba(157,78,221,0.25)]", label: "Epic" },
-  rare:      { border: "border-[#00D2FF]/40", text: "text-[#00D2FF]", bg: "bg-[#00D2FF]/8", glow: "shadow-[0_0_14px_rgba(0,210,255,0.2)]", label: "Rare" },
-  common:    { border: "border-white/10",     text: "text-white/40",  bg: "bg-white/3",       glow: "",                                           label: "Common" },
-};
-function rarityStyle(r?: string | number) {
-  if (typeof r === "number") {
-    const keys = ["common", "rare", "epic", "legendary"];
-    return RARITY_STYLE[keys[Math.min(r, 3)] ?? "common"] ?? RARITY_STYLE.common;
-  }
-  return RARITY_STYLE[(String(r || "common")).toLowerCase()] ?? RARITY_STYLE.common;
-}
-
-/* ── Avatar ── */
-function Avatar({ name, url, size = 80 }: { name: string; url?: string | null; size?: number }) {
-  const [err, setErr] = useState(false);
-  if (url && !err) {
-    return (
-      <img src={url} alt={name} onError={() => setErr(true)}
-        className="rounded-2xl object-cover border-2 border-[#00D2FF]/40 shadow-[0_0_28px_rgba(0,210,255,0.2)]"
-        style={{ width: size, height: size }} />
-    );
-  }
-  return (
-    <div className="rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#00D2FF] flex items-center justify-center font-bold text-white border-2 border-[#00D2FF]/40 shadow-[0_0_28px_rgba(0,210,255,0.2)]"
-      style={{ width: size, height: size, fontSize: size * 0.38 }}>
-      {name.charAt(0).toUpperCase()}
-    </div>
-  );
-}
-
-/* ── Skeleton ── */
-function PageSkeleton() {
-  return (
-    <div className="min-h-screen bg-[#080b10] text-white px-4 py-8 max-w-4xl mx-auto animate-pulse space-y-6">
-      <div className="h-10 w-32 rounded-lg bg-white/5" />
-      <div className="rounded-2xl border border-white/6 bg-white/3 p-8 flex gap-6">
-        <div className="w-24 h-24 rounded-2xl bg-white/8 shrink-0" />
-        <div className="flex-1 space-y-3">
-          <div className="h-7 w-48 rounded bg-white/8" />
-          <div className="h-4 w-32 rounded bg-white/5" />
-          <div className="flex gap-2 mt-2">
-            <div className="h-6 w-20 rounded-full bg-white/5" />
-            <div className="h-6 w-24 rounded-full bg-white/5" />
-          </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[1,2,3,4].map(i => <div key={i} className="h-20 rounded-xl bg-white/3" />)}
-      </div>
-    </div>
-  );
-}
-
-/* ── Main component ── */
 export default function PublicProfilePage() {
   const params = useParams<{ userId: string }>();
   const userId = params.userId || "";
   const [, navigate] = useLocation();
+  const { toast } = useToast();
 
-  const [profile, setProfile] = useState<PublicProfileData | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [activeSection, setActiveSection] = useState("overview");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [expandedMission, setExpandedMission] = useState<number | null>(null);
   const [performance, setPerformance] = useState<any | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
   const [performanceError, setPerformanceError] = useState("");
 
-  /* resolve helper fields */
-  const name       = profile?.DisplayName || profile?.displayName || "Brainepedia Member";
-  const avatarUrl  = profile?.ProfilePictureUrl || profile?.profilePictureUrl || null;
-  const profession = profile?.ActiveProfession || profile?.activeProfession || "";
-  const title      = profile?.ProfessionalTitle || profile?.professionalTitle || "";
-  const totalXP    = profile?.TotalXp ?? profile?.totalXp ?? profile?.TotalXP ?? profile?.totalXP ?? 0;
-  const vxYears    = profile?.VerifiedExperienceYears ?? profile?.verifiedExperienceYears ?? 0;
-  const rankNum    = profile?.GlobalLeaderboardRank ?? profile?.globalLeaderboardRank ?? 0;
   const portfolioRoot = (profile as any)?.portfolio ?? (profile as any)?.Portfolio ?? profile;
-  const personalStatement = displayText(
-    (portfolioRoot as any)?.personalStatement ??
-      (portfolioRoot as any)?.PersonalStatement ??
-      (portfolioRoot as any)?.aboutMe ??
-      (portfolioRoot as any)?.AboutMe,
+  const name = profile?.DisplayName || profile?.displayName || profile?.fullName || profile?.FullName || "Brainepedia Member";
+  const avatarUrl = profile?.ProfilePictureUrl || profile?.profilePictureUrl || profile?.avatarUrl || null;
+  const profession = profile?.ActiveProfession || profile?.activeProfession || portfolioRoot?.profession || portfolioRoot?.Profession || "";
+  const title = profile?.ProfessionalTitle || profile?.professionalTitle || portfolioRoot?.currentTitle || portfolioRoot?.CurrentTitle || "";
+  const totalXP = Number(profile?.TotalXp ?? profile?.totalXp ?? profile?.TotalXP ?? profile?.totalXP ?? 0);
+  const vxYears = Number(profile?.VerifiedExperienceYears ?? profile?.verifiedExperienceYears ?? 0);
+  const rankNum = Number(profile?.GlobalLeaderboardRank ?? profile?.globalLeaderboardRank ?? 0);
+  const rankTitle = textOf(profile?.rankTitle ?? profile?.RankTitle ?? profile?.currentRank ?? profile?.CurrentRank ?? title);
+  const location = textOf(
+    portfolioRoot?.city && portfolioRoot?.country
+      ? `${portfolioRoot.city}, ${portfolioRoot.country}`
+      : portfolioRoot?.location ?? portfolioRoot?.Location ?? portfolioRoot?.address ?? portfolioRoot?.Address ?? portfolioRoot?.country ?? portfolioRoot?.Country,
     "",
   );
-  const education = list(
-    (portfolioRoot as any)?.educationHistory ??
-      (portfolioRoot as any)?.EducationHistory ??
-      (portfolioRoot as any)?.education ??
-      (portfolioRoot as any)?.Education,
+  const subscription = textOf(
+    profile?.subscriptionTier ?? profile?.SubscriptionTier ?? profile?.currentSubscription ?? profile?.CurrentSubscription ?? profile?.planName ?? profile?.PlanName,
+    "",
   );
+  const isVerified = Boolean(
+    profile?.isVerified ?? profile?.IsVerified ?? profile?.verified ?? profile?.Verified ?? vxYears > 0,
+  );
+  const personalStatement = textOf(
+    portfolioRoot?.personalStatement ?? portfolioRoot?.PersonalStatement ?? portfolioRoot?.aboutMe ?? portfolioRoot?.AboutMe,
+    "",
+  );
+  const education = list(portfolioRoot?.educationHistory ?? portfolioRoot?.EducationHistory ?? portfolioRoot?.education ?? portfolioRoot?.Education);
   const experience = list(
-    (portfolioRoot as any)?.workHistory ??
-      (portfolioRoot as any)?.WorkHistory ??
-      (portfolioRoot as any)?.workExperience ??
-      (portfolioRoot as any)?.WorkExperience ??
-      (portfolioRoot as any)?.experience ??
-      (portfolioRoot as any)?.Experience,
+    portfolioRoot?.workHistory ?? portfolioRoot?.WorkHistory ?? portfolioRoot?.workExperience ?? portfolioRoot?.WorkExperience ?? portfolioRoot?.experience ?? portfolioRoot?.Experience,
   );
-  const skills = list((portfolioRoot as any)?.skills ?? (portfolioRoot as any)?.Skills);
-  const projects = list((portfolioRoot as any)?.projects ?? (portfolioRoot as any)?.Projects);
-  const services = list(
-    (portfolioRoot as any)?.servicesOffered ??
-      (portfolioRoot as any)?.ServicesOffered ??
-      (portfolioRoot as any)?.services ??
-      (portfolioRoot as any)?.Services,
+  const skills = list(portfolioRoot?.skills ?? portfolioRoot?.Skills);
+  const projects = list(portfolioRoot?.projects ?? portfolioRoot?.Projects);
+  const services = list(portfolioRoot?.servicesOffered ?? portfolioRoot?.ServicesOffered ?? portfolioRoot?.services ?? portfolioRoot?.Services);
+  const interests = list(portfolioRoot?.interests ?? portfolioRoot?.Interests);
+  const badges = list(profile?.EarnedBadges ?? profile?.earnedBadges ?? profile?.badges ?? profile?.Badges);
+  const missions: MissionItem[] = list(
+    profile?.CompletedMissions ?? profile?.completedMissions ?? profile?.missionHistory ?? profile?.MissionHistory ?? profile?.completedChallenges,
   );
-  const interests = list((portfolioRoot as any)?.interests ?? (portfolioRoot as any)?.Interests);
-  const missionStats = (profile as any)?.missionStats ?? (profile as any)?.MissionStats ?? {};
-  const achievements = list((profile as any)?.achievements ?? (profile as any)?.Achievements);
-  const badges     = profile?.EarnedBadges ?? profile?.earnedBadges ?? (profile as any)?.badges ?? [];
-  const missions   = profile?.CompletedMissions ?? profile?.completedMissions ?? (profile as any)?.completedMissions ?? (profile as any)?.missionHistory ?? [];
+  const email = textOf(portfolioRoot?.email ?? portfolioRoot?.Email ?? profile?.email ?? profile?.Email, "");
+  const linkedIn = textOf(portfolioRoot?.linkedIn ?? portfolioRoot?.LinkedIn ?? portfolioRoot?.linkedin, "");
+  const github = textOf(portfolioRoot?.github ?? portfolioRoot?.Github ?? portfolioRoot?.GitHub, "");
+  const publicUrl = `${window.location.origin}/public-profile/${userId}`;
+  const virtualSelfUrl = `/public-profile/${encodeURIComponent(userId)}/virtual-self`;
 
-  const publicUrl  = `${window.location.origin}/public-profile/${userId}`;
+  const visibleSections = useMemo(() => {
+    return NAV_SECTIONS.filter((section) => {
+      if (section.id === "about") return Boolean(personalStatement);
+      if (section.id === "education") return education.length > 0;
+      if (section.id === "experience") return experience.length > 0;
+      if (section.id === "skills") return skills.length > 0;
+      if (section.id === "services") return services.length > 0;
+      if (section.id === "projects") return projects.length > 0;
+      if (section.id === "interests") return interests.length > 0;
+      if (section.id === "missions") return missions.length > 0;
+      if (section.id === "contact") return Boolean(email || linkedIn || github || location);
+      return true;
+    });
+  }, [personalStatement, education, experience, skills, services, projects, interests, missions, email, linkedIn, github, location]);
 
-  /* ── SEO ── */
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
   useEffect(() => {
     if (!profile) return;
     document.title = `${name} — ${title || profession} | Brainepedia`;
-    const setMeta = (name: string, content: string, prop = false) => {
+    const setMeta = (metaName: string, content: string, prop = false) => {
       const attr = prop ? "property" : "name";
-      let el = document.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null;
-      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
+      let el = document.querySelector(`meta[${attr}="${metaName}"]`) as HTMLMetaElement | null;
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, metaName); document.head.appendChild(el); }
       el.content = content;
     };
     setMeta("description", `${name} is a ${profession} with ${vxYears.toFixed(1)} years of Verified Experience on Brainepedia.`);
-    setMeta("keywords", `Brainepedia, ${profession}, career, verified experience, ${name}`);
-    setMeta("author", "InfoBrain");
     setMeta("og:title", `${name} — ${title} | Brainepedia`, true);
     setMeta("og:description", `VX-${vxYears.toFixed(1)} · ${profession} · ${totalXP.toLocaleString()} XP`, true);
     setMeta("og:image", avatarUrl || "https://demo.brainepedia.com/opengraph.jpg", true);
     setMeta("og:url", publicUrl, true);
-    setMeta("og:type", "profile", true);
-    setMeta("twitter:card", "summary_large_image");
-    setMeta("twitter:title", `${name} — ${title}`);
-    setMeta("twitter:description", `${vxYears.toFixed(1)} years Verified Experience on Brainepedia`);
-  }, [profile]);
+  }, [profile, name, title, profession, vxYears, totalXP, avatarUrl, publicUrl]);
 
-  /* ── Fetch ── */
   useEffect(() => {
     if (!userId) { setError("Invalid profile link."); setLoading(false); return; }
     (async () => {
@@ -206,15 +149,9 @@ export default function PublicProfilePage() {
         api.profiles.publicPortfolio(userId, { public: true }),
       ]);
       if (publicRes.ok && publicRes.data) {
-        setProfile({
-          ...(publicRes.data as any),
-          portfolio: portfolioRes.ok ? portfolioRes.data : undefined,
-        } as PublicProfileData);
+        setProfile({ ...(publicRes.data as any), portfolio: portfolioRes.ok ? portfolioRes.data : undefined });
       } else if (portfolioRes.ok && portfolioRes.data) {
-        setProfile({
-          ...(portfolioRes.data as any),
-          portfolio: portfolioRes.data,
-        } as PublicProfileData);
+        setProfile({ ...(portfolioRes.data as any), portfolio: portfolioRes.data });
       } else {
         setError("This profile is not available or doesn't exist.");
       }
@@ -222,22 +159,35 @@ export default function PublicProfilePage() {
     })();
   }, [userId]);
 
-  /* ── Copy ── */
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]?.target?.id) setActiveSection(visible[0].target.id);
+      },
+      { rootMargin: "-30% 0px -55% 0px", threshold: [0.1, 0.3, 0.6] },
+    );
+    visibleSections.forEach((section) => {
+      const el = sectionRefs.current[section.id];
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, [visibleSections, loading]);
+
+  const scrollTo = (id: string) => {
+    setMobileNavOpen(false);
+    sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const handleCopy = () => {
     navigator.clipboard.writeText(publicUrl).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
 
-  /* ── Share ── */
-  const shareLinkedIn = () => {
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(publicUrl)}`, "_blank", "noopener,noreferrer");
-  };
-  const shareTwitter = () => {
-    const text = `Check out ${name}'s professional career dossier on Brainepedia — ${vxYears.toFixed(1)} years of Verified Experience as ${profession}.`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(publicUrl)}`, "_blank", "noopener,noreferrer");
-  };
-  const handleNativeShare = () => {
+  const shareProfile = () => {
     if (navigator.share) {
       navigator.share({ title: `${name} — ${title}`, text: `${vxYears.toFixed(1)} VX years on Brainepedia`, url: publicUrl });
     } else {
@@ -259,15 +209,18 @@ export default function PublicProfilePage() {
     setPerformance(res.data);
   };
 
-  if (loading) return <PageSkeleton />;
+  const downloadCvPlaceholder = () => {
+    toast({ title: "Download CV", description: "CV download will be available soon." });
+  };
 
+  if (loading) return <PageSkeleton />;
   if (error) {
     return (
-      <div className="min-h-screen bg-[#080b10] flex items-center justify-center text-white px-4">
-        <div className="text-center max-w-sm">
-          <User className="w-16 h-16 text-white/10 mx-auto mb-4" />
+      <div className="flex min-h-screen items-center justify-center bg-[#080b10] px-4 text-white">
+        <div className="max-w-sm text-center">
+          <User className="mx-auto mb-4 h-16 w-16 text-white/10" />
           <p className="text-lg font-bold text-white/60">{error}</p>
-          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")} className="mt-6 px-6 py-2.5 rounded-xl bg-[#00D2FF]/10 border border-[#00D2FF]/20 text-[#00D2FF] text-sm font-mono hover:bg-[#00D2FF]/20 transition-colors">
+          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")} className="mt-6 rounded-xl border border-[#00D2FF]/20 bg-[#00D2FF]/10 px-6 py-2.5 font-mono text-sm text-[#00D2FF] transition hover:bg-[#00D2FF]/20">
             ← Back to Brainepedia
           </button>
         </div>
@@ -277,347 +230,374 @@ export default function PublicProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#080b10] text-white">
-      {/* Grid overlay */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.025]"
-        style={{ backgroundImage: "linear-gradient(rgba(0,210,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,255,1) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+      <div className="pointer-events-none fixed inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgba(0,210,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,255,1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
 
-      <div className="relative max-w-4xl mx-auto px-4 py-8 space-y-6">
-
-        {/* ── Top bar ── */}
-        <div className="flex items-center justify-between">
-          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")}
-            className="flex items-center gap-2 text-white/40 hover:text-white/80 text-sm font-mono transition-colors">
-            <ArrowLeft className="w-4 h-4" /> {getUser() ? "Dashboard" : "Brainepedia"}
+      {/* Sticky navigation */}
+      <nav className="sticky top-0 z-30 border-b border-white/10 bg-[#080b10]/90 backdrop-blur-lg">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")} className="flex items-center gap-2 font-mono text-xs text-white/40 transition hover:text-white/80">
+            <ArrowLeft className="h-4 w-4" /> Brainepedia
           </button>
-          <div className="flex items-center gap-1 text-[10px] font-mono text-white/20 uppercase tracking-widest">
-            <Shield className="w-3 h-3" /> Verified Dossier
+          <div className="hidden items-center gap-1 overflow-x-auto lg:flex">
+            {visibleSections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => scrollTo(section.id)}
+                className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                  activeSection === section.id ? "bg-[#00D2FF]/15 text-[#00D2FF]" : "text-white/45 hover:text-white/80"
+                }`}
+              >
+                {section.label}
+              </button>
+            ))}
+            <Link href={virtualSelfUrl} className="whitespace-nowrap rounded-lg border border-[#9D4EDD]/30 bg-[#9D4EDD]/10 px-3 py-1.5 text-xs font-medium text-[#9D4EDD] transition hover:bg-[#9D4EDD]/20">
+              Chat with Virtual Self
+            </Link>
           </div>
+          <button className="rounded-lg p-2 text-white/60 lg:hidden" onClick={() => setMobileNavOpen((open) => !open)} aria-label="Toggle navigation">
+            {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-white/10 lg:hidden">
+              <div className="flex flex-wrap gap-2 px-4 py-3">
+                {visibleSections.map((section) => (
+                  <button key={section.id} onClick={() => scrollTo(section.id)} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70">
+                    {section.label}
+                  </button>
+                ))}
+                <Link href={virtualSelfUrl} className="rounded-full border border-[#9D4EDD]/30 bg-[#9D4EDD]/10 px-3 py-1 text-xs text-[#9D4EDD]">
+                  Chat with Virtual Self
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
 
-        {/* ── HERO ── */}
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl border border-[#00D2FF]/15 bg-gradient-to-br from-[#00D2FF]/5 via-[#0d1119] to-[#9D4EDD]/5 p-6 sm:p-8">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#00D2FF]/4 via-transparent to-[#9D4EDD]/4 pointer-events-none" />
-
-          <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <Avatar name={name} url={avatarUrl} size={96} />
-
-            <div className="flex-1 min-w-0 text-center sm:text-left">
-              <p className="text-[10px] font-mono text-[#00D2FF]/50 uppercase tracking-[0.3em] mb-1">Public Career Dossier</p>
-              <h1 className="text-2xl sm:text-3xl font-black text-white">{name}</h1>
-              {title && <p className="text-base text-white/60 mt-0.5">{title}</p>}
-              {profession && <p className="text-sm text-white/40 font-mono mt-0.5">{profession}</p>}
-
-              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-4">
-                {vxYears > 0 && (
-                  <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#00D2FF]/30 bg-[#00D2FF]/8 text-[#00D2FF] text-sm font-black font-mono">
-                    <Shield className="w-3.5 h-3.5" /> VX-{vxYears.toFixed(1)}
+      <div className="relative mx-auto max-w-6xl space-y-16 px-4 py-10">
+        {/* Hero */}
+        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="overflow-hidden rounded-3xl border border-[#00D2FF]/15 bg-gradient-to-br from-[#00D2FF]/8 via-[#0d1119] to-[#9D4EDD]/8 p-6 sm:p-10">
+          <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start">
+            <Avatar name={name} url={avatarUrl} size={120} />
+            <div className="flex-1 text-center lg:text-left">
+              <div className="mb-2 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+                {isVerified && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-emerald-300">
+                    <BadgeCheck className="h-3 w-3" /> Verified
                   </span>
                 )}
-                {rankNum > 0 && (
-                  <span className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#FFD700]/30 bg-[#FFD700]/8 text-[#FFD700] text-sm font-mono">
-                    <Medal className="w-3.5 h-3.5" /> Rank #{rankNum}
-                  </span>
-                )}
-                {totalXP > 0 && (
-                  <span className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#9D4EDD]/30 bg-[#9D4EDD]/8 text-[#9D4EDD] text-sm font-mono">
-                    <Zap className="w-3.5 h-3.5" /> {totalXP.toLocaleString()} XP
+                {subscription && (
+                  <span className="rounded-full border border-[#FFD700]/30 bg-[#FFD700]/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-[#FFD700]">
+                    {subscription}
                   </span>
                 )}
               </div>
-            </div>
-
-            {/* Share actions */}
-            <div className="flex flex-row sm:flex-col items-center gap-2 shrink-0">
-              <button onClick={handleCopy}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#00D2FF]/8 border border-[#00D2FF]/20 text-[#00D2FF] text-xs font-mono hover:bg-[#00D2FF]/15 transition-all whitespace-nowrap">
-                {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? "Copied!" : "Copy Link"}
-              </button>
-              <button onClick={shareLinkedIn}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 text-xs font-mono hover:bg-blue-600/20 transition-all">
-                <Linkedin className="w-3.5 h-3.5" /> LinkedIn
-              </button>
-              <button onClick={shareTwitter}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white/50 text-xs font-mono hover:bg-white/10 transition-all">
-                <Twitter className="w-3.5 h-3.5" /> X
-              </button>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── PROFESSIONAL OVERVIEW ── */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
-          <h2 className="text-xs font-mono text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <Star className="w-3.5 h-3.5 text-[#FFD700]" /> Professional Overview
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: "Active Profession", value: profession || "—", icon: <Globe className="w-4 h-4" />, color: "text-[#00D2FF]" },
-              { label: "Verified Exp.", value: vxYears > 0 ? `${vxYears.toFixed(1)} yrs` : "—", icon: <Shield className="w-4 h-4" />, color: "text-[#00D2FF]" },
-              { label: "Total XP", value: totalXP > 0 ? totalXP.toLocaleString() : "—", icon: <Zap className="w-4 h-4" />, color: "text-[#FFD700]" },
-              { label: "Global Rank", value: rankNum > 0 ? `#${rankNum}` : "—", icon: <Medal className="w-4 h-4" />, color: "text-[#FFD700]" },
-              { label: "Challenges Done", value: missions.length > 0 ? missions.length : "—", icon: <Target className="w-4 h-4" />, color: "text-[#9D4EDD]" },
-              { label: "Badges Earned", value: badges.length > 0 ? badges.length : "—", icon: <Award className="w-4 h-4" />, color: "text-[#9D4EDD]" },
-              { label: "Professional Title", value: title || "—", icon: <BookOpen className="w-4 h-4" />, color: "text-white/50" },
-              { label: "Rank Title", value: title || (vxYears > 3 ? "Senior" : vxYears > 1 ? "Mid-Level" : vxYears > 0 ? "Junior" : "—"), icon: <Trophy className="w-4 h-4" />, color: "text-white/50" },
-            ].map((item, i) => (
-              <motion.div key={item.label} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 + i * 0.04 }}
-                className="rounded-xl border border-white/6 bg-[#0d1119] p-4">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <span className={item.color}>{item.icon}</span>
-                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider">{item.label}</p>
-                </div>
-                <p className={`text-sm font-bold ${item.color} truncate`}>{item.value}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* ── BADGES ── */}
-        <PortfolioSection title="Personal Statement" icon={<User className="w-3.5 h-3.5 text-[#00D2FF]" />} empty="No personal statement added yet.">
-          {personalStatement && <p className="whitespace-pre-wrap text-sm leading-7 text-white/70">{personalStatement}</p>}
-        </PortfolioSection>
-
-        <PortfolioSection title="Education History" icon={<BookOpen className="w-3.5 h-3.5 text-[#FFD700]" />} count={education.length} empty="No education entries added yet.">
-          <EducationTimeline items={education} />
-        </PortfolioSection>
-
-        <PortfolioSection title="Work Experience" icon={<BriefcaseIcon />} count={experience.length} empty="No work experience entries added yet.">
-          <ExperienceTimeline items={experience} />
-        </PortfolioSection>
-
-        <PortfolioSection title="Skills" icon={<Star className="w-3.5 h-3.5 text-[#9D4EDD]" />} count={skills.length} empty="No skills added yet.">
-          <div className="grid gap-3 sm:grid-cols-2">
-            {skills.map((skill, index) => {
-              const rating = Math.max(0, Math.min(100, Number((skill as any)?.rating ?? (skill as any)?.Rating ?? 0)));
-              return (
-                <div key={index} className="rounded-xl border border-white/6 bg-[#0d1119] p-4">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <p className="font-semibold">{displayText((skill as any)?.mySkill ?? (skill as any)?.MySkill ?? (skill as any)?.skill ?? (skill as any)?.name ?? (skill as any)?.Skill, "Skill")}</p>
-                    <span className="text-xs font-mono text-[#00D2FF]">{rating}/100</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full bg-[#00D2FF]" style={{ width: `${rating}%` }} /></div>
-                </div>
-              );
-            })}
-          </div>
-        </PortfolioSection>
-
-        <PortfolioSection title="Interests" icon={<Star className="w-3.5 h-3.5 text-[#00D2FF]" />} count={interests.length} empty="No interests added yet.">
-          <div className="flex flex-wrap gap-2">
-            {interests.map((interest, index) => (
-              <span key={index} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/70">
-                {displayText((interest as any)?.interest ?? (interest as any)?.Interest ?? (interest as any)?.name ?? interest, "Interest")}
-              </span>
-            ))}
-          </div>
-        </PortfolioSection>
-
-        <PortfolioSection title="Services Offered" icon={<SparkleIcon />} count={services.length} empty="No services added yet.">
-          <ServicesGrid items={services} />
-        </PortfolioSection>
-
-        <PortfolioSection title="Projects" icon={<CodeIcon />} count={projects.length} empty="No projects added yet.">
-          <ProjectsGrid items={projects} />
-        </PortfolioSection>
-
-        <PortfolioSection title="Mission Stats" icon={<Target className="w-3.5 h-3.5 text-[#9D4EDD]" />} empty="">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {Object.entries(missionStats).slice(0, 8).map(([key, value]) => (
-              <div key={key} className="rounded-xl border border-white/6 bg-[#0d1119] p-4">
-                <p className="text-[10px] font-mono uppercase tracking-wider text-white/30">{splitLabel(key)}</p>
-                <p className="mt-1 font-bold text-[#00D2FF]">{displayText(value, "—")}</p>
+              <h1 className="text-3xl font-black sm:text-4xl">{name}</h1>
+              {title && <p className="mt-1 text-lg text-white/70">{title}</p>}
+              {rankTitle && title !== rankTitle && <p className="mt-0.5 text-sm font-mono text-[#FFD700]/80">{rankTitle}</p>}
+              {profession && <p className="mt-1 text-sm text-white/45">{profession}</p>}
+              {location && (
+                <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-white/50">
+                  <MapPin className="h-4 w-4 text-[#00D2FF]" /> {location}
+                </p>
+              )}
+              <div className="mt-5 flex flex-wrap justify-center gap-2 lg:justify-start">
+                {vxYears > 0 && <StatPill icon={<Shield className="h-3.5 w-3.5" />} label={`VX ${vxYears.toFixed(1)}`} color="text-[#00D2FF]" />}
+                {totalXP > 0 && <StatPill icon={<Zap className="h-3.5 w-3.5" />} label={`${totalXP.toLocaleString()} XP`} color="text-[#9D4EDD]" />}
+                {rankNum > 0 && <StatPill icon={<Medal className="h-3.5 w-3.5" />} label={`Rank #${rankNum}`} color="text-[#FFD700]" />}
+                {badges.length > 0 && <StatPill icon={<Trophy className="h-3.5 w-3.5" />} label={`${badges.length} Badges`} color="text-white/60" />}
               </div>
-            ))}
-          </div>
-        </PortfolioSection>
-
-        {/* ── BADGES ── */}
-        <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <h2 className="text-xs font-mono text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <Trophy className="w-3.5 h-3.5 text-[#FFD700]" /> Earned Badges
-            <span className="text-[#FFD700]/50">{badges.length > 0 ? `(${badges.length})` : ""}</span>
-          </h2>
-          {badges.length === 0 ? (
-            <div className="rounded-xl border border-white/6 bg-[#0d1119] p-10 text-center">
-              <Trophy className="w-10 h-10 text-white/8 mx-auto mb-3" />
-              <p className="text-sm text-white/20 font-mono">No badges earned yet.</p>
-              <p className="text-xs text-white/10 font-mono mt-1">Badges are unlocked by completing missions and hitting milestones.</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {badges.map((b: BadgeItem, i: number) => {
-                const bName = b.name || b.Name || "Badge";
-                const bDesc = b.description || b.Description || "";
-                const bRarity = b.rarity || b.Rarity;
-                const bIcon = b.iconUrl || b.IconUrl;
-                const rs = rarityStyle(bRarity);
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[200px]">
+              <Link href={virtualSelfUrl} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#9D4EDD] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8B35C7]">
+                <MessageCircle className="h-4 w-4" /> Chat with Virtual Self
+              </Link>
+              <button onClick={shareProfile} className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm transition hover:bg-white/10">
+                {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <Link2 className="h-4 w-4" />}
+                {copied ? "Copied!" : "Share Profile"}
+              </button>
+              <button onClick={downloadCvPlaceholder} className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/60 transition hover:bg-white/10">
+                <Download className="h-4 w-4" /> Download CV
+              </button>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Overview */}
+        <Section id="overview" title="Overview" icon={<Star className="h-4 w-4 text-[#FFD700]" />} refCb={(el) => { sectionRefs.current.overview = el; }}>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <OverviewCard label="Profession" value={profession || "—"} />
+            <OverviewCard label="Verified Experience" value={vxYears > 0 ? `${vxYears.toFixed(1)} years` : "—"} />
+            <OverviewCard label="Total XP" value={totalXP > 0 ? totalXP.toLocaleString() : "—"} />
+            <OverviewCard label="Missions Completed" value={missions.length > 0 ? String(missions.length) : "—"} />
+          </div>
+          {badges.length > 0 && (
+            <div className="mt-6">
+              <p className="mb-3 text-xs font-mono uppercase tracking-wider text-white/35">Community Highlights</p>
+              <div className="flex flex-wrap gap-2">
+                {badges.slice(0, 6).map((badge: any, index: number) => (
+                  <span key={index} className="rounded-full border border-[#FFD700]/20 bg-[#FFD700]/8 px-3 py-1 text-xs text-[#FFD700]">
+                    {badge?.name || badge?.Name || "Badge"}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </Section>
+
+        {personalStatement && (
+          <Section id="about" title="About" icon={<User className="h-4 w-4 text-[#00D2FF]" />} refCb={(el) => { sectionRefs.current.about = el; }}>
+            <p className="whitespace-pre-wrap text-sm leading-8 text-white/75">{personalStatement}</p>
+          </Section>
+        )}
+
+        {experience.length > 0 && (
+          <Section id="experience" title="Experience" icon={<Briefcase className="h-4 w-4 text-[#00D2FF]" />} refCb={(el) => { sectionRefs.current.experience = el; }}>
+            <ExperienceTimeline items={experience} />
+          </Section>
+        )}
+
+        {education.length > 0 && (
+          <Section id="education" title="Education" icon={<BookOpen className="h-4 w-4 text-[#FFD700]" />} refCb={(el) => { sectionRefs.current.education = el; }}>
+            <EducationTimeline items={education} />
+          </Section>
+        )}
+
+        {skills.length > 0 && (
+          <Section id="skills" title="Skills" icon={<Star className="h-4 w-4 text-[#9D4EDD]" />} refCb={(el) => { sectionRefs.current.skills = el; }}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {skills.map((skill, index) => {
+                const rating = Math.max(0, Math.min(100, Number(skill?.rating ?? skill?.Rating ?? 0)));
+                const skillName = fieldValue(skill, "mySkill", "MySkill", "skill", "name", "Skill");
                 return (
-                  <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 + i * 0.04 }}
-                    whileHover={{ scale: 1.04, y: -2 }}
-                    className={`rounded-xl border ${rs.border} ${rs.bg} ${rs.glow} p-4 text-center`}>
-                    {bIcon
-                      ? <img src={bIcon} alt={bName} className="w-10 h-10 mx-auto mb-2 object-contain" onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-                      : <Trophy className={`w-10 h-10 mx-auto mb-2 ${rs.text}`} />
-                    }
-                    <p className="text-xs font-bold text-white truncate">{bName}</p>
-                    <p className={`text-[10px] font-mono mt-0.5 ${rs.text}`}>{rs.label}</p>
-                    {bDesc && <p className="text-[10px] text-white/25 mt-1 line-clamp-2">{bDesc}</p>}
-                  </motion.div>
+                  <article key={index} className="rounded-xl border border-white/6 bg-white/[0.03] p-4">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <p className="font-semibold">{skillName}</p>
+                      <span className="font-mono text-sm text-[#00D2FF]">{rating}%</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-white/5">
+                      <motion.div initial={{ width: 0 }} whileInView={{ width: `${rating}%` }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="h-full rounded-full bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD]" />
+                    </div>
+                  </article>
                 );
               })}
             </div>
-          )}
-        </motion.section>
+          </Section>
+        )}
 
-        <PortfolioSection title="Achievements" icon={<Award className="w-3.5 h-3.5 text-[#FFD700]" />} count={achievements.length} empty="No achievements returned yet.">
-          <CardGrid items={achievements} fields={["title", "name", "description", "createdAt"]} />
-        </PortfolioSection>
-
-        {/* ── COMPLETED MISSIONS ── */}
-        <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <h2 className="text-xs font-mono text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <Target className="w-3.5 h-3.5 text-[#9D4EDD]" /> Completed Challenges
-            <span className="text-[#9D4EDD]/50">{missions.length > 0 ? `(${missions.length})` : ""}</span>
-          </h2>
-          {missions.length === 0 ? (
-            <div className="rounded-xl border border-white/6 bg-[#0d1119] p-10 text-center">
-              <Target className="w-10 h-10 text-white/8 mx-auto mb-3" />
-              <p className="text-sm text-white/20 font-mono">No challenges completed yet.</p>
-              <p className="text-xs text-white/10 font-mono mt-1">Completed challenges will appear here once the user completes their first challenge.</p>
+        {services.length > 0 && (
+          <Section id="services" title="Services" icon={<Sparkles className="h-4 w-4 text-[#FFD700]" />} refCb={(el) => { sectionRefs.current.services = el; }}>
+            <div className="grid gap-4 md:grid-cols-2">
+              {services.map((item, index) => (
+                <article key={index} className="rounded-xl border border-white/6 bg-white/[0.03] p-5 transition hover:border-[#00D2FF]/20">
+                  <h3 className="font-bold">{fieldValue(item, "myServices", "MyServices", "service", "Service", "title")}</h3>
+                  <p className="mt-2 text-sm leading-7 text-white/65">{fieldValue(item, "description", "Description")}</p>
+                </article>
+              ))}
             </div>
-          ) : (
-            <div className="rounded-xl border border-white/6 bg-[#0d1119] divide-y divide-white/5 overflow-hidden">
-              {missions.slice(0, 20).map((m: MissionItem, i: number) => {
-                const mTitle = m.missionTitle || m.MissionTitle || m.title || m.Title || "Challenge";
-                const dName  = m.districtName  || m.DistrictName  || "";
-                const score  = m.score ?? m.Score ?? 0;
-                const date   = m.completionDate || m.CompletionDate || m.completedAt || "";
-                const problemNodeId = m.problemNodeId || m.ProblemNodeId || "";
+          </Section>
+        )}
+
+        {projects.length > 0 && (
+          <Section id="projects" title="Projects" icon={<Code2 className="h-4 w-4 text-[#9D4EDD]" />} refCb={(el) => { sectionRefs.current.projects = el; }}>
+            <ProjectsGrid items={projects} />
+          </Section>
+        )}
+
+        {interests.length > 0 && (
+          <Section id="interests" title="Interests" icon={<HeartIcon />} refCb={(el) => { sectionRefs.current.interests = el; }}>
+            <div className="flex flex-wrap gap-2">
+              {interests.map((interest, index) => (
+                <span key={index} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70">
+                  {fieldValue(interest, "interest", "Interest", "name")}
+                </span>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {missions.length > 0 && (
+          <Section id="missions" title="Mission Achievements" icon={<Target className="h-4 w-4 text-[#9D4EDD]" />} refCb={(el) => { sectionRefs.current.missions = el; }}>
+            <div className="space-y-3">
+              {missions.map((mission, index) => {
+                const mTitle = mission.missionTitle || mission.MissionTitle || mission.title || mission.Title || "Mission";
+                const district = mission.districtName || mission.DistrictName || "—";
+                const prof = mission.professionName || mission.ProfessionName || mission.profession || mission.Profession || profession || "—";
+                const difficulty = mission.difficulty || mission.Difficulty || mission.difficultyLevel || "—";
+                const xp = mission.xpEarned ?? mission.XpEarned ?? mission.xp ?? mission.XP;
+                const score = mission.score ?? mission.Score ?? mission.evaluationScore ?? mission.EvaluationScore;
+                const date = mission.completionDate || mission.CompletionDate || mission.completedAt;
+                const passed = mission.passed ?? mission.Passed ?? mission.isPassed ?? mission.IsPassed;
+                const problemNodeId = mission.problemNodeId || mission.ProblemNodeId || "";
+                const feedback = mission.feedback || mission.Feedback || mission.aiEvaluationSummary || "";
+                const expanded = expandedMission === index;
                 return (
-                  <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.05 + i * 0.03 }}
-                    className="flex flex-col gap-3 px-5 py-3.5 hover:bg-white/2 transition-colors sm:flex-row sm:items-center">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white font-medium truncate">{mTitle}</p>
-                      {dName && <p className="text-xs text-white/35 font-mono mt-0.5 truncate">{dName}</p>}
-                    </div>
-                    <div className="flex shrink-0 flex-wrap items-center gap-3 text-left sm:justify-end sm:text-right">
-                      <div>
-                        {score > 0 && (
-                          <p className="text-sm font-bold font-mono text-[#00D2FF]">{score}%</p>
-                        )}
-                        {date && (
-                          <p className="text-[10px] text-white/25 font-mono flex items-center gap-1 sm:justify-end mt-0.5">
-                            <Calendar className="w-2.5 h-2.5" />
-                            {new Date(date).toLocaleDateString()}
-                          </p>
-                        )}
+                  <article key={index} className="overflow-hidden rounded-xl border border-white/6 bg-white/[0.03]">
+                    <button type="button" onClick={() => setExpandedMission(expanded ? null : index)} className="flex w-full items-start gap-4 p-4 text-left transition hover:bg-white/[0.02]">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold">{mTitle}</p>
+                        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/40">
+                          <span>{district}</span>
+                          <span>{prof}</span>
+                          <span>{difficulty}</span>
+                          {xp != null && <span>{Number(xp).toLocaleString()} XP</span>}
+                          {score != null && <span>{score}% score</span>}
+                          {date && <span>{new Date(date).toLocaleDateString()}</span>}
+                        </div>
                       </div>
-                      {problemNodeId && (
-                        <button
-                          onClick={() => viewPerformance(problemNodeId)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-[#00D2FF]/25 bg-[#00D2FF]/8 px-3 py-1.5 text-xs font-mono text-[#00D2FF] transition hover:bg-[#00D2FF]/15"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          View Performance
-                        </button>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {passed != null && (
+                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${passed ? "border-emerald-400/30 text-emerald-300" : "border-red-400/30 text-red-300"}`}>
+                            {passed ? "Passed" : "Not Passed"}
+                          </span>
+                        )}
+                        <ChevronDown className={`h-4 w-4 text-white/30 transition ${expanded ? "rotate-180" : ""}`} />
+                      </div>
+                    </button>
+                    <AnimatePresence>
+                      {expanded && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-white/5">
+                          <div className="space-y-3 p-4 pt-2">
+                            {feedback && (
+                              <div className="rounded-lg border border-white/5 bg-black/20 p-3 text-sm text-white/70">
+                                <p className="mb-1 text-[10px] font-mono uppercase tracking-wider text-white/35">Feedback</p>
+                                {feedback}
+                              </div>
+                            )}
+                            {problemNodeId && (
+                              <button onClick={() => viewPerformance(problemNodeId)} className="inline-flex items-center gap-1.5 rounded-lg border border-[#00D2FF]/25 bg-[#00D2FF]/8 px-3 py-1.5 text-xs font-mono text-[#00D2FF] hover:bg-[#00D2FF]/15">
+                                <Eye className="h-3.5 w-3.5" /> View full evaluation
+                              </button>
+                            )}
+                          </div>
+                        </motion.div>
                       )}
-                    </div>
-                  </motion.div>
+                    </AnimatePresence>
+                  </article>
                 );
               })}
             </div>
-          )}
-        </motion.section>
+          </Section>
+        )}
 
-        {/* ── SHARE FOOTER ── */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-          className="rounded-2xl border border-white/6 bg-[#0d1119] p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Link2 className="w-4 h-4 text-[#00D2FF]/60" />
-            <h2 className="text-xs font-mono text-white/30 uppercase tracking-widest">Share this Dossier</h2>
-          </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border border-white/8 bg-white/3 min-w-0">
-              <Globe className="w-3.5 h-3.5 text-white/20 shrink-0" />
-              <span className="text-xs font-mono text-white/30 truncate">{publicUrl}</span>
+        {(email || linkedIn || github || location) && (
+          <Section id="contact" title="Contact" icon={<Mail className="h-4 w-4 text-[#00D2FF]" />} refCb={(el) => { sectionRefs.current.contact = el; }}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {email && <ContactItem icon={<Mail className="h-4 w-4" />} label="Email" value={email} href={`mailto:${email}`} />}
+              {linkedIn && <ContactItem icon={<Linkedin className="h-4 w-4" />} label="LinkedIn" value={linkedIn} href={linkedIn.startsWith("http") ? linkedIn : `https://${linkedIn}`} />}
+              {github && <ContactItem icon={<Github className="h-4 w-4" />} label="GitHub" value={github} href={github.startsWith("http") ? github : `https://${github}`} />}
+              {location && <ContactItem icon={<MapPin className="h-4 w-4" />} label="Location" value={location} />}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button onClick={handleCopy}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#00D2FF]/10 border border-[#00D2FF]/20 text-[#00D2FF] text-xs font-mono hover:bg-[#00D2FF]/20 transition-all whitespace-nowrap">
-                {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? "Copied!" : "Copy Link"}
-              </button>
-              <button onClick={shareLinkedIn}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 text-xs font-mono hover:bg-blue-600/20 transition-all">
-                <Linkedin className="w-3.5 h-3.5" /> LinkedIn
-              </button>
-              <button onClick={shareTwitter}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/50 text-xs font-mono hover:bg-white/10 transition-all">
-                <Twitter className="w-3.5 h-3.5" /> X
-              </button>
-              <button onClick={handleNativeShare}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#9D4EDD]/10 border border-[#9D4EDD]/20 text-[#9D4EDD] text-xs font-mono hover:bg-[#9D4EDD]/20 transition-all">
-                <Download className="w-3.5 h-3.5" /> Share
-              </button>
-            </div>
-          </div>
-        </motion.div>
+          </Section>
+        )}
 
-        <Dialog open={Boolean(performance) || performanceLoading || Boolean(performanceError)} onOpenChange={(open) => {
-          if (!open) {
-            setPerformance(null);
-            setPerformanceError("");
-          }
-        }}>
-          <DialogContent className="max-w-2xl bg-[#0d1119] border border-white/10 text-white">
-            <DialogHeader>
-              <DialogTitle>Mission Performance</DialogTitle>
-              <DialogDescription>Evaluation result for this completed mission.</DialogDescription>
-            </DialogHeader>
-            {performanceLoading ? (
-              <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 py-16 text-sm text-white/40">
-                <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" />
-                Loading mission performance...
-              </div>
-            ) : performanceError ? (
-              <div className="rounded-xl border border-red-400/30 bg-red-400/10 p-5 text-sm text-red-200">
-                {performanceError}
-              </div>
-            ) : performance ? (
-              <PerformanceResult result={performance} />
-            ) : null}
-          </DialogContent>
-        </Dialog>
-
-        {/* ── Footer ── */}
-        <div className="text-center pt-4 pb-8">
-          <p className="text-[10px] font-mono text-white/15">
-            Powered by{" "}
-            <a href="https://demo.brainepedia.com" className="text-[#00D2FF]/40 hover:text-[#00D2FF]/70 transition-colors">Brainepedia</a>
-            {" "}· AI-Powered Career Growth Platform
+        <footer className="border-t border-white/5 pt-8 text-center">
+          <p className="font-mono text-[10px] text-white/15">
+            Powered by <a href="https://demo.brainepedia.com" className="text-[#00D2FF]/40 hover:text-[#00D2FF]/70">Brainepedia</a> · AI-Powered Career Growth Platform
           </p>
-        </div>
+        </footer>
       </div>
+
+      <Dialog open={Boolean(performance) || performanceLoading || Boolean(performanceError)} onOpenChange={(open) => { if (!open) { setPerformance(null); setPerformanceError(""); } }}>
+        <DialogContent className="max-w-2xl border border-white/10 bg-[#0d1119] text-white">
+          <DialogHeader>
+            <DialogTitle>Mission Performance</DialogTitle>
+            <DialogDescription>Evaluation result for this completed mission.</DialogDescription>
+          </DialogHeader>
+          {performanceLoading ? (
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 py-16 text-sm text-white/40">
+              <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" /> Loading mission performance...
+            </div>
+          ) : performanceError ? (
+            <div className="rounded-xl border border-red-400/30 bg-red-400/10 p-5 text-sm text-red-200">{performanceError}</div>
+          ) : performance ? (
+            <PerformanceResult result={performance} />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function Section({ id, title, icon, children, refCb }: { id: string; title: string; icon: ReactNode; children: ReactNode; refCb: (el: HTMLElement | null) => void }) {
+  return (
+    <motion.section id={id} ref={refCb} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.4 }} className="scroll-mt-28">
+      <h2 className="mb-5 flex items-center gap-2 text-sm font-mono uppercase tracking-[0.2em] text-white/35">
+        {icon} {title}
+      </h2>
+      <div className="rounded-2xl border border-white/6 bg-[#0d1119]/80 p-5 sm:p-6">{children}</div>
+    </motion.section>
+  );
+}
+
+function OverviewCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/6 bg-white/[0.03] p-4">
+      <p className="text-[10px] font-mono uppercase tracking-wider text-white/30">{label}</p>
+      <p className="mt-2 text-lg font-bold text-[#00D2FF]">{value}</p>
+    </div>
+  );
+}
+
+function StatPill({ icon, label, color }: { icon: ReactNode; label: string; color: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-mono ${color}`}>
+      {icon} {label}
+    </span>
+  );
+}
+
+function ContactItem({ icon, label, value, href }: { icon: ReactNode; label: string; value: string; href?: string }) {
+  const content = (
+    <div className="flex items-start gap-3 rounded-xl border border-white/6 bg-white/[0.03] p-4 transition hover:border-[#00D2FF]/20">
+      <span className="text-[#00D2FF]">{icon}</span>
+      <div>
+        <p className="text-[10px] font-mono uppercase tracking-wider text-white/30">{label}</p>
+        <p className="mt-1 text-sm break-all text-white/75">{value}</p>
+      </div>
+    </div>
+  );
+  if (href) return <a href={href} target="_blank" rel="noreferrer" className="block">{content}</a>;
+  return content;
+}
+
+function Avatar({ name, url, size = 80 }: { name: string; url?: string | null; size?: number }) {
+  const [err, setErr] = useState(false);
+  if (url && !err) {
+    return <img src={url} alt={name} onError={() => setErr(true)} className="rounded-2xl border-2 border-[#00D2FF]/40 object-cover shadow-[0_0_28px_rgba(0,210,255,0.2)]" style={{ width: size, height: size }} />;
+  }
+  return (
+    <div className="flex items-center justify-center rounded-2xl border-2 border-[#00D2FF]/40 bg-gradient-to-br from-[#7C3AED] to-[#00D2FF] font-bold text-white shadow-[0_0_28px_rgba(0,210,255,0.2)]" style={{ width: size, height: size, fontSize: size * 0.38 }}>
+      {name.charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+function PageSkeleton() {
+  return (
+    <div className="mx-auto max-w-6xl animate-pulse space-y-8 px-4 py-10">
+      <div className="h-64 rounded-3xl bg-white/5" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-xl bg-white/5" />)}
+      </div>
+      <div className="h-48 rounded-2xl bg-white/5" />
     </div>
   );
 }
 
 function PerformanceResult({ result }: { result: any }) {
   const root = result?.data ?? result?.result ?? result?.evaluation ?? result;
-  const passValue = root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed ?? root?.passFail ?? root?.PassFail ?? root?.status ?? root?.Status;
+  const passValue = root?.passed ?? root?.isPassed ?? root?.IsPassed ?? root?.Passed ?? root?.status ?? root?.Status;
   const passed = typeof passValue === "string" ? /pass|success/i.test(passValue) : Boolean(passValue);
   const rows: [string, string][] = [
-    ["Mission Title", displayText(root?.missionTitle ?? root?.MissionTitle ?? root?.title ?? root?.Title, "Mission")],
-    ["Score", displayText(root?.score ?? root?.Score ?? root?.percentageScore ?? root?.PercentageScore, "—")],
+    ["Mission Title", textOf(root?.missionTitle ?? root?.MissionTitle ?? root?.title, "Mission")],
+    ["Score", textOf(root?.score ?? root?.Score ?? root?.percentageScore, "—")],
     ["Strengths", resultText(root?.strengths ?? root?.Strengths ?? root?.Feedback?.Strengths, "No strengths returned.")],
     ["Weaknesses", resultText(root?.weaknesses ?? root?.Weaknesses ?? root?.Feedback?.Weaknesses, "No weaknesses returned.")],
-    ["Improvement Areas", resultText(root?.improvementAreas ?? root?.ImprovementAreas ?? root?.areasForImprovement ?? root?.Feedback?.ImprovementAreas, "No improvement areas returned.")],
-    ["AI Evaluation Summary", resultText(root?.aiEvaluationSummary ?? root?.AiEvaluationSummary ?? root?.summary ?? root?.Summary ?? root?.rawAiReasoning ?? root?.RawAiReasoning ?? root?.aiReasoning ?? root?.AiReasoning, "No AI evaluation summary returned.")],
+    ["AI Evaluation Summary", resultText(root?.aiEvaluationSummary ?? root?.AiEvaluationSummary ?? root?.summary ?? root?.rawAiReasoning, "No AI evaluation summary returned.")],
   ];
   return (
     <div className="space-y-3">
@@ -637,41 +617,6 @@ function PerformanceResult({ result }: { result: any }) {
   );
 }
 
-function resultText(value: unknown, fallback: string): string {
-  if (Array.isArray(value)) {
-    const items = value.map((item) => displayText(item, "")).filter(Boolean);
-    return items.length ? items.join("\n") : fallback;
-  }
-  if (value && typeof value === "object") {
-    const items = Object.values(value).map((item) => displayText(item, "")).filter(Boolean);
-    return items.length ? items.join("\n") : fallback;
-  }
-  return displayText(value, fallback);
-}
-
-function displayText(value: unknown, fallback = "—"): string {
-  if (value === null || value === undefined) return fallback;
-  const output = String(value).trim();
-  return output || fallback;
-}
-
-function PortfolioSection({ title, icon, count, empty, children }: { title: string; icon: ReactNode; count?: number; empty: string; children: ReactNode }) {
-  const hasContent = count !== undefined ? count > 0 : Boolean(children);
-  if (!hasContent && !empty) return null;
-  return (
-    <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-      <h2 className="mb-3 flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-white/30">
-        {icon} {title} {count !== undefined && count > 0 ? <span className="text-[#00D2FF]/50">({count})</span> : null}
-      </h2>
-      {!hasContent ? (
-        <div className="rounded-xl border border-white/6 bg-[#0d1119] p-8 text-center text-sm text-white/20 font-mono">{empty}</div>
-      ) : (
-        <div className="rounded-xl border border-white/6 bg-[#0d1119] p-5">{children}</div>
-      )}
-    </motion.section>
-  );
-}
-
 function EducationTimeline({ items }: { items: any[] }) {
   return (
     <div className="space-y-4">
@@ -679,12 +624,10 @@ function EducationTimeline({ items }: { items: any[] }) {
         <article key={index} className="relative rounded-xl border border-white/6 bg-white/[0.03] p-4 pl-6">
           <span className="absolute left-3 top-5 h-full w-px bg-[#FFD700]/20" />
           <span className="absolute left-2.5 top-5 h-2 w-2 rounded-full bg-[#FFD700]" />
-          <h3 className="font-bold text-white">{fieldValue(item, "institution", "Institution")}</h3>
+          <h3 className="font-bold">{fieldValue(item, "institution", "Institution")}</h3>
           <p className="mt-1 text-sm text-[#FFD700]/80">{fieldValue(item, "degree", "Degree")}</p>
           <p className="text-sm text-white/60">{fieldValue(item, "courseOfStudy", "CourseOfStudy")}</p>
-          <p className="mt-2 text-xs font-mono text-white/35">
-            {formatDateRange(item)}
-          </p>
+          <p className="mt-2 font-mono text-xs text-white/35">{formatDateRange(item)}</p>
         </article>
       ))}
     </div>
@@ -700,18 +643,12 @@ function ExperienceTimeline({ items }: { items: any[] }) {
           <article key={index} className="relative rounded-xl border border-white/6 bg-white/[0.03] p-4 pl-6">
             <span className="absolute left-3 top-5 h-full w-px bg-[#00D2FF]/20" />
             <span className="absolute left-2.5 top-5 h-2 w-2 rounded-full bg-[#00D2FF]" />
-            <h3 className="font-bold text-white">{fieldValue(item, "companyName", "CompanyName", "company", "Company")}</h3>
-            <p className="mt-1 text-sm text-[#00D2FF]/80">{fieldValue(item, "jobRole", "JobRole", "role", "Role")}</p>
-            {fieldValue(item, "location", "Location", "", "") !== "—" && (
-              <p className="text-sm text-white/50">{fieldValue(item, "location", "Location")}</p>
-            )}
-            <p className="mt-2 text-xs font-mono text-white/35">
-              {formatDateRange(item, tillDate)}
-            </p>
-            {fieldValue(item, "jobDescription", "JobDescription", "description", "Description", "") !== "—" && (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-white/70">
-                {fieldValue(item, "jobDescription", "JobDescription", "description", "Description")}
-              </p>
+            <h3 className="font-bold">{fieldValue(item, "companyName", "CompanyName", "company")}</h3>
+            <p className="mt-1 text-sm text-[#00D2FF]/80">{fieldValue(item, "jobRole", "JobRole", "role")}</p>
+            {fieldValue(item, "location", "Location", "", "") !== "—" && <p className="text-sm text-white/50">{fieldValue(item, "location", "Location")}</p>}
+            <p className="mt-2 font-mono text-xs text-white/35">{formatDateRange(item, tillDate)}</p>
+            {fieldValue(item, "jobDescription", "JobDescription", "description", "") !== "—" && (
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-white/70">{fieldValue(item, "jobDescription", "JobDescription", "description")}</p>
             )}
           </article>
         );
@@ -720,48 +657,25 @@ function ExperienceTimeline({ items }: { items: any[] }) {
   );
 }
 
-function ServicesGrid({ items }: { items: any[] }) {
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      {items.map((item, index) => (
-        <article key={index} className="rounded-xl border border-white/6 bg-white/[0.03] p-4">
-          <h3 className="font-bold text-white">{fieldValue(item, "myServices", "MyServices", "service", "Service")}</h3>
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-white/70">
-            {fieldValue(item, "description", "Description")}
-          </p>
-        </article>
-      ))}
-    </div>
-  );
-}
-
 function ProjectsGrid({ items }: { items: any[] }) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {items.map((item, index) => {
-        const mediaUrl = item?.projectFileUrl ?? item?.ProjectFileUrl ?? item?.imageUrl ?? item?.ImageUrl ?? item?.videoUrl ?? item?.VideoUrl;
+        const mediaUrl = item?.projectFileUrl ?? item?.ProjectFileUrl ?? item?.imageUrl ?? item?.ImageUrl;
         const isVideo = Boolean(item?.isVideo ?? item?.IsVideo);
         const projectUrl = fieldValue(item, "projectUrl", "ProjectUrl", "", "");
         return (
-          <article key={index} className="overflow-hidden rounded-xl border border-white/6 bg-white/[0.03]">
+          <article key={index} className="overflow-hidden rounded-xl border border-white/6 bg-white/[0.03] transition hover:border-[#9D4EDD]/25">
             {mediaUrl && (
               <div className="border-b border-white/6 bg-black/20">
-                {isVideo ? (
-                  <video src={mediaUrl} controls className="max-h-48 w-full object-cover" />
-                ) : (
-                  <img src={mediaUrl} alt={fieldValue(item, "projectName", "ProjectName")} className="max-h-48 w-full object-cover" />
-                )}
+                {isVideo ? <video src={mediaUrl} controls className="max-h-48 w-full object-cover" /> : <img src={mediaUrl} alt={fieldValue(item, "projectName", "ProjectName")} className="max-h-48 w-full object-cover" />}
               </div>
             )}
             <div className="p-4">
-              <h3 className="font-bold text-white">{fieldValue(item, "projectName", "ProjectName")}</h3>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-white/70">
-                {fieldValue(item, "description", "Description")}
-              </p>
+              <h3 className="font-bold">{fieldValue(item, "projectName", "ProjectName")}</h3>
+              <p className="mt-2 text-sm leading-7 text-white/70">{fieldValue(item, "description", "Description")}</p>
               {projectUrl !== "—" && (
-                <a href={projectUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs text-[#00D2FF] hover:underline">
-                  Open project
-                </a>
+                <a href={projectUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs text-[#00D2FF] hover:underline">Visit Project</a>
               )}
             </div>
           </article>
@@ -771,13 +685,33 @@ function ProjectsGrid({ items }: { items: any[] }) {
   );
 }
 
+function HeartIcon() {
+  return <span className="text-[#00D2FF]">♥</span>;
+}
+
+function textOf(value: unknown, fallback = "—"): string {
+  if (value === null || value === undefined) return fallback;
+  const output = String(value).trim();
+  return output || fallback;
+}
+
+function resultText(value: unknown, fallback: string): string {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => textOf(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  if (value && typeof value === "object") {
+    const items = Object.values(value).map((item) => textOf(item, "")).filter(Boolean);
+    return items.length ? items.join("\n") : fallback;
+  }
+  return textOf(value, fallback);
+}
+
 function fieldValue(item: any, ...keys: string[]): string {
   for (const key of keys) {
     if (!key) continue;
     const value = item?.[key] ?? item?.[key.charAt(0).toUpperCase() + key.slice(1)];
-    if (value !== null && value !== undefined && String(value).trim() !== "") {
-      return displayText(value);
-    }
+    if (value !== null && value !== undefined && String(value).trim() !== "") return textOf(value);
   }
   return "—";
 }
@@ -790,51 +724,11 @@ function formatDateRange(item: any, tillDate = false): string {
   return `${fromText} – ${toText}`;
 }
 
-function CardGrid({ items, fields }: { items: any[]; fields: string[] }) {
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      {items.map((item, index) => (
-        <article key={index} className="rounded-xl border border-white/6 bg-white/[0.03] p-4">
-          <h3 className="mb-3 font-bold text-white">{displayText(item?.projectName ?? item?.ProjectName ?? item?.company ?? item?.Company ?? item?.institution ?? item?.Institution ?? item?.service ?? item?.Service ?? item?.title ?? item?.name, "Portfolio item")}</h3>
-          <div className="grid gap-2">
-            {fields.map((field) => {
-              const value = item?.[field] ?? item?.[field.charAt(0).toUpperCase() + field.slice(1)];
-              if (!value) return null;
-              return (
-                <div key={field}>
-                  <p className="text-[10px] font-mono uppercase tracking-wider text-white/30">{splitLabel(field)}</p>
-                  <p className="text-sm text-white/70">{field.toLowerCase().includes("date") || field === "start" || field === "end" ? formatMaybeDate(value) : displayText(value)}</p>
-                </div>
-              );
-            })}
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
-
 function list(value: any): any[] {
   return Array.isArray(value) ? value : Array.isArray(value?.items) ? value.items : Array.isArray(value?.data) ? value.data : [];
 }
 
-function splitLabel(value: string): string {
-  return value.replace(/([A-Z])/g, " $1").replace(/[_-]/g, " ").trim();
-}
-
 function formatMaybeDate(value: any): string {
   const date = new Date(String(value));
-  return Number.isNaN(date.getTime()) ? displayText(value) : date.toLocaleDateString();
-}
-
-function BriefcaseIcon() {
-  return <span className="inline-block h-3.5 w-3.5 rounded-sm border border-[#00D2FF] text-[#00D2FF]" />;
-}
-
-function CodeIcon() {
-  return <span className="font-mono text-[#9D4EDD]">&lt;/&gt;</span>;
-}
-
-function SparkleIcon() {
-  return <span className="text-[#FFD700]">✦</span>;
+  return Number.isNaN(date.getTime()) ? textOf(value) : date.toLocaleDateString();
 }

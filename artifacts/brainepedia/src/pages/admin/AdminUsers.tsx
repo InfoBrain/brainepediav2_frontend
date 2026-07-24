@@ -20,6 +20,7 @@ import { LoadingState } from "@/components/ux/LoadingState";
 import { PageHeader } from "@/components/ux/PageHeader";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
+import { openPublicDossier } from "@/lib/publicDossier";
 import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -357,11 +358,7 @@ export default function AdminUsers() {
                             variant="ghost"
                             className="h-8 w-8 text-muted-foreground hover:text-emerald-400"
                             title="View Public Dossier"
-                            onClick={() =>
-                              navigate(
-                                `/admin/users/public/${profile.userId}`
-                              )
-                            }
+                            onClick={() => openPublicDossier(profile.userId)}
                           >
                             <Globe className="h-4 w-4" />
                           </Button>

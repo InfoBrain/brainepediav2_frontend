@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
+import { openPublicDossier } from "@/lib/publicDossier";
 import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -60,26 +61,6 @@ type ProfileDetail = {
   dayStreak: number;
   dateJoined: string;
   avatarUrl: string;
-};
-
-type DossierData = {
-  fullName: string;
-  professionalTitle: string;
-  verifiedExperienceYears: number;
-  totalXp: number;
-  leaderboardRank: number;
-  badges: Badge[];
-  completedTasks: number;
-  avatarUrl: string;
-  profession: string;
-};
-
-type Badge = {
-  id: string;
-  name: string;
-  description: string;
-  iconUrl: string;
-  rarity: number;
 };
 
 type ActivityItem = {
@@ -133,58 +114,6 @@ function normDetail(d: any): ProfileDetail {
   };
 }
 
-function normDossier(d: any): DossierData {
-  const x = d?.publicProfile || d?.PublicProfile || d?.dossier || d?.Dossier || d?.profile || d?.data || d || {};
-  const badges: Badge[] = (() => {
-    const arr =
-      x.badges || x.earnedBadges || x.userBadges || x.achievements || [];
-    if (!Array.isArray(arr)) return [];
-    return arr.map((b: any) => ({
-      id: String(b.id || b.badgeId || Math.random()),
-      name: b.name || b.badgeName || "Badge",
-      description: b.description || "",
-      iconUrl: b.iconUrl || b.icon || b.imageUrl || "",
-      rarity: Number(b.rarity ?? b.rarityLevel ?? 0),
-    }));
-  })();
-  return {
-    fullName:
-      x.fullName ||
-      `${x.firstName || ""} ${x.lastName || ""}`.trim() ||
-      "Unknown",
-    professionalTitle:
-      x.professionalTitle ||
-      x.currentTitle ||
-      x.title ||
-      x.level ||
-      x.rank ||
-      "",
-    verifiedExperienceYears: Number(
-      x.verifiedExperienceYears || x.experienceYears || x.yearsOfExperience || 0
-    ),
-    totalXp: Number(x.totalXp || x.totalXP || x.xp || x.experiencePoints || 0),
-    leaderboardRank: Number(
-      x.leaderboardRank || x.rank || x.position || x.leaderboardPosition || 0
-    ),
-    badges,
-    completedTasks: Number(
-      x.completedTasks ||
-        x.tasksCompleted ||
-        x.completedChallenges ||
-        x.problemsSolved ||
-        0
-    ),
-    avatarUrl:
-      x.avatarUrl ||
-      x.profileImageUrl ||
-      x.imageUrl ||
-      x.avatar ||
-      x.profilePicture ||
-      "",
-    profession: x.professionName || x.profession || x.career || "",
-  };
-}
-
 function normActivity(d: any): ActivityItem[] {
   const arr = Array.isArray(d) ? d : d?.data || d?.logs || d?.items || [];
   if (!Array.isArray(arr)) return [];
@@ -206,23 +135,14 @@ function normActivity(d: any): ActivityItem[] {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-const TABS = ["overview", "activity", "dossier", "security"] as const;
+const TABS = ["overview", "activity", "security"] as const;
 type Tab = (typeof TABS)[number];
 
 const TAB_LABELS: Record<Tab, string> = {
   overview: "Overview",
   activity: "Activity",
-  dossier: "Public Dossier",
   security: "Security",
 };
-
-const RARITY_COLORS: Record<number, string> = {
-  0: "text-slate-400 border-slate-500/40 bg-slate-500/10",
-  1: "text-blue-400 border-blue-500/40 bg-blue-500/10",
-  2: "text-purple-400 border-purple-500/40 bg-purple-500/10",
-  3: "text-amber-400 border-amber-500/40 bg-amber-500/10",
-};
-const RARITY_NAMES = ["Common", "Rare", "Epic", "Legendary"];
 
 export default function AdminUserProfile() {
   const [, params] = useRoute("/admin/users/:profileId");
@@ -235,8 +155,6 @@ export default function AdminUserProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<Tab>("overview");
-  const [dossier, setDossier] = useState<DossierData | null>(null);
-  const [dossierLoading, setDossierLoading] = useState(false);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -266,25 +184,6 @@ export default function AdminUserProfile() {
       cancelled = true;
     };
   }, [profileId]);
-
-  useEffect(() => {
-    if (tab !== "dossier" || !resolvedUserId) return;
-    let cancelled = false;
-    setDossierLoading(true);
-    Promise.all([
-      api.identity.publicProfile(resolvedUserId),
-      api.profiles.publicPortfolio(resolvedUserId),
-    ]).then(([publicRes, portfolioRes]) => {
-      if (cancelled) return;
-      if (publicRes.ok && publicRes.data) {
-        setDossier(normDossier({ ...(publicRes.data as any), portfolio: portfolioRes.ok ? portfolioRes.data : undefined }));
-      }
-      setDossierLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [tab, resolvedUserId]);
 
   useEffect(() => {
     if (tab !== "activity" || !resolvedUserId) return;
@@ -395,12 +294,10 @@ export default function AdminUserProfile() {
                   variant="outline"
                   size="sm"
                   className="text-[#A5B4FC] border-[#6366F1]/30 hover:bg-[#6366F1]/10"
-                  onClick={() =>
-                    navigate(`/admin/users/public/${resolvedUserId}`)
-                  }
+                  onClick={() => openPublicDossier(resolvedUserId)}
                 >
                   <Globe className="h-4 w-4 mr-2" />
-                  Public Dossier
+                  View Public Dossier
                 </Button>
                 <Button
                   variant="outline"
@@ -442,9 +339,6 @@ export default function AdminUserProfile() {
               {tab === "overview" && <OverviewTab profile={profile} />}
               {tab === "activity" && (
                 <ActivityTab items={activity} loading={activityLoading} />
-              )}
-              {tab === "dossier" && (
-                <DossierTab dossier={dossier} loading={dossierLoading} />
               )}
               {tab === "security" && (
                 <SecurityTab
@@ -676,132 +570,6 @@ function ActivityTab({
   );
 }
 
-function DossierTab({
-  dossier,
-  loading,
-}: {
-  dossier: DossierData | null;
-  loading: boolean;
-}) {
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-          <div className="flex gap-4">
-            <div className="h-20 w-20 rounded-full bg-white/5 animate-pulse" />
-            <div className="flex-1 space-y-3">
-              <div className="h-6 w-48 rounded bg-white/5 animate-pulse" />
-              <div className="h-4 w-32 rounded bg-white/5 animate-pulse" />
-              <div className="h-4 w-24 rounded bg-white/5 animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  if (!dossier) {
-    return (
-      <div className="bg-[#0d1119] border border-white/5 rounded-xl p-16 text-center">
-        <Globe className="h-10 w-10 mx-auto mb-3 text-muted-foreground/20" />
-        <p className="text-sm text-muted-foreground">
-          No public dossier available
-        </p>
-      </div>
-    );
-  }
-  return (
-    <div className="space-y-4">
-      <div className="bg-gradient-to-br from-[#6366F1]/10 to-[#0d1119] border border-[#6366F1]/20 rounded-xl p-6">
-        <div className="flex flex-wrap items-center gap-5">
-          <UserAvatar name={dossier.fullName} url={dossier.avatarUrl} size="xl" />
-          <div className="flex-1 min-w-0">
-            <h3 className="text-2xl font-bold">{dossier.fullName}</h3>
-            {dossier.professionalTitle && (
-              <p className="text-[#A5B4FC] font-mono text-sm mt-0.5">
-                {dossier.professionalTitle}
-              </p>
-            )}
-            {dossier.profession && (
-              <span className="inline-block mt-2 px-3 py-0.5 rounded-full text-xs bg-[#6366F1]/15 text-[#A5B4FC] border border-[#6366F1]/30">
-                {dossier.profession}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-          <DossierStat
-            icon={Zap}
-            label="Total XP"
-            value={dossier.totalXp.toLocaleString()}
-            color="text-amber-400"
-          />
-          {dossier.leaderboardRank > 0 && (
-            <DossierStat
-              icon={Trophy}
-              label="Leaderboard Rank"
-              value={`#${dossier.leaderboardRank}`}
-              color="text-[#A5B4FC]"
-            />
-          )}
-          <DossierStat
-            icon={CheckCircle2}
-            label="Completed"
-            value={String(dossier.completedTasks)}
-            color="text-emerald-400"
-          />
-          {dossier.verifiedExperienceYears > 0 && (
-            <DossierStat
-              icon={Star}
-              label="Exp. Years"
-              value={`${dossier.verifiedExperienceYears}y`}
-              color="text-rose-400"
-            />
-          )}
-        </div>
-      </div>
-
-      {dossier.badges.length > 0 && (
-        <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-          <h3 className="text-xs uppercase tracking-wider font-mono text-muted-foreground mb-4">
-            Earned Badges ({dossier.badges.length})
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {dossier.badges.map((badge, i) => (
-              <motion.div
-                key={badge.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.04 }}
-                className={`flex items-center gap-3 p-3 rounded-lg border ${
-                  RARITY_COLORS[badge.rarity] || RARITY_COLORS[0]
-                }`}
-              >
-                {badge.iconUrl ? (
-                  <img
-                    src={badge.iconUrl}
-                    alt={badge.name}
-                    className="h-9 w-9 rounded object-contain"
-                  />
-                ) : (
-                  <div className="h-9 w-9 rounded bg-white/10 flex items-center justify-center text-lg">
-                    🏆
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">{badge.name}</p>
-                  <p className="text-[10px] uppercase tracking-wider opacity-70">
-                    {RARITY_NAMES[badge.rarity] || "Common"}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function SecurityTab({
   profile,
   onReset,
@@ -867,28 +635,6 @@ function SecurityTab({
             </Button>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function DossierStat({
-  icon: Icon,
-  label,
-  value,
-  color,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  color: string;
-}) {
-  return (
-    <div className="bg-white/[0.04] rounded-lg p-3 text-center">
-      <Icon className={`h-5 w-5 mx-auto mb-1 ${color}`} />
-      <div className={`text-xl font-bold font-mono ${color}`}>{value}</div>
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
-        {label}
       </div>
     </div>
   );

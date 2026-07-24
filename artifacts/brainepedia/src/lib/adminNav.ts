@@ -9,6 +9,7 @@ import {
   BarChart3,
   CreditCard,
   Settings,
+  Activity,
 } from "lucide-react";
 import type { NavItem } from "@/components/dashboard/DashboardShell";
 
@@ -21,6 +22,7 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/problem-nodes", label: "Problem Nodes", icon: Database, tooltip: "Real-world assessment missions users solve to earn XP and VX." },
   { href: "/admin/forum", label: "Forum Management", icon: MessageSquare, tooltip: "Community categories and discussions across the platform." },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3, tooltip: "Platform usage, growth, and talent signal reporting." },
+  { href: "/admin/activity-logs", label: "Activity Logs", icon: Activity, tooltip: "Search and audit platform-wide user activity with filters and pagination." },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard, tooltip: "Initiate and Architect user plans plus Grandmaster Corporate employer oversight." },
   { href: "/admin/transactions", label: "Transactions", icon: CreditCard, tooltip: "Audit all billing transactions with status, amount, date, payment type, and search filters." },
   { href: "/admin/settings", label: "Settings", icon: Settings, tooltip: "Administrative configuration and operational controls." },

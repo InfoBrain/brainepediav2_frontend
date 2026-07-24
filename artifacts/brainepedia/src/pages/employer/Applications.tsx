@@ -4,6 +4,7 @@ import { ClipboardList, Eye, FileText, Save, Search, UserCheck, Users } from "lu
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
+import { openPublicDossier } from "@/lib/publicDossier";
 import {
   applicantUserId,
   applicationProblemNodeId,
@@ -317,8 +318,8 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
                         </div>
                         <div className="mt-4 flex flex-wrap gap-2">
                           {userId && (
-                            <Button asChild variant="outline">
-                              <Link href={`/employer/candidates/${encodeURIComponent(String(userId))}`}><UserCheck className="mr-2 h-4 w-4" /> Candidate dossier</Link>
+                            <Button variant="outline" onClick={() => openPublicDossier(String(userId))}>
+                              <UserCheck className="mr-2 h-4 w-4" /> View Dossier
                             </Button>
                           )}
                           {problemNodeId && (

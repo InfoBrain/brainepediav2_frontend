@@ -20,6 +20,7 @@ import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getProfileId, getUser, getUserId } from "@/lib/auth";
 import { buildProfileFormData } from "@/lib/profileService";
+import { openSmartCvInNewTab } from "@/lib/smartCv";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -93,6 +94,8 @@ export default function PortfolioPage() {
   const userId = getUserId();
   const [profile, setProfile] = useState<any>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [cvModalOpen, setCvModalOpen] = useState(false);
+  const [cvInstructions, setCvInstructions] = useState("");
 
   const refreshCounts = async () => {
     if (!userId) return;
@@ -141,10 +144,41 @@ export default function PortfolioPage() {
               <StatusList title="Incomplete" items={SECTIONS.filter((item) => !completed.includes(item)).map((item) => item.label)} />
             </div>
           </div>
-          <Button className="mt-5 bg-[#00D2FF] text-black hover:bg-[#00B8DD]" onClick={() => navigate("/user/portfolio/cv-preview")}>
+          <Button className="mt-5 bg-[#00D2FF] text-black hover:bg-[#00B8DD]" onClick={() => setCvModalOpen(true)}>
             <Download className="mr-2 h-4 w-4" /> Generate Smart CV
           </Button>
         </section>
+
+        <Dialog open={cvModalOpen} onOpenChange={setCvModalOpen}>
+          <DialogContent className="border border-white/10 bg-[#0d1119] text-white sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Customize your AI CV</DialogTitle>
+              <DialogDescription>Add optional instructions to tailor your generated CV before opening it in a new tab.</DialogDescription>
+            </DialogHeader>
+            <Textarea
+              rows={4}
+              value={cvInstructions}
+              onChange={(event) => setCvInstructions(event.target.value)}
+              placeholder='Example: "Tailor my CV for a Senior Backend Developer role."'
+              className="border-white/10 bg-black/20"
+            />
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setCvModalOpen(false)}>Cancel</Button>
+              <Button
+                className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]"
+                onClick={() => {
+                  openSmartCvInNewTab({
+                    userId,
+                    instructions: cvInstructions.trim() || "Generate a professional, employer-friendly CV from my Brainepedia profile, mission history, and portfolio.",
+                  });
+                  setCvModalOpen(false);
+                }}
+              >
+                <Sparkles className="mr-2 h-4 w-4" /> Generate
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <nav className="rounded-2xl border border-white/5 bg-[#0d1119] p-3 lg:sticky lg:top-24 lg:self-start">

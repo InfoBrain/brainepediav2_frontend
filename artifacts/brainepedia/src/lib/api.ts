@@ -228,6 +228,18 @@ export const api = {
       fetchApi("/api/Profiles", { method: "POST", body: formData }),
     update: (profileId: string, userId: string, formData: FormData) =>
       fetchApi(`/api/Profiles/edit/${encodeURIComponent(profileId)}?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
+  virtualSelfChat: (
+      userId: string,
+      data: { message: string; history?: Array<{ role?: string | null; content?: string | null }> },
+      opts?: { skipAuth?: boolean },
+    ) =>
+      fetchApi(`/api/Profiles/${encodeURIComponent(userId)}/virtual-self/chat`, {
+        method: "POST",
+        body: JSON.stringify(data),
+        skipAuth: opts?.skipAuth,
+        suppressUnauthorized: opts?.skipAuth,
+        timeoutMs: AI_TIMEOUT_MS,
+      }),
     publicPortfolio: (userId: string, opts?: { public?: boolean }) =>
       fetchApi(`/api/Profiles/public-portfolio/${encodeURIComponent(userId)}`, {
         skipAuth: opts?.public,
@@ -251,6 +263,26 @@ export const api = {
   },
   activityLogs: {
     forUser: (userId: string) => fetchApi(`/api/ActivityLogs/${encodeURIComponent(userId)}`),
+    systemWide: (params: {
+      search?: string;
+      role?: string;
+      activityType?: string;
+      userId?: string;
+      fromDate?: string;
+      toDate?: string;
+      page?: number;
+      pageSize?: number;
+    } = {}) =>
+      fetchApi(`/api/ActivityLogs/system-wide${queryString({
+        search: params.search,
+        role: params.role,
+        activityType: params.activityType,
+        userId: params.userId,
+        fromDate: params.fromDate,
+        toDate: params.toDate,
+        page: params.page,
+        pageSize: params.pageSize,
+      })}`),
     create: (data: { userId: string; activity: string; performedBy?: string }) =>
       fetchApi("/api/ActivityLogs", { method: "POST", body: JSON.stringify(data) }),
   },
@@ -623,6 +655,9 @@ export const api = {
       fetchApi(`/api/Jobs/${encodeURIComponent(jobId)}/apply`, { method: "POST" }),
     /** GET /api/Jobs/my-applications */
     myApplications: () => fetchApi("/api/Jobs/my-applications"),
+    /** GET /api/Jobs/{jobPostingId}/suggest-applicants */
+    suggestApplicants: (jobPostingId: string) =>
+      fetchApi(`/api/Jobs/${encodeURIComponent(jobPostingId)}/suggest-applicants`),
     /** GET /api/Jobs/postings/{jobId}/applications */
     applications: (jobId: string) =>
       fetchApi(`/api/Jobs/postings/${encodeURIComponent(jobId)}/applications`),
