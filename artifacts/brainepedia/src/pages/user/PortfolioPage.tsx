@@ -20,7 +20,7 @@ import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getProfileId, getUser, getUserId } from "@/lib/auth";
 import { buildProfileFormData } from "@/lib/profileService";
-import { openSmartCvInNewTab } from "@/lib/smartCv";
+import { generateAndOpenSmartCv } from "@/lib/smartCv";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -94,8 +94,10 @@ export default function PortfolioPage() {
   const userId = getUserId();
   const [profile, setProfile] = useState<any>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const { toast } = useToast();
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [cvInstructions, setCvInstructions] = useState("");
+  const [cvGenerating, setCvGenerating] = useState(false);
 
   const refreshCounts = async () => {
     if (!userId) return;
@@ -149,11 +151,15 @@ export default function PortfolioPage() {
           </Button>
         </section>
 
-        <Dialog open={cvModalOpen} onOpenChange={setCvModalOpen}>
+        <Dialog open={cvModalOpen} onOpenChange={(open) => { if (!cvGenerating) setCvModalOpen(open); }}>
           <DialogContent className="border border-white/10 bg-[#0d1119] text-white sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Customize your AI CV</DialogTitle>
-              <DialogDescription>Add optional instructions to tailor your generated CV before opening it in a new tab.</DialogDescription>
+              <DialogDescription>
+                {cvGenerating
+                  ? "Brainiac is generating your CV. This may take up to two minutes..."
+                  : "Add optional instructions to tailor your generated CV before opening it in a new tab."}
+              </DialogDescription>
             </DialogHeader>
             <Textarea
               rows={4}
@@ -161,20 +167,35 @@ export default function PortfolioPage() {
               onChange={(event) => setCvInstructions(event.target.value)}
               placeholder='Example: "Tailor my CV for a Senior Backend Developer role."'
               className="border-white/10 bg-black/20"
+              disabled={cvGenerating}
             />
             <DialogFooter className="gap-2 sm:gap-0">
-              <Button variant="outline" onClick={() => setCvModalOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setCvModalOpen(false)} disabled={cvGenerating}>Cancel</Button>
               <Button
                 className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]"
-                onClick={() => {
-                  openSmartCvInNewTab(
-                    userId || "",
-                    cvInstructions.trim() || "Generate a professional, employer-friendly CV from my Brainepedia profile, mission history, and portfolio.",
-                  );
+                disabled={cvGenerating || !userId}
+                onClick={async () => {
+                  if (!userId) return;
+                  setCvGenerating(true);
+                  const result = await generateAndOpenSmartCv(userId, cvInstructions);
+                  setCvGenerating(false);
+                  if (!result.ok) {
+                    toast({
+                      title: "Unable to generate Smart CV",
+                      description: result.error || result.message || "Please try again.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
                   setCvModalOpen(false);
+                  toast({
+                    title: "Smart CV generated",
+                    description: "Your CV opened in a new tab and is being prepared for download.",
+                  });
                 }}
               >
-                <Sparkles className="mr-2 h-4 w-4" /> Generate
+                {cvGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                {cvGenerating ? "Generating..." : "Generate"}
               </Button>
             </DialogFooter>
           </DialogContent>
