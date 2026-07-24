@@ -81,8 +81,7 @@ export default function VirtualSelfChatPage() {
       return;
     }
 
-    const data = res.data as any;
-    const reply = String(data?.reply ?? data?.Reply ?? data?.message ?? data?.Message ?? "").trim();
+    const reply = extractChatReply(res.data);
     if (!reply) {
       setError("No reply was returned. Please try again.");
       return;
@@ -217,6 +216,42 @@ export default function VirtualSelfChatPage() {
       </main>
     </div>
   );
+}
+
+function extractChatReply(data: unknown): string {
+  if (data == null) return "";
+
+  if (typeof data === "string") {
+    const trimmed = data.trim();
+    if (!trimmed) return "";
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try {
+        return extractChatReply(JSON.parse(trimmed));
+      } catch {
+        return trimmed;
+      }
+    }
+    return trimmed;
+  }
+
+  if (typeof data === "object") {
+    const record = data as Record<string, unknown>;
+    const candidates = [
+      record.response,
+      record.Response,
+      record.reply,
+      record.Reply,
+      record.message,
+      record.Message,
+    ];
+
+    for (const candidate of candidates) {
+      const text = extractChatReply(candidate);
+      if (text) return text;
+    }
+  }
+
+  return "";
 }
 
 function Avatar({ name, url }: { name: string; url?: string | null }) {

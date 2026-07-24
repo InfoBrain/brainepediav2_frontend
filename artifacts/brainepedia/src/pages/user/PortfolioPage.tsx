@@ -167,10 +167,10 @@ export default function PortfolioPage() {
               <Button
                 className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]"
                 onClick={() => {
-                  openSmartCvInNewTab({
-                    userId,
-                    instructions: cvInstructions.trim() || "Generate a professional, employer-friendly CV from my Brainepedia profile, mission history, and portfolio.",
-                  });
+                  openSmartCvInNewTab(
+                    userId || "",
+                    cvInstructions.trim() || "Generate a professional, employer-friendly CV from my Brainepedia profile, mission history, and portfolio.",
+                  );
                   setCvModalOpen(false);
                 }}
               >
