@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
 import { Bookmark, Search, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
+import { openPublicDossier } from "@/lib/publicDossier";
 import { asList, candidateAvatar, candidateName, formatNumber, idOf, initials, text } from "@/lib/jobData";
 import { LoadingState } from "@/components/ux/LoadingState";
 import { EmptyState } from "@/components/ux/EmptyState";
@@ -88,9 +88,13 @@ export default function SavedCandidates() {
                     </div>
                   </div>
                   {userId ? (
-                    <span className="mt-4 inline-flex rounded-md bg-[#00D2FF] px-4 py-2 text-sm font-medium text-black hover:bg-[#00B8DD]">
+                    <button
+                      type="button"
+                      onClick={() => openPublicDossier(userId)}
+                      className="mt-4 inline-flex rounded-md bg-[#00D2FF] px-4 py-2 text-sm font-medium text-black hover:bg-[#00B8DD]"
+                    >
                       <ShieldCheck className="mr-2 h-4 w-4" /> View dossier
-                    </span>
+                    </button>
                   ) : (
                     <span className="mt-4 inline-flex rounded-md border border-white/10 px-4 py-2 text-sm text-muted-foreground">
                       Dossier link unavailable
@@ -98,16 +102,8 @@ export default function SavedCandidates() {
                   )}
                 </article>
               );
-              return userId ? (
-              <Link
-                key={userId || index}
-                href={`/employer/candidates/${encodeURIComponent(userId)}`}
-                className="block rounded-xl border border-white/5 bg-[#0d1119] p-5 transition hover:border-[#00D2FF]/35 focus:outline-none focus:ring-2 focus:ring-[#00D2FF]/60"
-              >
-                {card}
-              </Link>
-              ) : (
-                <div key={index} className="rounded-xl border border-white/5 bg-[#0d1119] p-5">
+              return (
+                <div key={userId || index} className="rounded-xl border border-white/5 bg-[#0d1119] p-5 transition hover:border-[#00D2FF]/35">
                   {card}
                 </div>
               );

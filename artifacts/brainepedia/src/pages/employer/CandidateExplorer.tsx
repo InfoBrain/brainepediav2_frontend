@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "wouter";
 import { Bookmark, ChevronLeft, ChevronRight, Search, ShieldCheck, Trophy } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
+import { openPublicDossier } from "@/lib/publicDossier";
 import { asList, candidateAvatar, candidateName, formatNumber, idOf, initials, listMeta, text } from "@/lib/jobData";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -163,7 +163,6 @@ export default function CandidateExplorer() {
           <div className="grid gap-4 xl:grid-cols-2">
             {candidates.map((candidate) => (
               <article key={candidate.id} className="rounded-xl border border-white/5 bg-[#0d1119] p-5 transition-colors hover:border-[#00D2FF]/35">
-                <Link href={`/employer/candidates/${encodeURIComponent(candidate.id)}`} className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00D2FF]/60">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#00D2FF]/35 to-[#7C3AED]/30 font-bold">
                     {candidate.avatarUrl ? (
@@ -188,7 +187,6 @@ export default function CandidateExplorer() {
                     </div>
                   </div>
                 </div>
-                </Link>
                 <Textarea
                   value={notesById[candidate.id] || ""}
                   onChange={(event) => setNotesById((prev) => ({ ...prev, [candidate.id]: event.target.value }))}
@@ -197,8 +195,8 @@ export default function CandidateExplorer() {
                   aria-label={`Notes for ${candidate.name}`}
                 />
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button asChild variant="outline">
-                    <Link href={`/employer/candidates/${encodeURIComponent(candidate.id)}`}><ShieldCheck className="mr-2 h-4 w-4" /> View dossier</Link>
+                  <Button variant="outline" onClick={() => openPublicDossier(candidate.id)}>
+                    <ShieldCheck className="mr-2 h-4 w-4" /> View dossier
                   </Button>
                   <Button
                     onClick={() => saveCandidate(candidate)}

@@ -44,6 +44,7 @@ const AdminUserDossier = lazy(() => import("@/pages/admin/AdminUserDossier"));
 const AdminEmployers = lazy(() => import("@/pages/admin/AdminEmployers"));
 const AdminEmployerDetails = lazy(() => import("@/pages/admin/AdminEmployerDetails"));
 const AdminAnalytics = lazy(() => import("@/pages/admin/AdminAnalytics"));
+const AdminActivityLogs = lazy(() => import("@/pages/admin/AdminActivityLogs"));
 const AdminSubscriptions = lazy(() => import("@/pages/admin/AdminSubscriptions"));
 const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
 const EmployerOverview = lazy(() => import("@/pages/employer/EmployerOverview"));
@@ -63,6 +64,7 @@ const SavedCandidates = lazy(() => import("@/pages/employer/SavedCandidates"));
 const CreateJob = lazy(() => import("@/pages/employer/CreateJob"));
 const EditJob = lazy(() => import("@/pages/employer/EditJob"));
 const MyJobPostings = lazy(() => import("@/pages/employer/MyJobPostings"));
+const SuggestedApplicants = lazy(() => import("@/pages/employer/SuggestedApplicants"));
 const Applications = lazy(() => import("@/pages/employer/Applications"));
 const ViewProfile = lazy(() => import("@/pages/profile/ViewProfile"));
 const EditProfile = lazy(() => import("@/pages/profile/EditProfile"));
@@ -90,6 +92,7 @@ const MissionResultPage = lazy(() => import("@/pages/app/MissionResultPage"));
 const NodeResultPage = lazy(() => import("@/pages/app/NodeResultPage"));
 const UserProgressPage = lazy(() => import("@/pages/app/UserProgressPage"));
 const PublicProfilePage = lazy(() => import("@/pages/public/PublicProfilePage"));
+const VirtualSelfChatPage = lazy(() => import("@/pages/public/VirtualSelfChatPage"));
 const ForumDashboardPage = lazy(() => import("@/pages/forum/ForumDashboardPage"));
 const ForumCategoryPage = lazy(() => import("@/pages/forum/ForumCategoryPage"));
 const ForumThreadPage = lazy(() => import("@/pages/forum/ForumThreadPage"));
@@ -293,6 +296,11 @@ function Router() {
           <AdminAnalytics />
         </RequireAuth>
       </Route>
+      <Route path="/admin/activity-logs">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminActivityLogs />
+        </RequireAuth>
+      </Route>
       <Route path="/admin/subscriptions">
         <RequireAuth allow={["GlobalAdmin"]}>
           <AdminSubscriptions />
@@ -348,6 +356,11 @@ function Router() {
       <Route path="/employer/jobs/create">
         <RequireAuth allow={["Employer"]}>
           <CreateJob />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/jobs/:jobId/suggested-applicants">
+        <RequireAuth allow={["Employer"]}>
+          <SuggestedApplicants />
         </RequireAuth>
       </Route>
       <Route path="/employer/jobs/:jobId/edit">
@@ -506,6 +519,7 @@ function Router() {
         </RequireAuth>
       </Route>
 
+      <Route path="/public-profile/:userId/virtual-self" component={VirtualSelfChatPage} />
       <Route path="/public-profile/:userId" component={PublicProfilePage} />
 
       <Route path="/forum/discussions">

@@ -17,6 +17,8 @@ type EmployerDetails = {
   dateRegistered?: string;
   planType?: string;
   teamMembers?: number;
+  activeTeamMembers?: number;
+  inactiveTeamMembers?: number;
   activeJobs?: number;
   ownerName?: string;
   ownerEmail?: string;
@@ -149,7 +151,9 @@ export default function AdminEmployerDetails() {
               <div className="bg-[#0d1119] border border-white/5 rounded-xl p-5 space-y-4">
                 <h3 className="text-sm font-bold text-muted-foreground font-mono uppercase tracking-wider">Stats</h3>
                 {[
-                  { label: "Team Members", value: details.teamMembers ?? "—", color: "#00D2FF", icon: Users },
+                  { label: "Total Team Members", value: details.teamMembers ?? "—", color: "#00D2FF", icon: Users },
+                  { label: "Active Members", value: details.activeTeamMembers ?? "—", color: "#22C55E", icon: Users },
+                  ...(details.inactiveTeamMembers != null ? [{ label: "Inactive Members", value: details.inactiveTeamMembers, color: "#F59E0B", icon: Users }] : []),
                   { label: "Jobs Posted", value: details.activeJobs ?? "—", color: "#9D4EDD", icon: Building2 },
                 ].map(({ label, value, color, icon: Icon }) => (
                   <div key={label} className="flex items-center gap-3">
@@ -206,7 +210,9 @@ function normDetails(d: any): EmployerDetails {
     aboutCompany: d?.aboutCompany ?? d?.about ?? d?.description,
     dateRegistered: d?.registrationDate ?? d?.dateRegistered ?? d?.dateJoined ?? d?.createdAt,
     planType: d?.subscriptionLevel ?? d?.planType ?? d?.plan ?? d?.subscriptionTier,
-    teamMembers: d?.totalTeamMembers ?? d?.teamMembers ?? d?.memberCount,
+    teamMembers: d?.totalTeamMembers ?? d?.TotalTeamMembers ?? d?.teamMembers ?? d?.memberCount ?? d?.teamSize,
+    activeTeamMembers: d?.activeTeamMembers ?? d?.ActiveTeamMembers ?? d?.activeMembers ?? d?.ActiveMembers,
+    inactiveTeamMembers: d?.inactiveTeamMembers ?? d?.InactiveTeamMembers ?? d?.inactiveMembers ?? d?.InactiveMembers,
     activeJobs: typeof d?.jobsPosted === "number" ? d.jobsPosted : (d?.totalJobsPosted ?? d?.activeJobs ?? d?.jobCount ?? rawJobs.length),
     ownerName,
     ownerEmail,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { BriefcaseBusiness, CalendarDays, ClipboardList, Edit3, Eye, FilePlus2, MapPin, WalletCards } from "lucide-react";
+import { BriefcaseBusiness, CalendarDays, ClipboardList, Edit3, Eye, FilePlus2, MapPin, Sparkles, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -141,6 +141,9 @@ export default function MyJobPostings() {
                     </div>
                     <Button asChild variant="outline" className="w-full sm:w-auto">
                       <Link href={`/employer/applications/${encodeURIComponent(id)}`}><ClipboardList className="mr-2 h-4 w-4" /> View applicants</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full border-[#9D4EDD]/30 text-[#9D4EDD] hover:bg-[#9D4EDD]/10 sm:w-auto">
+                      <Link href={`/employer/jobs/${encodeURIComponent(id)}/suggested-applicants`}><Sparkles className="mr-2 h-4 w-4" /> AI Match</Link>
                     </Button>
                     <Button asChild variant="outline" className="w-full sm:w-auto">
                       <Link href={`/employer/jobs/${encodeURIComponent(id)}/edit`}><Edit3 className="mr-2 h-4 w-4" /> Edit</Link>
