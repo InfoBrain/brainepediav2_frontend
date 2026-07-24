@@ -213,11 +213,11 @@ export default function PublicProfilePage() {
   if (loading) return <PageSkeleton />;
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f7fb] px-4 text-slate-900">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
         <div className="max-w-sm text-center">
-          <User className="mx-auto mb-4 h-16 w-16 text-slate-300" />
-          <p className="text-lg font-bold text-slate-600">{error}</p>
-          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")} className="mt-6 rounded-xl border border-[#0077b6]/20 bg-[#0077b6]/10 px-6 py-2.5 text-sm font-medium text-[#0077b6] transition hover:bg-[#0077b6]/15">
+          <User className="mx-auto mb-4 h-16 w-16 text-muted-foreground/40" />
+          <p className="text-lg font-bold text-muted-foreground">{error}</p>
+          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")} className="mt-6 rounded-xl border border-[#00D2FF]/30 bg-[#00D2FF]/10 px-6 py-2.5 text-sm font-medium text-[#00D2FF] transition hover:border-[#00D2FF]/50 hover:bg-[#00D2FF]/15 hover:shadow-[0_0_20px_rgba(0,210,255,0.15)]">
             ← Back to Brainepedia
           </button>
         </div>
@@ -226,29 +226,31 @@ export default function PublicProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-slate-900">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Site header */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0d1119]/95 shadow-lg shadow-black/30 backdrop-blur-md">
         <div className="mx-auto max-w-6xl px-4 py-4 text-center">
           <button
             onClick={() => navigate(getUser() ? "/user/dashboard" : "/")}
-            className="mb-3 inline-flex items-center gap-2 text-xs font-medium text-slate-500 transition hover:text-slate-800"
+            className="mb-3 inline-flex items-center gap-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" /> Back to Brainepedia
           </button>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#0077b6]">Professional Portfolio</p>
-          <h1 className="mt-1 text-lg font-bold text-slate-900 sm:text-xl">{name}</h1>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#00D2FF]">Professional Portfolio</p>
+          <h1 className="mt-1 text-lg font-bold text-foreground sm:text-xl">{name}</h1>
         </div>
-        <nav className="border-t border-slate-100">
-          <div className="mx-auto flex max-w-6xl items-center justify-center gap-1 overflow-x-auto px-4 py-2">
+        <nav className="relative border-t border-white/5">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-[#0d1119] to-transparent sm:hidden" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-[#0d1119] to-transparent sm:hidden" />
+          <div className="mx-auto flex max-w-6xl items-center justify-center gap-1 overflow-x-auto px-4 py-2 scrollbar-thin">
             {visibleSections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => scrollTo(section.id)}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
                   activeSection === section.id
-                    ? "bg-[#0077b6] text-white shadow-sm"
-                    : "text-slate-600 hover:bg-slate-100"
+                    ? "bg-[#00D2FF] text-black shadow-[0_0_20px_rgba(0,210,255,0.35)]"
+                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                 }`}
               >
                 {section.label}
@@ -256,7 +258,7 @@ export default function PublicProfilePage() {
             ))}
             <Link
               href={virtualSelfUrl}
-              className="whitespace-nowrap rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 px-3 py-1.5 text-xs font-medium text-[#7c3aed] transition hover:bg-[#7c3aed]/15"
+              className="whitespace-nowrap rounded-full border border-[#7C3AED]/40 bg-[#7C3AED]/10 px-3 py-1.5 text-xs font-medium text-[#A78BFA] transition hover:border-[#7C3AED]/60 hover:bg-[#7C3AED]/20 hover:shadow-[0_0_16px_rgba(124,58,237,0.25)]"
             >
               Chat with Virtual Self
             </Link>
@@ -266,28 +268,28 @@ export default function PublicProfilePage() {
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
         {/* Hero — centered */}
-        <section className="card mb-10 overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-12">
+        <section className="card mb-10 overflow-hidden rounded-3xl border border-white/10 bg-card p-8 text-center shadow-xl shadow-black/30 transition hover:border-white/15 sm:p-12">
           <div className="mx-auto flex max-w-3xl flex-col items-center">
             <Avatar name={name} url={avatarUrl} size={128} />
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
               {isVerified && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-400">
                   <BadgeCheck className="h-3.5 w-3.5" /> Verified
                 </span>
               )}
               {subscription && (
-                <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-400">
                   {subscription}
                 </span>
               )}
             </div>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{name}</h2>
-            {title && <p className="mt-2 text-lg text-slate-600">{title}</p>}
-            {rankTitle && title !== rankTitle && <p className="mt-1 text-sm font-medium text-[#0077b6]">{rankTitle}</p>}
-            {profession && <p className="mt-1 text-sm text-slate-500">{profession}</p>}
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{name}</h2>
+            {title && <p className="mt-2 text-lg text-muted-foreground">{title}</p>}
+            {rankTitle && title !== rankTitle && <p className="mt-1 text-sm font-medium text-[#00D2FF]">{rankTitle}</p>}
+            {profession && <p className="mt-1 text-sm text-muted-foreground/80">{profession}</p>}
             {location && (
-              <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-slate-500">
-                <MapPin className="h-4 w-4 text-[#0077b6]" /> {location}
+              <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 text-[#00D2FF]" /> {location}
               </p>
             )}
 
@@ -301,20 +303,20 @@ export default function PublicProfilePage() {
             <div className="mt-8 flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:justify-center">
               <Link
                 href={virtualSelfUrl}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#7c3aed] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6d28d9]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#7C3AED] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#7C3AED]/20 transition hover:bg-[#6d28d9] hover:shadow-[#7C3AED]/35"
               >
                 <MessageCircle className="h-4 w-4" /> Chat with Virtual Self
               </Link>
               <button
                 onClick={shareProfile}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-foreground shadow-sm transition hover:border-[#00D2FF]/30 hover:bg-white/10 hover:shadow-[0_0_16px_rgba(0,210,255,0.1)]"
               >
-                {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Link2 className="h-4 w-4" />}
+                {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <Link2 className="h-4 w-4" />}
                 {copied ? "Copied!" : "Share Profile"}
               </button>
               <button
                 onClick={downloadCvPlaceholder}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-muted-foreground shadow-sm transition hover:border-amber-400/30 hover:bg-white/10 hover:text-foreground"
               >
                 <Download className="h-4 w-4" /> Download CV
               </button>
@@ -332,10 +334,10 @@ export default function PublicProfilePage() {
             </div>
             {badges.length > 0 && (
               <div className="mt-6">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Community Highlights</p>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Community Highlights</p>
                 <div className="flex flex-wrap gap-2">
                   {badges.slice(0, 8).map((badge: any, index: number) => (
-                    <span key={index} className="card rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
+                    <span key={index} className="card rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1.5 text-xs font-medium text-amber-300 transition hover:border-amber-400/40 hover:shadow-[0_0_12px_rgba(255,215,0,0.12)]">
                       {badge?.name || badge?.Name || "Badge"}
                     </span>
                   ))}
@@ -346,7 +348,7 @@ export default function PublicProfilePage() {
 
           {personalStatement && (
             <Section id="about" title="About" refCb={(el) => { sectionRefs.current.about = el; }}>
-              <p className="text-base leading-8 text-slate-600">{personalStatement}</p>
+              <p className="text-base leading-8 text-muted-foreground">{personalStatement}</p>
             </Section>
           )}
 
@@ -373,18 +375,18 @@ export default function PublicProfilePage() {
                   const rating = Math.max(0, Math.min(100, Number(skill?.rating ?? skill?.Rating ?? 0)));
                   const skillName = fieldValue(skill, "mySkill", "MySkill", "skill", "name", "Skill");
                   return (
-                    <article key={index} className="card col rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                    <article key={index} className="card col rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-[#00D2FF]/25 hover:shadow-[0_0_20px_rgba(0,210,255,0.08)]">
                       <div className="mb-3 flex items-center justify-between gap-3">
-                        <p className="font-semibold text-slate-900">{skillName}</p>
-                        <span className="text-sm font-bold text-[#0077b6]">{rating}%</span>
+                        <p className="font-semibold text-foreground">{skillName}</p>
+                        <span className="text-sm font-bold text-[#00D2FF]">{rating}%</span>
                       </div>
-                      <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+                      <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
                         <motion.div
                           initial={{ width: 0 }}
                           whileInView={{ width: `${rating}%` }}
                           viewport={{ once: true }}
                           transition={{ duration: 0.8 }}
-                          className="h-full rounded-full bg-gradient-to-r from-[#0077b6] to-[#7c3aed]"
+                          className="h-full rounded-full bg-gradient-to-r from-[#00D2FF] to-[#7C3AED]"
                         />
                       </div>
                     </article>
@@ -398,9 +400,9 @@ export default function PublicProfilePage() {
             <Section id="services" title="Services" refCb={(el) => { sectionRefs.current.services = el; }}>
               <div className="row grid grid-cols-1 gap-4 md:grid-cols-2">
                 {services.map((item, index) => (
-                  <article key={index} className="card col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-                    <h3 className="text-lg font-bold text-slate-900">{fieldValue(item, "myServices", "MyServices", "service", "Service", "title")}</h3>
-                    <p className="mt-2 text-sm leading-7 text-slate-600">{fieldValue(item, "description", "Description")}</p>
+                  <article key={index} className="card col rounded-2xl border border-white/10 bg-card p-6 shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:border-[#7C3AED]/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
+                    <h3 className="text-lg font-bold text-foreground">{fieldValue(item, "myServices", "MyServices", "service", "Service", "title")}</h3>
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">{fieldValue(item, "description", "Description")}</p>
                   </article>
                 ))}
               </div>
@@ -419,7 +421,7 @@ export default function PublicProfilePage() {
             <Section id="interests" title="Interests" refCb={(el) => { sectionRefs.current.interests = el; }}>
               <div className="flex flex-wrap gap-2">
                 {interests.map((interest, index) => (
-                  <span key={index} className="card rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm">
+                  <span key={index} className="card rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-muted-foreground shadow-sm transition hover:border-[#00D2FF]/30 hover:text-foreground">
                     {fieldValue(interest, "interest", "Interest", "name")}
                   </span>
                 ))}
@@ -443,41 +445,41 @@ export default function PublicProfilePage() {
                   const feedback = mission.feedback || mission.Feedback || mission.aiEvaluationSummary || "";
                   const expanded = expandedMission === index;
                   return (
-                    <article key={index} className="card col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                      <button type="button" onClick={() => setExpandedMission(expanded ? null : index)} className="flex w-full items-start gap-4 p-5 text-left transition hover:bg-slate-50">
-                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                    <article key={index} className="card col overflow-hidden rounded-2xl border border-white/10 bg-card shadow-lg shadow-black/20 transition hover:border-white/15">
+                      <button type="button" onClick={() => setExpandedMission(expanded ? null : index)} className="flex w-full items-start gap-4 p-5 text-left transition hover:bg-white/[0.03]">
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-slate-900">{mTitle}</p>
-                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
-                            <span className="rounded-full bg-slate-100 px-2 py-0.5">{district}</span>
-                            <span className="rounded-full bg-slate-100 px-2 py-0.5">{prof}</span>
-                            <span className="rounded-full bg-slate-100 px-2 py-0.5">{difficulty}</span>
-                            {xp != null && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">{Number(xp).toLocaleString()} XP</span>}
-                            {score != null && <span className="rounded-full bg-violet-50 px-2 py-0.5 text-violet-700">{score}% score</span>}
-                            {date && <span className="rounded-full bg-slate-100 px-2 py-0.5">{new Date(date).toLocaleDateString()}</span>}
+                          <p className="font-semibold text-foreground">{mTitle}</p>
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            <span className="rounded-full bg-white/5 px-2 py-0.5">{district}</span>
+                            <span className="rounded-full bg-white/5 px-2 py-0.5">{prof}</span>
+                            <span className="rounded-full bg-white/5 px-2 py-0.5">{difficulty}</span>
+                            {xp != null && <span className="rounded-full bg-[#00D2FF]/10 px-2 py-0.5 text-[#00D2FF]">{Number(xp).toLocaleString()} XP</span>}
+                            {score != null && <span className="rounded-full bg-[#7C3AED]/10 px-2 py-0.5 text-[#A78BFA]">{score}% score</span>}
+                            {date && <span className="rounded-full bg-white/5 px-2 py-0.5">{new Date(date).toLocaleDateString()}</span>}
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                           {passed != null && (
-                            <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase ${passed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>
+                            <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase ${passed ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-400" : "border-red-400/30 bg-red-400/10 text-red-400"}`}>
                               {passed ? "Passed" : "Not Passed"}
                             </span>
                           )}
-                          <ChevronDown className={`h-4 w-4 text-slate-400 transition ${expanded ? "rotate-180" : ""}`} />
+                          <ChevronDown className={`h-4 w-4 text-muted-foreground transition ${expanded ? "rotate-180" : ""}`} />
                         </div>
                       </button>
                       <AnimatePresence>
                         {expanded && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-slate-100">
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-white/5">
                             <div className="space-y-3 p-5 pt-3">
                               {feedback && (
-                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Feedback</p>
+                                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-muted-foreground">
+                                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">Feedback</p>
                                   {feedback}
                                 </div>
                               )}
                               {problemNodeId && (
-                                <button onClick={() => viewPerformance(problemNodeId)} className="inline-flex items-center gap-1.5 rounded-lg border border-[#0077b6]/20 bg-[#0077b6]/5 px-3 py-2 text-xs font-medium text-[#0077b6] hover:bg-[#0077b6]/10">
+                                <button onClick={() => viewPerformance(problemNodeId)} className="inline-flex items-center gap-1.5 rounded-lg border border-[#00D2FF]/25 bg-[#00D2FF]/10 px-3 py-2 text-xs font-medium text-[#00D2FF] transition hover:border-[#00D2FF]/40 hover:bg-[#00D2FF]/15">
                                   <Eye className="h-3.5 w-3.5" /> View full evaluation
                                 </button>
                               )}
@@ -504,25 +506,25 @@ export default function PublicProfilePage() {
           )}
         </div>
 
-        <footer className="mt-12 border-t border-slate-200 pt-8 text-center">
-          <p className="text-xs text-slate-400">
-            Powered by <a href="https://demo.brainepedia.com" className="font-medium text-[#0077b6] hover:underline">Brainepedia</a> · AI-Powered Career Growth Platform
+        <footer className="mt-12 border-t border-white/10 pt-8 text-center">
+          <p className="text-xs text-muted-foreground">
+            Powered by <a href="https://demo.brainepedia.com" className="font-medium text-[#00D2FF] transition hover:text-[#00B8DD] hover:underline">Brainepedia</a> · AI-Powered Career Growth Platform
           </p>
         </footer>
       </main>
 
       <Dialog open={Boolean(performance) || performanceLoading || Boolean(performanceError)} onOpenChange={(open) => { if (!open) { setPerformance(null); setPerformanceError(""); } }}>
-        <DialogContent className="max-w-2xl border border-slate-200 bg-white text-slate-900">
+        <DialogContent className="max-w-2xl border border-white/10 bg-[#0d1119] text-foreground">
           <DialogHeader>
             <DialogTitle>Mission Performance</DialogTitle>
             <DialogDescription>Evaluation result for this completed mission.</DialogDescription>
           </DialogHeader>
           {performanceLoading ? (
-            <div className="flex items-center justify-center gap-3 rounded-xl border border-slate-200 py-16 text-sm text-slate-500">
-              <Loader2 className="h-5 w-5 animate-spin text-[#0077b6]" /> Loading mission performance...
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-white/10 py-16 text-sm text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" /> Loading mission performance...
             </div>
           ) : performanceError ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{performanceError}</div>
+            <div className="rounded-xl border border-red-400/30 bg-red-400/10 p-5 text-sm text-red-300">{performanceError}</div>
           ) : performance ? (
             <PerformanceResult result={performance} />
           ) : null}
@@ -535,8 +537,8 @@ export default function PublicProfilePage() {
 function Section({ id, title, children, refCb }: { id: string; title: string; children: ReactNode; refCb: (el: HTMLElement | null) => void }) {
   return (
     <motion.section id={id} ref={refCb} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.4 }} className="scroll-mt-36">
-      <div className="card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <h2 className="mb-6 text-center text-xl font-bold text-slate-900 sm:text-2xl">{title}</h2>
+      <div className="card rounded-3xl border border-white/10 bg-card p-6 shadow-xl shadow-black/25 transition hover:border-white/15 sm:p-8">
+        <h2 className="mb-6 text-center text-xl font-bold text-foreground sm:text-2xl">{title}</h2>
         {children}
       </div>
     </motion.section>
@@ -545,29 +547,29 @@ function Section({ id, title, children, refCb }: { id: string; title: string; ch
 
 function OverviewCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card col rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-      <p className="mt-2 text-xl font-bold text-[#0077b6]">{value}</p>
+    <div className="card col rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center transition hover:border-[#00D2FF]/25 hover:shadow-[0_0_20px_rgba(0,210,255,0.08)]">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-2 text-xl font-bold text-[#00D2FF]">{value}</p>
     </div>
   );
 }
 
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-bold text-slate-900">{value}</p>
+    <div className="card rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-center transition hover:border-[#FFD700]/25 hover:shadow-[0_0_16px_rgba(255,215,0,0.08)]">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-1 text-lg font-bold text-foreground">{value}</p>
     </div>
   );
 }
 
 function ContactItem({ icon, label, value, href }: { icon: ReactNode; label: string; value: string; href?: string }) {
   const content = (
-    <div className="card col flex h-full items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:border-[#0077b6]/30 hover:shadow-sm">
-      <span className="text-[#0077b6]">{icon}</span>
+    <div className="card col flex h-full items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:-translate-y-0.5 hover:border-[#00D2FF]/30 hover:shadow-[0_8px_24px_rgba(0,0,0,0.25)]">
+      <span className="text-[#00D2FF]">{icon}</span>
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-        <p className="mt-1 text-sm break-all text-slate-700">{value}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="mt-1 text-sm break-all text-foreground/90">{value}</p>
       </div>
     </div>
   );
@@ -578,10 +580,10 @@ function ContactItem({ icon, label, value, href }: { icon: ReactNode; label: str
 function Avatar({ name, url, size = 80 }: { name: string; url?: string | null; size?: number }) {
   const [err, setErr] = useState(false);
   if (url && !err) {
-    return <img src={url} alt={name} onError={() => setErr(true)} className="rounded-full border-4 border-white object-cover shadow-lg ring-2 ring-[#0077b6]/20" style={{ width: size, height: size }} />;
+    return <img src={url} alt={name} onError={() => setErr(true)} className="rounded-full border-4 border-[#0d1119] object-cover shadow-lg shadow-black/40 ring-2 ring-[#00D2FF]/30" style={{ width: size, height: size }} />;
   }
   return (
-    <div className="flex items-center justify-center rounded-full bg-gradient-to-br from-[#0077b6] to-[#7c3aed] font-bold text-white shadow-lg ring-2 ring-[#0077b6]/20" style={{ width: size, height: size, fontSize: size * 0.38 }}>
+    <div className="flex items-center justify-center rounded-full bg-gradient-to-br from-[#00D2FF] to-[#7C3AED] font-bold text-black shadow-lg shadow-[#00D2FF]/20 ring-2 ring-[#00D2FF]/30" style={{ width: size, height: size, fontSize: size * 0.38 }}>
       {name.charAt(0).toUpperCase()}
     </div>
   );
@@ -589,12 +591,12 @@ function Avatar({ name, url, size = 80 }: { name: string; url?: string | null; s
 
 function PageSkeleton() {
   return (
-    <div className="mx-auto max-w-6xl animate-pulse space-y-8 bg-[#f4f7fb] px-4 py-10">
-      <div className="mx-auto h-80 max-w-3xl rounded-3xl bg-white" />
+    <div className="mx-auto max-w-6xl animate-pulse space-y-8 bg-background px-4 py-10">
+      <div className="mx-auto h-80 max-w-3xl rounded-3xl bg-card" />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-white" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-card" />)}
       </div>
-      <div className="h-48 rounded-3xl bg-white" />
+      <div className="h-48 rounded-3xl bg-card" />
     </div>
   );
 }
@@ -612,16 +614,16 @@ function PerformanceResult({ result }: { result: any }) {
   ];
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Pass Status</p>
-        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>
+      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pass Status</p>
+        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-400" : "border-red-400/30 bg-red-400/10 text-red-400"}`}>
           {passed ? "Passed" : "Not Passed"}
         </span>
       </div>
       {rows.map(([label, value]) => (
-        <div key={label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{value}</p>
+        <div key={label} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{value}</p>
         </div>
       ))}
     </div>
@@ -630,37 +632,41 @@ function PerformanceResult({ result }: { result: any }) {
 
 function EducationTimeline({ items }: { items: any[] }) {
   return (
-    <>
+    <div className="relative space-y-4">
+      <div className="absolute left-[1.125rem] top-3 bottom-3 hidden w-px bg-gradient-to-b from-[#7C3AED]/60 via-[#00D2FF]/40 to-transparent sm:block" />
       {items.map((item, index) => (
-        <article key={index} className="card col rounded-2xl border border-slate-200 bg-slate-50 p-5">
-          <h3 className="text-lg font-bold text-slate-900">{fieldValue(item, "institution", "Institution")}</h3>
-          <p className="mt-1 text-sm font-medium text-[#0077b6]">{fieldValue(item, "degree", "Degree")}</p>
-          <p className="text-sm text-slate-600">{fieldValue(item, "courseOfStudy", "CourseOfStudy")}</p>
-          <p className="mt-3 text-xs font-medium text-slate-500">{formatDateRange(item)}</p>
+        <article key={index} className="card col relative rounded-2xl border border-white/10 bg-white/[0.03] p-5 pl-8 transition hover:border-[#7C3AED]/30 hover:shadow-[0_0_20px_rgba(124,58,237,0.08)] sm:pl-10">
+          <span className="absolute left-3 top-6 hidden h-3 w-3 rounded-full border-2 border-[#7C3AED] bg-[#0d1119] shadow-[0_0_10px_rgba(124,58,237,0.45)] sm:block" />
+          <h3 className="text-lg font-bold text-foreground">{fieldValue(item, "institution", "Institution")}</h3>
+          <p className="mt-1 text-sm font-medium text-[#A78BFA]">{fieldValue(item, "degree", "Degree")}</p>
+          <p className="text-sm text-muted-foreground">{fieldValue(item, "courseOfStudy", "CourseOfStudy")}</p>
+          <p className="mt-3 text-xs font-medium text-muted-foreground/80">{formatDateRange(item)}</p>
         </article>
       ))}
-    </>
+    </div>
   );
 }
 
 function ExperienceTimeline({ items }: { items: any[] }) {
   return (
-    <>
+    <div className="relative space-y-4">
+      <div className="absolute left-[1.125rem] top-3 bottom-3 hidden w-px bg-gradient-to-b from-[#00D2FF]/60 via-[#7C3AED]/40 to-transparent sm:block" />
       {items.map((item, index) => {
         const tillDate = Boolean(item?.tillDate ?? item?.TillDate);
         return (
-          <article key={index} className="card col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900">{fieldValue(item, "companyName", "CompanyName", "company")}</h3>
-            <p className="mt-1 text-sm font-medium text-[#0077b6]">{fieldValue(item, "jobRole", "JobRole", "role")}</p>
-            {fieldValue(item, "location", "Location", "", "") !== "—" && <p className="text-sm text-slate-500">{fieldValue(item, "location", "Location")}</p>}
-            <p className="mt-3 text-xs font-medium text-slate-500">{formatDateRange(item, tillDate)}</p>
+          <article key={index} className="card col relative rounded-2xl border border-white/10 bg-card p-6 pl-8 shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:border-[#00D2FF]/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)] sm:pl-10">
+            <span className="absolute left-3 top-7 hidden h-3 w-3 rounded-full border-2 border-[#00D2FF] bg-[#0d1119] shadow-[0_0_10px_rgba(0,210,255,0.45)] sm:block" />
+            <h3 className="text-lg font-bold text-foreground">{fieldValue(item, "companyName", "CompanyName", "company")}</h3>
+            <p className="mt-1 text-sm font-medium text-[#00D2FF]">{fieldValue(item, "jobRole", "JobRole", "role")}</p>
+            {fieldValue(item, "location", "Location", "", "") !== "—" && <p className="text-sm text-muted-foreground">{fieldValue(item, "location", "Location")}</p>}
+            <p className="mt-3 text-xs font-medium text-muted-foreground/80">{formatDateRange(item, tillDate)}</p>
             {fieldValue(item, "jobDescription", "JobDescription", "description", "") !== "—" && (
-              <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-600">{fieldValue(item, "jobDescription", "JobDescription", "description")}</p>
+              <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{fieldValue(item, "jobDescription", "JobDescription", "description")}</p>
             )}
           </article>
         );
       })}
-    </>
+    </div>
   );
 }
 
@@ -672,17 +678,17 @@ function ProjectsGrid({ items }: { items: any[] }) {
         const isVideo = Boolean(item?.isVideo ?? item?.IsVideo);
         const projectUrl = fieldValue(item, "projectUrl", "ProjectUrl", "", "");
         return (
-          <article key={index} className="card col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+          <article key={index} className="card col overflow-hidden rounded-2xl border border-white/10 bg-card shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:border-[#00D2FF]/25 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
             {mediaUrl && (
-              <div className="border-b border-slate-200 bg-slate-100">
+              <div className="border-b border-white/10 bg-black/20">
                 {isVideo ? <video src={mediaUrl} controls className="max-h-52 w-full object-cover" /> : <img src={mediaUrl} alt={fieldValue(item, "projectName", "ProjectName")} className="max-h-52 w-full object-cover" />}
               </div>
             )}
             <div className="p-5">
-              <h3 className="text-lg font-bold text-slate-900">{fieldValue(item, "projectName", "ProjectName")}</h3>
-              <p className="mt-2 text-sm leading-7 text-slate-600">{fieldValue(item, "description", "Description")}</p>
+              <h3 className="text-lg font-bold text-foreground">{fieldValue(item, "projectName", "ProjectName")}</h3>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">{fieldValue(item, "description", "Description")}</p>
               {projectUrl !== "—" && (
-                <a href={projectUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex text-sm font-medium text-[#0077b6] hover:underline">Visit Project</a>
+                <a href={projectUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex text-sm font-medium text-[#00D2FF] transition hover:text-[#00B8DD] hover:underline">Visit Project</a>
               )}
             </div>
           </article>

@@ -74,6 +74,7 @@ const ActivityFeed = lazy(() => import("@/pages/user/ActivityFeed"));
 const SubscriptionSuccess = lazy(() => import("@/pages/user/SubscriptionSuccess"));
 const PortfolioPage = lazy(() => import("@/pages/user/PortfolioPage"));
 const SmartCvPreview = lazy(() => import("@/pages/user/SmartCvPreview"));
+const SmartCvViewerPage = lazy(() => import("@/pages/user/SmartCvViewerPage"));
 const UserMissions = lazy(() => import("@/pages/user/UserMissions"));
 const XPProgress = lazy(() => import("@/pages/user/XPProgress"));
 const VXProgress = lazy(() => import("@/pages/user/VXProgress"));
@@ -208,6 +209,11 @@ function Router() {
       <Route path="/user/portfolio/cv-preview">
         <RequireAuth allow={["User"]}>
           <SmartCvPreview />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/smart-cv/preview">
+        <RequireAuth allow={["User"]}>
+          <SmartCvViewerPage />
         </RequireAuth>
       </Route>
       <Route path="/user/portfolio/:section">
