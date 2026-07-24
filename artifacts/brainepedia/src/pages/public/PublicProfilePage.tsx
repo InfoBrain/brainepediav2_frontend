@@ -3,11 +3,10 @@ import type { ReactNode } from "react";
 import { Link, useParams, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Trophy, Shield, Zap, Globe, Twitter, Linkedin, Link2,
-  Copy, CheckCircle2, ArrowLeft, Star, Target, Medal,
-  Download, BookOpen, Calendar, Award, User, Eye, Loader2,
+  Trophy, Shield, Zap, Linkedin, Link2,
+  Copy, CheckCircle2, ArrowLeft, Target, Medal,
+  Download, BookOpen, User, Eye, Loader2,
   MapPin, Mail, Github, MessageCircle, BadgeCheck, ChevronDown,
-  Briefcase, Sparkles, Code2, Menu, X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
@@ -57,7 +56,6 @@ export default function PublicProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [expandedMission, setExpandedMission] = useState<number | null>(null);
   const [performance, setPerformance] = useState<any | null>(null);
   const [performanceLoading, setPerformanceLoading] = useState(false);
@@ -177,7 +175,6 @@ export default function PublicProfilePage() {
   }, [visibleSections, loading]);
 
   const scrollTo = (id: string) => {
-    setMobileNavOpen(false);
     sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -216,11 +213,11 @@ export default function PublicProfilePage() {
   if (loading) return <PageSkeleton />;
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#080b10] px-4 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#f4f7fb] px-4 text-slate-900">
         <div className="max-w-sm text-center">
-          <User className="mx-auto mb-4 h-16 w-16 text-white/10" />
-          <p className="text-lg font-bold text-white/60">{error}</p>
-          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")} className="mt-6 rounded-xl border border-[#00D2FF]/20 bg-[#00D2FF]/10 px-6 py-2.5 font-mono text-sm text-[#00D2FF] transition hover:bg-[#00D2FF]/20">
+          <User className="mx-auto mb-4 h-16 w-16 text-slate-300" />
+          <p className="text-lg font-bold text-slate-600">{error}</p>
+          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")} className="mt-6 rounded-xl border border-[#0077b6]/20 bg-[#0077b6]/10 px-6 py-2.5 text-sm font-medium text-[#0077b6] transition hover:bg-[#0077b6]/15">
             ← Back to Brainepedia
           </button>
         </div>
@@ -229,290 +226,303 @@ export default function PublicProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080b10] text-white">
-      <div className="pointer-events-none fixed inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgba(0,210,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,255,1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-
-      {/* Sticky navigation */}
-      <nav className="sticky top-0 z-30 border-b border-white/10 bg-[#080b10]/90 backdrop-blur-lg">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <button onClick={() => navigate(getUser() ? "/user/dashboard" : "/")} className="flex items-center gap-2 font-mono text-xs text-white/40 transition hover:text-white/80">
-            <ArrowLeft className="h-4 w-4" /> Brainepedia
+    <div className="min-h-screen bg-[#f4f7fb] text-slate-900">
+      {/* Site header */}
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur-md">
+        <div className="mx-auto max-w-6xl px-4 py-4 text-center">
+          <button
+            onClick={() => navigate(getUser() ? "/user/dashboard" : "/")}
+            className="mb-3 inline-flex items-center gap-2 text-xs font-medium text-slate-500 transition hover:text-slate-800"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Brainepedia
           </button>
-          <div className="hidden items-center gap-1 overflow-x-auto lg:flex">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#0077b6]">Professional Portfolio</p>
+          <h1 className="mt-1 text-lg font-bold text-slate-900 sm:text-xl">{name}</h1>
+        </div>
+        <nav className="border-t border-slate-100">
+          <div className="mx-auto flex max-w-6xl items-center justify-center gap-1 overflow-x-auto px-4 py-2">
             {visibleSections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => scrollTo(section.id)}
-                className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-                  activeSection === section.id ? "bg-[#00D2FF]/15 text-[#00D2FF]" : "text-white/45 hover:text-white/80"
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                  activeSection === section.id
+                    ? "bg-[#0077b6] text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
                 {section.label}
               </button>
             ))}
-            <Link href={virtualSelfUrl} className="whitespace-nowrap rounded-lg border border-[#9D4EDD]/30 bg-[#9D4EDD]/10 px-3 py-1.5 text-xs font-medium text-[#9D4EDD] transition hover:bg-[#9D4EDD]/20">
+            <Link
+              href={virtualSelfUrl}
+              className="whitespace-nowrap rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 px-3 py-1.5 text-xs font-medium text-[#7c3aed] transition hover:bg-[#7c3aed]/15"
+            >
               Chat with Virtual Self
             </Link>
           </div>
-          <button className="rounded-lg p-2 text-white/60 lg:hidden" onClick={() => setMobileNavOpen((open) => !open)} aria-label="Toggle navigation">
-            {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-        <AnimatePresence>
-          {mobileNavOpen && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-white/10 lg:hidden">
-              <div className="flex flex-wrap gap-2 px-4 py-3">
-                {visibleSections.map((section) => (
-                  <button key={section.id} onClick={() => scrollTo(section.id)} className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70">
-                    {section.label}
-                  </button>
-                ))}
-                <Link href={virtualSelfUrl} className="rounded-full border border-[#9D4EDD]/30 bg-[#9D4EDD]/10 px-3 py-1 text-xs text-[#9D4EDD]">
-                  Chat with Virtual Self
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
+        </nav>
+      </header>
 
-      <div className="relative mx-auto max-w-6xl space-y-16 px-4 py-10">
-        {/* Hero */}
-        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="overflow-hidden rounded-3xl border border-[#00D2FF]/15 bg-gradient-to-br from-[#00D2FF]/8 via-[#0d1119] to-[#9D4EDD]/8 p-6 sm:p-10">
-          <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start">
-            <Avatar name={name} url={avatarUrl} size={120} />
-            <div className="flex-1 text-center lg:text-left">
-              <div className="mb-2 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-                {isVerified && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-emerald-300">
-                    <BadgeCheck className="h-3 w-3" /> Verified
-                  </span>
-                )}
-                {subscription && (
-                  <span className="rounded-full border border-[#FFD700]/30 bg-[#FFD700]/10 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-[#FFD700]">
-                    {subscription}
-                  </span>
-                )}
-              </div>
-              <h1 className="text-3xl font-black sm:text-4xl">{name}</h1>
-              {title && <p className="mt-1 text-lg text-white/70">{title}</p>}
-              {rankTitle && title !== rankTitle && <p className="mt-0.5 text-sm font-mono text-[#FFD700]/80">{rankTitle}</p>}
-              {profession && <p className="mt-1 text-sm text-white/45">{profession}</p>}
-              {location && (
-                <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-white/50">
-                  <MapPin className="h-4 w-4 text-[#00D2FF]" /> {location}
-                </p>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
+        {/* Hero — centered */}
+        <section className="card mb-10 overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-12">
+          <div className="mx-auto flex max-w-3xl flex-col items-center">
+            <Avatar name={name} url={avatarUrl} size={128} />
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              {isVerified && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                  <BadgeCheck className="h-3.5 w-3.5" /> Verified
+                </span>
               )}
-              <div className="mt-5 flex flex-wrap justify-center gap-2 lg:justify-start">
-                {vxYears > 0 && <StatPill icon={<Shield className="h-3.5 w-3.5" />} label={`VX ${vxYears.toFixed(1)}`} color="text-[#00D2FF]" />}
-                {totalXP > 0 && <StatPill icon={<Zap className="h-3.5 w-3.5" />} label={`${totalXP.toLocaleString()} XP`} color="text-[#9D4EDD]" />}
-                {rankNum > 0 && <StatPill icon={<Medal className="h-3.5 w-3.5" />} label={`Rank #${rankNum}`} color="text-[#FFD700]" />}
-                {badges.length > 0 && <StatPill icon={<Trophy className="h-3.5 w-3.5" />} label={`${badges.length} Badges`} color="text-white/60" />}
-              </div>
+              {subscription && (
+                <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+                  {subscription}
+                </span>
+              )}
             </div>
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[200px]">
-              <Link href={virtualSelfUrl} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#9D4EDD] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8B35C7]">
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{name}</h2>
+            {title && <p className="mt-2 text-lg text-slate-600">{title}</p>}
+            {rankTitle && title !== rankTitle && <p className="mt-1 text-sm font-medium text-[#0077b6]">{rankTitle}</p>}
+            {profession && <p className="mt-1 text-sm text-slate-500">{profession}</p>}
+            {location && (
+              <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-slate-500">
+                <MapPin className="h-4 w-4 text-[#0077b6]" /> {location}
+              </p>
+            )}
+
+            <div className="mt-6 grid w-full max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
+              {vxYears > 0 && <HeroStat label="Verified Exp." value={`${vxYears.toFixed(1)} yrs`} />}
+              {totalXP > 0 && <HeroStat label="Total XP" value={totalXP.toLocaleString()} />}
+              {rankNum > 0 && <HeroStat label="Global Rank" value={`#${rankNum}`} />}
+              {badges.length > 0 && <HeroStat label="Badges" value={String(badges.length)} />}
+            </div>
+
+            <div className="mt-8 flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:justify-center">
+              <Link
+                href={virtualSelfUrl}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#7c3aed] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6d28d9]"
+              >
                 <MessageCircle className="h-4 w-4" /> Chat with Virtual Self
               </Link>
-              <button onClick={shareProfile} className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm transition hover:bg-white/10">
-                {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-400" /> : <Link2 className="h-4 w-4" />}
+              <button
+                onClick={shareProfile}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Link2 className="h-4 w-4" />}
                 {copied ? "Copied!" : "Share Profile"}
               </button>
-              <button onClick={downloadCvPlaceholder} className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/60 transition hover:bg-white/10">
+              <button
+                onClick={downloadCvPlaceholder}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50"
+              >
                 <Download className="h-4 w-4" /> Download CV
               </button>
             </div>
           </div>
-        </motion.section>
+        </section>
 
-        {/* Overview */}
-        <Section id="overview" title="Overview" icon={<Star className="h-4 w-4 text-[#FFD700]" />} refCb={(el) => { sectionRefs.current.overview = el; }}>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <OverviewCard label="Profession" value={profession || "—"} />
-            <OverviewCard label="Verified Experience" value={vxYears > 0 ? `${vxYears.toFixed(1)} years` : "—"} />
-            <OverviewCard label="Total XP" value={totalXP > 0 ? totalXP.toLocaleString() : "—"} />
-            <OverviewCard label="Missions Completed" value={missions.length > 0 ? String(missions.length) : "—"} />
-          </div>
-          {badges.length > 0 && (
-            <div className="mt-6">
-              <p className="mb-3 text-xs font-mono uppercase tracking-wider text-white/35">Community Highlights</p>
+        <div className="space-y-8">
+          <Section id="overview" title="Overview" refCb={(el) => { sectionRefs.current.overview = el; }}>
+            <div className="row grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <OverviewCard label="Profession" value={profession || "—"} />
+              <OverviewCard label="Verified Experience" value={vxYears > 0 ? `${vxYears.toFixed(1)} years` : "—"} />
+              <OverviewCard label="Total XP" value={totalXP > 0 ? totalXP.toLocaleString() : "—"} />
+              <OverviewCard label="Missions Completed" value={missions.length > 0 ? String(missions.length) : "—"} />
+            </div>
+            {badges.length > 0 && (
+              <div className="mt-6">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Community Highlights</p>
+                <div className="flex flex-wrap gap-2">
+                  {badges.slice(0, 8).map((badge: any, index: number) => (
+                    <span key={index} className="card rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">
+                      {badge?.name || badge?.Name || "Badge"}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Section>
+
+          {personalStatement && (
+            <Section id="about" title="About" refCb={(el) => { sectionRefs.current.about = el; }}>
+              <p className="text-base leading-8 text-slate-600">{personalStatement}</p>
+            </Section>
+          )}
+
+          {experience.length > 0 && (
+            <Section id="experience" title="Experience" refCb={(el) => { sectionRefs.current.experience = el; }}>
+              <div className="row grid grid-cols-1 gap-4">
+                <ExperienceTimeline items={experience} />
+              </div>
+            </Section>
+          )}
+
+          {education.length > 0 && (
+            <Section id="education" title="Education" refCb={(el) => { sectionRefs.current.education = el; }}>
+              <div className="row grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <EducationTimeline items={education} />
+              </div>
+            </Section>
+          )}
+
+          {skills.length > 0 && (
+            <Section id="skills" title="Skills" refCb={(el) => { sectionRefs.current.skills = el; }}>
+              <div className="row grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {skills.map((skill, index) => {
+                  const rating = Math.max(0, Math.min(100, Number(skill?.rating ?? skill?.Rating ?? 0)));
+                  const skillName = fieldValue(skill, "mySkill", "MySkill", "skill", "name", "Skill");
+                  return (
+                    <article key={index} className="card col rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <p className="font-semibold text-slate-900">{skillName}</p>
+                        <span className="text-sm font-bold text-[#0077b6]">{rating}%</span>
+                      </div>
+                      <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${rating}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.8 }}
+                          className="h-full rounded-full bg-gradient-to-r from-[#0077b6] to-[#7c3aed]"
+                        />
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </Section>
+          )}
+
+          {services.length > 0 && (
+            <Section id="services" title="Services" refCb={(el) => { sectionRefs.current.services = el; }}>
+              <div className="row grid grid-cols-1 gap-4 md:grid-cols-2">
+                {services.map((item, index) => (
+                  <article key={index} className="card col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+                    <h3 className="text-lg font-bold text-slate-900">{fieldValue(item, "myServices", "MyServices", "service", "Service", "title")}</h3>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">{fieldValue(item, "description", "Description")}</p>
+                  </article>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {projects.length > 0 && (
+            <Section id="projects" title="Projects" refCb={(el) => { sectionRefs.current.projects = el; }}>
+              <div className="row grid grid-cols-1 gap-4 md:grid-cols-2">
+                <ProjectsGrid items={projects} />
+              </div>
+            </Section>
+          )}
+
+          {interests.length > 0 && (
+            <Section id="interests" title="Interests" refCb={(el) => { sectionRefs.current.interests = el; }}>
               <div className="flex flex-wrap gap-2">
-                {badges.slice(0, 6).map((badge: any, index: number) => (
-                  <span key={index} className="rounded-full border border-[#FFD700]/20 bg-[#FFD700]/8 px-3 py-1 text-xs text-[#FFD700]">
-                    {badge?.name || badge?.Name || "Badge"}
+                {interests.map((interest, index) => (
+                  <span key={index} className="card rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm">
+                    {fieldValue(interest, "interest", "Interest", "name")}
                   </span>
                 ))}
               </div>
-            </div>
+            </Section>
           )}
-        </Section>
 
-        {personalStatement && (
-          <Section id="about" title="About" icon={<User className="h-4 w-4 text-[#00D2FF]" />} refCb={(el) => { sectionRefs.current.about = el; }}>
-            <p className="whitespace-pre-wrap text-sm leading-8 text-white/75">{personalStatement}</p>
-          </Section>
-        )}
-
-        {experience.length > 0 && (
-          <Section id="experience" title="Experience" icon={<Briefcase className="h-4 w-4 text-[#00D2FF]" />} refCb={(el) => { sectionRefs.current.experience = el; }}>
-            <ExperienceTimeline items={experience} />
-          </Section>
-        )}
-
-        {education.length > 0 && (
-          <Section id="education" title="Education" icon={<BookOpen className="h-4 w-4 text-[#FFD700]" />} refCb={(el) => { sectionRefs.current.education = el; }}>
-            <EducationTimeline items={education} />
-          </Section>
-        )}
-
-        {skills.length > 0 && (
-          <Section id="skills" title="Skills" icon={<Star className="h-4 w-4 text-[#9D4EDD]" />} refCb={(el) => { sectionRefs.current.skills = el; }}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {skills.map((skill, index) => {
-                const rating = Math.max(0, Math.min(100, Number(skill?.rating ?? skill?.Rating ?? 0)));
-                const skillName = fieldValue(skill, "mySkill", "MySkill", "skill", "name", "Skill");
-                return (
-                  <article key={index} className="rounded-xl border border-white/6 bg-white/[0.03] p-4">
-                    <div className="mb-2 flex items-center justify-between gap-3">
-                      <p className="font-semibold">{skillName}</p>
-                      <span className="font-mono text-sm text-[#00D2FF]">{rating}%</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-white/5">
-                      <motion.div initial={{ width: 0 }} whileInView={{ width: `${rating}%` }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="h-full rounded-full bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD]" />
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </Section>
-        )}
-
-        {services.length > 0 && (
-          <Section id="services" title="Services" icon={<Sparkles className="h-4 w-4 text-[#FFD700]" />} refCb={(el) => { sectionRefs.current.services = el; }}>
-            <div className="grid gap-4 md:grid-cols-2">
-              {services.map((item, index) => (
-                <article key={index} className="rounded-xl border border-white/6 bg-white/[0.03] p-5 transition hover:border-[#00D2FF]/20">
-                  <h3 className="font-bold">{fieldValue(item, "myServices", "MyServices", "service", "Service", "title")}</h3>
-                  <p className="mt-2 text-sm leading-7 text-white/65">{fieldValue(item, "description", "Description")}</p>
-                </article>
-              ))}
-            </div>
-          </Section>
-        )}
-
-        {projects.length > 0 && (
-          <Section id="projects" title="Projects" icon={<Code2 className="h-4 w-4 text-[#9D4EDD]" />} refCb={(el) => { sectionRefs.current.projects = el; }}>
-            <ProjectsGrid items={projects} />
-          </Section>
-        )}
-
-        {interests.length > 0 && (
-          <Section id="interests" title="Interests" icon={<HeartIcon />} refCb={(el) => { sectionRefs.current.interests = el; }}>
-            <div className="flex flex-wrap gap-2">
-              {interests.map((interest, index) => (
-                <span key={index} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70">
-                  {fieldValue(interest, "interest", "Interest", "name")}
-                </span>
-              ))}
-            </div>
-          </Section>
-        )}
-
-        {missions.length > 0 && (
-          <Section id="missions" title="Mission Achievements" icon={<Target className="h-4 w-4 text-[#9D4EDD]" />} refCb={(el) => { sectionRefs.current.missions = el; }}>
-            <div className="space-y-3">
-              {missions.map((mission, index) => {
-                const mTitle = mission.missionTitle || mission.MissionTitle || mission.title || mission.Title || "Mission";
-                const district = mission.districtName || mission.DistrictName || "—";
-                const prof = mission.professionName || mission.ProfessionName || mission.profession || mission.Profession || profession || "—";
-                const difficulty = mission.difficulty || mission.Difficulty || mission.difficultyLevel || "—";
-                const xp = mission.xpEarned ?? mission.XpEarned ?? mission.xp ?? mission.XP;
-                const score = mission.score ?? mission.Score ?? mission.evaluationScore ?? mission.EvaluationScore;
-                const date = mission.completionDate || mission.CompletionDate || mission.completedAt;
-                const passed = mission.passed ?? mission.Passed ?? mission.isPassed ?? mission.IsPassed;
-                const problemNodeId = mission.problemNodeId || mission.ProblemNodeId || "";
-                const feedback = mission.feedback || mission.Feedback || mission.aiEvaluationSummary || "";
-                const expanded = expandedMission === index;
-                return (
-                  <article key={index} className="overflow-hidden rounded-xl border border-white/6 bg-white/[0.03]">
-                    <button type="button" onClick={() => setExpandedMission(expanded ? null : index)} className="flex w-full items-start gap-4 p-4 text-left transition hover:bg-white/[0.02]">
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold">{mTitle}</p>
-                        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/40">
-                          <span>{district}</span>
-                          <span>{prof}</span>
-                          <span>{difficulty}</span>
-                          {xp != null && <span>{Number(xp).toLocaleString()} XP</span>}
-                          {score != null && <span>{score}% score</span>}
-                          {date && <span>{new Date(date).toLocaleDateString()}</span>}
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        {passed != null && (
-                          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${passed ? "border-emerald-400/30 text-emerald-300" : "border-red-400/30 text-red-300"}`}>
-                            {passed ? "Passed" : "Not Passed"}
-                          </span>
-                        )}
-                        <ChevronDown className={`h-4 w-4 text-white/30 transition ${expanded ? "rotate-180" : ""}`} />
-                      </div>
-                    </button>
-                    <AnimatePresence>
-                      {expanded && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-white/5">
-                          <div className="space-y-3 p-4 pt-2">
-                            {feedback && (
-                              <div className="rounded-lg border border-white/5 bg-black/20 p-3 text-sm text-white/70">
-                                <p className="mb-1 text-[10px] font-mono uppercase tracking-wider text-white/35">Feedback</p>
-                                {feedback}
-                              </div>
-                            )}
-                            {problemNodeId && (
-                              <button onClick={() => viewPerformance(problemNodeId)} className="inline-flex items-center gap-1.5 rounded-lg border border-[#00D2FF]/25 bg-[#00D2FF]/8 px-3 py-1.5 text-xs font-mono text-[#00D2FF] hover:bg-[#00D2FF]/15">
-                                <Eye className="h-3.5 w-3.5" /> View full evaluation
-                              </button>
-                            )}
+          {missions.length > 0 && (
+            <Section id="missions" title="Mission Achievements" refCb={(el) => { sectionRefs.current.missions = el; }}>
+              <div className="row grid grid-cols-1 gap-4">
+                {missions.map((mission, index) => {
+                  const mTitle = mission.missionTitle || mission.MissionTitle || mission.title || mission.Title || "Mission";
+                  const district = mission.districtName || mission.DistrictName || "—";
+                  const prof = mission.professionName || mission.ProfessionName || mission.profession || mission.Profession || profession || "—";
+                  const difficulty = mission.difficulty || mission.Difficulty || mission.difficultyLevel || "—";
+                  const xp = mission.xpEarned ?? mission.XpEarned ?? mission.xp ?? mission.XP;
+                  const score = mission.score ?? mission.Score ?? mission.evaluationScore ?? mission.EvaluationScore;
+                  const date = mission.completionDate || mission.CompletionDate || mission.completedAt;
+                  const passed = mission.passed ?? mission.Passed ?? mission.isPassed ?? mission.IsPassed;
+                  const problemNodeId = mission.problemNodeId || mission.ProblemNodeId || "";
+                  const feedback = mission.feedback || mission.Feedback || mission.aiEvaluationSummary || "";
+                  const expanded = expandedMission === index;
+                  return (
+                    <article key={index} className="card col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                      <button type="button" onClick={() => setExpandedMission(expanded ? null : index)} className="flex w-full items-start gap-4 p-5 text-left transition hover:bg-slate-50">
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-slate-900">{mTitle}</p>
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5">{district}</span>
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5">{prof}</span>
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5">{difficulty}</span>
+                            {xp != null && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">{Number(xp).toLocaleString()} XP</span>}
+                            {score != null && <span className="rounded-full bg-violet-50 px-2 py-0.5 text-violet-700">{score}% score</span>}
+                            {date && <span className="rounded-full bg-slate-100 px-2 py-0.5">{new Date(date).toLocaleDateString()}</span>}
                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </article>
-                );
-              })}
-            </div>
-          </Section>
-        )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {passed != null && (
+                            <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase ${passed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>
+                              {passed ? "Passed" : "Not Passed"}
+                            </span>
+                          )}
+                          <ChevronDown className={`h-4 w-4 text-slate-400 transition ${expanded ? "rotate-180" : ""}`} />
+                        </div>
+                      </button>
+                      <AnimatePresence>
+                        {expanded && (
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-slate-100">
+                            <div className="space-y-3 p-5 pt-3">
+                              {feedback && (
+                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Feedback</p>
+                                  {feedback}
+                                </div>
+                              )}
+                              {problemNodeId && (
+                                <button onClick={() => viewPerformance(problemNodeId)} className="inline-flex items-center gap-1.5 rounded-lg border border-[#0077b6]/20 bg-[#0077b6]/5 px-3 py-2 text-xs font-medium text-[#0077b6] hover:bg-[#0077b6]/10">
+                                  <Eye className="h-3.5 w-3.5" /> View full evaluation
+                                </button>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </article>
+                  );
+                })}
+              </div>
+            </Section>
+          )}
 
-        {(email || linkedIn || github || location) && (
-          <Section id="contact" title="Contact" icon={<Mail className="h-4 w-4 text-[#00D2FF]" />} refCb={(el) => { sectionRefs.current.contact = el; }}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {email && <ContactItem icon={<Mail className="h-4 w-4" />} label="Email" value={email} href={`mailto:${email}`} />}
-              {linkedIn && <ContactItem icon={<Linkedin className="h-4 w-4" />} label="LinkedIn" value={linkedIn} href={linkedIn.startsWith("http") ? linkedIn : `https://${linkedIn}`} />}
-              {github && <ContactItem icon={<Github className="h-4 w-4" />} label="GitHub" value={github} href={github.startsWith("http") ? github : `https://${github}`} />}
-              {location && <ContactItem icon={<MapPin className="h-4 w-4" />} label="Location" value={location} />}
-            </div>
-          </Section>
-        )}
+          {(email || linkedIn || github || location) && (
+            <Section id="contact" title="Contact" refCb={(el) => { sectionRefs.current.contact = el; }}>
+              <div className="row grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {email && <ContactItem icon={<Mail className="h-5 w-5" />} label="Email" value={email} href={`mailto:${email}`} />}
+                {linkedIn && <ContactItem icon={<Linkedin className="h-5 w-5" />} label="LinkedIn" value={linkedIn} href={linkedIn.startsWith("http") ? linkedIn : `https://${linkedIn}`} />}
+                {github && <ContactItem icon={<Github className="h-5 w-5" />} label="GitHub" value={github} href={github.startsWith("http") ? github : `https://${github}`} />}
+                {location && <ContactItem icon={<MapPin className="h-5 w-5" />} label="Location" value={location} />}
+              </div>
+            </Section>
+          )}
+        </div>
 
-        <footer className="border-t border-white/5 pt-8 text-center">
-          <p className="font-mono text-[10px] text-white/15">
-            Powered by <a href="https://demo.brainepedia.com" className="text-[#00D2FF]/40 hover:text-[#00D2FF]/70">Brainepedia</a> · AI-Powered Career Growth Platform
+        <footer className="mt-12 border-t border-slate-200 pt-8 text-center">
+          <p className="text-xs text-slate-400">
+            Powered by <a href="https://demo.brainepedia.com" className="font-medium text-[#0077b6] hover:underline">Brainepedia</a> · AI-Powered Career Growth Platform
           </p>
         </footer>
-      </div>
+      </main>
 
       <Dialog open={Boolean(performance) || performanceLoading || Boolean(performanceError)} onOpenChange={(open) => { if (!open) { setPerformance(null); setPerformanceError(""); } }}>
-        <DialogContent className="max-w-2xl border border-white/10 bg-[#0d1119] text-white">
+        <DialogContent className="max-w-2xl border border-slate-200 bg-white text-slate-900">
           <DialogHeader>
             <DialogTitle>Mission Performance</DialogTitle>
             <DialogDescription>Evaluation result for this completed mission.</DialogDescription>
           </DialogHeader>
           {performanceLoading ? (
-            <div className="flex items-center justify-center gap-3 rounded-xl border border-white/5 py-16 text-sm text-white/40">
-              <Loader2 className="h-5 w-5 animate-spin text-[#00D2FF]" /> Loading mission performance...
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-slate-200 py-16 text-sm text-slate-500">
+              <Loader2 className="h-5 w-5 animate-spin text-[#0077b6]" /> Loading mission performance...
             </div>
           ) : performanceError ? (
-            <div className="rounded-xl border border-red-400/30 bg-red-400/10 p-5 text-sm text-red-200">{performanceError}</div>
+            <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{performanceError}</div>
           ) : performance ? (
             <PerformanceResult result={performance} />
           ) : null}
@@ -522,55 +532,56 @@ export default function PublicProfilePage() {
   );
 }
 
-function Section({ id, title, icon, children, refCb }: { id: string; title: string; icon: ReactNode; children: ReactNode; refCb: (el: HTMLElement | null) => void }) {
+function Section({ id, title, children, refCb }: { id: string; title: string; children: ReactNode; refCb: (el: HTMLElement | null) => void }) {
   return (
-    <motion.section id={id} ref={refCb} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.4 }} className="scroll-mt-28">
-      <h2 className="mb-5 flex items-center gap-2 text-sm font-mono uppercase tracking-[0.2em] text-white/35">
-        {icon} {title}
-      </h2>
-      <div className="rounded-2xl border border-white/6 bg-[#0d1119]/80 p-5 sm:p-6">{children}</div>
+    <motion.section id={id} ref={refCb} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.4 }} className="scroll-mt-36">
+      <div className="card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <h2 className="mb-6 text-center text-xl font-bold text-slate-900 sm:text-2xl">{title}</h2>
+        {children}
+      </div>
     </motion.section>
   );
 }
 
 function OverviewCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/6 bg-white/[0.03] p-4">
-      <p className="text-[10px] font-mono uppercase tracking-wider text-white/30">{label}</p>
-      <p className="mt-2 text-lg font-bold text-[#00D2FF]">{value}</p>
+    <div className="card col rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="mt-2 text-xl font-bold text-[#0077b6]">{value}</p>
     </div>
   );
 }
 
-function StatPill({ icon, label, color }: { icon: ReactNode; label: string; color: string }) {
+function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-mono ${color}`}>
-      {icon} {label}
-    </span>
+    <div className="card rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="mt-1 text-lg font-bold text-slate-900">{value}</p>
+    </div>
   );
 }
 
 function ContactItem({ icon, label, value, href }: { icon: ReactNode; label: string; value: string; href?: string }) {
   const content = (
-    <div className="flex items-start gap-3 rounded-xl border border-white/6 bg-white/[0.03] p-4 transition hover:border-[#00D2FF]/20">
-      <span className="text-[#00D2FF]">{icon}</span>
+    <div className="card col flex h-full items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-5 transition hover:border-[#0077b6]/30 hover:shadow-sm">
+      <span className="text-[#0077b6]">{icon}</span>
       <div>
-        <p className="text-[10px] font-mono uppercase tracking-wider text-white/30">{label}</p>
-        <p className="mt-1 text-sm break-all text-white/75">{value}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="mt-1 text-sm break-all text-slate-700">{value}</p>
       </div>
     </div>
   );
-  if (href) return <a href={href} target="_blank" rel="noreferrer" className="block">{content}</a>;
+  if (href) return <a href={href} target="_blank" rel="noreferrer" className="block h-full">{content}</a>;
   return content;
 }
 
 function Avatar({ name, url, size = 80 }: { name: string; url?: string | null; size?: number }) {
   const [err, setErr] = useState(false);
   if (url && !err) {
-    return <img src={url} alt={name} onError={() => setErr(true)} className="rounded-2xl border-2 border-[#00D2FF]/40 object-cover shadow-[0_0_28px_rgba(0,210,255,0.2)]" style={{ width: size, height: size }} />;
+    return <img src={url} alt={name} onError={() => setErr(true)} className="rounded-full border-4 border-white object-cover shadow-lg ring-2 ring-[#0077b6]/20" style={{ width: size, height: size }} />;
   }
   return (
-    <div className="flex items-center justify-center rounded-2xl border-2 border-[#00D2FF]/40 bg-gradient-to-br from-[#7C3AED] to-[#00D2FF] font-bold text-white shadow-[0_0_28px_rgba(0,210,255,0.2)]" style={{ width: size, height: size, fontSize: size * 0.38 }}>
+    <div className="flex items-center justify-center rounded-full bg-gradient-to-br from-[#0077b6] to-[#7c3aed] font-bold text-white shadow-lg ring-2 ring-[#0077b6]/20" style={{ width: size, height: size, fontSize: size * 0.38 }}>
       {name.charAt(0).toUpperCase()}
     </div>
   );
@@ -578,12 +589,12 @@ function Avatar({ name, url, size = 80 }: { name: string; url?: string | null; s
 
 function PageSkeleton() {
   return (
-    <div className="mx-auto max-w-6xl animate-pulse space-y-8 px-4 py-10">
-      <div className="h-64 rounded-3xl bg-white/5" />
+    <div className="mx-auto max-w-6xl animate-pulse space-y-8 bg-[#f4f7fb] px-4 py-10">
+      <div className="mx-auto h-80 max-w-3xl rounded-3xl bg-white" />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-xl bg-white/5" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-white" />)}
       </div>
-      <div className="h-48 rounded-2xl bg-white/5" />
+      <div className="h-48 rounded-3xl bg-white" />
     </div>
   );
 }
@@ -601,16 +612,16 @@ function PerformanceResult({ result }: { result: any }) {
   ];
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] p-4">
-        <p className="text-xs font-mono uppercase tracking-wider text-white/35">Pass Status</p>
-        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" : "border-red-400/40 bg-red-400/10 text-red-300"}`}>
+      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Pass Status</p>
+        <span className={`rounded-full border px-3 py-1 text-xs font-bold ${passed ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-red-200 bg-red-50 text-red-700"}`}>
           {passed ? "Passed" : "Not Passed"}
         </span>
       </div>
       {rows.map(([label, value]) => (
-        <div key={label} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
-          <p className="text-xs font-mono uppercase tracking-wider text-white/35">{label}</p>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-white/85">{value}</p>
+        <div key={label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+          <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{value}</p>
         </div>
       ))}
     </div>
@@ -619,74 +630,66 @@ function PerformanceResult({ result }: { result: any }) {
 
 function EducationTimeline({ items }: { items: any[] }) {
   return (
-    <div className="space-y-4">
+    <>
       {items.map((item, index) => (
-        <article key={index} className="relative rounded-xl border border-white/6 bg-white/[0.03] p-4 pl-6">
-          <span className="absolute left-3 top-5 h-full w-px bg-[#FFD700]/20" />
-          <span className="absolute left-2.5 top-5 h-2 w-2 rounded-full bg-[#FFD700]" />
-          <h3 className="font-bold">{fieldValue(item, "institution", "Institution")}</h3>
-          <p className="mt-1 text-sm text-[#FFD700]/80">{fieldValue(item, "degree", "Degree")}</p>
-          <p className="text-sm text-white/60">{fieldValue(item, "courseOfStudy", "CourseOfStudy")}</p>
-          <p className="mt-2 font-mono text-xs text-white/35">{formatDateRange(item)}</p>
+        <article key={index} className="card col rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <h3 className="text-lg font-bold text-slate-900">{fieldValue(item, "institution", "Institution")}</h3>
+          <p className="mt-1 text-sm font-medium text-[#0077b6]">{fieldValue(item, "degree", "Degree")}</p>
+          <p className="text-sm text-slate-600">{fieldValue(item, "courseOfStudy", "CourseOfStudy")}</p>
+          <p className="mt-3 text-xs font-medium text-slate-500">{formatDateRange(item)}</p>
         </article>
       ))}
-    </div>
+    </>
   );
 }
 
 function ExperienceTimeline({ items }: { items: any[] }) {
   return (
-    <div className="space-y-4">
+    <>
       {items.map((item, index) => {
         const tillDate = Boolean(item?.tillDate ?? item?.TillDate);
         return (
-          <article key={index} className="relative rounded-xl border border-white/6 bg-white/[0.03] p-4 pl-6">
-            <span className="absolute left-3 top-5 h-full w-px bg-[#00D2FF]/20" />
-            <span className="absolute left-2.5 top-5 h-2 w-2 rounded-full bg-[#00D2FF]" />
-            <h3 className="font-bold">{fieldValue(item, "companyName", "CompanyName", "company")}</h3>
-            <p className="mt-1 text-sm text-[#00D2FF]/80">{fieldValue(item, "jobRole", "JobRole", "role")}</p>
-            {fieldValue(item, "location", "Location", "", "") !== "—" && <p className="text-sm text-white/50">{fieldValue(item, "location", "Location")}</p>}
-            <p className="mt-2 font-mono text-xs text-white/35">{formatDateRange(item, tillDate)}</p>
+          <article key={index} className="card col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-slate-900">{fieldValue(item, "companyName", "CompanyName", "company")}</h3>
+            <p className="mt-1 text-sm font-medium text-[#0077b6]">{fieldValue(item, "jobRole", "JobRole", "role")}</p>
+            {fieldValue(item, "location", "Location", "", "") !== "—" && <p className="text-sm text-slate-500">{fieldValue(item, "location", "Location")}</p>}
+            <p className="mt-3 text-xs font-medium text-slate-500">{formatDateRange(item, tillDate)}</p>
             {fieldValue(item, "jobDescription", "JobDescription", "description", "") !== "—" && (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-white/70">{fieldValue(item, "jobDescription", "JobDescription", "description")}</p>
+              <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-600">{fieldValue(item, "jobDescription", "JobDescription", "description")}</p>
             )}
           </article>
         );
       })}
-    </div>
+    </>
   );
 }
 
 function ProjectsGrid({ items }: { items: any[] }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <>
       {items.map((item, index) => {
         const mediaUrl = item?.projectFileUrl ?? item?.ProjectFileUrl ?? item?.imageUrl ?? item?.ImageUrl;
         const isVideo = Boolean(item?.isVideo ?? item?.IsVideo);
         const projectUrl = fieldValue(item, "projectUrl", "ProjectUrl", "", "");
         return (
-          <article key={index} className="overflow-hidden rounded-xl border border-white/6 bg-white/[0.03] transition hover:border-[#9D4EDD]/25">
+          <article key={index} className="card col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
             {mediaUrl && (
-              <div className="border-b border-white/6 bg-black/20">
-                {isVideo ? <video src={mediaUrl} controls className="max-h-48 w-full object-cover" /> : <img src={mediaUrl} alt={fieldValue(item, "projectName", "ProjectName")} className="max-h-48 w-full object-cover" />}
+              <div className="border-b border-slate-200 bg-slate-100">
+                {isVideo ? <video src={mediaUrl} controls className="max-h-52 w-full object-cover" /> : <img src={mediaUrl} alt={fieldValue(item, "projectName", "ProjectName")} className="max-h-52 w-full object-cover" />}
               </div>
             )}
-            <div className="p-4">
-              <h3 className="font-bold">{fieldValue(item, "projectName", "ProjectName")}</h3>
-              <p className="mt-2 text-sm leading-7 text-white/70">{fieldValue(item, "description", "Description")}</p>
+            <div className="p-5">
+              <h3 className="text-lg font-bold text-slate-900">{fieldValue(item, "projectName", "ProjectName")}</h3>
+              <p className="mt-2 text-sm leading-7 text-slate-600">{fieldValue(item, "description", "Description")}</p>
               {projectUrl !== "—" && (
-                <a href={projectUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs text-[#00D2FF] hover:underline">Visit Project</a>
+                <a href={projectUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex text-sm font-medium text-[#0077b6] hover:underline">Visit Project</a>
               )}
             </div>
           </article>
         );
       })}
-    </div>
+    </>
   );
-}
-
-function HeartIcon() {
-  return <span className="text-[#00D2FF]">♥</span>;
 }
 
 function textOf(value: unknown, fallback = "—"): string {
