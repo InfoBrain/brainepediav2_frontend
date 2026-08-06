@@ -86,6 +86,8 @@ const DistrictMap = lazy(() => import("@/pages/profession/DistrictMap"));
 const MissionListPage = lazy(() => import("@/pages/app/MissionListPage"));
 const MissionDetailPage = lazy(() => import("@/pages/app/MissionDetailPage"));
 const SolvePage = lazy(() => import("@/pages/app/SolvePage"));
+const MissionWorkspacePage = lazy(() => import("@/pages/app/MissionWorkspacePage"));
+const MissionReflectionPage = lazy(() => import("@/pages/app/MissionReflectionPage"));
 const EvaluationPage = lazy(() => import("@/pages/app/EvaluationPage"));
 const ResultPage = lazy(() => import("@/pages/app/ResultPage"));
 const MissionEvaluatingPage = lazy(() => import("@/pages/app/MissionEvaluatingPage"));
@@ -489,6 +491,11 @@ function Router() {
           <MissionDetailPage />
         </RequireAuth>
       </Route>
+      <Route path="/app/session/:sessionId/workspace">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <MissionWorkspacePage />
+        </RequireAuth>
+      </Route>
       <Route path="/app/session/:sessionId/solve">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <SolvePage />
@@ -512,6 +519,11 @@ function Router() {
       <Route path="/mission/results/:sessionId">
         <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
           <MissionResultPage />
+        </RequireAuth>
+      </Route>
+      <Route path="/mission/reflection/:sessionId">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <MissionReflectionPage />
         </RequireAuth>
       </Route>
       <Route path="/missions/node-results/:problemNodeId">

@@ -386,13 +386,74 @@ function XpRewardCard({ xp, passed }: { xp: number; passed: boolean }) {
   );
 }
 
+/* ── Client acceptance badge ── */
+function ClientAcceptanceBadge({ acceptance, recommendation }: { acceptance?: string; recommendation?: string }) {
+  if (!acceptance && !recommendation) return null;
+  const color =
+    acceptance === "YES" ? "#00FF88" : acceptance === "PARTIALLY" ? "#FFD700" : "#FF6B6B";
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.55 }}
+      className="rounded-2xl border p-5 space-y-2"
+      style={{
+        borderColor: `${color}40`,
+        backgroundColor: `${color}08`,
+      }}
+    >
+      <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Client review</p>
+      {acceptance && (
+        <p className="text-lg font-bold font-mono" style={{ color }}>
+          Acceptance: {acceptance}
+        </p>
+      )}
+      {recommendation && (
+        <p className="text-sm text-white/60 leading-relaxed">{recommendation}</p>
+      )}
+    </motion.div>
+  );
+}
+
+/* ── Journey scores grid ── */
+function JourneyScoresGrid({
+  scores,
+}: {
+  scores: Array<{ label: string; value?: number }>;
+}) {
+  const visible = scores.filter((s) => s.value != null && s.value > 0);
+  if (!visible.length) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.6 }}
+      className="rounded-2xl border border-white/10 bg-white/[0.02] p-5"
+    >
+      <p className="text-[10px] font-mono text-white/35 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <Target className="w-3.5 h-3.5" /> Journey scores
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {visible.map((s) => (
+          <div key={s.label} className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
+            <p className="text-[9px] font-mono text-white/35 uppercase">{s.label}</p>
+            <p className="text-lg font-bold font-mono text-[#00D2FF]">{s.value}%</p>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 /* ── Action Buttons ── */
 function MissionResultActions({
   passed,
   sessionId,
+  requiresReflection,
 }: {
   passed: boolean;
   sessionId: string;
+  requiresReflection?: boolean;
 }) {
   const [, navigate] = useLocation();
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";
@@ -404,6 +465,15 @@ function MissionResultActions({
       transition={{ delay: 0.85 }}
       className="space-y-3"
     >
+      {requiresReflection && (
+        <button
+          onClick={() => navigate(`/mission/reflection/${sessionId}`)}
+          className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold font-mono text-sm border border-[#9D4EDD]/35 bg-[#9D4EDD]/10 text-[#9D4EDD] hover:bg-[#9D4EDD]/20 transition-all"
+        >
+          <Sparkles className="w-4 h-4" />
+          Complete reflection (required)
+        </button>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Primary CTA */}
         <button
@@ -499,12 +569,28 @@ interface EvalData {
   weaknesses: string[];
   positiveFeedback: string[];
   improvementAreas: string[];
+  missingRequirements: string[];
+  riskAssessment: string[];
   rawAiReasoning: string;
   missionTitle: string;
   netXpGained: number;
+  clientAcceptance?: string;
+  finalRecommendation?: string;
+  confidenceScore?: number;
+  practicalityScore?: number;
+  professionalismScore?: number;
+  communicationScore?: number;
+  creativityScore?: number;
+  planningScore?: number;
+  improvementScore?: number;
+  mentoringScore?: number;
+  taskCompletionScore?: number;
+  evidenceScore?: number;
+  requiresReflection?: boolean;
 }
 
 function buildEvalData(apiData: EvaluationResult, cachedXp: number, cachedTitle: string): EvalData {
+  const xp = Number(apiData.netXpGained ?? cachedXp ?? 0);
   return {
     score: Number(apiData.score ?? 0),
     isPassed: Boolean(apiData.isPassed),
@@ -512,9 +598,24 @@ function buildEvalData(apiData: EvaluationResult, cachedXp: number, cachedTitle:
     weaknesses: toLines(apiData.weaknesses),
     positiveFeedback: toLines(apiData.positiveFeedback),
     improvementAreas: toLines(apiData.improvementAreas),
+    missingRequirements: toLines(apiData.missingRequirements),
+    riskAssessment: toLines(apiData.riskAssessment),
     rawAiReasoning: String(apiData.rawAiReasoning || ""),
     missionTitle: String(apiData.missionTitle || cachedTitle || "Mission"),
-    netXpGained: cachedXp,
+    netXpGained: xp,
+    clientAcceptance: apiData.clientAcceptance,
+    finalRecommendation: apiData.finalRecommendation,
+    confidenceScore: apiData.confidenceScore,
+    practicalityScore: apiData.practicalityScore,
+    professionalismScore: apiData.professionalismScore,
+    communicationScore: apiData.communicationScore,
+    creativityScore: apiData.creativityScore,
+    planningScore: apiData.planningScore,
+    improvementScore: apiData.improvementScore,
+    mentoringScore: apiData.mentoringScore,
+    taskCompletionScore: apiData.taskCompletionScore,
+    evidenceScore: apiData.evidenceScore,
+    requiresReflection: apiData.requiresReflection,
   };
 }
 
@@ -547,9 +648,14 @@ export default function MissionResultPage() {
         weaknesses: toLines(fd.weaknesses),
         positiveFeedback: toLines(fd.positiveFeedback),
         improvementAreas: toLines(fd.improvementAreas),
+        missingRequirements: toLines(fd.missingRequirements),
+        riskAssessment: toLines(fd.riskAssessment),
         rawAiReasoning: "",
         missionTitle: cachedTitle || "Mission",
         netXpGained: cachedXp,
+        clientAcceptance: cached.clientAcceptance,
+        finalRecommendation: cached.finalRecommendation,
+        requiresReflection: cached.requiresReflection,
       });
     }
 
@@ -633,7 +739,20 @@ export default function MissionResultPage() {
 
   if (!evalData) return null;
 
-  const { score, isPassed, strengths, weaknesses, positiveFeedback, improvementAreas, rawAiReasoning, missionTitle, netXpGained } = evalData;
+  const { score, isPassed, strengths, weaknesses, positiveFeedback, improvementAreas, missingRequirements, riskAssessment, rawAiReasoning, missionTitle, netXpGained, clientAcceptance, finalRecommendation, confidenceScore, practicalityScore, professionalismScore, communicationScore, creativityScore, planningScore, improvementScore, mentoringScore, taskCompletionScore, evidenceScore, requiresReflection } = evalData;
+
+  const journeyScores = [
+    { label: "Planning", value: planningScore },
+    { label: "Mentoring", value: mentoringScore },
+    { label: "Evidence", value: evidenceScore },
+    { label: "Task completion", value: taskCompletionScore },
+    { label: "Communication", value: communicationScore },
+    { label: "Professionalism", value: professionalismScore },
+    { label: "Practicality", value: practicalityScore },
+    { label: "Creativity", value: creativityScore },
+    { label: "Confidence", value: confidenceScore },
+    { label: "Improvement", value: improvementScore },
+  ];
 
   const feedbackCards: FeedbackCardConfig[] = [
     {
@@ -671,6 +790,24 @@ export default function MissionResultPage() {
       borderColor: "rgba(255,215,0,0.25)",
       bgColor: "rgba(255,215,0,0.05)",
       glowColor: "rgba(255,215,0,0.06)",
+    },
+    {
+      title: "Missing Requirements",
+      icon: <AlertTriangle className="w-4 h-4 text-orange-400" />,
+      lines: missingRequirements,
+      color: "#FF8C42",
+      borderColor: "rgba(255,140,66,0.25)",
+      bgColor: "rgba(255,140,66,0.05)",
+      glowColor: "rgba(255,140,66,0.06)",
+    },
+    {
+      title: "Risk Assessment",
+      icon: <Shield className="w-4 h-4 text-red-400" />,
+      lines: riskAssessment,
+      color: "#FF6B6B",
+      borderColor: "rgba(255,107,107,0.25)",
+      bgColor: "rgba(255,107,107,0.05)",
+      glowColor: "rgba(255,107,107,0.06)",
     },
   ];
 
@@ -814,6 +951,10 @@ export default function MissionResultPage() {
         {/* ── XP REWARD ── */}
         <XpRewardCard xp={netXpGained} passed={isPassed} />
 
+        <ClientAcceptanceBadge acceptance={clientAcceptance} recommendation={finalRecommendation} />
+
+        <JourneyScoresGrid scores={journeyScores} />
+
         {/* ── FEEDBACK CARDS ── */}
         {feedbackCards.some(c => c.lines.length > 0) && (
           <div>
@@ -823,7 +964,7 @@ export default function MissionResultPage() {
               transition={{ delay: 0.5 }}
               className="text-xs font-mono text-white/30 uppercase tracking-widest mb-4 flex items-center gap-2"
             >
-              <TrendingUp className="w-3.5 h-3.5" /> Brainiac Feedback
+              <TrendingUp className="w-3.5 h-3.5" /> Team lead feedback
             </motion.p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {feedbackCards.map((card, i) => (
@@ -837,7 +978,7 @@ export default function MissionResultPage() {
         <BrainiacAnalysisPanel rawReasoning={rawAiReasoning} />
 
         {/* ── ACTIONS ── */}
-        <MissionResultActions passed={isPassed} sessionId={sessionId} />
+        <MissionResultActions passed={isPassed} sessionId={sessionId} requiresReflection={requiresReflection} />
 
         {/* Footer */}
         <motion.p

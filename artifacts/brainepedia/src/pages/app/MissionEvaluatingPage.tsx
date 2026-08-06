@@ -2,18 +2,18 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, RefreshCw, Cpu } from "lucide-react";
-import { processEvaluation, cacheEvalBySession } from "@/lib/evaluationService";
+import { processEvaluation, cacheEvalBySession, getCachedEvalBySession } from "@/lib/evaluationService";
 import { api } from "@/lib/api";
 
 const PHASES = [
-  "Brainiac is analyzing your architecture…",
-  "Validating task requirements…",
-  "Evaluating problem-solving patterns…",
+  "Your team lead is reviewing your deliverable…",
+  "Checking requirements against the brief…",
+  "Evaluating approach and execution…",
+  "Reviewing evidence and documentation…",
+  "Assessing planning and mentoring journey…",
   "Computing XP rewards…",
-  "Cross-referencing expected outcomes…",
-  "Measuring quality & structure…",
-  "Scanning for edge case coverage…",
-  "Finalizing your score…",
+  "Preparing client-style feedback…",
+  "Finalizing recommendation…",
 ];
 
 const MIN_MS = 7500;
@@ -197,6 +197,9 @@ export default function MissionEvaluatingPage() {
         netXpGained: result.data.netXpGained,
         missionTitle: result.data.missionTitle,
         feedback: result.data.feedback,
+        requiresReflection: result.data.requiresReflection,
+        clientAcceptance: result.data.clientAcceptance,
+        finalRecommendation: result.data.finalRecommendation,
       });
       doneRef.current = true;
     } else {
@@ -251,7 +254,12 @@ export default function MissionEvaluatingPage() {
   useEffect(() => {
     if (progress < 100) return;
     const timer = setTimeout(() => {
-      navigate(`/mission/results/${sessionId}`);
+      const cached = getCachedEvalBySession(sessionId);
+      if (cached?.requiresReflection) {
+        navigate(`/mission/reflection/${sessionId}`);
+      } else {
+        navigate(`/mission/results/${sessionId}`);
+      }
     }, 600);
     return () => clearTimeout(timer);
   }, [progress, sessionId, navigate]);
@@ -302,7 +310,7 @@ export default function MissionEvaluatingPage() {
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            Brainiac · Evaluation Engine
+            Brainiac · Technical Review
           </motion.p>
 
           <AnimatePresence>
