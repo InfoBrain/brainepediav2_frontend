@@ -1,18 +1,7 @@
 import { api } from "./api";
+import type { ExtendedEvaluationFeedback, ExtendedProcessResult } from "./missionExecutionTypes";
 
-export interface ProcessResult {
-  evaluationId?: string;
-  score: number;
-  isPassed: boolean;
-  feedback?: {
-    positiveFeedback?: string;
-    improvementAreas?: string;
-    strengths?: string;
-    weaknesses?: string;
-  };
-  netXpGained?: number;
-  missionTitle?: string;
-}
+export interface ProcessResult extends ExtendedProcessResult {}
 
 export interface EvaluationResult {
   score: number;
@@ -21,8 +10,63 @@ export interface EvaluationResult {
   improvementAreas?: string | string[];
   strengths?: string | string[];
   weaknesses?: string | string[];
+  missingRequirements?: string | string[];
+  riskAssessment?: string | string[];
   rawAiReasoning?: string;
   missionTitle?: string;
+  clientAcceptance?: string;
+  finalRecommendation?: string;
+  confidenceScore?: number;
+  practicalityScore?: number;
+  professionalismScore?: number;
+  communicationScore?: number;
+  creativityScore?: number;
+  planningScore?: number;
+  improvementScore?: number;
+  mentoringScore?: number;
+  taskCompletionScore?: number;
+  evidenceScore?: number;
+  requiresReflection?: boolean;
+  netXpGained?: number;
+}
+
+function normFeedback(raw: unknown): ExtendedEvaluationFeedback | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const d = raw as Record<string, unknown>;
+  const pick = (key: string) => d[key] ?? d[key.charAt(0).toUpperCase() + key.slice(1)];
+  return {
+    positiveFeedback: pick("positiveFeedback") as ExtendedEvaluationFeedback["positiveFeedback"],
+    improvementAreas: pick("improvementAreas") as ExtendedEvaluationFeedback["improvementAreas"],
+    strengths: pick("strengths") as ExtendedEvaluationFeedback["strengths"],
+    weaknesses: pick("weaknesses") as ExtendedEvaluationFeedback["weaknesses"],
+    missingRequirements: pick("missingRequirements") as string[] | undefined,
+    riskAssessment: pick("riskAssessment") as string[] | undefined,
+  };
+}
+
+function normProcessResult(raw: unknown): ProcessResult {
+  const d = (raw ?? {}) as Record<string, unknown>;
+  return {
+    evaluationId: String(d.evaluationId ?? d.EvaluationId ?? "") || undefined,
+    score: Number(d.score ?? d.Score ?? 0),
+    isPassed: Boolean(d.isPassed ?? d.IsPassed),
+    feedback: normFeedback(d.feedback ?? d.Feedback),
+    clientAcceptance: String(d.clientAcceptance ?? d.ClientAcceptance ?? "") || undefined,
+    finalRecommendation: String(d.finalRecommendation ?? d.FinalRecommendation ?? "") || undefined,
+    confidenceScore: Number(d.confidenceScore ?? d.ConfidenceScore ?? 0) || undefined,
+    practicalityScore: Number(d.practicalityScore ?? d.PracticalityScore ?? 0) || undefined,
+    professionalismScore: Number(d.professionalismScore ?? d.ProfessionalismScore ?? 0) || undefined,
+    communicationScore: Number(d.communicationScore ?? d.CommunicationScore ?? 0) || undefined,
+    creativityScore: Number(d.creativityScore ?? d.CreativityScore ?? 0) || undefined,
+    planningScore: Number(d.planningScore ?? d.PlanningScore ?? 0) || undefined,
+    improvementScore: Number(d.improvementScore ?? d.ImprovementScore ?? 0) || undefined,
+    mentoringScore: Number(d.mentoringScore ?? d.MentoringScore ?? 0) || undefined,
+    taskCompletionScore: Number(d.taskCompletionScore ?? d.TaskCompletionScore ?? 0) || undefined,
+    evidenceScore: Number(d.evidenceScore ?? d.EvidenceScore ?? 0) || undefined,
+    requiresReflection: Boolean(d.requiresReflection ?? d.RequiresReflection),
+    netXpGained: Number(d.netXpGained ?? d.NetXpGained ?? 0) || undefined,
+    missionTitle: String(d.missionTitle ?? d.MissionTitle ?? "") || undefined,
+  };
 }
 
 const SESSION_CACHE_KEY = (id: string) => `brainepedia:eval_session:${id}`;
@@ -53,7 +97,7 @@ export async function processEvaluation(
     const res = await api.evaluations.process(submissionId);
 
     if (res.ok) {
-      return { ok: true, data: res.data as ProcessResult };
+      return { ok: true, data: normProcessResult(res.data) };
     }
 
     if (res.status === 401) {
@@ -83,6 +127,37 @@ function isNotFoundResponse(res: { ok: boolean; data?: any; error?: string; stat
   return NOT_FOUND_PHRASES.some(p => msg.includes(p));
 }
 
+function normEvaluationResult(raw: unknown): EvaluationResult {
+  const d = (raw ?? {}) as Record<string, unknown>;
+  const fb = (d.feedback ?? d.Feedback ?? {}) as Record<string, unknown>;
+  return {
+    score: Number(d.score ?? d.Score ?? 0),
+    isPassed: Boolean(d.isPassed ?? d.IsPassed),
+    positiveFeedback: (d.positiveFeedback ?? d.PositiveFeedback ?? fb.positiveFeedback ?? fb.PositiveFeedback) as EvaluationResult["positiveFeedback"],
+    improvementAreas: (d.improvementAreas ?? d.ImprovementAreas ?? fb.improvementAreas ?? fb.ImprovementAreas) as EvaluationResult["improvementAreas"],
+    strengths: (d.strengths ?? d.Strengths ?? fb.strengths ?? fb.Strengths) as EvaluationResult["strengths"],
+    weaknesses: (d.weaknesses ?? d.Weaknesses ?? fb.weaknesses ?? fb.Weaknesses) as EvaluationResult["weaknesses"],
+    missingRequirements: (fb.missingRequirements ?? fb.MissingRequirements ?? d.missingRequirements ?? d.MissingRequirements) as EvaluationResult["missingRequirements"],
+    riskAssessment: (fb.riskAssessment ?? fb.RiskAssessment ?? d.riskAssessment ?? d.RiskAssessment) as EvaluationResult["riskAssessment"],
+    rawAiReasoning: String(d.rawAiReasoning ?? d.RawAiReasoning ?? d.reasoning ?? d.Reasoning ?? ""),
+    missionTitle: String(d.missionTitle ?? d.MissionTitle ?? ""),
+    clientAcceptance: String(d.clientAcceptance ?? d.ClientAcceptance ?? "") || undefined,
+    finalRecommendation: String(d.finalRecommendation ?? d.FinalRecommendation ?? "") || undefined,
+    confidenceScore: Number(d.confidenceScore ?? d.ConfidenceScore ?? 0) || undefined,
+    practicalityScore: Number(d.practicalityScore ?? d.PracticalityScore ?? 0) || undefined,
+    professionalismScore: Number(d.professionalismScore ?? d.ProfessionalismScore ?? 0) || undefined,
+    communicationScore: Number(d.communicationScore ?? d.CommunicationScore ?? 0) || undefined,
+    creativityScore: Number(d.creativityScore ?? d.CreativityScore ?? 0) || undefined,
+    planningScore: Number(d.planningScore ?? d.PlanningScore ?? 0) || undefined,
+    improvementScore: Number(d.improvementScore ?? d.ImprovementScore ?? 0) || undefined,
+    mentoringScore: Number(d.mentoringScore ?? d.MentoringScore ?? 0) || undefined,
+    taskCompletionScore: Number(d.taskCompletionScore ?? d.TaskCompletionScore ?? 0) || undefined,
+    evidenceScore: Number(d.evidenceScore ?? d.EvidenceScore ?? 0) || undefined,
+    requiresReflection: Boolean(d.requiresReflection ?? d.RequiresReflection),
+    netXpGained: Number(d.netXpGained ?? d.NetXpGained ?? 0) || undefined,
+  };
+}
+
 export async function getEvaluationBySession(
   sessionId: string,
   maxRetries = 2
@@ -95,7 +170,7 @@ export async function getEvaluationBySession(
       if (isNotFoundResponse(res)) {
         return { ok: false, notFound: true, error: "Evaluation still processing…" };
       }
-      return { ok: true, data: res.data as EvaluationResult };
+      return { ok: true, data: normEvaluationResult(res.data) };
     }
 
     if (res.status === 401) {

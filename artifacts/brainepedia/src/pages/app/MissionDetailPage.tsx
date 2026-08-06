@@ -399,7 +399,7 @@ export default function MissionDetailPage() {
     if (res.ok) {
       const rd = res.data as Record<string, unknown>;
       const sessionId = String(rd?.sessionId || rd?.experienceSessionId || rd?.id || "");
-      navigate(`/app/session/${sessionId}/solve`);
+      navigate(`/app/session/${sessionId}/workspace`);
       return;
     }
 
@@ -430,12 +430,12 @@ export default function MissionDetailPage() {
     if (res.ok) {
       const rd = res.data as Record<string, unknown>;
       const sessionId = String(rd?.sessionId || rd?.experienceSessionId || rd?.id || "");
-      if (sessionId) { navigate(`/app/session/${sessionId}/solve`); return; }
+      if (sessionId) { navigate(`/app/session/${sessionId}/workspace`); return; }
     }
 
     // 409 = session already exists — use the cached sessionId
     if (activeSession?.sessionId) {
-      navigate(`/app/session/${activeSession.sessionId}/solve`);
+      navigate(`/app/session/${activeSession.sessionId}/workspace`);
       return;
     }
 

@@ -451,6 +451,66 @@ export const api = {
     abandon: (sessionId: string, userId: string) =>
       fetchApi(`/api/ExperienceSessions/${encodeURIComponent(sessionId)}/abandon?userId=${encodeURIComponent(userId)}`, { method: "PATCH" }),
   },
+  missionExecution: {
+    getWorkspace: (sessionId: string) =>
+      fetchApi(`/api/MissionExecution/workspace/${encodeURIComponent(sessionId)}`),
+    markBriefReviewed: (sessionId: string) =>
+      fetchApi(`/api/MissionExecution/brief-reviewed/${encodeURIComponent(sessionId)}`, { method: "POST" }),
+    getCheckpoints: (sessionId: string) =>
+      fetchApi(`/api/MissionExecution/checkpoints/${encodeURIComponent(sessionId)}`),
+    completeCheckpoint: (sessionId: string, body: { checkpointProgressId: string; notes?: string }) =>
+      fetchApi(`/api/MissionExecution/checkpoints/${encodeURIComponent(sessionId)}/complete`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    addEvidence: (body: {
+      experienceSessionId: string;
+      title: string;
+      description: string;
+      evidenceType: number;
+      url: string;
+    }) =>
+      fetchApi("/api/MissionExecution/evidence", { method: "POST", body: JSON.stringify(body) }),
+    saveDraft: (body: {
+      experienceSessionId: string;
+      approachExplanation: string;
+      codeSnippet: string;
+      evidenceLinks?: string[];
+    }) =>
+      fetchApi("/api/MissionExecution/draft", { method: "POST", body: JSON.stringify(body) }),
+    getDraft: (sessionId: string) =>
+      fetchApi(`/api/MissionExecution/draft/${encodeURIComponent(sessionId)}`),
+    requestReview: (sessionId: string) =>
+      fetchApi(`/api/MissionExecution/request-review/${encodeURIComponent(sessionId)}`, { method: "POST" }),
+    getReadiness: (sessionId: string) =>
+      fetchApi(`/api/MissionExecution/readiness/${encodeURIComponent(sessionId)}`),
+    mentor: (body: {
+      experienceSessionId: string;
+      userMessage: string;
+      intent: number;
+      currentApproach?: string;
+      currentDraft?: string;
+    }) =>
+      fetchApi("/api/MissionExecution/mentor", { method: "POST", body: JSON.stringify(body) }),
+    getMentorHistory: (sessionId: string) =>
+      fetchApi(`/api/MissionExecution/mentor/history/${encodeURIComponent(sessionId)}`),
+    reviewDraft: (sessionId: string, draftContent: string) =>
+      fetchApi(`/api/MissionExecution/mentor/review-draft/${encodeURIComponent(sessionId)}`, {
+        method: "POST",
+        body: JSON.stringify(draftContent),
+      }),
+    finalSubmit: (formData: FormData) =>
+      fetchApi("/api/MissionExecution/final-submit", { method: "POST", body: formData }),
+    saveReflection: (body: {
+      experienceSessionId: string;
+      whatLearned: string;
+      whatToImprove: string;
+      whatChallenged: string;
+    }) =>
+      fetchApi("/api/MissionExecution/reflection", { method: "POST", body: JSON.stringify(body) }),
+    getReflection: (sessionId: string) =>
+      fetchApi(`/api/MissionExecution/reflection/${encodeURIComponent(sessionId)}`),
+  },
   submissions: {
     submit: (formData: FormData) =>
       fetchApi("/api/Submissions/submit", { method: "POST", body: formData }),
