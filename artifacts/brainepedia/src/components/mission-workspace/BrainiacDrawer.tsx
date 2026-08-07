@@ -20,6 +20,8 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isMobile?: boolean;
+  /** Contextual mentor prompt shown when the conversation is empty */
+  contextPrompt?: string;
 };
 
 const SUGGESTED_PROMPTS = [
@@ -37,6 +39,7 @@ export function BrainiacDrawer({
   open,
   onOpenChange,
   isMobile,
+  contextPrompt,
 }: Props) {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -88,21 +91,29 @@ export function BrainiacDrawer({
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
         {messages.length === 0 && (
-          <div className="text-center py-4 space-y-3">
-            <p className="text-xs font-mono text-white/40 max-w-[240px] mx-auto leading-relaxed">
-              "Need help? Ask me about your approach."
-            </p>
-            <div className="flex flex-wrap gap-1.5 justify-center">
-              {SUGGESTED_PROMPTS.map((p) => (
-                <button
-                  key={p.label}
-                  type="button"
-                  onClick={() => onSend(p.label, p.intent)}
-                  className="text-[10px] font-mono px-2.5 py-1 rounded-full border border-[#9D4EDD]/25 text-[#9D4EDD]/80 hover:bg-[#9D4EDD]/10 transition-colors"
-                >
-                  {p.label}
-                </button>
-              ))}
+          <div className="py-2 space-y-3">
+            {contextPrompt && (
+              <div className="rounded-lg px-3 py-2.5 text-xs leading-relaxed bg-[#9D4EDD]/10 border border-[#9D4EDD]/20 text-white/75 mr-1">
+                <p className="text-[9px] font-mono uppercase tracking-wider mb-1 opacity-50">Brainiac</p>
+                <p>{contextPrompt}</p>
+              </div>
+            )}
+            <div className="text-center space-y-2">
+              <p className="text-[10px] font-mono text-white/35 max-w-[240px] mx-auto leading-relaxed">
+                Ask for a hint, review your draft, or get guidance on next steps.
+              </p>
+              <div className="flex flex-wrap gap-1.5 justify-center">
+                {SUGGESTED_PROMPTS.map((p) => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => onSend(p.label, p.intent)}
+                    className="text-[10px] font-mono px-2.5 py-1 rounded-full border border-[#9D4EDD]/25 text-[#9D4EDD]/80 hover:bg-[#9D4EDD]/10 transition-colors"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
