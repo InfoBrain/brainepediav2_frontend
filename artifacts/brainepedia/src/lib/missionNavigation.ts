@@ -9,6 +9,31 @@ export type NavigationTarget =
   | { type: "review" }
   | { type: "brainiac" };
 
+function allCheckpointsComplete(checkpoints: MissionCheckpointDto[]): boolean {
+  const required = checkpoints.filter((c) => c.isRequired);
+  const list = required.length ? required : checkpoints;
+  return list.length > 0 && list.every((c) => c.isCompleted);
+}
+
+function resolveWorkspaceTargetFromReadiness(readiness: ReadinessDto): NavigationTarget {
+  const missing = readiness.missingRequirements ?? [];
+  const needsEvidence =
+    readiness.hasRequiredEvidence === false ||
+    missing.some((r) => /evidence|upload|attach|proof/i.test(r));
+  const needsExplanation =
+    readiness.hasExplanation === false ||
+    missing.some((r) => /explanation|approach|write|document|reasoning/i.test(r));
+  const needsDeliverable = missing.some((r) =>
+    /deliverable|draft|solution|implementation|work product|content/i.test(r),
+  );
+
+  if (needsExplanation && needsEvidence) return { type: "workspace" };
+  if (needsEvidence) return { type: "workspace", section: "evidence" };
+  if (needsExplanation) return { type: "workspace", section: "approach" };
+  if (needsDeliverable) return { type: "workspace", section: "deliverable" };
+  return { type: "workspace" };
+}
+
 export function resolveContinueTarget(
   readiness: ReadinessDto | null,
   checkpoints: MissionCheckpointDto[],
@@ -18,27 +43,18 @@ export function resolveContinueTarget(
     return { type: "brief" };
   }
 
+  // When checkpoints are done but readiness still has gaps, go to Build workspace
+  if (readiness && !readiness.isReady && allCheckpointsComplete(checkpoints)) {
+    return resolveWorkspaceTargetFromReadiness(readiness);
+  }
+
   const nextCheckpoint = checkpoints.find((c) => !c.isCompleted);
   if (nextCheckpoint) {
     return { type: "checkpoint", checkpointId: nextCheckpoint.checkpointProgressId };
   }
 
   if (readiness?.missingRequirements?.length) {
-    for (const req of readiness.missingRequirements) {
-      const lower = req.toLowerCase();
-      if (lower.includes("evidence")) return { type: "workspace", section: "evidence" };
-      if (lower.includes("explanation") || lower.includes("approach")) {
-        return { type: "workspace", section: "approach" };
-      }
-      if (lower.includes("checkpoint") || lower.includes("step")) {
-        const cp = checkpoints.find((c) => !c.isCompleted);
-        if (cp) return { type: "checkpoint", checkpointId: cp.checkpointProgressId };
-      }
-      if (lower.includes("brief")) return { type: "brief" };
-      if (lower.includes("deliverable") || lower.includes("draft") || lower.includes("solution")) {
-        return { type: "workspace", section: "deliverable" };
-      }
-    }
+    return resolveWorkspaceTargetFromReadiness(readiness);
   }
 
   if (readiness?.hasRequiredEvidence === false) {
@@ -53,6 +69,16 @@ export function resolveContinueTarget(
   }
 
   return { type: "workspace", section: "deliverable" };
+}
+
+export function missingRequirementToTarget(requirement: string): NavigationTarget {
+  const lower = requirement.toLowerCase();
+  if (/evidence|upload|attach|proof/i.test(lower)) return { type: "workspace", section: "evidence" };
+  if (/explanation|approach|write|reasoning/i.test(lower)) return { type: "workspace", section: "approach" };
+  if (/deliverable|draft|solution|implementation/i.test(lower)) return { type: "workspace", section: "deliverable" };
+  if (/brief/i.test(lower)) return { type: "brief" };
+  if (/checkpoint|step/i.test(lower)) return { type: "workspace" };
+  return { type: "workspace" };
 }
 
 export function navigationTargetToStage(target: NavigationTarget): MissionStage {
