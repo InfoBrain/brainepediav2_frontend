@@ -15,6 +15,7 @@ import { resolveCheckpointAction, validateCheckpoint } from "@/lib/checkpointReq
 import {
   resolveContinueTarget,
   brainiacPromptForAction,
+  missingRequirementToTarget,
   type NavigationTarget,
 } from "@/lib/missionNavigation";
 import {
@@ -29,6 +30,7 @@ import {
   resolveMissionStage,
   resolveNextAction,
   stageToJourneyStep,
+  type JourneyStep,
 } from "@/lib/missionStage";
 import {
   completeCheckpoint,
@@ -216,6 +218,8 @@ export default function MissionWorkspacePage() {
   const userId = getUserId();
   const hydratedRef = useRef(false);
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  /** Prevents auto-clearing stageOverride immediately after intentional back-navigation */
+  const skipStageClearRef = useRef(false);
 
   const {
     data: workspace,
@@ -359,11 +363,15 @@ export default function MissionWorkspacePage() {
     if (workspace) hydrateFromDraft(workspace);
   }, [workspace, hydrateFromDraft, resumeChecked]);
 
-  /* Clear stage override when computed stage advances */
+  /* Clear stage override only when computed stage naturally catches up (forward progress) */
   useEffect(() => {
     if (!stageOverride) return;
+    if (skipStageClearRef.current) {
+      skipStageClearRef.current = false;
+      return;
+    }
     const order = [MissionStage.Brief, MissionStage.Planning, MissionStage.Building, MissionStage.Review, MissionStage.Submission];
-    if (order.indexOf(computedStage) > order.indexOf(stageOverride)) {
+    if (order.indexOf(computedStage) === order.indexOf(stageOverride)) {
       setStageOverride(null);
     }
   }, [computedStage, stageOverride]);
@@ -419,6 +427,7 @@ export default function MissionWorkspacePage() {
 
   const navigateToTarget = useCallback(
     (target: NavigationTarget) => {
+      skipStageClearRef.current = true;
       setFocusCheckpointId(null);
       setFocusSection(undefined);
 
@@ -442,7 +451,7 @@ export default function MissionWorkspacePage() {
                   ? "workspace-approach"
                   : "workspace-deliverable";
             document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
-          }, 200);
+          }, 250);
           break;
         case "review":
           setStageOverride(MissionStage.Review);
@@ -455,6 +464,27 @@ export default function MissionWorkspacePage() {
     [],
   );
 
+  const handleJourneyStep = useCallback((step: JourneyStep) => {
+    skipStageClearRef.current = true;
+    setFocusCheckpointId(null);
+    setFocusSection(undefined);
+    switch (step) {
+      case "brief":
+        setStageOverride(MissionStage.Brief);
+        break;
+      case "plan":
+        setStageOverride(MissionStage.Planning);
+        break;
+      case "build":
+        setStageOverride(MissionStage.Building);
+        break;
+      case "review":
+      case "submit":
+        setStageOverride(MissionStage.Review);
+        break;
+    }
+  }, []);
+
   const handleContinueWorking = useCallback(() => {
     if (!workspace) return;
     const target = resolveContinueTarget(
@@ -464,6 +494,17 @@ export default function MissionWorkspacePage() {
     );
     navigateToTarget(target);
   }, [workspace, readiness, navigateToTarget]);
+
+  const handleStructuredSectionChange = useCallback((key: string, value: string) => {
+    setStructuredSections((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleGoToRequirement = useCallback(
+    (requirement: string) => {
+      navigateToTarget(missingRequirementToTarget(requirement));
+    },
+    [navigateToTarget],
+  );
 
   useEffect(() => {
     if (!sessionId || activeStage === MissionStage.Brief) return;
@@ -704,6 +745,7 @@ export default function MissionWorkspacePage() {
   const progress = getCheckpointProgress(workspace.checkpoints);
   const nextAction = resolveNextAction(workspace, readiness, approach, codeSnippet);
   const journeyStep = stageToJourneyStep(activeStage);
+  const maxReachableStep = stageToJourneyStep(computedStage);
   const hideNextCta = activeStage === MissionStage.Planning;
 
   const currentCheckpoint = workspace.checkpoints.find((c) => !c.isCompleted);
@@ -715,10 +757,6 @@ export default function MissionWorkspacePage() {
     activeStage,
   );
 
-  const handleStructuredSectionChange = useCallback((key: string, value: string) => {
-    setStructuredSections((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#060a10] text-white flex flex-col">
       <MissionHeader
@@ -727,7 +765,11 @@ export default function MissionWorkspacePage() {
         sessionXpEarned={workspace.sessionXpEarned}
       />
 
-      <MissionJourney currentStep={journeyStep} />
+      <MissionJourney
+        currentStep={journeyStep}
+        maxReachableStep={maxReachableStep}
+        onStepSelect={handleJourneyStep}
+      />
 
       {/* XP flash animation */}
       <AnimatePresence>
@@ -845,6 +887,7 @@ export default function MissionWorkspacePage() {
                     mentorFeedback={mentorReviewFeedback}
                     onSubmitFinal={() => setShowSubmitModal(true)}
                     onContinueWorking={handleContinueWorking}
+                    onGoToRequirement={handleGoToRequirement}
                     submitting={submitting}
                   />
                 )}

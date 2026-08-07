@@ -17,6 +17,7 @@ type Props = {
   mentorFeedback?: string | null;
   onSubmitFinal: () => void;
   onContinueWorking: () => void;
+  onGoToRequirement?: (requirement: string) => void;
   submitting?: boolean;
 };
 
@@ -32,6 +33,7 @@ export function ReviewStage({
   mentorFeedback,
   onSubmitFinal,
   onContinueWorking,
+  onGoToRequirement,
   submitting,
 }: Props) {
   const [showDetails, setShowDetails] = useState(false);
@@ -151,17 +153,40 @@ export function ReviewStage({
             {readiness && readiness.missingRequirements.length > 0 && (
               <ul className="space-y-1">
                 {readiness.missingRequirements.map((req) => (
-                  <li key={req} className="text-xs text-amber-200/70 font-mono">• {req}</li>
+                  <li key={req}>
+                    {onGoToRequirement ? (
+                      <button
+                        type="button"
+                        onClick={() => onGoToRequirement(req)}
+                        className="text-xs text-amber-200/80 font-mono hover:text-[#00D2FF] text-left underline-offset-2 hover:underline"
+                      >
+                        • {req}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-amber-200/70 font-mono">• {req}</span>
+                    )}
+                  </li>
                 ))}
               </ul>
             )}
-            <Button
-              variant="outline"
-              onClick={onContinueWorking}
-              className="font-mono text-sm border-[#00D2FF]/30 text-[#00D2FF]/80 hover:bg-[#00D2FF]/10"
-            >
-              Continue Working →
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={onContinueWorking}
+                className="flex-1 font-mono text-sm border-[#00D2FF]/30 text-[#00D2FF]/80 hover:bg-[#00D2FF]/10"
+              >
+                Continue Working →
+              </Button>
+              {onGoToRequirement && (
+                <Button
+                  variant="ghost"
+                  onClick={onContinueWorking}
+                  className="font-mono text-xs text-white/50 hover:text-white"
+                >
+                  Open Build workspace
+                </Button>
+              )}
+            </div>
           </>
         )}
       </div>

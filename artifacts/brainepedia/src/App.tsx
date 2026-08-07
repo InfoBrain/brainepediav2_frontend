@@ -581,6 +581,14 @@ function RouteFallback() {
   );
 }
 
+function GlobalBrainiacWidget() {
+  const [location] = useLocation();
+  // Mission workspace has its own contextual Brainiac mentor — hide global widget to avoid overlap
+  const hideOnMissionWorkspace = /^\/app\/session\/[^/]+\/workspace/.test(location);
+  if (hideOnMissionWorkspace) return null;
+  return <BrainiacWidget />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -596,7 +604,7 @@ function App() {
                   <Router />
                 </Suspense>
               </ScopedErrorBoundary>
-              <BrainiacWidget />
+              <GlobalBrainiacWidget />
               <OnboardingGuide />
             </WouterRouter>
           </GlobalErrorBoundary>

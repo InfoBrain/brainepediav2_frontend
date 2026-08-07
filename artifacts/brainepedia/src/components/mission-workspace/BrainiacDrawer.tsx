@@ -93,13 +93,13 @@ export function BrainiacDrawer({
         {messages.length === 0 && (
           <div className="py-2 space-y-3">
             {contextPrompt && (
-              <div className="rounded-lg px-3 py-2.5 text-xs leading-relaxed bg-[#9D4EDD]/10 border border-[#9D4EDD]/20 text-white/75 mr-1">
-                <p className="text-[9px] font-mono uppercase tracking-wider mb-1 opacity-50">Brainiac</p>
-                <p>{contextPrompt}</p>
+              <div className="rounded-lg px-3 py-2.5 text-xs leading-relaxed bg-[#1a1230] border border-[#9D4EDD]/35 text-white/90 mr-1">
+                <p className="text-[9px] font-mono uppercase tracking-wider mb-1 text-[#C4A8FF]">Brainiac</p>
+                <p className="text-white/90">{contextPrompt}</p>
               </div>
             )}
             <div className="text-center space-y-2">
-              <p className="text-[10px] font-mono text-white/35 max-w-[240px] mx-auto leading-relaxed">
+              <p className="text-[10px] font-mono text-white/50 max-w-[240px] mx-auto leading-relaxed">
                 Ask for a hint, review your draft, or get guidance on next steps.
               </p>
               <div className="flex flex-wrap gap-1.5 justify-center">
@@ -108,7 +108,7 @@ export function BrainiacDrawer({
                     key={p.label}
                     type="button"
                     onClick={() => onSend(p.label, p.intent)}
-                    className="text-[10px] font-mono px-2.5 py-1 rounded-full border border-[#9D4EDD]/25 text-[#9D4EDD]/80 hover:bg-[#9D4EDD]/10 transition-colors"
+                    className="text-[10px] font-mono px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white transition-colors"
                   >
                     {p.label}
                   </button>
@@ -123,14 +123,16 @@ export function BrainiacDrawer({
             key={i}
             className={`rounded-lg px-3 py-2 text-xs leading-relaxed ${
               m.role === "user"
-                ? "bg-white/5 border border-white/8 text-white/75 ml-3"
-                : "bg-[#9D4EDD]/10 border border-[#9D4EDD]/20 text-white/80 mr-3"
+                ? "bg-white/8 border border-white/12 text-white/90 ml-3"
+                : "bg-[#1a1230] border border-[#9D4EDD]/30 text-white/90 mr-3"
             }`}
           >
-            <p className="text-[9px] font-mono uppercase tracking-wider mb-1 opacity-50">
+            <p className={`text-[9px] font-mono uppercase tracking-wider mb-1 ${
+              m.role === "user" ? "text-white/45" : "text-[#C4A8FF]"
+            }`}>
               {m.role === "user" ? "You" : "Brainiac"}
             </p>
-            <p>{m.text}</p>
+            <p className="text-white/90">{m.text}</p>
             {m.xpAwarded && m.xpAwarded > 0 && (
               <p className="text-[10px] font-mono text-[#FFD700]/70 mt-1 flex items-center gap-1">
                 <Zap className="w-2.5 h-2.5" /> +{m.xpAwarded} XP
@@ -143,7 +145,7 @@ export function BrainiacDrawer({
                     key={action}
                     type="button"
                     onClick={() => onSuggestedAction(action)}
-                    className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-[#9D4EDD]/30 text-[#9D4EDD]/80 hover:bg-[#9D4EDD]/15"
+                    className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-white/15 bg-white/5 text-white/85 hover:bg-white/10"
                   >
                     {action}
                   </button>
@@ -179,7 +181,7 @@ export function BrainiacDrawer({
           size="sm"
           disabled={sending || !input.trim()}
           onClick={() => submit()}
-          className="w-full text-xs font-mono bg-[#9D4EDD]/20 text-[#9D4EDD] border border-[#9D4EDD]/30"
+          className="w-full text-xs font-mono bg-[#9D4EDD]/30 text-white border border-[#9D4EDD]/40 hover:bg-[#9D4EDD]/40"
         >
           Send
         </Button>
