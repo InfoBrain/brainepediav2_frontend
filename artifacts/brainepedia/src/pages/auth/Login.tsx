@@ -8,6 +8,7 @@ import { setToken, getDashboardPath } from "@/lib/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
@@ -120,7 +121,7 @@ export default function Login() {
           <div className="flex justify-between items-center">
             <Label htmlFor="password">Password</Label>
           </div>
-          <Input id="password" type="password" {...register("password")} />
+          <PasswordInput id="password" {...register("password")} />
           {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
         </div>
 

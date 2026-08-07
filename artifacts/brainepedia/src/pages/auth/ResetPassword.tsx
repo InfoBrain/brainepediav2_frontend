@@ -9,6 +9,7 @@ import { AuthBanner } from "@/pages/auth/Login";
 import { OtpInput } from "@/components/auth/OtpInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 
@@ -128,13 +129,13 @@ export default function ResetPassword() {
 
         <div className="space-y-2">
           <Label htmlFor="password">New Password</Label>
-          <Input id="password" type="password" {...register("password")} />
+          <PasswordInput id="password" {...register("password")} />
           {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
         </div>
         
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">Confirm New Password</Label>
-          <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+          <PasswordInput id="confirmPassword" {...register("confirmPassword")} />
           {errors.confirmPassword && <p className="text-destructive text-xs font-mono">{errors.confirmPassword.message}</p>}
         </div>
 
