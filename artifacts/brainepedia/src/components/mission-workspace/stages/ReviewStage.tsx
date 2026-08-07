@@ -3,9 +3,11 @@ import { motion } from "framer-motion";
 import { Brain, CheckCircle2, Loader2, Send, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { MissionWorkspaceDto, ReadinessDto } from "@/lib/missionExecutionTypes";
+import type { ProblemNodeDetail } from "@/lib/problemNodeTypes";
 
 type Props = {
   workspace: MissionWorkspaceDto;
+  problemNode?: ProblemNodeDetail | null;
   readiness: ReadinessDto | null;
   readinessLoading?: boolean;
   approach: string;
@@ -20,6 +22,7 @@ type Props = {
 
 export function ReviewStage({
   workspace,
+  problemNode,
   readiness,
   readinessLoading,
   approach,
@@ -44,18 +47,25 @@ export function ReviewStage({
       className="max-w-2xl mx-auto w-full space-y-6"
     >
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-white">Review Your Work</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-white">Client Review</h2>
         <p className="text-sm text-white/50 mt-1">
-          Check your solution against the mission requirements before submitting.
+          Review your deliverable against the mission before sending to your team lead.
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-xl border border-white/10 bg-[#0a0f16] p-4 space-y-2">
-          <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Mission Requirements</p>
+          <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Mission Objective</p>
           <p className="text-xs text-white/55 leading-relaxed whitespace-pre-wrap line-clamp-6">
-            {workspace.missionBrief || "See mission brief"}
+            {problemNode?.context || workspace.missionBrief || "See mission brief"}
           </p>
+          {problemNode && problemNode.expectedOutcomes.length > 0 && (
+            <ul className="mt-2 space-y-1">
+              {problemNode.expectedOutcomes.slice(0, 4).map((o, i) => (
+                <li key={i} className="text-[10px] text-white/40">• {o}</li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="rounded-xl border border-[#00D2FF]/20 bg-[#00D2FF]/5 p-4 space-y-2">
           <p className="text-[10px] font-mono text-[#00D2FF]/70 uppercase tracking-widest">Your Solution</p>
@@ -133,7 +143,11 @@ export function ReviewStage({
           </>
         ) : (
           <>
-            <p className="text-sm font-bold text-amber-300/90">Not ready yet</p>
+            <p className="text-sm font-bold text-amber-300/90">
+              {readiness?.missingRequirements?.length
+                ? `${readiness.missingRequirements.length} thing${readiness.missingRequirements.length > 1 ? "s" : ""} remaining`
+                : "Not ready yet"}
+            </p>
             {readiness && readiness.missingRequirements.length > 0 && (
               <ul className="space-y-1">
                 {readiness.missingRequirements.map((req) => (
@@ -144,9 +158,9 @@ export function ReviewStage({
             <Button
               variant="outline"
               onClick={onContinueWorking}
-              className="font-mono text-xs border-white/15 text-white/60"
+              className="font-mono text-sm border-[#00D2FF]/30 text-[#00D2FF]/80 hover:bg-[#00D2FF]/10"
             >
-              Continue Working
+              Continue Working →
             </Button>
           </>
         )}

@@ -1,10 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, Loader2, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import { getUserId } from "@/lib/auth";
+import { readMissionAssignmentContext } from "@/lib/missionAssignmentContext";
+import { normProblemNodeDetail } from "@/lib/problemNodeTypes";
+import { resolveWorkspaceType, WorkspaceType } from "@/lib/workspaceType";
+import type { MissionWorkInput } from "@/lib/checkpointRequirements";
+import { resolveCheckpointAction, validateCheckpoint } from "@/lib/checkpointRequirements";
+import {
+  resolveContinueTarget,
+  brainiacPromptForAction,
+  type NavigationTarget,
+} from "@/lib/missionNavigation";
 import {
   ConversationIntent,
   SubmissionStage,
@@ -40,7 +52,7 @@ import { BrainiacDrawer } from "@/components/mission-workspace/BrainiacDrawer";
 import type { ChatMessage } from "@/components/mission-workspace/BrainiacDrawer";
 import { EvidenceDrawer } from "@/components/mission-workspace/EvidenceDrawer";
 import { BriefStage } from "@/components/mission-workspace/stages/BriefStage";
-import { PlanningStage } from "@/components/mission-workspace/stages/PlanningStage";
+import { CheckpointWorkStage } from "@/components/mission-workspace/stages/CheckpointWorkStage";
 import { BuildStage } from "@/components/mission-workspace/stages/BuildStage";
 import { ReviewStage } from "@/components/mission-workspace/stages/ReviewStage";
 
@@ -51,6 +63,90 @@ type StagedFile = { id: string; file: File };
 
 const AUTO_SAVE_MS = 30_000;
 const DEFAULT_CODE = "";
+
+function buildApproachPayload(
+  approach: string,
+  understandingSummary: string,
+  constraintReflection: string,
+  planContent: string,
+  structuredSections: Record<string, string>,
+): string {
+  const parts = [approach.trim()];
+  if (understandingSummary.trim()) parts.push(`\n\n[Understanding]\n${understandingSummary.trim()}`);
+  if (constraintReflection.trim()) parts.push(`\n\n[Constraints]\n${constraintReflection.trim()}`);
+  if (planContent.trim()) parts.push(`\n\n[Plan]\n${planContent.trim()}`);
+  const struct = Object.entries(structuredSections).filter(([, v]) => v.trim());
+  if (struct.length) {
+    parts.push(
+      `\n\n[Structured Work]\n${struct.map(([k, v]) => `${k}: ${v}`).join("\n\n")}`,
+    );
+  }
+  return parts.filter(Boolean).join("");
+}
+
+function buildDeliverablePayload(
+  codeSnippet: string,
+  workspaceType: WorkspaceType,
+  structuredSections: Record<string, string>,
+): string {
+  const entries = Object.entries(structuredSections).filter(([, v]) => v.trim());
+  if (
+    workspaceType === WorkspaceType.Business ||
+    workspaceType === WorkspaceType.Marketing ||
+    workspaceType === WorkspaceType.Education ||
+    workspaceType === WorkspaceType.ProjectManagement
+  ) {
+    if (entries.length === 0) return codeSnippet;
+    const formatted = entries.map(([k, v]) => `## ${k}\n${v}`).join("\n\n");
+    return codeSnippet.trim() ? `${codeSnippet}\n\n${formatted}` : formatted;
+  }
+  if (workspaceType === WorkspaceType.Data) {
+    const analysis = structuredSections.analysis ?? codeSnippet;
+    const findings = structuredSections.findings ?? "";
+    return [analysis, findings ? `\n\n## Findings\n${findings}` : ""].join("");
+  }
+  return codeSnippet;
+}
+
+function parseApproachDraft(approach: string): {
+  baseApproach: string;
+  understandingSummary: string;
+  constraintReflection: string;
+  planContent: string;
+  structuredSections: Record<string, string>;
+} {
+  const extract = (tag: string) => {
+    const re = new RegExp(`\\[${tag}\\]\\n([\\s\\S]*?)(?=\\n\\n\\[|$)`);
+    const m = approach.match(re);
+    return m ? m[1].trim() : "";
+  };
+
+  let baseApproach = approach;
+  for (const tag of ["Understanding", "Constraints", "Plan", "Structured Work"]) {
+    baseApproach = baseApproach.replace(new RegExp(`\\n\\n\\[${tag}\\][\\s\\S]*?(?=\\n\\n\\[|$)`, ""), "");
+  }
+
+  const structuredSections: Record<string, string> = {};
+  const structuredRaw = extract("Structured Work");
+  if (structuredRaw) {
+    structuredRaw.split(/\n\n/).forEach((block) => {
+      const idx = block.indexOf(":");
+      if (idx > 0) {
+        const key = block.slice(0, idx).trim();
+        const value = block.slice(idx + 1).trim();
+        if (key) structuredSections[key] = value;
+      }
+    });
+  }
+
+  return {
+    baseApproach: baseApproach.trim(),
+    understandingSummary: extract("Understanding"),
+    constraintReflection: extract("Constraints"),
+    planContent: extract("Plan"),
+    structuredSections,
+  };
+}
 
 function useIsMobile(breakpoint = 1024) {
   const [isMobile, setIsMobile] = useState(
@@ -109,6 +205,15 @@ export default function MissionWorkspacePage() {
   const [resumeChecked, setResumeChecked] = useState(false);
   const [stageOverride, setStageOverride] = useState<MissionStage | null>(null);
   const [xpFlash, setXpFlash] = useState<number | null>(null);
+  const [understandingSummary, setUnderstandingSummary] = useState("");
+  const [constraintReflection, setConstraintReflection] = useState("");
+  const [planContent, setPlanContent] = useState("");
+  const [reviewConfirmed, setReviewConfirmed] = useState(false);
+  const [structuredSections, setStructuredSections] = useState<Record<string, string>>({});
+  const [codeLanguage, setCodeLanguage] = useState("typescript");
+  const [focusCheckpointId, setFocusCheckpointId] = useState<string | null>(null);
+  const [focusSection, setFocusSection] = useState<"deliverable" | "approach" | "evidence" | undefined>();
+  const userId = getUserId();
   const hydratedRef = useRef(false);
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -130,6 +235,60 @@ export default function MissionWorkspacePage() {
     refetchOnWindowFocus: true,
   });
 
+  const employerChallengeId =
+    workspace?.employerChallengeAssignmentId ||
+    readMissionAssignmentContext(workspace?.problemNodeId ?? "").employerChallengeAssignmentId ||
+    undefined;
+
+  const { data: problemNode } = useQuery({
+    queryKey: ["problem-node", workspace?.problemNodeId, employerChallengeId],
+    queryFn: async () => {
+      const res = await api.problemNodes.get(workspace!.problemNodeId, {
+        employerChallengeAssignmentId: employerChallengeId ?? null,
+      });
+      if (!res.ok) return null;
+      return normProblemNodeDetail(res.data);
+    },
+    enabled: Boolean(workspace?.problemNodeId),
+    staleTime: 60_000,
+  });
+
+  const workspaceType = useMemo(() => {
+    if (!problemNode && !workspace) return WorkspaceType.Generic;
+    return resolveWorkspaceType({
+      professionName: problemNode?.professionName,
+      districtName: problemNode?.districtName,
+      missionTitle: workspace?.missionTitle ?? problemNode?.title,
+      missionBrief: workspace?.missionBrief ?? problemNode?.missionBrief,
+      context: problemNode?.context,
+      constraints: problemNode?.constraints,
+      expectedOutcomes: problemNode?.expectedOutcomes,
+    });
+  }, [problemNode, workspace]);
+
+  const missionWorkInput: MissionWorkInput = useMemo(
+    () => ({
+      approachExplanation: approach,
+      codeSnippet,
+      constraintReflection,
+      planContent,
+      understandingSummary,
+      reviewConfirmed,
+      evidence: workspace?.evidence ?? [],
+      briefReviewed: workspace?.briefReviewed ?? false,
+    }),
+    [
+      approach,
+      codeSnippet,
+      constraintReflection,
+      planContent,
+      understandingSummary,
+      reviewConfirmed,
+      workspace?.evidence,
+      workspace?.briefReviewed,
+    ],
+  );
+
   const refreshWorkspace = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ["mission-workspace", sessionId] });
     await refetch();
@@ -147,7 +306,14 @@ export default function MissionWorkspacePage() {
     if (hydratedRef.current) return;
     const draft = ws.latestDraft;
     if (draft) {
-      setApproach(draft.approachExplanation || "");
+      const parsed = parseApproachDraft(draft.approachExplanation || "");
+      setApproach(parsed.baseApproach || draft.approachExplanation || "");
+      setUnderstandingSummary(parsed.understandingSummary);
+      setConstraintReflection(parsed.constraintReflection);
+      setPlanContent(parsed.planContent);
+      if (Object.keys(parsed.structuredSections).length > 0) {
+        setStructuredSections(parsed.structuredSections);
+      }
       setCodeSnippet(draft.codeSnippet || DEFAULT_CODE);
       setLastSavedAt(draft.lastSavedAt || null);
     }
@@ -225,10 +391,18 @@ export default function MissionWorkspacePage() {
   const persistDraft = useCallback(async (silent = false) => {
     if (!sessionId) return;
     if (!silent) setSavingDraft(true);
+    const approachPayload = buildApproachPayload(
+      approach,
+      understandingSummary,
+      constraintReflection,
+      planContent,
+      structuredSections,
+    );
+    const deliverablePayload = buildDeliverablePayload(codeSnippet, workspaceType, structuredSections);
     const res = await saveDraft({
       experienceSessionId: sessionId,
-      approachExplanation: approach,
-      codeSnippet,
+      approachExplanation: approachPayload,
+      codeSnippet: deliverablePayload,
     });
     if (!silent) setSavingDraft(false);
     if (res.ok) {
@@ -241,7 +415,55 @@ export default function MissionWorkspacePage() {
     } else if (!silent) {
       toast({ title: "Could not save draft", description: friendlyError(res.error), variant: "destructive" });
     }
-  }, [sessionId, approach, codeSnippet, toast]);
+  }, [sessionId, approach, codeSnippet, understandingSummary, constraintReflection, planContent, structuredSections, workspaceType, toast]);
+
+  const navigateToTarget = useCallback(
+    (target: NavigationTarget) => {
+      setFocusCheckpointId(null);
+      setFocusSection(undefined);
+
+      switch (target.type) {
+        case "brief":
+          setStageOverride(MissionStage.Brief);
+          break;
+        case "checkpoint":
+          setStageOverride(MissionStage.Planning);
+          setFocusCheckpointId(target.checkpointId);
+          break;
+        case "workspace":
+          setStageOverride(MissionStage.Building);
+          setFocusSection(target.section);
+          if (target.section === "evidence") setEvidenceOpen(true);
+          setTimeout(() => {
+            const id =
+              target.section === "evidence"
+                ? "workspace-evidence"
+                : target.section === "approach"
+                  ? "workspace-approach"
+                  : "workspace-deliverable";
+            document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 200);
+          break;
+        case "review":
+          setStageOverride(MissionStage.Review);
+          break;
+        case "brainiac":
+          setBrainiacOpen(true);
+          break;
+      }
+    },
+    [],
+  );
+
+  const handleContinueWorking = useCallback(() => {
+    if (!workspace) return;
+    const target = resolveContinueTarget(
+      readiness,
+      workspace.checkpoints,
+      workspace.briefReviewed,
+    );
+    navigateToTarget(target);
+  }, [workspace, readiness, navigateToTarget]);
 
   useEffect(() => {
     if (!sessionId || activeStage === MissionStage.Brief) return;
@@ -271,7 +493,25 @@ export default function MissionWorkspacePage() {
     }
   }
 
+  /* Default Brainiac open during active work (desktop) */
+  useEffect(() => {
+    if (isMobile) return;
+    if (activeStage === MissionStage.Planning || activeStage === MissionStage.Building) {
+      setBrainiacOpen(true);
+    }
+  }, [activeStage, isMobile]);
+
   async function handleCompleteCheckpoint(checkpointProgressId: string, notes?: string) {
+    const checkpoint = workspace?.checkpoints.find((c) => c.checkpointProgressId === checkpointProgressId);
+    if (checkpoint) {
+      const validation = validateCheckpoint(checkpoint, missionWorkInput);
+      if (!validation.canComplete) {
+        toast({ title: "Complete the work first", description: validation.reason, variant: "destructive" });
+        return;
+      }
+    }
+
+    await persistDraft(true);
     setCompletingCheckpointId(checkpointProgressId);
     const res = await completeCheckpoint(sessionId, checkpointProgressId, notes);
     setCompletingCheckpointId(null);
@@ -365,13 +605,22 @@ export default function MissionWorkspacePage() {
     setSubmitting(true);
     await persistDraft(true);
 
+    const approachPayload = buildApproachPayload(
+      approach,
+      understandingSummary,
+      constraintReflection,
+      planContent,
+      structuredSections,
+    );
+    const deliverablePayload = buildDeliverablePayload(codeSnippet, workspaceType, structuredSections);
+
     const fd = new FormData();
     fd.append("experienceSessionId", sessionId);
     fd.append("ExperienceSessionId", sessionId);
-    fd.append("approachExplanation", approach);
-    fd.append("ApproachExplanation", approach);
-    fd.append("codeSnippet", codeSnippet);
-    fd.append("CodeSnippet", codeSnippet);
+    fd.append("approachExplanation", approachPayload);
+    fd.append("ApproachExplanation", approachPayload);
+    fd.append("codeSnippet", deliverablePayload);
+    fd.append("CodeSnippet", deliverablePayload);
     stagedFiles.forEach((sf) => fd.append("evidenceFiles", sf.file));
     stagedFiles.forEach((sf) => fd.append("EvidenceFiles", sf.file));
 
@@ -412,7 +661,7 @@ export default function MissionWorkspacePage() {
         if (readiness?.isReady || workspace?.isReadyForFinalSubmission) {
           setShowSubmitModal(true);
         } else {
-          setStageOverride(MissionStage.Building);
+          handleContinueWorking();
         }
         break;
       case MissionStage.Submission:
@@ -456,6 +705,19 @@ export default function MissionWorkspacePage() {
   const nextAction = resolveNextAction(workspace, readiness, approach, codeSnippet);
   const journeyStep = stageToJourneyStep(activeStage);
   const hideNextCta = activeStage === MissionStage.Planning;
+
+  const currentCheckpoint = workspace.checkpoints.find((c) => !c.isCompleted);
+  const currentCheckpointAction = currentCheckpoint
+    ? resolveCheckpointAction(currentCheckpoint)
+    : null;
+  const brainiacContextPrompt = brainiacPromptForAction(
+    currentCheckpointAction ?? "generic_work",
+    activeStage,
+  );
+
+  const handleStructuredSectionChange = useCallback((key: string, value: string) => {
+    setStructuredSections((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#060a10] text-white flex flex-col">
@@ -520,16 +782,39 @@ export default function MissionWorkspacePage() {
               {activeStage === MissionStage.Planning && (
                 <>
                   <NextActionCard action={nextAction} hideCta />
-                  <PlanningStage
+                  <CheckpointWorkStage
                     checkpoints={workspace.checkpoints}
                     completingId={completingCheckpointId}
                     onComplete={handleCompleteCheckpoint}
+                    work={missionWorkInput}
+                    workspaceType={workspaceType}
+                    problemNode={problemNode}
+                    approach={approach}
+                    codeSnippet={codeSnippet}
+                    onApproachChange={setApproach}
+                    onCodeChange={setCodeSnippet}
+                    onUnderstandingChange={setUnderstandingSummary}
+                    onConstraintReflectionChange={setConstraintReflection}
+                    onPlanContentChange={setPlanContent}
+                    onReviewConfirmedChange={setReviewConfirmed}
+                    onOpenEvidence={() => setEvidenceOpen(true)}
+                    onBlurSave={() => persistDraft(true)}
+                    codeLanguage={codeLanguage}
+                    onLanguageChange={setCodeLanguage}
+                    structuredSections={structuredSections}
+                    onStructuredSectionChange={handleStructuredSectionChange}
+                    evidence={workspace.evidence}
+                    focusCheckpointId={focusCheckpointId}
+                    focusSection={focusSection}
                   />
                 </>
               )}
 
               {activeStage === MissionStage.Building && (
                 <BuildStage
+                  problemNode={problemNode ?? null}
+                  missionBrief={workspace.missionBrief}
+                  workspaceType={workspaceType}
                   approachExplanation={approach}
                   codeSnippet={codeSnippet}
                   onApproachChange={setApproach}
@@ -539,12 +824,18 @@ export default function MissionWorkspacePage() {
                   saving={savingDraft}
                   lastSavedAt={lastSavedAt}
                   evidence={workspace.evidence}
+                  codeLanguage={codeLanguage}
+                  onLanguageChange={setCodeLanguage}
+                  structuredSections={structuredSections}
+                  onStructuredSectionChange={handleStructuredSectionChange}
+                  focusSection={focusSection}
                 />
               )}
 
               {(activeStage === MissionStage.Review || activeStage === MissionStage.Submission) && (
                   <ReviewStage
                     workspace={workspace}
+                    problemNode={problemNode}
                     readiness={readiness}
                     readinessLoading={readinessLoading}
                     approach={approach}
@@ -553,7 +844,7 @@ export default function MissionWorkspacePage() {
                     reviewingDraft={reviewingDraft}
                     mentorFeedback={mentorReviewFeedback}
                     onSubmitFinal={() => setShowSubmitModal(true)}
-                    onContinueWorking={() => setStageOverride(MissionStage.Building)}
+                    onContinueWorking={handleContinueWorking}
                     submitting={submitting}
                   />
                 )}
@@ -569,6 +860,7 @@ export default function MissionWorkspacePage() {
               onSuggestedAction={(action) => handleMentorSend(action, ConversationIntent.DecisionSupport)}
               open={brainiacOpen}
               onOpenChange={setBrainiacOpen}
+              contextPrompt={brainiacContextPrompt}
             />
           )}
         </div>
@@ -584,6 +876,7 @@ export default function MissionWorkspacePage() {
           open={brainiacOpen}
           onOpenChange={setBrainiacOpen}
           isMobile
+          contextPrompt={brainiacContextPrompt}
         />
       )}
 

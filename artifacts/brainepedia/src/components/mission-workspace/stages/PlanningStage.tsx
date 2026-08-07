@@ -1,3 +1,9 @@
+/*
+ * LEGACY IMPLEMENTATION:
+ * The previous checkpoint flow allowed users to mark a checkpoint complete with
+ * optional notes and no validated work. Retained for backward compatibility /
+ * reference but no longer used by MissionWorkspacePage — see CheckpointWorkStage.
+ */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Circle, Loader2, Lock, Zap } from "lucide-react";
