@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import { getUser, clearToken } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -93,17 +94,17 @@ export default function EmployerSettings() {
           <form onSubmit={handleSubmit(onPasswordSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label>Current Password</Label>
-              <Input {...register("currentPassword")} type="password" />
+              <PasswordInput {...register("currentPassword")} />
               {errors.currentPassword && <p className="text-destructive text-xs">{errors.currentPassword.message}</p>}
             </div>
             <div className="space-y-2">
               <Label>New Password</Label>
-              <Input {...register("newPassword")} type="password" />
+              <PasswordInput {...register("newPassword")} />
               {errors.newPassword && <p className="text-destructive text-xs">{errors.newPassword.message}</p>}
             </div>
             <div className="space-y-2">
               <Label>Confirm New Password</Label>
-              <Input {...register("confirmPassword")} type="password" />
+              <PasswordInput {...register("confirmPassword")} />
               {errors.confirmPassword && <p className="text-destructive text-xs">{errors.confirmPassword.message}</p>}
             </div>
             <Button type="submit" disabled={isSubmitting} className="w-full font-bold">

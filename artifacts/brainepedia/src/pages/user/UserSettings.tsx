@@ -10,6 +10,7 @@ import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -65,17 +66,17 @@ export default function UserSettings() {
           <form onSubmit={handleSubmit(onSubmit)} className="max-w-lg space-y-4">
             <div className="space-y-2">
               <Label htmlFor="current-password">Current Password</Label>
-              <Input id="current-password" type="password" {...register("currentPassword")} />
+              <PasswordInput id="current-password" {...register("currentPassword")} />
               {errors.currentPassword && <p className="text-xs text-destructive">{errors.currentPassword.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="new-password">New Password</Label>
-              <Input id="new-password" type="password" {...register("newPassword")} />
+              <PasswordInput id="new-password" {...register("newPassword")} />
               {errors.newPassword && <p className="text-xs text-destructive">{errors.newPassword.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input id="confirm-password" type="password" {...register("confirmPassword")} />
+              <PasswordInput id="confirm-password" {...register("confirmPassword")} />
               {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>}
             </div>
             <Button type="submit" disabled={submitting} className="bg-[#FFD700] font-bold text-black hover:bg-[#F6C800]">

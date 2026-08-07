@@ -2,13 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  ArrowLeft,
-  AlertCircle,
-  Loader2,
-  RefreshCw,
-  X,
-} from "lucide-react";
+import { AlertCircle, Loader2, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -18,6 +12,13 @@ import {
   type ReadinessDto,
 } from "@/lib/missionExecutionTypes";
 import {
+  MissionStage,
+  getCheckpointProgress,
+  resolveMissionStage,
+  resolveNextAction,
+  stageToJourneyStep,
+} from "@/lib/missionStage";
+import {
   completeCheckpoint,
   fetchMentorHistory,
   fetchReadiness,
@@ -25,34 +26,59 @@ import {
   finalSubmit,
   markBriefReviewed,
   registerEvidence,
-  requestReview,
   resolveSubmissionIdForSession,
+  reviewDraftWithMentor,
   saveDraft,
   sendMentorMessage,
   fetchReflection,
 } from "@/lib/missionExecutionService";
-import { MissionBriefPanel } from "@/components/mission-workspace/MissionBriefPanel";
-import { CheckpointChecklist } from "@/components/mission-workspace/CheckpointChecklist";
-import { WorkArea } from "@/components/mission-workspace/WorkArea";
-import { EvidencePanel } from "@/components/mission-workspace/EvidencePanel";
-import {
-  BrainiacMentorPanel,
-  mapHistoryToChat,
-} from "@/components/mission-workspace/BrainiacMentorPanel";
-import { ReadinessChecklist } from "@/components/mission-workspace/ReadinessChecklist";
-import { SubmitBar } from "@/components/mission-workspace/SubmitBar";
+import { MissionHeader } from "@/components/mission-workspace/MissionHeader";
+import { MissionJourney } from "@/components/mission-workspace/MissionJourney";
+import { MissionProgressPanel } from "@/components/mission-workspace/MissionProgressPanel";
+import { NextActionCard } from "@/components/mission-workspace/NextActionCard";
+import { BrainiacDrawer } from "@/components/mission-workspace/BrainiacDrawer";
+import type { ChatMessage } from "@/components/mission-workspace/BrainiacDrawer";
+import { EvidenceDrawer } from "@/components/mission-workspace/EvidenceDrawer";
+import { BriefStage } from "@/components/mission-workspace/stages/BriefStage";
+import { PlanningStage } from "@/components/mission-workspace/stages/PlanningStage";
+import { BuildStage } from "@/components/mission-workspace/stages/BuildStage";
+import { ReviewStage } from "@/components/mission-workspace/stages/ReviewStage";
+
+// Re-export mapHistoryToChat from BrainiacMentorPanel for mentor history hydration
+import { mapHistoryToChat as mapHistory } from "@/components/mission-workspace/BrainiacMentorPanel";
 
 type StagedFile = { id: string; file: File };
 
-type ChatMessage = {
-  role: "user" | "mentor";
-  text: string;
-  suggestedActions?: string[];
-  xpAwarded?: number;
-};
-
 const AUTO_SAVE_MS = 30_000;
 const DEFAULT_CODE = "";
+
+function useIsMobile(breakpoint = 1024) {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < breakpoint,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const handler = () => setIsMobile(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+function friendlyError(message?: string): string {
+  const msg = message || "";
+  const lower = msg.toLowerCase();
+  if (lower.includes("403") || lower.includes("plan") || lower.includes("limit")) {
+    return "Your current plan has reached its mission limit.";
+  }
+  if (lower.includes("401") || lower.includes("expired") || lower.includes("unauthorized")) {
+    return "Your session has expired. Please sign in again.";
+  }
+  if (lower.includes("400") || lower.includes("complete") || lower.includes("requirement")) {
+    return msg || "Complete the remaining mission steps before submitting.";
+  }
+  return msg || "Something went wrong. Please try again.";
+}
 
 export default function MissionWorkspacePage() {
   const params = useParams<{ sessionId: string }>();
@@ -60,24 +86,29 @@ export default function MissionWorkspacePage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const [approach, setApproach] = useState("");
   const [codeSnippet, setCodeSnippet] = useState(DEFAULT_CODE);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [mentorCollapsed, setMentorCollapsed] = useState(false);
+  const [brainiacOpen, setBrainiacOpen] = useState(false);
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [confirmingBrief, setConfirmingBrief] = useState(false);
   const [completingCheckpointId, setCompletingCheckpointId] = useState<string | null>(null);
   const [addingEvidence, setAddingEvidence] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
-  const [requestingReview, setRequestingReview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [mentorSending, setMentorSending] = useState(false);
+  const [reviewingDraft, setReviewingDraft] = useState(false);
+  const [mentorReviewFeedback, setMentorReviewFeedback] = useState<string | null>(null);
   const [readiness, setReadiness] = useState<ReadinessDto | null>(null);
   const [readinessLoading, setReadinessLoading] = useState(false);
   const [resumeChecked, setResumeChecked] = useState(false);
+  const [stageOverride, setStageOverride] = useState<MissionStage | null>(null);
+  const [xpFlash, setXpFlash] = useState<number | null>(null);
   const hydratedRef = useRef(false);
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -123,6 +154,11 @@ export default function MissionWorkspacePage() {
     hydratedRef.current = true;
   }, []);
 
+  const computedStage = workspace
+    ? resolveMissionStage(workspace, readiness, approach, codeSnippet)
+    : MissionStage.Brief;
+  const activeStage = stageOverride ?? computedStage;
+
   /* Resume routing */
   useEffect(() => {
     if (!workspace || resumeChecked) return;
@@ -157,24 +193,34 @@ export default function MissionWorkspacePage() {
     if (workspace) hydrateFromDraft(workspace);
   }, [workspace, hydrateFromDraft, resumeChecked]);
 
+  /* Clear stage override when computed stage advances */
+  useEffect(() => {
+    if (!stageOverride) return;
+    const order = [MissionStage.Brief, MissionStage.Planning, MissionStage.Building, MissionStage.Review, MissionStage.Submission];
+    if (order.indexOf(computedStage) > order.indexOf(stageOverride)) {
+      setStageOverride(null);
+    }
+  }, [computedStage, stageOverride]);
+
   /* Mentor history */
   useEffect(() => {
     if (!sessionId) return;
     let cancelled = false;
     fetchMentorHistory(sessionId).then((res) => {
       if (!cancelled && res.ok && res.data.length > 0) {
-        setChatMessages(mapHistoryToChat(res.data));
+        setChatMessages(mapHistory(res.data));
       }
     });
     return () => { cancelled = true; };
   }, [sessionId]);
 
-  /* Readiness polling */
+  /* Readiness polling — only when past brief */
   useEffect(() => {
+    if (!workspace?.briefReviewed) return;
     loadReadiness();
     const id = setInterval(loadReadiness, 15_000);
     return () => clearInterval(id);
-  }, [loadReadiness]);
+  }, [loadReadiness, workspace?.briefReviewed]);
 
   const persistDraft = useCallback(async (silent = false) => {
     if (!sessionId) return;
@@ -193,29 +239,35 @@ export default function MissionWorkspacePage() {
         toast({ title: "Draft saved", description: "Your progress is saved." });
       }
     } else if (!silent) {
-      toast({ title: "Could not save draft", description: res.error, variant: "destructive" });
+      toast({ title: "Could not save draft", description: friendlyError(res.error), variant: "destructive" });
     }
   }, [sessionId, approach, codeSnippet, toast]);
 
-  /* Auto-save */
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId || activeStage === MissionStage.Brief) return;
     autoSaveRef.current = setInterval(() => persistDraft(true), AUTO_SAVE_MS);
     return () => {
       if (autoSaveRef.current) clearInterval(autoSaveRef.current);
     };
-  }, [sessionId, persistDraft]);
+  }, [sessionId, persistDraft, activeStage]);
+
+  function flashXp(amount: number) {
+    setXpFlash(amount);
+    setTimeout(() => setXpFlash(null), 2500);
+  }
 
   async function handleConfirmBrief() {
     setConfirmingBrief(true);
     const res = await markBriefReviewed(sessionId);
     setConfirmingBrief(false);
     if (res.ok) {
-      toast({ title: "Brief confirmed", description: "Checkpoints are now available." });
+      flashXp(5);
+      toast({ title: "Brief confirmed", description: "Let's plan your approach." });
+      setStageOverride(MissionStage.Planning);
       await refreshWorkspace();
       await loadReadiness();
     } else {
-      toast({ title: "Could not confirm brief", description: res.error, variant: "destructive" });
+      toast({ title: "Could not confirm brief", description: friendlyError(res.error), variant: "destructive" });
     }
   }
 
@@ -224,14 +276,12 @@ export default function MissionWorkspacePage() {
     const res = await completeCheckpoint(sessionId, checkpointProgressId, notes);
     setCompletingCheckpointId(null);
     if (res.ok) {
-      toast({
-        title: "Checkpoint complete",
-        description: "+10 XP — keep going!",
-      });
+      flashXp(10);
+      toast({ title: "+10 XP", description: "Checkpoint complete — keep going!" });
       await refreshWorkspace();
       await loadReadiness();
     } else {
-      toast({ title: "Checkpoint failed", description: res.error, variant: "destructive" });
+      toast({ title: "Checkpoint failed", description: friendlyError(res.error), variant: "destructive" });
     }
   }
 
@@ -242,18 +292,16 @@ export default function MissionWorkspacePage() {
     url: string;
   }) {
     setAddingEvidence(true);
-    const res = await registerEvidence({
-      experienceSessionId: sessionId,
-      ...payload,
-    });
+    const res = await registerEvidence({ experienceSessionId: sessionId, ...payload });
     setAddingEvidence(false);
     if (res.ok) {
-      toast({ title: "Evidence added", description: "+10 XP" });
+      flashXp(10);
+      toast({ title: "+10 XP", description: "Evidence added" });
       await refreshWorkspace();
       await loadReadiness();
       return true;
     }
-    toast({ title: "Could not add evidence", description: res.error, variant: "destructive" });
+    toast({ title: "Could not add evidence", description: friendlyError(res.error), variant: "destructive" });
     return false;
   }
 
@@ -279,7 +327,7 @@ export default function MissionWorkspacePage() {
         },
       ]);
       if (data.xpAwarded > 0) {
-        toast({ title: `+${data.xpAwarded} XP`, description: "Mentor interaction" });
+        flashXp(data.xpAwarded);
         await refreshWorkspace();
       }
     } else {
@@ -291,18 +339,24 @@ export default function MissionWorkspacePage() {
     setMentorSending(false);
   }
 
-  async function handleRequestReview() {
-    setRequestingReview(true);
-    const res = await requestReview(sessionId);
-    setRequestingReview(false);
+  async function handleReviewDraft() {
+    setReviewingDraft(true);
+    const draftContent = `${approach}\n\n---\n\n${codeSnippet}`;
+    const res = await reviewDraftWithMentor(sessionId, draftContent);
+    setReviewingDraft(false);
     if (res.ok) {
-      toast({
-        title: "Review requested",
-        description: "Brainiac will coach you before final submission.",
-      });
-      await refreshWorkspace();
+      const feedback = res.data.response;
+      setMentorReviewFeedback(feedback);
+      setChatMessages((m) => [
+        ...m,
+        { role: "mentor", text: feedback, suggestedActions: res.data.suggestedNextActions },
+      ]);
+      if (res.data.xpAwarded > 0) {
+        flashXp(res.data.xpAwarded);
+        await refreshWorkspace();
+      }
     } else {
-      toast({ title: "Request failed", description: res.error, variant: "destructive" });
+      toast({ title: "Review unavailable", description: friendlyError(res.error), variant: "destructive" });
     }
   }
 
@@ -333,14 +387,37 @@ export default function MissionWorkspacePage() {
       }
       const resolved = await resolveSubmissionIdForSession(sessionId);
       if (resolved) navigate(`/mission/evaluating/${resolved}/${sessionId}`);
-      else toast({ title: "Submitted", description: "Submission received. Check your results shortly." });
+      else toast({ title: "Submitted", description: "Your work has been submitted for review." });
     } else {
       toast({
         title: "Submission blocked",
-        description: res.error || "Readiness requirements not met.",
+        description: friendlyError(res.error || "Complete the remaining mission steps before submitting."),
         variant: "destructive",
       });
       await loadReadiness();
+    }
+  }
+
+  function handlePrimaryAction() {
+    switch (activeStage) {
+      case MissionStage.Brief:
+        handleConfirmBrief();
+        break;
+      case MissionStage.Planning:
+        break;
+      case MissionStage.Building:
+        setStageOverride(MissionStage.Review);
+        break;
+      case MissionStage.Review:
+        if (readiness?.isReady || workspace?.isReadyForFinalSubmission) {
+          setShowSubmitModal(true);
+        } else {
+          setStageOverride(MissionStage.Building);
+        }
+        break;
+      case MissionStage.Submission:
+        setShowSubmitModal(true);
+        break;
     }
   }
 
@@ -366,7 +443,7 @@ export default function MissionWorkspacePage() {
       <div className="min-h-screen bg-[#060a10] text-white flex flex-col items-center justify-center gap-4 px-6">
         <AlertCircle className="w-10 h-10 text-red-400/60" />
         <p className="text-sm font-mono text-white/50 text-center">
-          {(error as Error)?.message || "Could not load workspace."}
+          {friendlyError((error as Error)?.message || "Could not load workspace.")}
         </p>
         <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2 font-mono text-xs">
           <RefreshCw className="w-3.5 h-3.5" /> Retry
@@ -375,102 +452,169 @@ export default function MissionWorkspacePage() {
     );
   }
 
-  const isReady = readiness?.isReady ?? workspace.isReadyForFinalSubmission;
+  const progress = getCheckpointProgress(workspace.checkpoints);
+  const nextAction = resolveNextAction(workspace, readiness, approach, codeSnippet);
+  const journeyStep = stageToJourneyStep(activeStage);
+  const hideNextCta = activeStage === MissionStage.Planning;
 
   return (
     <div className="min-h-screen bg-[#060a10] text-white flex flex-col">
-      <header className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b border-white/5 bg-black/30 backdrop-blur z-20">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          className="flex items-center gap-1.5 text-xs font-mono text-white/30 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-        </button>
-        <span className="text-xs font-mono text-white/20">|</span>
-        <span className="text-xs font-mono text-white/50 truncate flex-1">
-          {workspace.missionTitle}
-        </span>
-        <a
-          href={`/app/session/${sessionId}/solve`}
-          className="text-[10px] font-mono text-white/25 hover:text-white/50 hidden sm:inline"
-        >
-          Legacy workspace
-        </a>
-      </header>
+      <MissionHeader
+        missionTitle={workspace.missionTitle}
+        employerChallenge={Boolean(workspace.employerChallengeAssignmentId)}
+        sessionXpEarned={workspace.sessionXpEarned}
+      />
+
+      <MissionJourney currentStep={journeyStep} />
+
+      {/* XP flash animation */}
+      <AnimatePresence>
+        {xpFlash !== null && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#FFD700]/20 border border-[#FFD700]/40 text-[#FFD700] text-sm font-mono font-bold shadow-lg"
+          >
+            +{xpFlash} XP
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="flex-1 overflow-hidden">
-        <div className="h-full max-h-[calc(100vh-56px)] grid grid-cols-1 lg:grid-cols-12 gap-3 p-3 lg:p-4 overflow-y-auto lg:overflow-hidden">
-          {/* Left: brief + checkpoints */}
-          <div className="lg:col-span-3 flex flex-col gap-3 lg:overflow-y-auto lg:max-h-full">
-            <MissionBriefPanel
-              missionTitle={workspace.missionTitle}
-              missionBrief={workspace.missionBrief}
-              currentPhase={workspace.currentPhase}
-              progressPercentage={workspace.progressPercentage}
-              briefReviewed={workspace.briefReviewed}
-              employerChallenge={Boolean(workspace.employerChallengeAssignmentId)}
-              onConfirmBrief={handleConfirmBrief}
-              confirming={confirmingBrief}
-            />
-            <CheckpointChecklist
+        <div className="h-full max-h-[calc(100vh-120px)] flex flex-col lg:flex-row gap-4 p-4 overflow-y-auto">
+          {/* Left: progress panel (desktop) / collapsible (mobile) */}
+          {activeStage !== MissionStage.Brief && (
+            <MissionProgressPanel
+              currentStep={journeyStep}
               checkpoints={workspace.checkpoints}
-              briefReviewed={workspace.briefReviewed}
-              completingId={completingCheckpointId}
-              onComplete={handleCompleteCheckpoint}
-            />
-          </div>
-
-          {/* Center: work area */}
-          <div className="lg:col-span-5 flex flex-col gap-3 min-h-[400px] lg:max-h-full lg:overflow-hidden">
-            <WorkArea
-              approachExplanation={approach}
-              codeSnippet={codeSnippet}
-              onApproachChange={setApproach}
-              onCodeChange={setCodeSnippet}
-              onSaveDraft={() => persistDraft(false)}
-              saving={savingDraft}
-              lastSavedAt={lastSavedAt}
-            />
-            <ReadinessChecklist readiness={readiness} loading={readinessLoading} />
-            <SubmitBar
+              progressPct={progress.pct}
               sessionXpEarned={workspace.sessionXpEarned}
-              isReady={isReady}
-              submissionStage={workspace.submissionStage}
-              onRequestReview={handleRequestReview}
-              onSubmitFinal={() => setShowSubmitModal(true)}
-              requestingReview={requestingReview}
-              submitting={submitting}
             />
+          )}
+
+          {/* Center: current stage */}
+          <div className="flex-1 min-w-0 flex flex-col gap-4">
+            {activeStage !== MissionStage.Planning && activeStage !== MissionStage.Brief && (
+              <NextActionCard
+                action={nextAction}
+                onPrimaryAction={handlePrimaryAction}
+                hideCta={hideNextCta}
+                primaryDisabled={confirmingBrief}
+                primaryLoading={confirmingBrief}
+              />
+            )}
+
+            <AnimatePresence mode="wait">
+              {activeStage === MissionStage.Brief && (
+                <BriefStage
+                  missionTitle={workspace.missionTitle}
+                  missionBrief={workspace.missionBrief}
+                  employerChallenge={Boolean(workspace.employerChallengeAssignmentId)}
+                  onConfirmBrief={handleConfirmBrief}
+                  confirming={confirmingBrief}
+                  onAskBrainiac={() => setBrainiacOpen(true)}
+                />
+              )}
+
+              {activeStage === MissionStage.Planning && (
+                <>
+                  <NextActionCard action={nextAction} hideCta />
+                  <PlanningStage
+                    checkpoints={workspace.checkpoints}
+                    completingId={completingCheckpointId}
+                    onComplete={handleCompleteCheckpoint}
+                  />
+                </>
+              )}
+
+              {activeStage === MissionStage.Building && (
+                <BuildStage
+                  approachExplanation={approach}
+                  codeSnippet={codeSnippet}
+                  onApproachChange={setApproach}
+                  onCodeChange={setCodeSnippet}
+                  onSaveDraft={() => persistDraft(false)}
+                  onOpenEvidence={() => setEvidenceOpen(true)}
+                  saving={savingDraft}
+                  lastSavedAt={lastSavedAt}
+                  evidence={workspace.evidence}
+                />
+              )}
+
+              {(activeStage === MissionStage.Review || activeStage === MissionStage.Submission) && (
+                  <ReviewStage
+                    workspace={workspace}
+                    readiness={readiness}
+                    readinessLoading={readinessLoading}
+                    approach={approach}
+                    codeSnippet={codeSnippet}
+                    onReviewWithBrainiac={handleReviewDraft}
+                    reviewingDraft={reviewingDraft}
+                    mentorFeedback={mentorReviewFeedback}
+                    onSubmitFinal={() => setShowSubmitModal(true)}
+                    onContinueWorking={() => setStageOverride(MissionStage.Building)}
+                    submitting={submitting}
+                  />
+                )}
+            </AnimatePresence>
           </div>
 
-          {/* Right: evidence + mentor */}
-          <div className="lg:col-span-4 flex flex-col gap-3 lg:overflow-y-auto lg:max-h-full">
-            <EvidencePanel
-              evidence={workspace.evidence}
-              stagedFiles={stagedFiles}
-              onAddLinkEvidence={handleAddEvidence}
-              onStageFiles={(files) =>
-                setStagedFiles((prev) => [
-                  ...prev,
-                  ...files.map((file) => ({ id: crypto.randomUUID(), file })),
-                ])
-              }
-              onRemoveStagedFile={(id) => setStagedFiles((prev) => prev.filter((f) => f.id !== id))}
-              adding={addingEvidence}
-            />
-            <BrainiacMentorPanel
+          {/* Right: Brainiac drawer (desktop inline) */}
+          {!isMobile && (
+            <BrainiacDrawer
               messages={chatMessages}
               sending={mentorSending}
               onSend={handleMentorSend}
               onSuggestedAction={(action) => handleMentorSend(action, ConversationIntent.DecisionSupport)}
-              collapsed={mentorCollapsed}
-              onToggleCollapse={() => setMentorCollapsed((c) => !c)}
+              open={brainiacOpen}
+              onOpenChange={setBrainiacOpen}
             />
-          </div>
+          )}
         </div>
       </main>
 
+      {/* Mobile Brainiac bottom sheet */}
+      {isMobile && (
+        <BrainiacDrawer
+          messages={chatMessages}
+          sending={mentorSending}
+          onSend={handleMentorSend}
+          onSuggestedAction={(action) => handleMentorSend(action, ConversationIntent.DecisionSupport)}
+          open={brainiacOpen}
+          onOpenChange={setBrainiacOpen}
+          isMobile
+        />
+      )}
+
+      {/* Mobile sticky action bar */}
+      {isMobile && activeStage !== MissionStage.Brief && activeStage !== MissionStage.Planning && (
+        <div className="sticky bottom-0 z-20 p-3 border-t border-white/5 bg-[#060a10]/95 backdrop-blur">
+          <Button
+            onClick={handlePrimaryAction}
+            className="w-full font-mono text-sm bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD] gap-1"
+          >
+            {nextAction.ctaLabel}
+          </Button>
+        </div>
+      )}
+
+      <EvidenceDrawer
+        open={evidenceOpen}
+        onOpenChange={setEvidenceOpen}
+        onAddLinkEvidence={handleAddEvidence}
+        onStageFiles={(files) =>
+          setStagedFiles((prev) => [
+            ...prev,
+            ...files.map((file) => ({ id: crypto.randomUUID(), file })),
+          ])
+        }
+        stagedFiles={stagedFiles}
+        onRemoveStagedFile={(id) => setStagedFiles((prev) => prev.filter((f) => f.id !== id))}
+        adding={addingEvidence}
+      />
+
+      {/* Final submit confirmation */}
       <AnimatePresence>
         {showSubmitModal && (
           <motion.div
@@ -490,14 +634,14 @@ export default function MissionWorkspacePage() {
             >
               <div className="flex items-start justify-between gap-2">
                 <h2 id="submit-modal-title" className="text-lg font-bold font-mono">
-                  Submit final deliverable?
+                  Ready to send?
                 </h2>
                 <button type="button" onClick={() => setShowSubmitModal(false)} className="text-white/30 hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <p className="text-sm text-white/55 leading-relaxed">
-                This sends your work for technical review — like handing off to a client. You won't be able to edit after submission.
+                Your solution will be submitted to the team lead for review. You won't be able to edit this submission after sending.
               </p>
               <div className="flex gap-2">
                 <Button
@@ -505,14 +649,14 @@ export default function MissionWorkspacePage() {
                   className="flex-1 font-mono text-xs border-white/15"
                   onClick={() => setShowSubmitModal(false)}
                 >
-                  Keep working
+                  Go Back
                 </Button>
                 <Button
                   className="flex-1 font-mono text-xs bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD]"
                   onClick={handleFinalSubmit}
                   disabled={submitting}
                 >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit"}
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit Solution →"}
                 </Button>
               </div>
             </motion.div>
@@ -522,3 +666,13 @@ export default function MissionWorkspacePage() {
     </div>
   );
 }
+
+/*
+ * LEGACY UX:
+ * The previous workspace rendered all mission sections simultaneously in a 3-column grid
+ * (MissionBriefPanel, CheckpointChecklist, WorkArea, EvidencePanel, ReadinessChecklist,
+ * SubmitBar, BrainiacMentorPanel). This created cognitive overload.
+ * Those components are preserved in src/components/mission-workspace/ for reference
+ * and potential reuse elsewhere. The new progressive workspace controls when each
+ * section is rendered based on mission stage.
+ */

@@ -9,6 +9,8 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthBanner } from "@/pages/auth/Login";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Link } from "wouter";
 import { Loader2, Briefcase, Building2, User } from "lucide-react";
@@ -23,6 +25,9 @@ const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
   confirmPassword: z.string(),
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: "You must agree to the Terms and Conditions and Privacy Policy" }),
+  }),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -37,6 +42,9 @@ const employerSchema = z.object({
   confirmPassword: z.string(),
   phoneNumber: z.string().regex(/^[+0-9]*$/, "Invalid phone number format").min(1, "Phone number is required"),
   companyName: z.string().min(1, "Company name is required"),
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: "You must agree to the Terms and Conditions and Privacy Policy" }),
+  }),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -51,9 +59,12 @@ function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void })
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
+    defaultValues: { acceptTerms: false as unknown as true },
   });
+
+  const acceptTerms = watch("acceptTerms");
 
   const onSubmit = async (data: RegisterForm) => {
     setError("");
@@ -61,7 +72,8 @@ function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void })
       setError("Please complete the reCAPTCHA verification before continuing.");
       return;
     }
-    const res = await api.auth.register({ ...data, isEmployer: false }, recaptchaToken ?? undefined);
+    const { acceptTerms: _terms, ...registerData } = data;
+    const res = await api.auth.register({ ...registerData, isEmployer: false }, recaptchaToken ?? undefined);
     if (!res.ok) {
       setError(res.error || "Failed to register");
       recaptchaRef.current?.reset();
@@ -97,15 +109,34 @@ function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void })
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" {...register("password")} />
+            <PasswordInput id="password" {...register("password")} />
             {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+            <PasswordInput id="confirmPassword" {...register("confirmPassword")} />
             {errors.confirmPassword && <p className="text-destructive text-xs font-mono">{errors.confirmPassword.message}</p>}
           </div>
         </div>
+
+        <div className="flex items-start space-x-2">
+          <Checkbox
+            id="acceptTerms"
+            checked={acceptTerms === true}
+            onCheckedChange={(c) => setValue("acceptTerms", (c === true) as true, { shouldValidate: true })}
+          />
+          <Label htmlFor="acceptTerms" className="text-sm font-normal leading-snug">
+            I agree to the{" "}
+            <Link href="/terms" className="text-primary hover:underline" target="_blank">
+              Terms and Conditions
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-primary hover:underline" target="_blank">
+              Privacy Policy
+            </Link>
+          </Label>
+        </div>
+        {errors.acceptTerms && <p className="text-destructive text-xs font-mono">{errors.acceptTerms.message}</p>}
 
         {RECAPTCHA_SITE_KEY && (
           <div className="flex justify-center pt-1">
@@ -130,9 +161,12 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<EmployerForm>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<EmployerForm>({
     resolver: zodResolver(employerSchema),
+    defaultValues: { acceptTerms: false as unknown as true },
   });
+
+  const acceptTerms = watch("acceptTerms");
 
   const onSubmit = async (data: EmployerForm) => {
     setError("");
@@ -195,12 +229,12 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="employer-password">Password</Label>
-            <Input id="employer-password" type="password" {...register("password")} />
+            <PasswordInput id="employer-password" {...register("password")} />
             {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="employer-confirmPassword">Confirm Password</Label>
-            <Input id="employer-confirmPassword" type="password" {...register("confirmPassword")} />
+            <PasswordInput id="employer-confirmPassword" {...register("confirmPassword")} />
             {errors.confirmPassword && <p className="text-destructive text-xs font-mono">{errors.confirmPassword.message}</p>}
           </div>
         </div>
@@ -221,6 +255,25 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
             Logo, website, and company description are managed after registration in Company Profile settings.
           </p>
         </div>
+
+        <div className="flex items-start space-x-2">
+          <Checkbox
+            id="employer-acceptTerms"
+            checked={acceptTerms === true}
+            onCheckedChange={(c) => setValue("acceptTerms", (c === true) as true, { shouldValidate: true })}
+          />
+          <Label htmlFor="employer-acceptTerms" className="text-sm font-normal leading-snug">
+            I agree to the{" "}
+            <Link href="/terms" className="text-primary hover:underline" target="_blank">
+              Terms and Conditions
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-primary hover:underline" target="_blank">
+              Privacy Policy
+            </Link>
+          </Label>
+        </div>
+        {errors.acceptTerms && <p className="text-destructive text-xs font-mono">{errors.acceptTerms.message}</p>}
 
         {RECAPTCHA_SITE_KEY && (
           <div className="flex justify-center pt-1">
