@@ -1,0 +1,68 @@
+name: Build and Deploy Brainepedia App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Application
+        run: node build-release.mjs
+
+      - name: Prepare Deployment Directory
+        run: mv brainepedia-release build
+
+      - name: Verify Production Build
+        run: |
+          if [ ! -d "build" ]; then
+            echo "ERROR: build directory was not generated."
+            exit 1
+          fi
+
+          if [ ! -f "build/index.html" ]; then
+            echo "ERROR: build/index.html is missing."
+            exit 1
+          fi
+
+          echo "Production build successfully generated."
+          echo "Build contents:"
+          find build -maxdepth 2 -type f | sort
+
+          echo ""
+          echo "Checking expected deployment artifacts:"
+          for item in assets screenshots favicon.png favicon.svg web.config server.js package.json; do
+            if [ -e "build/$item" ]; then
+              echo "  ✓ $item"
+            else
+              echo "  ⚠ $item not found (optional)"
+            fi
+          done
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: build/
+          server-dir: /brainepediav2_build/
