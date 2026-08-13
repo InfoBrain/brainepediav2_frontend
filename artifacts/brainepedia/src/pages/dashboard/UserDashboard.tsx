@@ -6,12 +6,14 @@ import {
   Medal, Star, Zap, Share2, Link2, ExternalLink, Shield, MessageSquare,
   BriefcaseBusiness,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { XPRing } from "@/components/dashboard/XPRing";
 import { Leaderboard, type LeaderboardUser, type CurrentUserRank } from "@/components/dashboard/Leaderboard";
+import { MissionActivityFeed } from "@/components/dashboard/MissionActivityFeed";
+import { OngoingMissionsSection } from "@/components/dashboard/OngoingMissionsSection";
 import { api } from "@/lib/api";
 import { getUser, getUserId, getProfileId } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -51,7 +53,6 @@ type District = {
   totalPossibleXP: number;
   completionPercentage: number;
 };
-type ActivityLog = { activity: string; createdAt?: string; performedBy?: string };
 type Profile = {
   firstName?: string;
   surName?: string;
@@ -150,7 +151,6 @@ export default function UserDashboard() {
   const [dashStats, setDashStats] = useState<DashboardStats | null>(null);
   const [missionStats, setMissionStats] = useState<MissionStats | null>(null);
   const [districts, setDistricts] = useState<District[]>([]);
-  const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [topUsers, setTopUsers] = useState<LeaderboardUser[]>([]);
   const [currentUserRank, setCurrentUserRank] = useState<CurrentUserRank | null>(null);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
@@ -197,14 +197,13 @@ export default function UserDashboard() {
       setLeaderboardLoading(true);
 
       const pid = getProfileId() || userId;
-      const [s, m, a, pDirect, b, ds, lb, vi, ms, subDetails] = await Promise.all([
+      const [s, m, pDirect, b, ds, lb, vi, ms, subDetails] = await Promise.all([
         api.profiles.stats(userId),
         api.profiles.map(userId),
-        api.activityLogs.forUser(userId),
         api.profiles.get(pid),
         api.userBadges.forUser(userId),
         api.dashboard.stats(userId),
-        api.dashboard.leaderboard(userId, 20),
+        api.dashboard.leaderboard(userId, 5),
         api.identity.professionalIdentity(userId),
         api.dashboard.userMissionStatistics(userId),
         api.subscriptions.details(userId),
@@ -214,7 +213,6 @@ export default function UserDashboard() {
       const stats = s.ok ? normStats(s.data) : null;
       if (stats) setStats(stats);
       if (m.ok) setDistricts(normDistricts(m.data));
-      if (a.ok) setActivity(normActivity(a.data));
 
       // Dashboard stats (richer endpoint)
       if (ds.ok && ds.data && typeof ds.data === "object") {
@@ -280,8 +278,6 @@ export default function UserDashboard() {
             return { milestone, success: awardRes.ok };
           }));
           if (!cancelled) {
-            const refreshed = await api.activityLogs.forUser(userId);
-            if (!cancelled && refreshed.ok) setActivity(normActivity(refreshed.data));
             const confirmed = awardResults.filter(r => r.success).map(r => r.milestone);
             if (confirmed.length > 0) {
               const freshBadges: EarnedBadge[] = confirmed.map(m => ({ name: m.name, description: m.description, rarityKey: numericRarityToKey(m.rarity), isNew: true }));
@@ -355,7 +351,7 @@ export default function UserDashboard() {
         verifiedExperienceYears: Number(u.verifiedExperienceYears ?? u.VerifiedExperienceYears ?? 0),
       };
     });
-    setTopUsers(users);
+    setTopUsers(users.slice(0, 5));
 
     /* currentUser block — support camelCase + PascalCase */
     const cu: any = d.currentUser ?? d.CurrentUser ?? null;
@@ -408,7 +404,7 @@ export default function UserDashboard() {
   const refreshLeaderboard = async () => {
     if (!userId) return;
     setLeaderboardLoading(true);
-    const lb = await api.dashboard.leaderboard(userId, 20);
+    const lb = await api.dashboard.leaderboard(userId, 5);
     applyLeaderboard(lb);
     setLeaderboardLoading(false);
   };
@@ -707,6 +703,43 @@ export default function UserDashboard() {
             </Link>
           </motion.div>
 
+          {/* ── LEADERBOARD (top 5 + your position) ── */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            className="bg-[#0d1119] border border-white/6 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-[#FFD700]" /> Top Problem Solvers
+                </h2>
+                <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider mt-0.5">Global leaderboard · Top 5</p>
+              </div>
+              {rank && (
+                <div className="text-right">
+                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider">Your Rank</p>
+                  <p className="text-2xl font-black text-[#FFD700] font-mono">#{rank}</p>
+                </div>
+              )}
+            </div>
+            <Leaderboard
+              topUsers={topUsers.filter(u => u.totalXP > 0).slice(0, 5)}
+              currentUser={currentUserRank}
+              loading={leaderboardLoading}
+              onUserClick={(uid) => navigate(`/public-profile/${uid}`)}
+            />
+          </motion.div>
+
+          {/* ── ONGOING MISSIONS ── */}
+          {userId && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+              <OngoingMissionsSection userId={userId} />
+            </motion.div>
+          )}
+
+          {/* ── MISSION ACTIVITY FEED ── */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <MissionActivityFeed />
+          </motion.div>
+
           {/* ── XP RING + DISTRICT OVERVIEW ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* XP Ring */}
@@ -764,31 +797,6 @@ export default function UserDashboard() {
             </motion.div>
           </div>
 
-          {/* ── LEADERBOARD (top 3 + your position) ── */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            className="bg-[#0d1119] border border-white/6 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-[#FFD700]" /> Top Problem Solvers
-                </h2>
-                <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider mt-0.5">Global leaderboard · Keep climbing</p>
-              </div>
-              {rank && (
-                <div className="text-right">
-                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider">Your Rank</p>
-                  <p className="text-2xl font-black text-[#FFD700] font-mono">#{rank}</p>
-                </div>
-              )}
-            </div>
-            <Leaderboard
-              topUsers={topUsers.filter(u => u.totalXP > 0)}
-              currentUser={currentUserRank}
-              loading={leaderboardLoading}
-              onUserClick={(uid) => navigate(`/public-profile/${uid}`)}
-            />
-          </motion.div>
-
           {/* ── ACHIEVEMENT STATUS ── */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
             className={`flex items-center gap-4 rounded-xl border p-4 ${hasBadges ? "border-[#FFD700]/25 bg-[#FFD700]/5" : "border-white/8 bg-[#0d1117]"}`}>
@@ -810,76 +818,32 @@ export default function UserDashboard() {
             </Link>
           </motion.div>
 
-          {/* ── BADGE SHOWCASE ── */}
-          {earnedBadges.length > 0 && (
-            <div className="bg-[#0d1119] border border-white/6 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <h2 className="text-base font-bold text-amber-400">Badge Showcase</h2>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {newBadges.length > 0 ? `${newBadges.length} new badge${newBadges.length > 1 ? "s" : ""} unlocked!` : "Your latest honours"}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {newBadges.length > 0 && (
-                    <motion.span initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                      className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-amber-400/20 text-amber-400 border border-amber-400/40">
-                      New!
-                    </motion.span>
-                  )}
-                  <Trophy className="h-5 w-5 text-amber-400" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                <AnimatePresence>
-                  {earnedBadges.slice(0, 6).map((badge, i) => {
-                    const r = RARITY_COLOR[badge.rarityKey] ?? RARITY_COLOR.common;
-                    return (
-                      <motion.div key={badge.name}
-                        initial={badge.isNew ? { opacity: 0, scale: 0.7, y: 12 } : false}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20, delay: badge.isNew ? i * 0.12 : 0 }}
-                        className="relative">
-                        <div className={`rounded-xl p-[2px] bg-gradient-to-br ${r.ring} ${r.glow}`}>
-                          <div className="bg-[#0A0E14] rounded-[10px] p-3 flex flex-col items-center justify-center text-center gap-1.5 min-h-[90px]">
-                            <Trophy className={`h-6 w-6 ${r.label}`} />
-                            <div className="text-xs font-bold leading-tight line-clamp-2 text-white">{badge.name}</div>
-                            <div className={`text-[9px] font-mono uppercase tracking-wider ${r.label}`}>{r.labelText}</div>
-                          </div>
-                        </div>
-                        {badge.isNew && (
-                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-                            className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-amber-400 border border-black flex items-center justify-center">
-                            <span className="text-[8px] font-bold text-black leading-none">✦</span>
-                          </motion.div>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
-              <div className="mt-4 text-right">
-                <Link href="/user/badges" className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400 transition-colors">
-                  View all badges →
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* ── IMPERIAL MAP + SUBSCRIPTION ── */}
+          {/* ── LEARNING / DISCOVERY + SUBSCRIPTION ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-[#0d1119] border border-white/6 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-bold text-amber-400">Learning Map</h2>
-                  <p className="text-xs text-muted-foreground font-mono">Districts under your conquest</p>
+                  <h2 className="text-lg font-bold text-amber-400">Learning &amp; Discovery</h2>
+                  <p className="text-xs text-muted-foreground font-mono">Explore professions and new missions</p>
                 </div>
-                <Map className="h-5 w-5 text-amber-400" />
+                <Compass className="h-5 w-5 text-amber-400" />
               </div>
-              {districts.length === 0
-                ? <EmptyState label="No districts mapped yet. Start a challenge to begin." cta="Begin Your First Journey" href="/profession/select" />
-                : <HexGrid districts={districts} />
-              }
+              <p className="text-sm text-white/45 mb-5">
+                Browse districts, discover new problem nodes, and grow your verified experience across professions.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/profession/select">
+                  <Button className="bg-amber-400 hover:bg-amber-300 text-black font-mono text-xs gap-2">
+                    <Compass className="h-4 w-4" />
+                    Explore Missions
+                  </Button>
+                </Link>
+                <Link href="/profession/select"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-xs font-mono text-white/50 hover:text-amber-400 hover:border-amber-400/30 transition-colors">
+                  <Map className="h-4 w-4" />
+                  View Learning Map
+                </Link>
+              </div>
             </div>
             {subName === "Architect" || subName === "Grandmaster" ? (
               <div className="bg-gradient-to-br from-[#00D2FF]/10 to-[#0d1119] border border-[#00D2FF]/30 rounded-2xl p-6 shadow-[0_0_18px_rgba(0,210,255,0.12)] flex flex-col">
@@ -935,21 +899,6 @@ export default function UserDashboard() {
             )}
           </div>
 
-          {/* ── ACTIVITY ── */}
-          <div className="bg-[#0d1119] border border-white/6 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="text-lg font-bold text-amber-400">Recent Activity</h2>
-                <p className="text-xs text-muted-foreground font-mono">Activity timeline</p>
-              </div>
-              <Activity className="h-5 w-5 text-[#A78BFA]" />
-            </div>
-            {activity.length === 0
-              ? <EmptyState label="No activity logged yet." />
-              : <Timeline items={activity.slice(0, 12)} />
-            }
-          </div>
-
         </div>
       )}
     </DashboardShell>
@@ -970,11 +919,11 @@ function SubscriptionStatusDetails({ plan, expiryDate, status }: { plan: string;
 
 function GuidanceCards() {
   const cards = [
-    { title: "Complete your Portfolio", why: "Employers need structured evidence beyond mission scores.", next: "Add statement, education, experience, skills, services, and projects.", outcome: "A recruiter-friendly CV dossier.", href: "/user/portfolio", icon: UserIcon },
-    { title: "Start a Mission", why: "Missions turn learning into proof.", next: "Choose a profession and solve a real-world problem node.", outcome: "XP, progress, and portfolio evidence.", href: "/profession/select", icon: Target },
-    { title: "Improve your Rank", why: "Rank helps your profile stand out.", next: "Complete more missions and keep your streak alive.", outcome: "Higher leaderboard visibility.", href: "/user/xp-progress", icon: Trophy },
-    { title: "Apply for Jobs", why: "Your dossier is designed to support applications.", next: "Browse opportunities and submit applications.", outcome: "Employers can evaluate your verified profile.", href: "/jobs", icon: BriefcaseBusiness },
-    { title: "Join Discussions", why: "Community activity helps you learn from peers.", next: "Ask questions or contribute to forum threads.", outcome: "Stronger network and platform presence.", href: "/forum", icon: MessageSquare },
+    { title: "Complete your Portfolio", href: "/user/portfolio", icon: UserIcon },
+    { title: "Start a Mission", href: "/profession/select", icon: Target },
+    { title: "Improve your Rank", href: "/user/xp-progress", icon: Trophy },
+    { title: "Apply for Jobs", href: "/jobs", icon: BriefcaseBusiness },
+    { title: "Join Discussions", href: "/forum", icon: MessageSquare },
   ];
   return (
     <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
@@ -984,9 +933,6 @@ function GuidanceCards() {
           <Link key={card.title} href={card.href} className="rounded-2xl border border-white/6 bg-[#0d1119] p-4 transition hover:border-amber-400/30 hover:bg-amber-400/5">
             <Icon className="mb-3 h-5 w-5 text-amber-400" />
             <h3 className="font-bold text-white">{card.title}</h3>
-            <p className="mt-2 text-xs text-white/45"><span className="font-semibold text-white/70">Why:</span> {card.why}</p>
-            <p className="mt-1 text-xs text-white/45"><span className="font-semibold text-white/70">Next:</span> {card.next}</p>
-            <p className="mt-1 text-xs text-white/45"><span className="font-semibold text-white/70">Outcome:</span> {card.outcome}</p>
           </Link>
         );
       })}
@@ -1056,117 +1002,6 @@ function StatTile({ label, value, accent, icon: Icon }: { label: string; value: 
       </div>
       <div className={`text-2xl font-bold ${accent}`}>{value}</div>
     </motion.div>
-  );
-}
-
-function DistrictProgressRing({ pct, size = 56 }: { pct: number; size?: number }) {
-  const r = (size - 8) / 2;
-  const circ = 2 * Math.PI * r;
-  const dash = (pct / 100) * circ;
-  const tier = pct >= 75 ? "gold" : pct >= 35 ? "purple" : "slate";
-  const stroke = tier === "gold" ? "#FFD700" : tier === "purple" ? "#A78BFA" : "#475569";
-  const glow = tier === "gold"
-    ? "drop-shadow(0 0 6px rgba(255,215,0,0.7))"
-    : tier === "purple"
-    ? "drop-shadow(0 0 5px rgba(167,139,250,0.6))"
-    : "none";
-  return (
-    <svg width={size} height={size} className="shrink-0" style={{ filter: glow }}>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={6} />
-      <motion.circle
-        cx={size / 2} cy={size / 2} r={r} fill="none"
-        stroke={stroke} strokeWidth={6}
-        strokeLinecap="round"
-        strokeDasharray={circ}
-        initial={{ strokeDashoffset: circ }}
-        animate={{ strokeDashoffset: circ - dash }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-      />
-      <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle"
-        fontSize="11" fontWeight="700" fontFamily="monospace" fill={stroke}>
-        {Math.round(pct)}%
-      </text>
-    </svg>
-  );
-}
-
-function HexGrid({ districts }: { districts: District[] }) {
-  return (
-    <div className="space-y-3">
-      {districts.slice(0, 12).map((d, i) => {
-        const pct = Math.max(0, Math.min(100, d.completionPercentage));
-        const tier = pct >= 75 ? "gold" : pct >= 35 ? "purple" : "slate";
-        const barColor = tier === "gold" ? "bg-amber-400" : tier === "purple" ? "bg-[#A78BFA]" : "bg-slate-600";
-        const borderColor = tier === "gold" ? "border-[#FFD700]/25" : tier === "purple" ? "border-[#A78BFA]/20" : "border-white/6";
-        const glowClass = tier === "gold"
-          ? "hover:shadow-[0_0_18px_rgba(255,215,0,0.15)]"
-          : tier === "purple"
-          ? "hover:shadow-[0_0_14px_rgba(167,139,250,0.15)]"
-          : "";
-        const xpText = tier === "gold" ? "text-amber-400" : tier === "purple" ? "text-[#A78BFA]" : "text-white/40";
-
-        return (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.04, duration: 0.35 }}
-            className={`flex items-center gap-4 rounded-xl border ${borderColor} bg-[#0A0E14] px-4 py-3 transition-shadow ${glowClass}`}
-          >
-            <DistrictProgressRing pct={pct} />
-
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">{d.districtName}</p>
-              <div className="mt-1.5 h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
-                <motion.div
-                  className={`h-full rounded-full ${barColor}`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${pct}%` }}
-                  transition={{ duration: 1.2, ease: "easeOut", delay: i * 0.04 + 0.1 }}
-                />
-              </div>
-            </div>
-
-            <div className="text-right shrink-0">
-              {d.totalPossibleXP > 0 ? (
-                <>
-                  <p className={`text-sm font-bold font-mono ${xpText}`}>
-                    {d.earnedXP.toLocaleString()}
-                  </p>
-                  <p className="text-[10px] font-mono text-white/20">
-                    / {d.totalPossibleXP.toLocaleString()} XP
-                  </p>
-                </>
-              ) : (
-                <p className={`text-sm font-bold font-mono ${xpText}`}>
-                  {d.earnedXP > 0 ? `${d.earnedXP.toLocaleString()} XP` : "—"}
-                </p>
-              )}
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
-function Timeline({ items }: { items: ActivityLog[] }) {
-  return (
-    <ol className="relative border-l-2 border-white/10 ml-2 space-y-4 max-h-[28rem] overflow-y-auto pr-2">
-      {items.map((a, i) => (
-        <li key={i} className="ml-4">
-          <div className="absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(255,215,0,0.7)] border border-amber-300" />
-          <div className="bg-black/30 border border-white/5 rounded-lg px-4 py-3">
-            <div className="text-sm">{a.activity}</div>
-            <div className="flex items-center gap-3 mt-1 text-[10px] uppercase tracking-wider font-mono text-muted-foreground">
-              {a.createdAt && <span>{formatRel(a.createdAt)}</span>}
-              {a.performedBy && <span>by {a.performedBy}</span>}
-            </div>
-          </div>
-        </li>
-      ))}
-    </ol>
   );
 }
 
@@ -1242,14 +1077,6 @@ function normDistricts(d: any): District[] {
     };
   });
 }
-function normActivity(d: any): ActivityLog[] {
-  const arr = Array.isArray(d) ? d : Array.isArray(d?.logs) ? d.logs : [];
-  return arr.map((x: any) => ({
-    activity: x.activity || x.title || x.message || "Activity",
-    createdAt: x.createdAt || x.at || x.timestamp,
-    performedBy: x.performedBy || x.by,
-  }));
-}
 function normBadgesFromRaw(d: any): { name?: string; description?: string; rarity?: number }[] {
   const arr = Array.isArray(d) ? d : Array.isArray(d?.badges) ? d.badges : [];
   return arr.map((x: any) => ({
@@ -1257,13 +1084,4 @@ function normBadgesFromRaw(d: any): { name?: string; description?: string; rarit
     description: x.description,
     rarity: x.rarity !== undefined ? Number(x.rarity) : x.tier !== undefined ? Number(x.tier) : 0,
   }));
-}
-function formatRel(iso: string): string {
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
 }

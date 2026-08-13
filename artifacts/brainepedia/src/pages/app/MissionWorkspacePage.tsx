@@ -814,7 +814,9 @@ export default function MissionWorkspacePage() {
                 <BriefStage
                   missionTitle={workspace.missionTitle}
                   missionBrief={workspace.missionBrief}
+                  problemNode={problemNode}
                   employerChallenge={Boolean(workspace.employerChallengeAssignmentId)}
+                  estimatedXp={problemNode?.experiencePoints}
                   onConfirmBrief={handleConfirmBrief}
                   confirming={confirmingBrief}
                   onAskBrainiac={() => setBrainiacOpen(true)}

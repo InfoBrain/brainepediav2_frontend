@@ -285,6 +285,14 @@ export const api = {
       })}`),
     create: (data: { userId: string; activity: string; performedBy?: string }) =>
       fetchApi("/api/ActivityLogs", { method: "POST", body: JSON.stringify(data) }),
+    /** GET /api/ActivityLogs/mission-activities — platform-wide mission activity feed */
+    missionActivities: (params: { pageNumber?: number; pageSize?: number } = {}) =>
+      fetchApi(
+        `/api/ActivityLogs/mission-activities${queryString({
+          pageNumber: params.pageNumber ?? 1,
+          pageSize: params.pageSize ?? 20,
+        })}`,
+      ),
   },
   experienceCredits: {
     forUser: (userId: string) => fetchApi(`/api/ExperienceCredits/user/${encodeURIComponent(userId)}`),
