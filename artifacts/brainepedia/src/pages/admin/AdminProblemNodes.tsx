@@ -113,6 +113,13 @@ function normNodes(d: any): ProblemNode[] {
   }));
 }
 
+/** ASP.NET binds List<string> from repeated form fields, not a JSON.stringify()'d array. */
+function appendFormList(fd: FormData, key: string, items: string[]) {
+  for (const item of items.map(String).map((s) => s.trim()).filter(Boolean)) {
+    fd.append(key, item);
+  }
+}
+
 function DynamicList({
   label,
   items,
@@ -301,8 +308,8 @@ export default function AdminProblemNodes() {
     fd.append("Title", form.title.trim());
     fd.append("Context", form.context);
     fd.append("MissionBrief", form.missionBrief);
-    fd.append("Constraints", JSON.stringify(form.constraints.filter(Boolean)));
-    fd.append("ExpectedOutcomes", JSON.stringify(form.expectedOutcomes.filter(Boolean)));
+    appendFormList(fd, "Constraints", form.constraints);
+    appendFormList(fd, "ExpectedOutcomes", form.expectedOutcomes);
     fd.append("ExperiencePoints", form.experiencePoints || "0");
     fd.append("EstimatedMinutes", form.estimatedMinutes || "0");
     fd.append("DifficultyId", form.difficultyId);
@@ -386,8 +393,8 @@ export default function AdminProblemNodes() {
     fd.append("Title", p.title || "AI Generated");
     fd.append("Context", p.context || "");
     fd.append("MissionBrief", p.missionBrief || "");
-    fd.append("Constraints", JSON.stringify(parseArray(p.constraints)));
-    fd.append("ExpectedOutcomes", JSON.stringify(parseArray(p.expectedOutcomes)));
+    appendFormList(fd, "Constraints", parseArray(p.constraints));
+    appendFormList(fd, "ExpectedOutcomes", parseArray(p.expectedOutcomes));
     fd.append("ExperiencePoints", String(p.experiencePoints ?? 0));
     fd.append("EstimatedMinutes", String(p.estimatedMinutes ?? 0));
     fd.append("DifficultyId", aiForm.difficultyId);

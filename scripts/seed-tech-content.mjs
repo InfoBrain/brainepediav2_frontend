@@ -38,7 +38,17 @@ async function get(path, token) {
 
 function fd(fields) {
   const f = new FormData();
-  for (const [k, v] of Object.entries(fields)) if (v !== undefined && v !== null) f.append(k, String(v));
+  for (const [k, v] of Object.entries(fields)) {
+    if (v === undefined || v === null) continue;
+    if (Array.isArray(v)) {
+      for (const item of v) {
+        const text = String(item ?? "").trim();
+        if (text) f.append(k, text);
+      }
+    } else {
+      f.append(k, String(v));
+    }
+  }
   return f;
 }
 
@@ -1412,8 +1422,8 @@ async function main() {
           Title: node.title,
           Context: node.context,
           MissionBrief: node.missionBrief,
-          Constraints: JSON.stringify(node.constraints),
-          ExpectedOutcomes: JSON.stringify(node.expectedOutcomes),
+          Constraints: node.constraints,
+          ExpectedOutcomes: node.expectedOutcomes,
           ExperiencePoints: String(node.xp),
           EstimatedMinutes: String(node.minutes),
           DifficultyId: diffId,

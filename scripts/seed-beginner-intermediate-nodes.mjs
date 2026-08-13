@@ -89,8 +89,14 @@ function formData(fields) {
   const fd = new FormData();
   for (const [key, value] of Object.entries(fields)) {
     if (value == null) continue;
-    if (Array.isArray(value)) fd.append(key, JSON.stringify(value));
-    else fd.append(key, String(value));
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const text = String(item ?? "").trim();
+        if (text) fd.append(key, text);
+      }
+    } else {
+      fd.append(key, String(value));
+    }
   }
   return fd;
 }
