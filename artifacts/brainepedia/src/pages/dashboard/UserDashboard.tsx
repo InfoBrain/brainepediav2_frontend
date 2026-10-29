@@ -4,7 +4,7 @@ import {
   Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown,
   User as UserIcon, LayoutDashboard, Compass, TrendingUp, CheckCircle2,
   Medal, Star, Zap, Share2, Link2, ExternalLink, Shield, MessageSquare,
-  BriefcaseBusiness,
+  BriefcaseBusiness, Pencil,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -564,9 +564,11 @@ export default function UserDashboard() {
             <div className="flex flex-col items-center justify-center shrink-0 text-center px-4 py-2 rounded-xl border border-amber-400/20 bg-amber-400/5">
               <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-amber-400/60 mb-0.5">Total XP</div>
               <AnimatedXP value={totalXP} />
-              <Link href="/profile/edit" className="text-[9px] font-mono uppercase tracking-wider text-white/30 hover:text-amber-400 mt-2 transition-colors">
-                Edit Profile →
-              </Link>
+              <Button asChild size="sm" className="mt-3 bg-amber-400 text-black hover:bg-amber-300">
+                <Link href="/profile/edit">
+                  <Pencil className="mr-1.5 h-3.5 w-3.5" /> Update Profile
+                </Link>
+              </Button>
             </div>
           </motion.div>
 

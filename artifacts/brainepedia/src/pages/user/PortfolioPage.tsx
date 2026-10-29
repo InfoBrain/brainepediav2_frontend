@@ -22,6 +22,7 @@ import { getProfileId, getUser, getUserId } from "@/lib/auth";
 import { buildProfileFormData } from "@/lib/profileService";
 import { generateAndOpenSmartCv } from "@/lib/smartCv";
 import { canUseWallet, useOptionalBrainiacCredits, walletGuidance } from "@/hooks/useBrainiacCredits";
+import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -99,6 +100,7 @@ export default function PortfolioPage() {
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [cvInstructions, setCvInstructions] = useState("");
   const [cvGenerating, setCvGenerating] = useState(false);
+  const credits = useOptionalBrainiacCredits();
 
   const refreshCounts = async () => {
     if (!userId) return;
@@ -132,8 +134,17 @@ export default function PortfolioPage() {
   const completed = SECTIONS.filter((item) => (counts[item.key] ?? 0) > 0);
   const pct = Math.round((completed.length / SECTIONS.length) * 100);
 
+  const headerRight = (
+    <Button asChild size="sm" className="bg-amber-400 text-black hover:bg-amber-300">
+      <Link href="/profile/edit">
+        <Pencil className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">Update Profile</span>
+      </Link>
+    </Button>
+  );
+
   return (
-    <DashboardShell nav={USER_NAV} title="Portfolio" subtitle="// professional.cv.builder" theme="user" showBrainiac>
+    <DashboardShell nav={USER_NAV} title="Portfolio" subtitle="// professional.cv.builder" theme="user" showBrainiac headerRight={headerRight}>
       <div className="space-y-6">
         <section className="rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-400/10 via-[#0d1119] to-[#7C3AED]/10 p-5">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -148,7 +159,7 @@ export default function PortfolioPage() {
             </div>
           </div>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Button asChild variant="outline" className="border-amber-400/40 bg-amber-400/10 text-amber-400 hover:bg-amber-400/20 hover:text-amber-300">
+            <Button asChild className="bg-amber-400 text-black hover:bg-amber-300">
               <Link href="/profile/edit">
                 <Pencil className="mr-2 h-4 w-4" /> Update Profile
               </Link>
@@ -158,6 +169,20 @@ export default function PortfolioPage() {
             </Button>
           </div>
         </section>
+
+        {credits && (
+          <BrainiacCreditsCard
+            compact
+            balance={credits.balance}
+            loading={credits.loading}
+            error={credits.error}
+            usageHref="/user/credits"
+            onRefresh={() => void credits.refresh()}
+            onUpgrade={() => navigate("/user/subscription")}
+            onRecharge={() => void credits.startRecharge("User")}
+            actionLoading={credits.rechargeLoading}
+          />
+        )}
 
         <Dialog open={cvModalOpen} onOpenChange={(open) => { if (!cvGenerating) setCvModalOpen(open); }}>
           <DialogContent className="border border-white/10 bg-[#0d1119] text-white sm:max-w-lg">
@@ -211,6 +236,13 @@ export default function PortfolioPage() {
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <nav className="rounded-2xl border border-white/5 bg-[#0d1119] p-3 lg:sticky lg:top-24 lg:self-start">
+            <Link
+              href="/profile/edit"
+              className="mb-2 flex items-center gap-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-3 py-3 text-sm font-medium text-amber-400 transition hover:bg-amber-400/20"
+            >
+              <Pencil className="h-4 w-4" />
+              <span className="flex-1">Update Profile</span>
+            </Link>
             {SECTIONS.map((item, index) => {
               const Icon = item.icon;
               const current = item.key === active;

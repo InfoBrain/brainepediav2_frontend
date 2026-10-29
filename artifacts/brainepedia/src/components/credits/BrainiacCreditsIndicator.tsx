@@ -6,17 +6,20 @@ import type { BrainiacCreditBalanceDto } from "@/lib/types/billingCredits";
 export function BrainiacCreditsIndicator({
   balance,
   href,
-  label = "AI credits",
+  label = "Credits left",
+  loading = false,
 }: {
   balance: BrainiacCreditBalanceDto | null;
   href: string;
   label?: string;
+  loading?: boolean;
 }) {
   const remaining = balance?.remainingCredits;
   const exhausted = Boolean(balance?.isExhausted || balance?.canUseAI === false);
   return (
     <Link
       href={href}
+      aria-label="View remaining Brainiac credits and usage history"
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${
         exhausted
           ? "border-amber-400/40 bg-amber-400/10 text-amber-200"
@@ -24,8 +27,8 @@ export function BrainiacCreditsIndicator({
       }`}
     >
       <Coins className="h-3 w-3" />
-      <span>{label}</span>
-      <span className="font-mono">{remaining == null ? "—" : formatCredits(remaining)}</span>
+      <span className="hidden sm:inline">{label}</span>
+      <span className="font-mono">{loading && remaining == null ? "…" : remaining == null ? "—" : formatCredits(remaining)}</span>
     </Link>
   );
 }

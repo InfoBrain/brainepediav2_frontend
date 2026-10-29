@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/app/ThemeToggle";
+import { BrainiacCreditsIndicator } from "@/components/credits/BrainiacCreditsIndicator";
+import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
 
 export type NavItem = {
   href: string;
@@ -163,6 +165,7 @@ export function DashboardShell({
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <HeaderCreditsChip theme={theme} />
               {headerRight}
               <ThemeToggle />
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-muted-foreground">
@@ -204,6 +207,25 @@ export function DashboardShell({
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+function creditsHrefForTheme(theme: Theme): string {
+  if (theme === "employer") return "/employer/credits";
+  if (theme === "admin") return "/admin/credits";
+  return "/user/credits";
+}
+
+function HeaderCreditsChip({ theme }: { theme: Theme }) {
+  const credits = useOptionalBrainiacCredits();
+  if (!credits) return null;
+  return (
+    <BrainiacCreditsIndicator
+      balance={credits.balance}
+      loading={credits.loading}
+      href={creditsHrefForTheme(theme)}
+      label="Credits left"
+    />
   );
 }
 
