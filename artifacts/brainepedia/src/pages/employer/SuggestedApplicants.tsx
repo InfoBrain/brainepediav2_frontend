@@ -27,6 +27,8 @@ import { LoadingState, ButtonLoading } from "@/components/ux/LoadingState";
 import { EmptyState } from "@/components/ux/EmptyState";
 import { ErrorState } from "@/components/ux/ErrorState";
 import { useApiFeedback } from "@/hooks/useApiFeedback";
+import { BrainiacCreditsIndicator } from "@/components/credits/BrainiacCreditsIndicator";
+import { canUseWallet, useOptionalBrainiacCredits, walletGuidance } from "@/hooks/useBrainiacCredits";
 
 type SuggestedCandidate = {
   id: string;
@@ -45,6 +47,8 @@ export default function SuggestedApplicants() {
   const [, params] = useRoute("/employer/jobs/:jobId/suggested-applicants");
   const jobId = params?.jobId ? decodeURIComponent(params.jobId) : "";
   const { showSuccess, showError } = useApiFeedback();
+  const credits = useOptionalBrainiacCredits();
+  const canUseOrgAI = canUseWallet(credits?.organizationBalance ?? credits?.balance ?? null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -64,7 +68,11 @@ export default function SuggestedApplicants() {
     const res = await api.jobs.suggestApplicants(jobId);
     setLoading(false);
     if (!res.ok) {
-      setError(res.error || "Unable to load suggested applicants.");
+      if (res.creditsExhausted || res.status === 402) {
+        setError(res.creditsExhausted?.message || "Organization Brainiac credits are exhausted. Recharge from billing to suggest applicants.");
+      } else {
+        setError(res.error || "Unable to load suggested applicants.");
+      }
       setCandidates([]);
       return;
     }
@@ -134,7 +142,9 @@ export default function SuggestedApplicants() {
             <div>
               <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#9D4EDD]">AI Match</p>
               <h2 className="text-2xl font-black">{jobTitle}</h2>
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <BrainiacCreditsIndicator balance={credits?.organizationBalance ?? null} href="/employer/credits" label="Org AI credits" />
+                {!canUseOrgAI && <span className="text-amber-200">{walletGuidance(credits?.organizationBalance ?? null)}</span>}
                 {candidatesEvaluated != null && <span>Candidates Evaluated: <strong className="text-foreground">{candidatesEvaluated}</strong></span>}
                 {suggestionCount != null && <span>Suggestions: <strong className="text-foreground">{suggestionCount}</strong></span>}
               </div>

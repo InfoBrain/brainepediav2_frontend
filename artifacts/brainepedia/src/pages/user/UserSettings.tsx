@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Edit3, KeyRound, Loader2, Save, Shield } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -9,11 +9,13 @@ import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { PrivacySettingsSection } from "@/components/settings/PrivacySettingsSection";
+import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
+import { useBrainiacCredits } from "@/hooks/useBrainiacCredits";
 
 const schema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
@@ -29,6 +31,8 @@ type FormValues = z.infer<typeof schema>;
 export default function UserSettings() {
   usePageTitle("Settings");
   const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const credits = useBrainiacCredits();
   const user = getUser();
   const [submitting, setSubmitting] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
@@ -87,6 +91,17 @@ export default function UserSettings() {
         </section>
 
         <aside className="space-y-4">
+          <BrainiacCreditsCard
+            compact
+            balance={credits.balance}
+            loading={credits.loading}
+            error={credits.error}
+            usageHref="/user/credits"
+            onRefresh={() => void credits.refresh()}
+            onUpgrade={() => navigate("/user/subscription")}
+            onRecharge={() => void credits.startRecharge("User")}
+            actionLoading={credits.rechargeLoading}
+          />
           <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
             <KeyRound className="mb-3 h-6 w-6 text-[#00D2FF]" />
             <h3 className="font-bold">Account</h3>
@@ -101,6 +116,9 @@ export default function UserSettings() {
             </Button>
           </div>
         </aside>
+      </div>
+      <div className="mt-6">
+        <PrivacySettingsSection />
       </div>
     </DashboardShell>
   );

@@ -12,6 +12,7 @@ import { SkipToContent } from "@/components/ux/SkipToContent";
 import { GlobalErrorBoundary } from "@/components/errors/ErrorBoundary";
 import { ScopedErrorBoundary } from "@/components/errors/ScopedErrorBoundary";
 import { ThemeProvider } from "next-themes";
+import { BrainiacCreditsProvider } from "@/components/credits/BrainiacCreditsProvider";
 
 // Global widget
 import { BrainiacWidget } from "@/components/app/BrainiacWidget";
@@ -104,6 +105,7 @@ const JobDetails = lazy(() => import("@/pages/jobs/JobDetails"));
 const UserApplications = lazy(() => import("@/pages/jobs/UserApplications"));
 const UserAssessments = lazy(() => import("@/pages/jobs/UserAssessments"));
 const TransactionsPage = lazy(() => import("@/pages/shared/TransactionsPage"));
+const BrainiacUsagePage = lazy(() => import("@/pages/shared/BrainiacUsagePage"));
 
 function LegacyRedirect({ to }: { to: string }) {
   const [, setLocation] = useLocation();
@@ -201,6 +203,11 @@ function Router() {
       <Route path="/user/transactions">
         <RequireAuth allow={["User"]}>
           <TransactionsPage mode="user" />
+        </RequireAuth>
+      </Route>
+      <Route path="/user/credits">
+        <RequireAuth allow={["User"]}>
+          <BrainiacUsagePage />
         </RequireAuth>
       </Route>
       <Route path="/user/portfolio">
@@ -317,6 +324,11 @@ function Router() {
       <Route path="/admin/transactions">
         <RequireAuth allow={["GlobalAdmin"]}>
           <TransactionsPage mode="admin" />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/credits">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <BrainiacUsagePage />
         </RequireAuth>
       </Route>
       <Route path="/admin/settings">
@@ -439,6 +451,11 @@ function Router() {
       <Route path="/employer/transactions">
         <RequireAuth allow={["Employer"]}>
           <TransactionsPage mode="employer" />
+        </RequireAuth>
+      </Route>
+      <Route path="/employer/credits">
+        <RequireAuth allow={["Employer"]}>
+          <BrainiacUsagePage />
         </RequireAuth>
       </Route>
       <Route path="/employer/subscription">
@@ -599,12 +616,14 @@ function App() {
               <SkipToContent />
               <SessionGuard />
               <ForbiddenWatcher />
+              <BrainiacCreditsProvider>
               <ScopedErrorBoundary>
                 <Suspense fallback={<RouteFallback />}>
                   <Router />
                 </Suspense>
               </ScopedErrorBoundary>
               <GlobalBrainiacWidget />
+              </BrainiacCreditsProvider>
               <OnboardingGuide />
             </WouterRouter>
           </GlobalErrorBoundary>

@@ -20,6 +20,8 @@ import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { normalizeSubscriptionDetails, type NormalizedSubscriptionDetails } from "@/lib/subscription";
+import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
+import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type Stats = {
@@ -145,6 +147,7 @@ export default function UserDashboard() {
   const profileId = getProfileId();
   const user = getUser();
   const { toast } = useToast();
+  const credits = useOptionalBrainiacCredits();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -566,6 +569,20 @@ export default function UserDashboard() {
               </Link>
             </div>
           </motion.div>
+
+          {credits && (
+            <BrainiacCreditsCard
+              compact
+              balance={credits.balance}
+              loading={credits.loading}
+              error={credits.error}
+              usageHref="/user/credits"
+              onRefresh={() => void credits.refresh()}
+              onUpgrade={() => navigate("/user/subscription")}
+              onRecharge={() => void credits.startRecharge("User")}
+              actionLoading={credits.rechargeLoading}
+            />
+          )}
 
           <GuidanceCards />
 

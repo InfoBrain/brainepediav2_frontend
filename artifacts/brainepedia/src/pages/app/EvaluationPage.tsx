@@ -205,7 +205,8 @@ export default function EvaluationPage() {
       // Show error only after minimum animation has had some time
       const elapsed = Date.now() - startTimeRef.current;
       const wait = Math.max(0, 2000 - elapsed);
-      setTimeout(() => setError(res.error || "Evaluation failed. Please retry."), wait);
+      const message = res.creditsExhausted?.message || res.error || "Evaluation failed. Please retry.";
+      setTimeout(() => setError(message), wait);
       return;
     }
 

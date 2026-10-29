@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { VIRTUAL_SELF_RATE_LIMIT_MESSAGE } from "@/lib/aiCredits";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -30,8 +31,11 @@ export default function VirtualSelfChatPage() {
   const [typing, setTyping] = useState(false);
   const [error, setError] = useState("");
   const [bootLoading, setBootLoading] = useState(true);
+  const [rateLimitedUntil, setRateLimitedUntil] = useState(0);
+  const [profileMissing, setProfileMissing] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const sendingRef = useRef(false);
 
   useEffect(() => {
     if (!userId) {
@@ -40,9 +44,16 @@ export default function VirtualSelfChatPage() {
       return;
     }
     (async () => {
-      const res = await api.identity.publicProfile(userId);
-      if (res.ok && res.data) {
-        const data = res.data as any;
+      const [profileRes, portfolioRes] = await Promise.all([
+        api.identity.publicProfile(userId),
+        api.profiles.publicPortfolio(userId, { public: true }),
+      ]);
+      if (portfolioRes.status === 404 && !profileRes.ok) {
+        setProfileMissing(true);
+        setError("This profile is not available or doesn't exist.");
+      }
+      if (profileRes.ok && profileRes.data) {
+        const data = profileRes.data as any;
         setProfileName(data.displayName || data.DisplayName || data.fullName || data.FullName || "Professional");
         setAvatarUrl(data.profilePictureUrl || data.ProfilePictureUrl || data.avatarUrl || null);
         setTitle(data.professionalTitle || data.ProfessionalTitle || data.currentTitle || data.CurrentTitle || "");
@@ -57,7 +68,11 @@ export default function VirtualSelfChatPage() {
 
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || loading || !userId) return;
+    if (!trimmed || loading || sendingRef.current || !userId || profileMissing) return;
+    if (Date.now() < rateLimitedUntil) {
+      setError(VIRTUAL_SELF_RATE_LIMIT_MESSAGE);
+      return;
+    }
 
     const nextUserMessage: ChatMessage = { role: "user", content: trimmed };
     const history = messages.map((message) => ({ role: message.role, content: message.content }));
@@ -66,6 +81,7 @@ export default function VirtualSelfChatPage() {
     setError("");
     setLoading(true);
     setTyping(true);
+    sendingRef.current = true;
 
     const res = await api.profiles.virtualSelfChat(
       userId,
@@ -75,8 +91,35 @@ export default function VirtualSelfChatPage() {
 
     setLoading(false);
     setTyping(false);
+    sendingRef.current = false;
 
     if (!res.ok) {
+      if (res.status === 429) {
+        setInput(trimmed);
+        setMessages((prev) => prev.slice(0, -1));
+        setRateLimitedUntil(Date.now() + 10_000);
+        setError(VIRTUAL_SELF_RATE_LIMIT_MESSAGE);
+        return;
+      }
+      if (res.status === 400) {
+        setInput(trimmed);
+        setMessages((prev) => prev.slice(0, -1));
+        setError(res.error || "Please check your message and try again.");
+        return;
+      }
+      if (res.status === 404) {
+        setProfileMissing(true);
+        setError("This profile is not available or doesn't exist.");
+        return;
+      }
+      if (res.status === 402 || res.creditsExhausted) {
+        setError(res.creditsExhausted?.message || res.error || "This professional's Brainiac credits are exhausted, so virtual-self chat is unavailable right now.");
+        return;
+      }
+      if (res.status && res.status >= 500) {
+        setError("The virtual self is temporarily unavailable. Please try again later.");
+        return;
+      }
       setError(res.error || "Unable to reach the virtual self right now.");
       return;
     }
@@ -147,7 +190,8 @@ export default function VirtualSelfChatPage() {
                     key={prompt}
                     type="button"
                     onClick={() => void sendMessage(prompt)}
-                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 transition hover:border-[#00D2FF]/40 hover:text-[#00D2FF]"
+                    disabled={loading || profileMissing}
+                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 transition hover:border-[#00D2FF]/40 hover:text-[#00D2FF] disabled:opacity-50"
                   >
                     {prompt}
                   </button>
@@ -199,13 +243,13 @@ export default function VirtualSelfChatPage() {
               onKeyDown={onKeyDown}
               placeholder="Type your question..."
               rows={2}
-              disabled={loading}
+              disabled={loading || profileMissing || Date.now() < rateLimitedUntil}
               className="min-h-[52px] resize-none border-white/10 bg-[#0d1119] text-white placeholder:text-white/30"
               aria-label="Chat message"
             />
             <Button
               type="submit"
-              disabled={loading || !input.trim()}
+              disabled={loading || profileMissing || !input.trim() || Date.now() < rateLimitedUntil}
               className="h-auto shrink-0 bg-[#00D2FF] px-4 text-black hover:bg-[#00B8DD]"
               aria-label="Send message"
             >

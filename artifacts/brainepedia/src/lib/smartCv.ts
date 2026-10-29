@@ -24,7 +24,7 @@ export async function generateSmartCv(
   });
 
   if (!res.ok) {
-    return { ok: false, error: res.error, message: res.message, status: res.status };
+    return { ok: false, error: res.error, message: res.message, status: res.status, creditsExhausted: res.creditsExhausted, errorCode: res.errorCode };
   }
 
   const html = extractCleanHtmlResult(res.data);

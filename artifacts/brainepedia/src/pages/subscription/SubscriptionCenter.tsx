@@ -21,6 +21,8 @@ import {
   USER_SUBSCRIPTION_PLANS,
 } from "@/lib/pricingPlans";
 import { normalizeSubscriptionDetails, type NormalizedSubscriptionDetails } from "@/lib/subscription";
+import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
+import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
 
 /* ─── Tier data ─────────────────────────────────────────────────────────── */
 const SUB_NAMES: Record<number, string> = { 0: "Initiate", 1: "Architect", 2: "Architect" };
@@ -66,6 +68,7 @@ export default function SubscriptionCenter() {
   const role = getUserRole();
   const isEmployer = role === "Employer";
   const { toast } = useToast();
+  const credits = useOptionalBrainiacCredits();
 
   const [currentTier, setCurrentTier] = useState<number>(0);
   const [employerPlan, setEmployerPlan] = useState("Not Active");
@@ -175,6 +178,20 @@ export default function SubscriptionCenter() {
       ) : (
         isEmployer ? (
         <div className="max-w-5xl space-y-6">
+          {credits && (
+            <BrainiacCreditsCard
+              title="Organization Brainiac credits"
+              balance={credits.organizationBalance}
+              loading={credits.organizationLoading}
+              error={credits.organizationError}
+              usageHref="/employer/credits"
+              billingHref="/employer/billing"
+              onRefresh={() => void credits.refreshOrganization()}
+              onUpgrade={() => setUpgradeTarget("Grandmaster")}
+              onRecharge={() => void credits.startRecharge("Employer")}
+              actionLoading={credits.rechargeLoading}
+            />
+          )}
           {subscriptionDetails && (
             <SubscriptionDetailsCard
               details={subscriptionDetails}
@@ -237,6 +254,18 @@ export default function SubscriptionCenter() {
         </div>
         ) : (
         <div className="space-y-8 max-w-6xl">
+          {credits && (
+            <BrainiacCreditsCard
+              balance={credits.balance}
+              loading={credits.loading}
+              error={credits.error}
+              usageHref="/user/credits"
+              onRefresh={() => void credits.refresh()}
+              onUpgrade={() => setUpgradeTarget("Architect")}
+              onRecharge={() => void credits.startRecharge("User")}
+              actionLoading={credits.rechargeLoading}
+            />
+          )}
 
           {/* ── CURRENT TIER HERO ── */}
           {subscriptionDetails && (

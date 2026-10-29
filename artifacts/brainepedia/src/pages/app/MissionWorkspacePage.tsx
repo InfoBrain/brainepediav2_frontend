@@ -51,6 +51,7 @@ import { MissionJourney } from "@/components/mission-workspace/MissionJourney";
 import { MissionProgressPanel } from "@/components/mission-workspace/MissionProgressPanel";
 import { NextActionCard } from "@/components/mission-workspace/NextActionCard";
 import { BrainiacDrawer } from "@/components/mission-workspace/BrainiacDrawer";
+import { canUseWallet, useOptionalBrainiacCredits, walletGuidance } from "@/hooks/useBrainiacCredits";
 import type { ChatMessage } from "@/components/mission-workspace/BrainiacDrawer";
 import { EvidenceDrawer } from "@/components/mission-workspace/EvidenceDrawer";
 import { BriefStage } from "@/components/mission-workspace/stages/BriefStage";
@@ -183,6 +184,8 @@ export default function MissionWorkspacePage() {
   const sessionId = params.sessionId || "";
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const credits = useOptionalBrainiacCredits();
+  const canUseAI = canUseWallet(credits?.balance ?? null);
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 
@@ -906,6 +909,8 @@ export default function MissionWorkspacePage() {
               open={brainiacOpen}
               onOpenChange={setBrainiacOpen}
               contextPrompt={brainiacContextPrompt}
+              canUseAI={canUseAI}
+              disabledReason={walletGuidance(credits?.balance ?? null)}
             />
           )}
         </div>
@@ -922,6 +927,8 @@ export default function MissionWorkspacePage() {
           onOpenChange={setBrainiacOpen}
           isMobile
           contextPrompt={brainiacContextPrompt}
+          canUseAI={canUseAI}
+          disabledReason={walletGuidance(credits?.balance ?? null)}
         />
       )}
 

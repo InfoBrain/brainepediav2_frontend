@@ -45,6 +45,7 @@ import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 import { useDifficulties, buildDifficultyLookup, getDifficultyStyle } from "@/hooks/useDifficulties";
+import { canUseWallet, useOptionalBrainiacCredits, walletGuidance } from "@/hooks/useBrainiacCredits";
 
 type ProblemNode = {
   problemNodeId: string;
@@ -499,6 +500,8 @@ function BrainiacPanel({
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const credits = useOptionalBrainiacCredits();
+  const canUseAI = canUseWallet(credits?.balance ?? null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -506,6 +509,7 @@ function BrainiacPanel({
 
   async function ask(question?: string) {
     const q = question || input.trim();
+    if (!canUseAI) return;
     if (!q && !question) return;
     setInput("");
     setMessages(m => [...m, { role: "user", text: q || "Give me a hint" }]);
@@ -657,14 +661,14 @@ function BrainiacPanel({
             <div className="px-4 pb-2 flex gap-2">
               <button
                 onClick={() => ask("Give me a hint without revealing the full answer")}
-                disabled={thinking}
+                disabled={thinking || !canUseAI}
                 className="text-[11px] font-mono px-3 py-1.5 rounded-lg border border-[#9D4EDD]/20 text-[#9D4EDD]/70 hover:bg-[#9D4EDD]/10 transition-colors disabled:opacity-40"
               >
                 💡 Get Hint
               </button>
               <button
                 onClick={() => ask("Am I on the right track?")}
-                disabled={thinking}
+                disabled={thinking || !canUseAI}
                 className="text-[11px] font-mono px-3 py-1.5 rounded-lg border border-white/10 text-white/30 hover:bg-white/5 transition-colors disabled:opacity-40"
               >
                 🔍 Check Approach
@@ -677,12 +681,12 @@ function BrainiacPanel({
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !e.shiftKey && ask()}
                 placeholder="Ask Brainiac anything…"
-                disabled={thinking}
+                disabled={thinking || !canUseAI}
                 className="flex-1 bg-[#060a10] border border-white/10 text-white text-xs font-mono rounded-lg px-3 py-2 outline-none focus:border-[#9D4EDD]/50 placeholder:text-white/20 disabled:opacity-50"
               />
               <button
                 onClick={() => ask()}
-                disabled={!input.trim() || thinking}
+                disabled={!input.trim() || thinking || !canUseAI}
                 className="w-9 h-9 rounded-lg bg-[#9D4EDD]/20 border border-[#9D4EDD]/30 text-[#9D4EDD] flex items-center justify-center hover:bg-[#9D4EDD]/30 transition-colors disabled:opacity-40"
               >
                 <Send className="w-3.5 h-3.5" />
