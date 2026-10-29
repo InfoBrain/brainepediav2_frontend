@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, X, Send, Bot, MailCheck, AlertTriangle } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
+import { canUseWallet, useOptionalBrainiacCredits, walletGuidance } from "@/hooks/useBrainiacCredits";
 
 type Message = {
   role: "user" | "ai";
@@ -98,6 +99,8 @@ export function BrainiacWidget() {
   const [thinking, setThinking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const userId = getUserId();
+  const credits = useOptionalBrainiacCredits();
+  const canUseAI = canUseWallet(credits?.balance ?? null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -107,7 +110,7 @@ export function BrainiacWidget() {
 
   async function send() {
     const prompt = input.trim();
-    if (!prompt) return;
+    if (!prompt || !canUseAI) return;
     setInput("");
     setMessages(m => [...m, { role: "user", text: prompt }]);
     setThinking(true);
@@ -242,6 +245,9 @@ export function BrainiacWidget() {
               <p className="text-[9px] font-mono text-white/15 leading-tight">Brainiac covers Brainepedia guidance &amp; career development only.</p>
             </div>
 
+            {!canUseAI && (
+              <p className="px-3 text-[11px] text-amber-200">{walletGuidance(credits?.balance ?? null)}</p>
+            )}
             {/* Input */}
             <div className="px-3 pb-3 flex gap-2 border-t border-white/5 pt-3">
               <input
@@ -249,10 +255,10 @@ export function BrainiacWidget() {
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
                 placeholder="Ask anything…"
-                disabled={thinking}
+                disabled={thinking || !canUseAI}
                 className="flex-1 bg-white/5 border border-white/10 text-white text-xs font-mono rounded-xl px-3 py-2 outline-none focus:border-[#9D4EDD]/50 placeholder:text-white/20 disabled:opacity-50"
               />
-              <button onClick={send} disabled={!input.trim() || thinking}
+              <button onClick={send} disabled={!input.trim() || thinking || !canUseAI}
                 className="w-9 h-9 rounded-xl bg-[#9D4EDD]/20 border border-[#9D4EDD]/30 text-[#9D4EDD] flex items-center justify-center hover:bg-[#9D4EDD]/30 transition-colors disabled:opacity-40">
                 <Send className="w-3.5 h-3.5" />
               </button>

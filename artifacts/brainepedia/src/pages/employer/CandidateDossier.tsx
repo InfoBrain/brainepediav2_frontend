@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useRoute } from "wouter";
 import { ArrowLeft, Award, Bookmark, BriefcaseBusiness, Crown, Eye, Github, Linkedin, Loader2, Mail, Phone, RefreshCw, ShieldCheck, Trophy, Zap } from "lucide-react";
+import { extractCompletedMissionResults } from "@/lib/aiCredits";
+import { CompletedMissionResults } from "@/components/dossier/CompletedMissionResults";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
@@ -207,6 +209,13 @@ export default function CandidateDossier() {
                   ))}
               </div>
             </RecruiterSection>
+
+            {extractCompletedMissionResults(portfolio).length > 0 && (
+              <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
+                <h3 className="mb-4 flex items-center gap-2 text-lg font-bold"><BriefcaseBusiness className="h-5 w-5 text-[#00D2FF]" /> Completed mission results</h3>
+                <CompletedMissionResults results={extractCompletedMissionResults(portfolio)} />
+              </section>
+            )}
 
             <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-6">
               <h3 className="mb-4 flex items-center gap-2 text-lg font-bold"><BriefcaseBusiness className="h-5 w-5 text-[#00D2FF]" /> Missions</h3>

@@ -6,10 +6,13 @@ import {
   Trophy, Shield, Zap, Linkedin, Link2,
   Copy, CheckCircle2, ArrowLeft, Target, Medal,
   Download, BookOpen, User, Eye, Loader2,
-  MapPin, Mail, Github, MessageCircle, BadgeCheck, ChevronDown,
+  MapPin, Mail, Phone, Github, MessageCircle, BadgeCheck, ChevronDown,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
+import { extractCompletedMissionResults } from "@/lib/aiCredits";
+import { CompletedMissionResults } from "@/components/dossier/CompletedMissionResults";
+import type { PublicMissionResultDto } from "@/lib/types/billingCredits";
 import {
   Dialog,
   DialogContent,
@@ -96,10 +99,10 @@ export default function PublicProfilePage() {
   const services = list(portfolioRoot?.servicesOffered ?? portfolioRoot?.ServicesOffered ?? portfolioRoot?.services ?? portfolioRoot?.Services);
   const interests = list(portfolioRoot?.interests ?? portfolioRoot?.Interests);
   const badges = list(profile?.EarnedBadges ?? profile?.earnedBadges ?? profile?.badges ?? profile?.Badges);
-  const missions: MissionItem[] = list(
-    profile?.CompletedMissions ?? profile?.completedMissions ?? profile?.missionHistory ?? profile?.MissionHistory ?? profile?.completedChallenges,
-  );
+  const missions: PublicMissionResultDto[] = extractCompletedMissionResults(portfolioRoot);
+  const certifications = list(portfolioRoot?.certifications ?? portfolioRoot?.Certifications);
   const email = textOf(portfolioRoot?.email ?? portfolioRoot?.Email ?? profile?.email ?? profile?.Email, "");
+  const phone = textOf(portfolioRoot?.phoneNumber ?? portfolioRoot?.PhoneNumber ?? portfolioRoot?.phone ?? portfolioRoot?.Phone, "");
   const linkedIn = textOf(portfolioRoot?.linkedIn ?? portfolioRoot?.LinkedIn ?? portfolioRoot?.linkedin, "");
   const github = textOf(portfolioRoot?.github ?? portfolioRoot?.Github ?? portfolioRoot?.GitHub, "");
   const publicUrl = `${window.location.origin}/public-profile/${userId}`;
@@ -115,10 +118,10 @@ export default function PublicProfilePage() {
       if (section.id === "projects") return projects.length > 0;
       if (section.id === "interests") return interests.length > 0;
       if (section.id === "missions") return missions.length > 0;
-      if (section.id === "contact") return Boolean(email || linkedIn || github || location);
+      if (section.id === "contact") return Boolean(email || phone || linkedIn || github || location);
       return true;
     });
-  }, [personalStatement, education, experience, skills, services, projects, interests, missions, email, linkedIn, github, location]);
+  }, [personalStatement, education, experience, skills, services, projects, interests, missions, email, phone, linkedIn, github, location]);
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
@@ -146,10 +149,18 @@ export default function PublicProfilePage() {
         api.identity.publicProfile(userId),
         api.profiles.publicPortfolio(userId, { public: true }),
       ]);
-      if (publicRes.ok && publicRes.data) {
-        setProfile({ ...(publicRes.data as any), portfolio: portfolioRes.ok ? portfolioRes.data : undefined });
-      } else if (portfolioRes.ok && portfolioRes.data) {
-        setProfile({ ...(portfolioRes.data as any), portfolio: portfolioRes.data });
+      if (portfolioRes.status === 404) {
+        setError(portfolioRes.error || "This profile is not available or doesn't exist.");
+        setLoading(false);
+        return;
+      }
+      if (portfolioRes.ok && portfolioRes.data) {
+        setProfile({
+          ...((publicRes.ok && publicRes.data) ? publicRes.data as any : portfolioRes.data as any),
+          portfolio: portfolioRes.data,
+        });
+      } else if (publicRes.ok && publicRes.data) {
+        setProfile({ ...(publicRes.data as any), portfolio: undefined });
       } else {
         setError("This profile is not available or doesn't exist.");
       }
@@ -360,10 +371,20 @@ export default function PublicProfilePage() {
             </Section>
           )}
 
-          {education.length > 0 && (
-            <Section id="education" title="Education" refCb={(el) => { sectionRefs.current.education = el; }}>
+          {(education.length > 0 || certifications.length > 0) && (
+            <Section id="education" title="Education and certifications" refCb={(el) => { sectionRefs.current.education = el; }}>
               <div className="row grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <EducationTimeline items={education} />
+                {education.length > 0 && <EducationTimeline items={education} />}
+                {certifications.length > 0 && (
+                  <div className="space-y-3">
+                    {certifications.map((item, index) => (
+                      <article key={index} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                        <h3 className="font-bold">{fieldValue(item, "name", "Name", "title", "certification")}</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">{fieldValue(item, "issuer", "Issuer", "organization")}</p>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </div>
             </Section>
           )}
@@ -430,74 +451,16 @@ export default function PublicProfilePage() {
           )}
 
           {missions.length > 0 && (
-            <Section id="missions" title="Mission Achievements" refCb={(el) => { sectionRefs.current.missions = el; }}>
-              <div className="row grid grid-cols-1 gap-4">
-                {missions.map((mission, index) => {
-                  const mTitle = mission.missionTitle || mission.MissionTitle || mission.title || mission.Title || "Mission";
-                  const district = mission.districtName || mission.DistrictName || "—";
-                  const prof = mission.professionName || mission.ProfessionName || mission.profession || mission.Profession || profession || "—";
-                  const difficulty = mission.difficulty || mission.Difficulty || mission.difficultyLevel || "—";
-                  const xp = mission.xpEarned ?? mission.XpEarned ?? mission.xp ?? mission.XP;
-                  const score = mission.score ?? mission.Score ?? mission.evaluationScore ?? mission.EvaluationScore;
-                  const date = mission.completionDate || mission.CompletionDate || mission.completedAt;
-                  const passed = mission.passed ?? mission.Passed ?? mission.isPassed ?? mission.IsPassed;
-                  const problemNodeId = mission.problemNodeId || mission.ProblemNodeId || "";
-                  const feedback = mission.feedback || mission.Feedback || mission.aiEvaluationSummary || "";
-                  const expanded = expandedMission === index;
-                  return (
-                    <article key={index} className="card col overflow-hidden rounded-2xl border border-white/10 bg-card shadow-lg shadow-black/20 transition hover:border-white/15">
-                      <button type="button" onClick={() => setExpandedMission(expanded ? null : index)} className="flex w-full items-start gap-4 p-5 text-left transition hover:bg-white/[0.03]">
-                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-foreground">{mTitle}</p>
-                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                            <span className="rounded-full bg-white/5 px-2 py-0.5">{district}</span>
-                            <span className="rounded-full bg-white/5 px-2 py-0.5">{prof}</span>
-                            <span className="rounded-full bg-white/5 px-2 py-0.5">{difficulty}</span>
-                            {xp != null && <span className="rounded-full bg-[#00D2FF]/10 px-2 py-0.5 text-[#00D2FF]">{Number(xp).toLocaleString()} XP</span>}
-                            {score != null && <span className="rounded-full bg-[#7C3AED]/10 px-2 py-0.5 text-[#A78BFA]">{score}% score</span>}
-                            {date && <span className="rounded-full bg-white/5 px-2 py-0.5">{new Date(date).toLocaleDateString()}</span>}
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          {passed != null && (
-                            <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase ${passed ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-400" : "border-red-400/30 bg-red-400/10 text-red-400"}`}>
-                              {passed ? "Passed" : "Not Passed"}
-                            </span>
-                          )}
-                          <ChevronDown className={`h-4 w-4 text-muted-foreground transition ${expanded ? "rotate-180" : ""}`} />
-                        </div>
-                      </button>
-                      <AnimatePresence>
-                        {expanded && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-white/5">
-                            <div className="space-y-3 p-5 pt-3">
-                              {feedback && (
-                                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-muted-foreground">
-                                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">Feedback</p>
-                                  {feedback}
-                                </div>
-                              )}
-                              {problemNodeId && (
-                                <button onClick={() => viewPerformance(problemNodeId)} className="inline-flex items-center gap-1.5 rounded-lg border border-[#00D2FF]/25 bg-[#00D2FF]/10 px-3 py-2 text-xs font-medium text-[#00D2FF] transition hover:border-[#00D2FF]/40 hover:bg-[#00D2FF]/15">
-                                  <Eye className="h-3.5 w-3.5" /> View full evaluation
-                                </button>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </article>
-                  );
-                })}
-              </div>
+            <Section id="missions" title="Completed mission results" refCb={(el) => { sectionRefs.current.missions = el; }}>
+              <CompletedMissionResults results={missions} />
             </Section>
           )}
 
-          {(email || linkedIn || github || location) && (
+          {(email || phone || linkedIn || github || location) && (
             <Section id="contact" title="Contact" refCb={(el) => { sectionRefs.current.contact = el; }}>
               <div className="row grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {email && <ContactItem icon={<Mail className="h-5 w-5" />} label="Email" value={email} href={`mailto:${email}`} />}
+                {phone && <ContactItem icon={<Phone className="h-5 w-5" />} label="Phone" value={phone} href={`tel:${phone}`} />}
                 {linkedIn && <ContactItem icon={<Linkedin className="h-5 w-5" />} label="LinkedIn" value={linkedIn} href={linkedIn.startsWith("http") ? linkedIn : `https://${linkedIn}`} />}
                 {github && <ContactItem icon={<Github className="h-5 w-5" />} label="GitHub" value={github} href={github.startsWith("http") ? github : `https://${github}`} />}
                 {location && <ContactItem icon={<MapPin className="h-5 w-5" />} label="Location" value={location} />}

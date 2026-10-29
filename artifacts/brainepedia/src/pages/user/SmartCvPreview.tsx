@@ -8,15 +8,19 @@ import { generateAndOpenSmartCv } from "@/lib/smartCv";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { BrainiacCreditsIndicator } from "@/components/credits/BrainiacCreditsIndicator";
+import { canUseWallet, useOptionalBrainiacCredits, walletGuidance } from "@/hooks/useBrainiacCredits";
 
 export default function SmartCvPreview() {
   const { toast } = useToast();
   const userId = getUserId();
+  const credits = useOptionalBrainiacCredits();
+  const canUseAI = canUseWallet(credits?.balance ?? null);
   const [instructions, setInstructions] = useState("");
   const [loading, setLoading] = useState(false);
 
   const generate = async () => {
-    if (!userId) return;
+    if (!userId || !canUseAI) return;
     setLoading(true);
     const result = await generateAndOpenSmartCv(userId, instructions);
     setLoading(false);
@@ -56,10 +60,14 @@ export default function SmartCvPreview() {
             value={instructions}
             onChange={(event) => setInstructions(event.target.value)}
             placeholder="Emphasize leadership, technical depth, or executive tone."
-            disabled={loading}
+            disabled={loading || !canUseAI}
           />
-          <div className="mt-3">
-            <Button onClick={generate} disabled={loading || !userId} className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
+          {!canUseAI && (
+            <p className="mt-2 text-xs text-amber-200">{walletGuidance(credits?.balance ?? null)}</p>
+          )}
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <BrainiacCreditsIndicator balance={credits?.balance ?? null} href="/user/credits" />
+            <Button onClick={generate} disabled={loading || !userId || !canUseAI} className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
               {loading ? "Generating..." : "Generate Smart CV"}
             </Button>

@@ -7,6 +7,18 @@ import {
   parseApiError,
   sanitizeErrorForDisplay,
 } from "./apiErrorHandler";
+import {
+  AI_CREDITS_EXHAUSTED_EVENT,
+  extractCreditsExhausted,
+  extractErrorCode,
+  type CreditsExhaustedEventDetail,
+} from "./aiCredits";
+import type {
+  BrainiacCreditBalanceDto,
+  BrainiacCreditsExhaustedDto,
+  CreditRechargeRequest,
+  ProfilePrivacySettingsDto,
+} from "./types/billingCredits";
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.brainepedia.com";
 const BASE_URL = API_BASE_URL;
@@ -19,6 +31,8 @@ export type ApiResult<T = any> = {
   error?: string;
   message?: string;
   status?: number;
+  errorCode?: string;
+  creditsExhausted?: BrainiacCreditsExhaustedDto | null;
 };
 
 export type CreateJobRequest = {
@@ -46,6 +60,7 @@ export type UpdateStatusRequest = {
 type FetchApiOptions = RequestInit & {
   suppressUnauthorized?: boolean;
   suppressForbidden?: boolean;
+  suppressCreditsExhausted?: boolean;
   skipAuth?: boolean;
   timeoutMs?: number;
   signal?: AbortSignal;
@@ -62,7 +77,7 @@ function resolveTimeoutMs(endpoint: string, explicit?: number): number {
 }
 
 async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}): Promise<ApiResult<T>> {
-  const { suppressUnauthorized, suppressForbidden, skipAuth, timeoutMs, signal, ...fetchOptions } = options;
+  const { suppressUnauthorized, suppressForbidden, suppressCreditsExhausted, skipAuth, timeoutMs, signal, ...fetchOptions } = options;
   const headers: Record<string, string> = {
     ...((fetchOptions.headers as any) || {}),
   };
@@ -108,7 +123,9 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
 
     if (!response.ok) {
       const parsed = parseApiError({ status: response.status, data });
-      let errorMsg = sanitizeErrorForDisplay(parsed.message);
+      const exhausted = extractCreditsExhausted(response.status, data);
+      const errorCode = exhausted?.errorCode || extractErrorCode(data) || undefined;
+      let errorMsg = sanitizeErrorForDisplay(exhausted?.message || parsed.message);
 
       if (response.status === 401) {
         const { clearToken } = await import("./auth");
@@ -125,7 +142,23 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
         window.dispatchEvent(new CustomEvent("api-forbidden", { detail: { message: errorMsg } }));
       }
 
-      return { ok: false, error: errorMsg, message: errorMsg, status: response.status };
+      if (exhausted && !suppressCreditsExhausted && typeof window !== "undefined") {
+        const detail: CreditsExhaustedEventDetail = {
+          payload: exhausted,
+          organizationWallet: /suggest-applicants/i.test(endpoint),
+        };
+        window.dispatchEvent(new CustomEvent(AI_CREDITS_EXHAUSTED_EVENT, { detail }));
+      }
+
+      return {
+        ok: false,
+        data,
+        error: errorMsg,
+        message: errorMsg,
+        status: response.status,
+        errorCode,
+        creditsExhausted: exhausted,
+      };
     }
 
     return { ok: true, data, message: extractApiMessage(data), status: response.status };
@@ -238,6 +271,7 @@ export const api = {
         body: JSON.stringify(data),
         skipAuth: opts?.skipAuth,
         suppressUnauthorized: opts?.skipAuth,
+        suppressCreditsExhausted: Boolean(opts?.skipAuth),
         timeoutMs: AI_TIMEOUT_MS,
       }),
     publicPortfolio: (userId: string, opts?: { public?: boolean }) =>
@@ -245,6 +279,27 @@ export const api = {
         skipAuth: opts?.public,
         suppressUnauthorized: opts?.public,
       }),
+    getPrivacySettings: () =>
+      fetchApi<ProfilePrivacySettingsDto>("/api/Profiles/privacy-settings"),
+    updatePrivacySettings: (data: ProfilePrivacySettingsDto) =>
+      fetchApi<ProfilePrivacySettingsDto>("/api/Profiles/privacy-settings", {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+  },
+  brainiacCredits: {
+    balance: () => fetchApi<BrainiacCreditBalanceDto>("/api/BrainiacCredits/balance"),
+    organizationBalance: () =>
+      fetchApi<BrainiacCreditBalanceDto>("/api/BrainiacCredits/organization-balance", {
+        suppressForbidden: true,
+      }),
+    teamSeatBalance: (teamMemberUserId: string) =>
+      fetchApi<BrainiacCreditBalanceDto>(
+        `/api/BrainiacCredits/team-seat-balance/${encodeURIComponent(teamMemberUserId)}`,
+        { suppressForbidden: true },
+      ),
+    usage: (page = 1, pageSize = 20) =>
+      fetchApi(`/api/BrainiacCredits/usage?page=${encodeURIComponent(String(page))}&pageSize=${encodeURIComponent(String(pageSize))}`),
   },
   userProgresses: {
     /** Legacy alias kept for any remaining callers */
@@ -314,6 +369,13 @@ export const api = {
     /** GET /api/Subscriptions/users/{userId}/subscription-details — shared subscription contract for all roles */
     details: (userId: string) =>
       fetchApi(`/api/Subscriptions/users/${encodeURIComponent(userId)}/subscription-details`),
+    organizationBilling: () =>
+      fetchApi("/api/Subscriptions/organization-billing", { suppressForbidden: true }),
+    initializeCreditRecharge: (data: CreditRechargeRequest) =>
+      fetchApi("/api/Subscriptions/initialize-credit-recharge", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
     /** GET /api/Subscriptions/admin/subscriptions */
     listAll: (params: { search?: string; tier?: string; isActive?: string; page?: number; pageSize?: number } = {}) => {
       const q = new URLSearchParams();

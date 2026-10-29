@@ -11,6 +11,7 @@ export type ApiErrorKind =
   | "conflict"
   | "validation"
   | "rate_limit"
+  | "payment_required"
   | "server"
   | "timeout"
   | "offline"
@@ -31,6 +32,7 @@ const STATUS_MESSAGES: Partial<Record<number, string>> = {
   401: "Your session has expired. Please log in again.",
   403: "Access restricted. Upgrade your subscription to unlock this feature.",
   404: "The requested resource was not found.",
+  402: "This account has exhausted its Brainiac AI credits for the current billing cycle.",
   409: "This action conflicts with the current state. Please refresh and try again.",
   422: "Some fields need attention before we can continue.",
   429: "Too many requests. Please wait a moment and try again.",
@@ -118,6 +120,7 @@ function kindFromStatus(status: number): ApiErrorKind {
   if (status === 400) return "bad_request";
   if (status === 401) return "unauthorized";
   if (status === 403) return "forbidden";
+  if (status === 402) return "payment_required";
   if (status === 404) return "not_found";
   if (status === 409) return "conflict";
   if (status === 422) return "validation";

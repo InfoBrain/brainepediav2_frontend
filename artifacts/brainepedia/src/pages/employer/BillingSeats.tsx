@@ -6,6 +6,12 @@ import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { normalizeSubscriptionDetails, type NormalizedSubscriptionDetails } from "@/lib/subscription";
+import { OrganizationBillingSummary } from "@/components/billing/OrganizationBillingSummary";
+import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
+import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
+import { normalizeCurrentMonthSeats, normalizeOrganizationBilling } from "@/lib/aiCredits";
+import type { CurrentMonthSeatsDto, OrganizationBillingSummaryDto } from "@/lib/types/billingCredits";
+import { useLocation } from "wouter";
 
 type BillingData = {
   billingCycleStart?: string;
@@ -54,7 +60,12 @@ function InfoCard({
 }
 
 export default function BillingSeats() {
+  const [, navigate] = useLocation();
+  const credits = useOptionalBrainiacCredits();
   const [billing, setBilling] = useState<BillingData | null>(null);
+  const [orgBilling, setOrgBilling] = useState<OrganizationBillingSummaryDto | null>(null);
+  const [monthSeats, setMonthSeats] = useState<CurrentMonthSeatsDto | null>(null);
+  const [orgBillingError, setOrgBillingError] = useState("");
   const [subscription, setSubscription] = useState<NormalizedSubscriptionDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -63,10 +74,22 @@ export default function BillingSeats() {
     setLoading(true);
     setError("");
     const res = await api.employers.billingSeats();
-    const [subscriptionRes, rosterRes] = await Promise.all([
+    const [subscriptionRes, rosterRes, orgBillingRes] = await Promise.all([
       getUserId() ? api.subscriptions.details(getUserId() as string) : Promise.resolve(null),
       api.employers.myTeamRoster(),
+      api.subscriptions.organizationBilling(),
     ]);
+    if (orgBillingRes.ok) {
+      setOrgBilling(normalizeOrganizationBilling(orgBillingRes.data));
+      setOrgBillingError("");
+    } else if (orgBillingRes.status === 404) {
+      setOrgBilling(null);
+      setOrgBillingError("");
+    } else {
+      setOrgBilling(null);
+      setOrgBillingError(orgBillingRes.error || "Unable to load organization billing.");
+    }
+    if (res.ok) setMonthSeats(normalizeCurrentMonthSeats(res.data));
     if (subscriptionRes?.ok) setSubscription(normalizeSubscriptionDetails(subscriptionRes.data, { corporateSeatAsTier: true }));
     const roster = rosterRes.ok ? asArray(rosterRes.data) : [];
     if (res.ok) {
@@ -96,6 +119,27 @@ export default function BillingSeats() {
             Refresh
           </Button>
         </div>
+
+        {credits && (
+          <BrainiacCreditsCard
+            title="Organization Brainiac credits"
+            balance={credits.organizationBalance}
+            loading={credits.organizationLoading}
+            error={credits.organizationError}
+            usageHref="/employer/credits"
+            onRefresh={() => void credits.refreshOrganization()}
+            onUpgrade={() => navigate("/employer/subscription")}
+            onRecharge={() => void credits.startRecharge("Employer")}
+            actionLoading={credits.rechargeLoading}
+          />
+        )}
+
+        <OrganizationBillingSummary
+          billing={orgBilling}
+          seats={monthSeats}
+          loading={loading}
+          error={orgBillingError}
+        />
 
         {loading ? (
           <div className="flex items-center justify-center py-24 text-muted-foreground gap-3">

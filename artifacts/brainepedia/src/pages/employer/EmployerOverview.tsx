@@ -17,6 +17,9 @@ import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { getUser } from "@/lib/auth";
 import { formatDisplayDate, text } from "@/lib/jobData";
+import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
+import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
+import { useLocation } from "wouter";
 
 type ProfileData = {
   companyName?: string;
@@ -78,6 +81,8 @@ function StatCard({
 
 export default function EmployerOverview() {
   const user = getUser();
+  const [, navigate] = useLocation();
+  const credits = useOptionalBrainiacCredits();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,6 +129,21 @@ export default function EmployerOverview() {
             </p>
           </div>
         </div>
+
+        {credits && (
+          <BrainiacCreditsCard
+            title="Organization Brainiac credits"
+            compact
+            balance={credits.organizationBalance}
+            loading={credits.organizationLoading}
+            error={credits.organizationError}
+            usageHref="/employer/credits"
+            billingHref="/employer/billing"
+            onRefresh={() => void credits.refreshOrganization()}
+            onUpgrade={() => navigate("/employer/subscription")}
+            onRecharge={() => navigate("/employer/billing")}
+          />
+        )}
 
         {loading ? (
           <div className="flex items-center justify-center py-24 text-muted-foreground gap-3">

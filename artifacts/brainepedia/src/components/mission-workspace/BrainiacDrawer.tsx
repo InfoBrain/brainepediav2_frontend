@@ -22,6 +22,8 @@ type Props = {
   isMobile?: boolean;
   /** Contextual mentor prompt shown when the conversation is empty */
   contextPrompt?: string;
+  canUseAI?: boolean;
+  disabledReason?: string;
 };
 
 const SUGGESTED_PROMPTS = [
@@ -40,6 +42,8 @@ export function BrainiacDrawer({
   onOpenChange,
   isMobile,
   contextPrompt,
+  canUseAI = true,
+  disabledReason,
 }: Props) {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -49,6 +53,7 @@ export function BrainiacDrawer({
   }, [messages, sending, open]);
 
   function submit(intent = ConversationIntent.Question) {
+    if (!canUseAI) return;
     const text = input.trim();
     if (!text && intent === ConversationIntent.Question) return;
     onSend(text || "I'd like some guidance on my approach.", intent);
@@ -164,10 +169,14 @@ export function BrainiacDrawer({
       </div>
 
       <div className="p-3 border-t border-[#9D4EDD]/15 space-y-2">
+        {!canUseAI && (
+          <p className="text-[11px] text-amber-200">{disabledReason || "Brainiac AI credits are exhausted for this wallet."}</p>
+        )}
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your team lead…"
+          disabled={!canUseAI || sending}
           className="min-h-[48px] text-xs bg-black/30 border-white/10 resize-none"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -179,7 +188,7 @@ export function BrainiacDrawer({
         />
         <Button
           size="sm"
-          disabled={sending || !input.trim()}
+          disabled={sending || !canUseAI || !input.trim()}
           onClick={() => submit()}
           className="w-full text-xs font-mono bg-[#9D4EDD]/30 text-white border border-[#9D4EDD]/40 hover:bg-[#9D4EDD]/40"
         >

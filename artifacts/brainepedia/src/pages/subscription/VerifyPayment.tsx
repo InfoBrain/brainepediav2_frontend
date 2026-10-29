@@ -22,6 +22,7 @@ export default function VerifyPayment() {
   const [tierName, setTierName] = useState<string>("Architect");
   const [errorMsg, setErrorMsg] = useState<string>("");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const processedRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!userId) { navigate("/auth/login"); return; }
@@ -41,6 +42,8 @@ export default function VerifyPayment() {
         scheduleRedirect(4000);
         return;
       }
+      if (processedRef.current === reference) return;
+      processedRef.current = reference;
 
       const res = isEmployer
         ? await api.subscriptions.verifyEmployerPayment(reference)
@@ -66,6 +69,7 @@ export default function VerifyPayment() {
         }
         if (!cancelled) {
           setStatus("success");
+          window.dispatchEvent(new Event("brainepedia:credits-refresh"));
           await api.activityLogs.create({ userId, activity: `Subscription verified and activated: ${verifiedTierName}` });
         }
       } else {

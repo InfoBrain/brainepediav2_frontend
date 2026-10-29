@@ -8,6 +8,7 @@ import {
   MessageSquare,
   BarChart3,
   CreditCard,
+  Coins,
   Settings,
   Activity,
 } from "lucide-react";
@@ -25,5 +26,6 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/activity-logs", label: "Activity Logs", icon: Activity, tooltip: "Search and audit platform-wide user activity with filters and pagination." },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard, tooltip: "Initiate and Architect user plans plus Grandmaster Corporate employer oversight." },
   { href: "/admin/transactions", label: "Transactions", icon: CreditCard, tooltip: "Audit all billing transactions with status, amount, date, payment type, and search filters." },
+  { href: "/admin/credits", label: "AI Credits", icon: Coins, tooltip: "Inspect Brainiac AI credit balance and usage history." },
   { href: "/admin/settings", label: "Settings", icon: Settings, tooltip: "Administrative configuration and operational controls." },
 ];

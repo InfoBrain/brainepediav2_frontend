@@ -13,6 +13,9 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { PrivacySettingsSection } from "@/components/settings/PrivacySettingsSection";
+import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
+import { useBrainiacCredits } from "@/hooks/useBrainiacCredits";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -31,6 +34,7 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 export default function EmployerSettings() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const credits = useBrainiacCredits();
   const user = getUser();
   const [logoutOpen, setLogoutOpen] = useState(false);
 
@@ -113,6 +117,21 @@ export default function EmployerSettings() {
             </Button>
           </form>
         </div>
+
+        <PrivacySettingsSection />
+
+        <BrainiacCreditsCard
+          compact
+          balance={credits.balance}
+          loading={credits.loading}
+          error={credits.error}
+          usageHref="/employer/credits"
+          billingHref="/employer/billing"
+          onRefresh={() => void credits.refresh()}
+          onUpgrade={() => setLocation("/employer/subscription")}
+          onRecharge={() => void credits.startRecharge("Employer")}
+          actionLoading={credits.rechargeLoading}
+        />
 
         {/* Danger Zone */}
         <div className="bg-[#0d1119] border border-red-500/20 rounded-xl p-6">

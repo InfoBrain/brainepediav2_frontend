@@ -20,6 +20,8 @@ type Props = {
   onSuggestedAction: (action: string) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  canUseAI?: boolean;
+  disabledReason?: string;
 };
 
 export function BrainiacMentorPanel({
@@ -30,6 +32,8 @@ export function BrainiacMentorPanel({
   onSuggestedAction,
   collapsed,
   onToggleCollapse,
+  canUseAI = true,
+  disabledReason,
 }: Props) {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -39,6 +43,7 @@ export function BrainiacMentorPanel({
   }, [messages, sending]);
 
   function submit(intent = ConversationIntent.Question) {
+    if (!canUseAI) return;
     const text = input.trim();
     if (!text && intent === ConversationIntent.Question) return;
     onSend(text || "I'd like some guidance on my approach.", intent);
@@ -136,10 +141,14 @@ export function BrainiacMentorPanel({
           </div>
 
           <div className="p-3 border-t border-[#9D4EDD]/15 space-y-2">
+            {!canUseAI && (
+              <p className="text-[11px] text-amber-200">{disabledReason || "Brainiac AI credits are exhausted for this wallet."}</p>
+            )}
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask your team lead…"
+              disabled={!canUseAI || sending}
               className="min-h-[56px] text-xs bg-black/30 border-white/10 resize-none"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
@@ -152,7 +161,7 @@ export function BrainiacMentorPanel({
             <div className="flex gap-2">
               <Button
                 size="sm"
-                disabled={sending || !input.trim()}
+                disabled={sending || !canUseAI || !input.trim()}
                 onClick={() => submit()}
                 className="flex-1 text-xs font-mono bg-[#9D4EDD]/20 text-[#9D4EDD] border border-[#9D4EDD]/30"
               >
@@ -161,7 +170,7 @@ export function BrainiacMentorPanel({
               <Button
                 size="sm"
                 variant="outline"
-                disabled={sending}
+                disabled={sending || !canUseAI}
                 onClick={() => submit(ConversationIntent.RequestHint)}
                 className="text-xs font-mono border-white/15 text-white/50"
               >

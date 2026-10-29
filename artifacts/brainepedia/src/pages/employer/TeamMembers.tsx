@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { UserPlus, Loader2, Zap, Search, RefreshCw } from "lucide-react";
+import { UserPlus, Loader2, Zap, Search, RefreshCw, Coins } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { asList, text } from "@/lib/jobData";
+import { formatCredits, formatDateOnly, normalizeCreditBalance } from "@/lib/aiCredits";
+import type { BrainiacCreditBalanceDto } from "@/lib/types/billingCredits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +31,7 @@ type FormData = z.infer<typeof schema>;
 
 type Member = {
   profileId: string;
+  userId: string;
   fullName: string;
   email: string;
   profession?: string;
@@ -50,6 +53,10 @@ export default function TeamMembers() {
   const [open, setOpen] = useState(false);
   const [seatTarget, setSeatTarget] = useState<Member | null>(null);
   const [seatLoading, setSeatLoading] = useState(false);
+  const [creditTarget, setCreditTarget] = useState<Member | null>(null);
+  const [seatCredits, setSeatCredits] = useState<BrainiacCreditBalanceDto | null>(null);
+  const [seatCreditsError, setSeatCreditsError] = useState("");
+  const [seatCreditsLoading, setSeatCreditsLoading] = useState(false);
   const [professions, setProfessions] = useState<string[]>([]);
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
@@ -99,6 +106,28 @@ export default function TeamMembers() {
     } else {
       toast({ title: "Failed to add member", description: res.error, variant: "destructive" });
     }
+  };
+
+  const viewSeatCredits = async (member: Member) => {
+    setCreditTarget(member);
+    setSeatCredits(null);
+    setSeatCreditsError("");
+    if (!member.userId) {
+      setSeatCreditsError("Seat credit details are not available for this member.");
+      return;
+    }
+    setSeatCreditsLoading(true);
+    const res = await api.brainiacCredits.teamSeatBalance(member.userId);
+    setSeatCreditsLoading(false);
+    if (!res.ok) {
+      if (res.status === 403 || res.status === 404) {
+        setSeatCreditsError("Seat credit details are not available for this member.");
+        return;
+      }
+      setSeatCreditsError(res.error || "Unable to load team-seat credits.");
+      return;
+    }
+    setSeatCredits(normalizeCreditBalance(res.data));
   };
 
   const activateSeat = async () => {
@@ -261,7 +290,7 @@ export default function TeamMembers() {
                 </thead>
                 <tbody>
                   {filtered.map((m) => (
-                    <tr key={m.profileId} className="border-b border-white/5 hover:bg-white/2 transition-colors">
+                    <tr key={m.profileId || m.userId || m.email} className="border-b border-white/5 hover:bg-white/2 transition-colors">
                       <td className="px-4 py-3">
                         {m.avatarUrl ? (
                           <img src={m.avatarUrl} alt={m.fullName} className="h-9 w-9 rounded-full object-cover border border-[#00D2FF]/30" />
@@ -290,16 +319,27 @@ export default function TeamMembers() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={m.isGrandmasterSeatPaid}
-                          className="text-xs border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 disabled:border-emerald-400/30 disabled:text-emerald-300 disabled:opacity-80"
-                          onClick={() => setSeatTarget(m)}
-                        >
-                          <Zap className="h-3 w-3 mr-1" />
-                          {m.isGrandmasterSeatPaid ? "Seat Activated" : "Activate Seat"}
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                            onClick={() => void viewSeatCredits(m)}
+                          >
+                            <Coins className="h-3 w-3 mr-1" />
+                            Seat credits
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={m.isGrandmasterSeatPaid}
+                            className="text-xs border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 disabled:border-emerald-400/30 disabled:text-emerald-300 disabled:opacity-80"
+                            onClick={() => setSeatTarget(m)}
+                          >
+                            <Zap className="h-3 w-3 mr-1" />
+                            {m.isGrandmasterSeatPaid ? "Seat Activated" : "Activate Seat"}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -315,6 +355,30 @@ export default function TeamMembers() {
       </div>
 
       {/* Seat payment confirmation */}
+      <Dialog open={!!creditTarget} onOpenChange={(open) => !open && setCreditTarget(null)}>
+        <DialogContent className="bg-[#0d1119] border border-white/10">
+          <DialogHeader>
+            <DialogTitle>Team-seat credits</DialogTitle>
+          </DialogHeader>
+          {seatCreditsLoading ? (
+            <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading seat credits…
+            </div>
+          ) : seatCreditsError ? (
+            <p className="text-sm text-muted-foreground">{seatCreditsError}</p>
+          ) : seatCredits ? (
+            <div className="space-y-3 text-sm">
+              <p><span className="text-muted-foreground">Member:</span> {seatCredits.memberDisplayName || creditTarget?.fullName}</p>
+              <p><span className="text-muted-foreground">Seat status:</span> {seatCredits.seatStatus || (creditTarget?.isGrandmasterSeatPaid ? "Active" : "Inactive")}</p>
+              <p><span className="text-muted-foreground">Allocated:</span> {formatCredits(seatCredits.allocation)}</p>
+              <p><span className="text-muted-foreground">Used:</span> {formatCredits(seatCredits.usedCredits)}</p>
+              <p><span className="text-muted-foreground">Remaining:</span> {formatCredits(seatCredits.remainingCredits)}</p>
+              <p><span className="text-muted-foreground">Seat cycle:</span> {formatDateOnly(seatCredits.applicableRenewalDate || seatCredits.billingCycleEnd)}</p>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!seatTarget} onOpenChange={(o) => !o && setSeatTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -340,7 +404,8 @@ export default function TeamMembers() {
 function normMembers(d: any): Member[] {
   const arr = Array.isArray(d) ? d : d?.members ?? d?.employees ?? d?.items ?? d?.roster ?? d?.metricsRoster ?? [];
   return arr.map((x: any) => ({
-    profileId: String(x.profileId ?? x.ProfileId ?? x.userId ?? x.UserId ?? x.id ?? x.employeeId ?? Math.random()),
+    profileId: String(x.profileId ?? x.ProfileId ?? x.id ?? x.employeeId ?? ""),
+    userId: String(x.userId ?? x.UserId ?? x.employeeUserId ?? x.EmployeeUserId ?? ""),
     fullName: text(x.fullName ?? x.FullName ?? x.name ?? `${x.firstName ?? ""} ${x.lastName ?? ""}`.trim(), "Team member"),
     email: text(x.email ?? x.Email ?? x.employeeEmail ?? x.EmailAddress, ""),
     profession: text(x.profession ?? x.Profession ?? x.role ?? x.title, ""),

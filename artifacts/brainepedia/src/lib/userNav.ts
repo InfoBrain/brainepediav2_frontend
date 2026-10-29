@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Settings,
   Sparkles,
+  Coins,
   Trophy,
   User as UserIcon,
   Zap,
@@ -29,6 +30,7 @@ export const USER_NAV: NavItem[] = [
   { href: "/user/assessments", label: "Assessments", icon: ClipboardCheck, tooltip: "Employer-linked problem nodes you may complete to strengthen applications." },
   { href: "/user/portfolio", label: "Portfolio", icon: UserIcon, section: "Profile", tooltip: "Build a professional CV-style portfolio with statement, education, experience, skills, services, projects, and interests." },
   { href: "/user/subscription", label: "Subscription", icon: CreditCard, tooltip: "Manage Initiate and Architect access tiers and payment status." },
+  { href: "/user/credits", label: "AI Credits", icon: Coins, tooltip: "View Brainiac AI credit balance, exhaustion status, and usage history." },
   { href: "/user/transactions", label: "Transactions", icon: CreditCard, tooltip: "Review your personal payment ledger, statuses, payment types, and billing details." },
   { href: "/user/settings", label: "Settings", icon: Settings, tooltip: "Update account security and personal dashboard preferences." },
 ];

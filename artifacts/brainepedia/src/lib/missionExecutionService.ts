@@ -226,7 +226,7 @@ export async function sendMentorMessage(payload: {
   currentDraft?: string;
 }) {
   const res = await api.missionExecution.mentor(payload);
-  if (!res.ok) return { ok: false as const, error: res.error };
+  if (!res.ok) return { ok: false as const, error: res.error, creditsExhausted: res.creditsExhausted, status: res.status };
   return { ok: true as const, data: normMentorResponse(res.data) };
 }
 
@@ -238,7 +238,7 @@ export async function fetchMentorHistory(sessionId: string) {
 
 export async function reviewDraftWithMentor(sessionId: string, draftContent: string) {
   const res = await api.missionExecution.reviewDraft(sessionId, draftContent);
-  if (!res.ok) return { ok: false as const, error: res.error };
+  if (!res.ok) return { ok: false as const, error: res.error, creditsExhausted: res.creditsExhausted, status: res.status };
   return { ok: true as const, data: normMentorResponse(res.data) };
 }
 

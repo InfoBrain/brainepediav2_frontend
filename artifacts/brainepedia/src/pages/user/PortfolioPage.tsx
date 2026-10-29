@@ -21,6 +21,7 @@ import { api } from "@/lib/api";
 import { getProfileId, getUser, getUserId } from "@/lib/auth";
 import { buildProfileFormData } from "@/lib/profileService";
 import { generateAndOpenSmartCv } from "@/lib/smartCv";
+import { canUseWallet, useOptionalBrainiacCredits, walletGuidance } from "@/hooks/useBrainiacCredits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -536,6 +537,8 @@ function CardActions({ onEdit, onDelete, small }: { onEdit: () => void; onDelete
 
 function BrainiacModal({ open, onOpenChange, targetModule, original, onAccept }: { open: boolean; onOpenChange: (open: boolean) => void; targetModule: string; original: string; onAccept: (value: string) => void }) {
   const { toast } = useToast();
+  const credits = useOptionalBrainiacCredits();
+  const canUseAI = canUseWallet(credits?.balance ?? null);
   const [tone, setTone] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
@@ -546,6 +549,7 @@ function BrainiacModal({ open, onOpenChange, targetModule, original, onAccept }:
     }
   }, [open]);
   const generate = async () => {
+    if (!canUseAI) return;
     setLoading(true);
     const res = await api.professions.restructure({ TargetModule: targetModule, OriginalText: original, ToneInstruction: tone || null });
     setLoading(false);
@@ -575,7 +579,8 @@ function BrainiacModal({ open, onOpenChange, targetModule, original, onAccept }:
             <span className="mb-1 block text-xs font-mono text-muted-foreground">Optional Tone Instruction</span>
             <Input value={tone} onChange={(event) => setTone(event.target.value)} placeholder="Make it more executive. Focus on technical expertise." />
           </label>
-          <Button onClick={generate} disabled={loading || !original.trim()} variant="outline">
+          {!canUseAI && <p className="text-xs text-amber-200">{walletGuidance(credits?.balance ?? null)}</p>}
+          <Button onClick={generate} disabled={loading || !canUseAI || !original.trim()} variant="outline">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Generate
           </Button>
           {result && (
