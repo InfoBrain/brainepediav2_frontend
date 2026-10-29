@@ -147,9 +147,16 @@ export default function PortfolioPage() {
               <StatusList title="Incomplete" items={SECTIONS.filter((item) => !completed.includes(item)).map((item) => item.label)} />
             </div>
           </div>
-          <Button className="mt-5 bg-[#00D2FF] text-black hover:bg-[#00B8DD]" onClick={() => setCvModalOpen(true)}>
-            <Download className="mr-2 h-4 w-4" /> Generate Smart CV
-          </Button>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Button asChild variant="outline" className="border-amber-400/40 bg-amber-400/10 text-amber-400 hover:bg-amber-400/20 hover:text-amber-300">
+              <Link href="/profile/edit">
+                <Pencil className="mr-2 h-4 w-4" /> Update Profile
+              </Link>
+            </Button>
+            <Button className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]" onClick={() => setCvModalOpen(true)}>
+              <Download className="mr-2 h-4 w-4" /> Generate Smart CV
+            </Button>
+          </div>
         </section>
 
         <Dialog open={cvModalOpen} onOpenChange={(open) => { if (!cvGenerating) setCvModalOpen(open); }}>
