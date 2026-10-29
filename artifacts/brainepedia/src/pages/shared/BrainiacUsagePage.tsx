@@ -22,7 +22,7 @@ export default function BrainiacUsagePage() {
   const billingHref = isEmployer ? "/employer/billing" : undefined;
 
   return (
-    <DashboardShell nav={nav} title="Brainiac AI Credits" subtitle="// credits.usage.billing" theme={theme}>
+    <DashboardShell nav={nav} title="Brainiac Credits & Usage" subtitle="// remaining.credits.usage.history" theme={theme}>
       <div className="space-y-6">
         <BrainiacCreditsCard
           balance={credits.balance}
