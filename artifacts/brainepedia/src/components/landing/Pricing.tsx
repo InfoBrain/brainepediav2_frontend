@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
-import { Building2, Check } from "lucide-react";
+import { Building2, Check, Coins } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { EMPLOYER_GRANDMASTER_FEATURES, EMPLOYER_GRANDMASTER_PLAN, USER_SUBSCRIPTION_PLANS } from "@/lib/pricingPlans";
+import { ARCHITECT_TEAM_SEAT, EMPLOYER_GRANDMASTER_FEATURES, EMPLOYER_GRANDMASTER_PLAN, USER_SUBSCRIPTION_PLANS } from "@/lib/pricingPlans";
 
 export function Pricing() {
   return (
@@ -44,10 +44,14 @@ export function Pricing() {
               <h3 className="text-2xl font-bold mb-2">{plan.key}</h3>
               <p className="text-sm text-muted-foreground mb-6 h-10">{plan.description}</p>
               
-              <div className="mb-8">
+              <div className="mb-4">
                 <span className="text-4xl font-bold">{plan.shortPrice}</span>
                 {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
               </div>
+              <p className="mb-8 flex items-start gap-2 text-sm text-muted-foreground">
+                <Coins className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span>{plan.brainiacCreditsLabel}</span>
+              </p>
 
               <ul className="space-y-4 mb-8 flex-1">
                 {plan.features.map((f, j) => (
@@ -88,6 +92,10 @@ export function Pricing() {
               <p className="mt-3 text-sm text-muted-foreground">
                 For Organizations and Employers. Employer Grandmaster is the organization subscription; employee seat activation is billed separately per team member.
               </p>
+              <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
+                <Coins className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                <span>{EMPLOYER_GRANDMASTER_PLAN.brainiacCreditsLabel}. These credits belong to the organization, not to every employee.</span>
+              </p>
               <Link
                 href="/auth/register?role=employer"
                 className={cn(buttonVariants({ variant: "outline" }), "mt-6 border-accent text-accent hover:bg-accent/10")}
@@ -103,6 +111,21 @@ export function Pricing() {
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-8 max-w-6xl rounded-3xl border border-primary/20 bg-card p-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 className="text-2xl font-black">{ARCHITECT_TEAM_SEAT.key}</h3>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                A team seat is billed separately from the Grandmaster organization plan. It does not share or combine the organization credit pool.
+              </p>
+            </div>
+            <p className="flex items-start gap-2 text-sm text-muted-foreground md:max-w-sm">
+              <Coins className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>{ARCHITECT_TEAM_SEAT.brainiacCreditsLabel}. {ARCHITECT_TEAM_SEAT.note}</span>
+            </p>
           </div>
         </div>
 

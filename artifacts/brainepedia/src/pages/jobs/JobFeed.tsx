@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
+import { SocialFeedPanel } from "@/components/feed/SocialFeedPanel";
 import { BriefcaseBusiness, Building2, CalendarDays, ChevronLeft, ChevronRight, MapPin, Search, ShieldCheck, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
@@ -36,6 +37,7 @@ export default function JobFeed() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [view, setView] = useState<"feed" | "organisation">("feed");
 
   const load = async (nextPage = page) => {
     setLoading(true);
@@ -54,9 +56,10 @@ export default function JobFeed() {
   };
 
   useEffect(() => {
+    if (view !== "organisation") return;
     load(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [view]);
 
   const filtered = jobs.filter((job) => {
     const needle = query.trim().toLowerCase();
@@ -68,6 +71,16 @@ export default function JobFeed() {
 
   const content = (
       <div className="space-y-6">
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant={view === "feed" ? "default" : "outline"} onClick={() => setView("feed")}>Brainepedia feed</Button>
+          <Button type="button" variant={view === "organisation" ? "default" : "outline"} onClick={() => setView("organisation")}>Organisation jobs</Button>
+          <Button asChild variant="outline"><Link href="/jobs/external">External jobs</Link></Button>
+          {role && <Button asChild variant="outline"><Link href="/jobs/compatibility">Jobs That Fit Me</Link></Button>}
+        </div>
+        {view === "feed" ? (
+          <SocialFeedPanel />
+        ) : (
+        <>
         <section className="rounded-2xl border border-[#FFD700]/15 bg-gradient-to-br from-[#FFD700]/10 via-[#0d1119] to-[#7C3AED]/10 p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -156,6 +169,8 @@ export default function JobFeed() {
             Next <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
+        </>
+        )}
       </div>
   );
 

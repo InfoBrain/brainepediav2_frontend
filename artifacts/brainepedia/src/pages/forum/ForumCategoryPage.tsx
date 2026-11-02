@@ -68,6 +68,7 @@ interface CreateThreadModalProps {
 function CreateThreadModal({ categoryId, onClose, onCreated }: CreateThreadModalProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [shareToFeed, setShareToFeed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
   const user = getUser();
@@ -80,6 +81,7 @@ function CreateThreadModal({ categoryId, onClose, onCreated }: CreateThreadModal
       categoryId,
       title: title.trim(),
       content: content.trim(),
+      shareToFeed,
     });
     setSubmitting(false);
     if (res.ok) {
@@ -131,6 +133,18 @@ function CreateThreadModal({ categoryId, onClose, onCreated }: CreateThreadModal
               className="w-full px-3 py-2.5 bg-background border border-border/60 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none"
             />
           </div>
+          <label className="flex items-start gap-3 rounded-xl border border-border/50 bg-background/40 p-3 text-sm">
+            <input
+              type="checkbox"
+              checked={shareToFeed}
+              onChange={(event) => setShareToFeed(event.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-medium">Share this discussion on the public feed</span>
+              <span className="mt-1 block text-xs text-muted-foreground">Off by default. The feed shows a short excerpt and opens this thread.</span>
+            </span>
+          </label>
           <div className="flex gap-3 pt-1">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
             <Button

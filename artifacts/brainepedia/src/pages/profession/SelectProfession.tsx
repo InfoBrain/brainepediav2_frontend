@@ -27,7 +27,7 @@ function saveSelectedProfession(p: Profession) {
 }
 
 export default function SelectProfession() {
-  usePageTitle("Choose Your Path");
+  usePageTitle("Start a Mission");
   const [, navigate] = useLocation();
   const [selected, setSelected] = useState<string | null>(() => getSelectedProfession()?.id ?? null);
   const [search, setSearch] = useState("");
@@ -108,10 +108,10 @@ export default function SelectProfession() {
           className="text-center mb-12"
         >
           <p className="text-xs font-mono text-cyan-400 tracking-[0.3em] uppercase mb-3">
-            Step 01 / Select Your Path
+            Start a Mission
           </p>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-cyan-100 to-amber-200 bg-clip-text text-transparent">
-            Choose Your Journey
+            Start a Mission
           </h1>
           <p className="text-white/50 text-base max-w-xl mx-auto leading-relaxed mb-8">
             Start solving real-world problems in your chosen field

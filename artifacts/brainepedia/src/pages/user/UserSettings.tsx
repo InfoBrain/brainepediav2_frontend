@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { PrivacySettingsSection } from "@/components/settings/PrivacySettingsSection";
+import { FeedSharingSection } from "@/components/settings/FeedSharingSection";
 import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
 import { useBrainiacCredits } from "@/hooks/useBrainiacCredits";
 
@@ -119,6 +120,7 @@ export default function UserSettings() {
       </div>
       <div className="mt-6">
         <PrivacySettingsSection />
+        <FeedSharingSection />
       </div>
     </DashboardShell>
   );

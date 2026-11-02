@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/ux/PageHeader";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { PrivacySettingsSection } from "@/components/settings/PrivacySettingsSection";
+import { FeedSharingSection } from "@/components/settings/FeedSharingSection";
 
 export default function AdminSettings() {
   usePageTitle("Admin Settings");
@@ -16,6 +17,7 @@ export default function AdminSettings() {
         />
 
         <PrivacySettingsSection />
+        <FeedSharingSection />
 
         <div className="grid gap-4 lg:grid-cols-3">
           <Panel icon={Settings} title="Platform Settings" detail="Central workspace for platform-level configuration visibility." />

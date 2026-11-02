@@ -15,6 +15,7 @@ import { api } from "@/lib/api";
 import { getUserId, getUserRole } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import {
+  ARCHITECT_TEAM_SEAT,
   EMPLOYER_GRANDMASTER_FEATURES,
   EMPLOYER_GRANDMASTER_PLAN,
   PLAN_COMPARISON_FEATURES,
@@ -207,6 +208,9 @@ export default function SubscriptionCenter() {
                 <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
                   {EMPLOYER_GRANDMASTER_PLAN.description}
                 </p>
+                <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+                  {EMPLOYER_GRANDMASTER_PLAN.brainiacCreditsLabel}. These credits belong to the organization, not to every employee. {ARCHITECT_TEAM_SEAT.brainiacCreditsLabel}. {ARCHITECT_TEAM_SEAT.note}
+                </p>
                 {employerGrandmasterActive ? (
                   <div className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[#FFD700]/30 bg-[#FFD700]/10 px-4 py-2 text-sm font-bold text-[#FFD700]">
                     <CheckCircle2 className="h-4 w-4" />
@@ -369,6 +373,7 @@ export default function SubscriptionCenter() {
                         <span className={`text-3xl font-black ${tier.iconColor}`}>{tier.price}</span>
                         <span className="text-xs text-white/30 font-mono">{tier.priceNote}</span>
                       </div>
+                      <p className="mt-3 text-xs text-white/55">{tier.brainiacCreditsLabel}</p>
                     </div>
                     {/* Features */}
                     <div className="flex-1 p-5 space-y-2.5 bg-[#0d1117]">

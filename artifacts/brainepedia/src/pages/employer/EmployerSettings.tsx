@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { PrivacySettingsSection } from "@/components/settings/PrivacySettingsSection";
+import { FeedSharingSection } from "@/components/settings/FeedSharingSection";
 import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
 import { useBrainiacCredits } from "@/hooks/useBrainiacCredits";
 import {
@@ -119,6 +120,7 @@ export default function EmployerSettings() {
         </div>
 
         <PrivacySettingsSection />
+        <FeedSharingSection />
 
         <BrainiacCreditsCard
           compact
