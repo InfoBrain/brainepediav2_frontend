@@ -14,6 +14,7 @@ import {
   FilePlus2,
   GraduationCap,
   ClipboardList,
+  Newspaper,
 } from "lucide-react";
 import type { NavItem } from "@/components/dashboard/DashboardShell";
 
@@ -21,7 +22,8 @@ export const EMPLOYER_NAV: NavItem[] = [
   { href: "/employer/overview", label: "Dashboard", icon: LayoutDashboard },
   { href: "/employer/candidates", label: "Candidate Explorer", icon: Search, section: "Recruitment", tooltip: "Discover proven talent by profession, XP, VX, rank, and portfolio evidence." },
   { href: "/employer/saved-candidates", label: "Saved Candidates", icon: Bookmark, tooltip: "Your shortlist of candidates saved for follow-up and dossier review." },
-  { href: "/employer/jobs/create", label: "Create Job", icon: FilePlus2, section: "Jobs", tooltip: "Publish roles and optionally link a problem-node assessment." },
+  { href: "/feed", label: "Feed", icon: Newspaper, section: "Jobs", tooltip: "Public Brainepedia feed, including organisation jobs shared to the feed." },
+  { href: "/employer/jobs/create", label: "Create Job", icon: FilePlus2, tooltip: "Publish roles and optionally link a problem-node assessment." },
   { href: "/employer/jobs", label: "My Job Postings", icon: BriefcaseBusiness, tooltip: "Preview, edit, activate, deactivate, and review applicants for your jobs." },
   { href: "/employer/applications", label: "Applications", icon: ClipboardList, tooltip: "Review applicants by posting, update statuses, and open completed assessment results." },
   { href: "/employer/challenges", label: "Team Challenges", icon: GraduationCap, section: "Assessments", tooltip: "Private corporate challenges for team training and workforce development." },

@@ -231,6 +231,7 @@ export default function BillingSeats() {
                 <p>
                   The employer pays the Grandmaster subscription for recruitment and corporate tooling.
                   Each employee seat activation grants that team member separate Grandmaster access.
+                  The organization plan includes 1,000,000 Brainiac AI credits each month. Each Architect Team Seat includes its own 500,000 monthly credits, separate from the organization allocation.
                 </p>
                 <p>
                   To activate an employee seat, go to{" "}

@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: "/#problem", label: "The Problem", type: "anchor" },
   { href: "/#solution", label: "The Solution", type: "anchor" },
   { href: "/#how-it-works", label: "How It Works", type: "anchor" },
+  { href: "/feed", label: "Feed", type: "link" },
   { href: "/jobs", label: "Jobs", type: "link" },
   { href: "/forum", label: "Community", type: "link" },
   { href: "/#pricing", label: "Pricing", type: "anchor" },

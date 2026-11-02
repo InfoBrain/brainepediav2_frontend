@@ -10,6 +10,7 @@ export type SubscriptionPlan = {
   tagline: string;
   description: string;
   features: string[];
+  brainiacCreditsLabel: string;
   unavailableFeatures?: string[];
   icon: typeof Shield;
   accent: "slate" | "purple" | "gold";
@@ -28,6 +29,7 @@ export const USER_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     description: "Explore the platform and start building proof.",
     icon: Shield,
     accent: "slate",
+    brainiacCreditsLabel: "50,000 Brainiac AI credits included monthly",
     features: [
       "Entry-level district access",
       "3 missions/challenges per month",
@@ -55,6 +57,7 @@ export const USER_SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     icon: Zap,
     accent: "purple",
     popular: true,
+    brainiacCreditsLabel: "500,000 Brainiac AI credits included monthly",
     features: [
       "Full access to all professional districts",
       "Unlimited active missions/challenges",
@@ -95,6 +98,13 @@ export const EMPLOYER_GRANDMASTER_PLAN = {
   icon: Crown,
   accent: "gold" as const,
   features: EMPLOYER_GRANDMASTER_FEATURES,
+  brainiacCreditsLabel: "1,000,000 Brainiac AI organization credits included monthly",
+};
+
+export const ARCHITECT_TEAM_SEAT = {
+  key: "Architect Team Seat",
+  brainiacCreditsLabel: "500,000 Brainiac AI team-seat credits included monthly",
+  note: "Each Architect Team Seat has its own monthly credit allocation. Seat credits are not added to the Grandmaster organization allocation.",
 };
 
 export const PLAN_COMPARISON_FEATURES = [

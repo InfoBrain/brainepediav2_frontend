@@ -85,6 +85,10 @@ export default function UserMissions() {
               <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#FFD700]">Mission command</p>
               <h2 className="mt-1 text-2xl font-black">Track active missions, completed work, and assessment history.</h2>
             </div>
+            <div className="flex flex-wrap gap-2">
+            <Button asChild className="bg-[#FFD700] font-bold text-black hover:bg-[#F3C800]">
+              <Link href="/profession/select">Start a Mission</Link>
+            </Button>
             <Button onClick={load} variant="outline" disabled={loading}>
               <ButtonLoading loading={loading}>
                 <>
@@ -93,6 +97,7 @@ export default function UserMissions() {
                 </>
               </ButtonLoading>
             </Button>
+            </div>
           </div>
         </section>
 
@@ -112,7 +117,7 @@ export default function UserMissions() {
               <Metric icon={Zap} label="Total XP Earned" value={stats?.totalXp ?? 0} color="text-[#FFD700]" tooltip="XP earned from mission performance and evaluation outcomes." />
               <Metric icon={Percent} label="Mission Success Rate" value={`${stats?.successRate ?? 0}%`} color="text-sky-300" tooltip="Percentage of assigned or attempted missions completed successfully." />
             </div>
-            <MissionSection title="Recent Missions" rows={recent} empty="No Missions Yet. Start in Prove Yourself to build your mission history." />
+            <MissionSection title="Recent Missions" rows={recent} empty="No missions yet. Start a Mission to choose an eligible challenge and build your history." />
           </>
         )}
       </div>
@@ -187,9 +192,9 @@ function MissionSection({ title, rows, empty }: { title: string; rows: MissionRo
                   ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
                   : "border-amber-400/30 bg-amber-400/10 text-amber-300"
               }`}>
-                {row.hasCompleted ? "Completed" : "Pending"}
-              </span>
-              <span className="font-mono text-xs text-muted-foreground">{row.status}</span>
+                  {row.hasCompleted ? "Completed" : "In progress"}
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">{row.status}</span>
               {row.id ? (
                 <Button asChild size="sm" variant="outline">
                   <Link
@@ -210,7 +215,7 @@ function MissionSection({ title, rows, empty }: { title: string; rows: MissionRo
                       });
                     }}
                   >
-                    Open
+                    {row.hasCompleted ? "View" : "Continue Mission"}
                   </Link>
                 </Button>
               ) : null}

@@ -101,7 +101,13 @@ const ForumDashboardPage = lazy(() => import("@/pages/forum/ForumDashboardPage")
 const ForumCategoryPage = lazy(() => import("@/pages/forum/ForumCategoryPage"));
 const ForumThreadPage = lazy(() => import("@/pages/forum/ForumThreadPage"));
 const JobFeed = lazy(() => import("@/pages/jobs/JobFeed"));
+const ExternalJobsPage = lazy(() => import("@/pages/jobs/ExternalJobsPage"));
+const JobCompatibilityPage = lazy(() => import("@/pages/jobs/JobCompatibilityPage"));
 const JobDetails = lazy(() => import("@/pages/jobs/JobDetails"));
+const SocialFeedPage = lazy(() => import("@/pages/feed/SocialFeedPage"));
+const FeedPostPage = lazy(() => import("@/pages/feed/FeedPostPage"));
+const FollowNetworkPage = lazy(() => import("@/pages/feed/FollowNetworkPage"));
+const AdminExternalJobs = lazy(() => import("@/pages/admin/AdminExternalJobs"));
 const UserApplications = lazy(() => import("@/pages/jobs/UserApplications"));
 const UserAssessments = lazy(() => import("@/pages/jobs/UserAssessments"));
 const TransactionsPage = lazy(() => import("@/pages/shared/TransactionsPage"));
@@ -245,11 +251,26 @@ function Router() {
           <UserDashboard />
         </RequireAuth>
       </Route>
+      <Route path="/jobs/external" component={ExternalJobsPage} />
+      <Route path="/jobs/compatibility">
+        <RequireAuth allow={["User", "Employer", "GlobalAdmin"]}>
+          <JobCompatibilityPage />
+        </RequireAuth>
+      </Route>
       <Route path="/jobs/:jobId">
         <JobDetails />
       </Route>
       <Route path="/jobs">
         <JobFeed />
+      </Route>
+      <Route path="/feed/posts/:postId" component={FeedPostPage} />
+      <Route path="/feed" component={SocialFeedPage} />
+      <Route path="/users/:userId/followers" component={FollowNetworkPage} />
+      <Route path="/users/:userId/following" component={FollowNetworkPage} />
+      <Route path="/admin/external-jobs">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminExternalJobs />
+        </RequireAuth>
       </Route>
       <Route path="/admin/professions">
         <RequireAuth allow={["GlobalAdmin"]}>

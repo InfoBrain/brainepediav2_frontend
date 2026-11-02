@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { RichTextEditor, htmlToPlainText } from "@/components/editor/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type JobForm = CreateJobRequest & {
   expiryDate?: string | null;
@@ -26,6 +27,7 @@ export default function CreateJob() {
     professionName: "",
     linkAssessmentNodeId: "",
     expiryDate: defaultExpiryDate(),
+    shareToFeed: false,
   });
   const [professions, setProfessions] = useState<any[]>([]);
   const [problemNodes, setProblemNodes] = useState<any[]>([]);
@@ -95,6 +97,7 @@ export default function CreateJob() {
       professionName: form.professionName?.trim() || null,
       linkAssessmentNodeId: form.linkAssessmentNodeId?.trim() || null,
       expiryDate: form.expiryDate || defaultExpiryDate(),
+      shareToFeed: form.shareToFeed === true,
     };
     const res = await api.jobs.createJob(payload);
     setSubmitting(false);
@@ -204,6 +207,18 @@ export default function CreateJob() {
                 <MissionPreview node={problemNodes.find((node) => String(node?.problemNodeId ?? node?.id) === form.linkAssessmentNodeId)} />
               )}
             </div>
+
+            <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-sm">
+              <Checkbox
+                checked={form.shareToFeed === true}
+                onCheckedChange={(checked) => setForm((prev) => ({ ...prev, shareToFeed: checked === true }))}
+                aria-label="Share this job on the Brainepedia public feed"
+              />
+              <span>
+                <span className="block font-medium">Share this job on the Brainepedia public feed</span>
+                <span className="mt-1 block text-xs text-muted-foreground">The job can appear in the public feed while it is active and unexpired. Leaving this off keeps the posting on the organisation job list only.</span>
+              </span>
+            </label>
 
             <div className="space-y-2">
               <Label htmlFor="description">Job description</Label>

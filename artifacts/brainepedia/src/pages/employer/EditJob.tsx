@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { RichTextEditor, htmlToPlainText } from "@/components/editor/RichTextEditor";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function EditJob() {
   const [, params] = useRoute("/employer/jobs/:jobId/edit");
@@ -33,6 +34,7 @@ export default function EditJob() {
   const [loadingProblemNodes, setLoadingProblemNodes] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [shareToFeed, setShareToFeed] = useState<boolean | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,6 +92,8 @@ export default function EditJob() {
         salaryRange: text(job?.salaryRange ?? job?.salary, ""),
         expiryDate: text(expiryDateOf(job), defaultExpiryDate()).slice(0, 10),
       });
+      const shared = job?.shareToFeed ?? job?.ShareToFeed;
+      setShareToFeed(typeof shared === "boolean" ? shared : null);
     }
     load();
     return () => { cancelled = true; };
@@ -144,6 +148,7 @@ export default function EditJob() {
       location: form.location?.trim() || null,
       salaryRange: form.salaryRange?.trim() || null,
       expiryDate: form.expiryDate || defaultExpiryDate(),
+      ...(shareToFeed === null ? {} : { shareToFeed }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -260,6 +265,17 @@ export default function EditJob() {
                   <MissionPreview node={problemNodes.find((node) => String(node?.problemNodeId ?? node?.ProblemNodeId ?? node?.id ?? node?.Id) === form.linkAssessmentNodeId)} />
                 )}
               </div>
+              <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-sm">
+                <Checkbox
+                  checked={shareToFeed === true}
+                  onCheckedChange={(checked) => setShareToFeed(checked === true)}
+                  aria-label="Share this job on the Brainepedia public feed"
+                />
+                <span>
+                  <span className="block font-medium">Share this job on the Brainepedia public feed</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">The job can appear in the public feed while it is active and unexpired. Turning this off removes the public card. Deactivating the job also hides it.</span>
+                </span>
+              </label>
               <div className="space-y-2">
                 <Label htmlFor="edit-job-description">Description</Label>
                 <RichTextEditor

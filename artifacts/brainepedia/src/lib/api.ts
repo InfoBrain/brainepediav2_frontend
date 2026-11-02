@@ -25,6 +25,15 @@ const BASE_URL = API_BASE_URL;
 const DEFAULT_TIMEOUT_MS = 30_000;
 const AI_TIMEOUT_MS = 120_000;
 
+export type PaginationHeader = {
+  totalCount?: number;
+  pageSize?: number;
+  currentPage?: number;
+  totalPages?: number;
+  hasNext?: boolean;
+  hasPrevious?: boolean;
+};
+
 export type ApiResult<T = any> = {
   ok: boolean;
   data?: T;
@@ -33,6 +42,7 @@ export type ApiResult<T = any> = {
   status?: number;
   errorCode?: string;
   creditsExhausted?: BrainiacCreditsExhaustedDto | null;
+  pagination?: PaginationHeader | null;
 };
 
 export type CreateJobRequest = {
@@ -43,6 +53,8 @@ export type CreateJobRequest = {
   professionName?: string | null;
   linkAssessmentNodeId?: string | null;
   expiryDate?: string | null;
+  /** Omitted or null means false on create. On update, omitted or null leaves the saved value unchanged. */
+  shareToFeed?: boolean | null;
 };
 
 export type UpdateJobRequest = CreateJobRequest;
@@ -70,13 +82,13 @@ export { extractApiMessage, getApiErrorMessage, parseApiError, sanitizeErrorForD
 
 function resolveTimeoutMs(endpoint: string, explicit?: number): number {
   if (explicit != null) return explicit;
-  if (/\/Evaluations\/|\/ai-generate|\/generate-profession|\/seed-districts|\/restructure|\/generate-smart-cv/i.test(endpoint)) {
+  if (/\/Evaluations\/|\/ai-generate|\/generate-profession|\/seed-districts|\/restructure|\/generate-smart-cv|\/compatibility-report/i.test(endpoint)) {
     return AI_TIMEOUT_MS;
   }
   return DEFAULT_TIMEOUT_MS;
 }
 
-async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}): Promise<ApiResult<T>> {
+export async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}): Promise<ApiResult<T>> {
   const { suppressUnauthorized, suppressForbidden, suppressCreditsExhausted, skipAuth, timeoutMs, signal, ...fetchOptions } = options;
   const headers: Record<string, string> = {
     ...((fetchOptions.headers as any) || {}),
@@ -121,6 +133,8 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
       data = isJson ? await response.json() : await response.text();
     }
 
+    const pagination = readPaginationHeader(response);
+
     if (!response.ok) {
       const parsed = parseApiError({ status: response.status, data });
       const exhausted = extractCreditsExhausted(response.status, data);
@@ -158,10 +172,11 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
         status: response.status,
         errorCode,
         creditsExhausted: exhausted,
+        pagination,
       };
     }
 
-    return { ok: true, data, message: extractApiMessage(data), status: response.status };
+    return { ok: true, data, message: extractApiMessage(data), status: response.status, pagination };
   } catch (err: any) {
     if (isAbortError(err)) {
       if (signal?.aborted) {
@@ -183,7 +198,26 @@ async function fetchApi<T = any>(endpoint: string, options: FetchApiOptions = {}
   }
 }
 
-function queryString(params: Record<string, any> = {}): string {
+function readPaginationHeader(response: Response): PaginationHeader | null {
+  const raw = response.headers.get("X-Pagination") || response.headers.get("x-pagination");
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const num = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : undefined);
+    return {
+      totalCount: num(parsed.totalCount),
+      pageSize: num(parsed.pageSize),
+      currentPage: num(parsed.currentPage),
+      totalPages: num(parsed.totalPages),
+      hasNext: Boolean(parsed.hasNext),
+      hasPrevious: Boolean(parsed.hasPrevious),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function queryString(params: Record<string, any> = {}): string {
   const q = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && String(value).trim() !== "") q.set(key, String(value));
@@ -725,10 +759,10 @@ export const api = {
     getThread: (threadId: string) =>
       fetchApi(`/api/Forum/threads/${encodeURIComponent(threadId)}`, { suppressUnauthorized: true }),
     /** POST /api/Forum/threads/create */
-    createThread: (data: { categoryId: string; title: string; content: string }) =>
+    createThread: (data: { categoryId: string; title: string; content: string; shareToFeed?: boolean }) =>
       fetchApi("/api/Forum/threads/create", { method: "POST", body: JSON.stringify(data) }),
     /** POST /api/Forum/threads/{threadId}/replies/create */
-    createReply: (threadId: string, data: { content: string }) =>
+    createReply: (threadId: string, data: { content: string; shareToFeed?: boolean }) =>
       fetchApi(`/api/Forum/threads/${encodeURIComponent(threadId)}/replies/create`, {
         method: "POST",
         body: JSON.stringify(data),

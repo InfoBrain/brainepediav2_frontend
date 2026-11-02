@@ -14,6 +14,7 @@ import { XPRing } from "@/components/dashboard/XPRing";
 import { Leaderboard, type LeaderboardUser, type CurrentUserRank } from "@/components/dashboard/Leaderboard";
 import { MissionActivityFeed } from "@/components/dashboard/MissionActivityFeed";
 import { OngoingMissionsSection } from "@/components/dashboard/OngoingMissionsSection";
+import { SocialFeedPanel } from "@/components/feed/SocialFeedPanel";
 import { api } from "@/lib/api";
 import { getUser, getUserId, getProfileId } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
@@ -526,12 +527,13 @@ export default function UserDashboard() {
   return (
     <DashboardShell nav={USER_NAV} title="Learning Hub" subtitle="// your progress" headerRight={headerRight} theme="user" showBrainiac>
       {loading ? <BrainiacSpinner /> : (
-        <div className="space-y-6 max-w-6xl">
+        <div className="w-full min-w-0 space-y-6">
 
+          <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-5">
           {/* ── HERO PROFILE ── */}
           <motion.div
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden flex flex-col sm:flex-row items-center sm:items-stretch gap-5 bg-gradient-to-r from-[#0d1119] via-[#0d1119] to-[#0d1119]/60 border border-white/8 rounded-2xl p-6"
+            className={`relative overflow-hidden flex flex-col sm:flex-row items-center sm:items-stretch gap-5 bg-gradient-to-r from-[#0d1119] via-[#0d1119] to-[#0d1119]/60 border border-white/8 rounded-2xl p-6 ${credits ? "xl:col-span-3" : "xl:col-span-5"}`}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/8 via-transparent to-[#00D2FF]/5 pointer-events-none" />
             {/* Avatar */}
@@ -573,6 +575,7 @@ export default function UserDashboard() {
           </motion.div>
 
           {credits && (
+            <div className="xl:col-span-2">
             <BrainiacCreditsCard
               compact
               balance={credits.balance}
@@ -584,7 +587,9 @@ export default function UserDashboard() {
               onRecharge={() => void credits.startRecharge("User")}
               actionLoading={credits.rechargeLoading}
             />
+            </div>
           )}
+          </div>
 
           <GuidanceCards />
 
@@ -675,7 +680,7 @@ export default function UserDashboard() {
           )}
 
           {/* ── QUICK STATS GRID ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
               { label: "Assigned Missions", value: missionStats?.totalAssignedMissions ?? 0, icon: Target, accent: "text-[#00D2FF]", glow: "from-[#00D2FF]/10" },
               { label: "Completed Missions", value: solved, icon: CheckCircle2, accent: "text-emerald-400", glow: "from-emerald-400/10" },
@@ -722,6 +727,7 @@ export default function UserDashboard() {
             </Link>
           </motion.div>
 
+          <div className="grid grid-cols-1 items-start gap-6 2xl:grid-cols-2">
           {/* ── LEADERBOARD (top 5 + your position) ── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             className="bg-[#0d1119] border border-white/6 rounded-2xl p-6">
@@ -747,17 +753,18 @@ export default function UserDashboard() {
             />
           </motion.div>
 
-          {/* ── ONGOING MISSIONS ── */}
+          <div className="space-y-6">
           {userId && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
               <OngoingMissionsSection userId={userId} />
             </motion.div>
           )}
-
-          {/* ── MISSION ACTIVITY FEED ── */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <MissionActivityFeed />
           </motion.div>
+          <SocialFeedPanel variant="preview" />
+          </div>
+          </div>
 
           {/* ── XP RING + DISTRICT OVERVIEW ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -943,9 +950,10 @@ function GuidanceCards() {
     { title: "Improve your Rank", href: "/user/xp-progress", icon: Trophy },
     { title: "Apply for Jobs", href: "/jobs", icon: BriefcaseBusiness },
     { title: "Join Discussions", href: "/forum", icon: MessageSquare },
+    { title: "Jobs That Fit Me", href: "/jobs/compatibility", icon: Sparkles },
   ];
   return (
-    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
       {cards.map((card) => {
         const Icon = card.icon;
         return (

@@ -123,6 +123,7 @@ export default function ForumThreadPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [replyText, setReplyText] = useState("");
+  const [shareToFeed, setShareToFeed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [categoryId, setCategoryId] = useState<string | null>(null);
 
@@ -165,10 +166,11 @@ export default function ForumThreadPage() {
       return;
     }
     setSubmitting(true);
-    const res = await api.forum.createReply(threadId, { content: replyText.trim() });
+    const res = await api.forum.createReply(threadId, { content: replyText.trim(), shareToFeed });
     setSubmitting(false);
     if (handleApiResult(res, SUCCESS_COPY.replyAdded, { title: "Failed to post reply" })) {
       setReplyText("");
+      setShareToFeed(false);
       fetchThread();
     }
   };
@@ -308,6 +310,10 @@ export default function ForumThreadPage() {
                   className="flex-1 px-3 py-2.5 bg-background border border-border/60 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none"
                 />
               </div>
+              <label className="flex items-start gap-3 text-sm text-muted-foreground">
+                <input type="checkbox" checked={shareToFeed} onChange={(event) => setShareToFeed(event.target.checked)} className="mt-1" />
+                <span>Share this discussion on the public feed</span>
+              </label>
               <div className="flex justify-end">
                 <Button
                   type="submit"
