@@ -183,8 +183,13 @@ async function assembleRelease() {
   // Flat layout: assets/, index.html, favicon.png, favicon.svg, opengraph.jpg
   // No public/ subdirectory — matches the standard iisnode deployment layout.
   if (buildFrontend) {
+    const skipDeployFiles = new Set(["hero-walkthrough.mp4"]);
     const entries = await readdir(FRONTEND_DIST, { withFileTypes: true });
     for (const entry of entries) {
+      if (skipDeployFiles.has(entry.name)) {
+        console.log(`↷ Skipped ${entry.name} (excluded from deployment)`);
+        continue;
+      }
       const src = path.join(FRONTEND_DIST, entry.name);
       const dest = path.join(RELEASE_DIR, entry.name);
       if (entry.isDirectory()) {
