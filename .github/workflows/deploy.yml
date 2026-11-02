@@ -58,6 +58,11 @@ jobs:
             fi
           done
 
+      - name: Exclude hero walkthrough video from deployment package
+        run: |
+          rm -f build/hero-walkthrough.mp4
+          echo "Excluded hero-walkthrough.mp4 from the deployment package."
+
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -65,4 +70,10 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: build/
-          server-dir: /brainepediav2_build/
+          server-dir: /brainepediav2/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            hero-walkthrough.mp4
+            **/hero-walkthrough.mp4
