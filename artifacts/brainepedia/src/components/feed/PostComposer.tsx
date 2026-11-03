@@ -3,14 +3,18 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor, htmlToPlainText } from "@/components/editor/RichTextEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/lib/api";
+import { isVideoMediaUrl, validateCoverFile } from "@/lib/feedMedia";
 import { asList, text } from "@/lib/jobData";
-import { isAbsoluteHttpUrl, isGuid } from "@/lib/safeUrl";
+import { isAbsoluteHttpUrl, isGuid, safeHttpUrl } from "@/lib/safeUrl";
 import type { FeedPostCreateDto, FeedPostDto, FeedVisibility } from "@/lib/types/socialFeed";
 
 type Option = { id: string; name: string };
+
+const CONTENT_MAX = 8000;
+const TITLE_MAX = 200;
 
 export function PostComposer({
   mode = "create",
@@ -18,17 +22,19 @@ export function PostComposer({
   submitting,
   onSubmit,
   onCancel,
+  variant = "card",
 }: {
   mode?: "create" | "edit";
   initial?: FeedPostDto | null;
   submitting: boolean;
   onSubmit: (body: FeedPostCreateDto) => Promise<void>;
   onCancel?: () => void;
+  variant?: "card" | "plain";
 }) {
   const [title, setTitle] = useState(initial?.title || "");
   const [content, setContent] = useState(initial?.content || "");
-  const [mediaUrl, setMediaUrl] = useState(initial?.mediaUrl || "");
-  const [thumbnailUrl, setThumbnailUrl] = useState(initial?.thumbnailUrl || "");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [professionId, setProfessionId] = useState(initial?.professionId || "");
   const [topicId, setTopicId] = useState(initial?.topicId || "");
   const [visibility, setVisibility] = useState<FeedVisibility | "unchanged">(
@@ -37,6 +43,7 @@ export function PostComposer({
   const [error, setError] = useState("");
   const [professions, setProfessions] = useState<Option[]>([]);
   const [topics, setTopics] = useState<Option[]>([]);
+  const existingCover = safeHttpUrl(initial?.mediaUrl) || safeHttpUrl(initial?.thumbnailUrl);
 
   useEffect(() => {
     api.professions.list().then((res) => {
@@ -63,65 +70,122 @@ export function PostComposer({
     });
   }, []);
 
+  const onFile = (file: File | null) => {
+    if (!file) {
+      setMediaFile(null);
+      return;
+    }
+    const message = validateCoverFile(file);
+    if (message) {
+      setMediaFile(null);
+      setError(message);
+      return;
+    }
+    setError("");
+    setMediaFile(file);
+    setMediaUrl("");
+  };
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!content.trim()) {
+    const plain = htmlToPlainText(content);
+    if (!plain) {
       setError("Content is required.");
       return;
     }
-    if (mediaUrl.trim() && !isAbsoluteHttpUrl(mediaUrl)) {
-      setError("Media URL must be an absolute http or https URL.");
+    if (content.length > CONTENT_MAX) {
+      setError(`Content must be ${CONTENT_MAX} characters or fewer.`);
       return;
     }
-    if (thumbnailUrl.trim() && !isAbsoluteHttpUrl(thumbnailUrl)) {
-      setError("Thumbnail URL must be an absolute http or https URL.");
+    if (title.trim().length > TITLE_MAX) {
+      setError(`Title must be ${TITLE_MAX} characters or fewer.`);
+      return;
+    }
+    if (mediaFile) {
+      const fileError = validateCoverFile(mediaFile);
+      if (fileError) {
+        setError(fileError);
+        return;
+      }
+    } else if (mediaUrl.trim() && !isAbsoluteHttpUrl(mediaUrl)) {
+      setError("A hosted cover must be an absolute http or https URL.");
       return;
     }
     setError("");
     const body: FeedPostCreateDto = {
       title: title.trim() || null,
-      content: content.trim(),
-      mediaUrl: mediaUrl.trim() || null,
-      thumbnailUrl: thumbnailUrl.trim() || null,
+      content,
       professionId: professionId || null,
       topicId: topicId || null,
     };
+    if (mediaFile) body.media = mediaFile;
+    else if (mediaUrl.trim()) body.mediaUrl = mediaUrl.trim();
     if (visibility !== "unchanged") body.visibility = visibility;
     await onSubmit(body);
     if (mode === "create") {
       setTitle("");
       setContent("");
       setMediaUrl("");
-      setThumbnailUrl("");
+      setMediaFile(null);
       setProfessionId("");
       setTopicId("");
       setVisibility("Public");
     }
   };
 
+  const previewUrl = mediaFile ? URL.createObjectURL(mediaFile) : "";
+  const previewIsVideo = mediaFile ? mediaFile.type.startsWith("video/") : isVideoMediaUrl(previewUrl);
+
   return (
-    <form onSubmit={submit} className="space-y-4 rounded-2xl border border-[#7C3AED]/30 bg-[#0d1119] p-5">
-      <div>
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#A78BFA]">{mode === "edit" ? "Edit post" : "Share an update"}</p>
-        <h2 className="mt-1 text-lg font-bold">{mode === "edit" ? "Update your post" : "Post to the Brainepedia feed"}</h2>
-      </div>
+    <form onSubmit={submit} className={variant === "card" ? "space-y-4 rounded-2xl border border-[#7C3AED]/30 bg-[#0d1119] p-5" : "space-y-4"}>
+      {variant === "card" && (
+        <div>
+          <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#A78BFA]">{mode === "edit" ? "Edit post" : "Share an update"}</p>
+          <h2 className="mt-1 text-lg font-bold">{mode === "edit" ? "Update your post" : "Post to the Brainepedia feed"}</h2>
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="feed-title">Title</Label>
-        <Input id="feed-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Hello Brainepedia" maxLength={160} />
+        <Input id="feed-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Hello Brainepedia" maxLength={TITLE_MAX} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="feed-content">Content</Label>
-        <Textarea id="feed-content" value={content} onChange={(event) => setContent(event.target.value)} placeholder="What did you ship, learn, or want to share?" rows={4} required />
+        <RichTextEditor
+          id="feed-content"
+          value={content}
+          onChange={(html) => setContent(html)}
+          placeholder="What did you ship, learn, or want to share?"
+          minHeightClassName="min-h-[160px]"
+        />
+        <p className="text-xs text-muted-foreground">{content.length}/{CONTENT_MAX}</p>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="feed-media">Media URL</Label>
-          <Input id="feed-media" value={mediaUrl} onChange={(event) => setMediaUrl(event.target.value)} placeholder="https://" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="feed-thumb">Thumbnail URL</Label>
-          <Input id="feed-thumb" value={thumbnailUrl} onChange={(event) => setThumbnailUrl(event.target.value)} placeholder="https://" />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="feed-cover">Cover</Label>
+        <Input
+          id="feed-cover"
+          type="file"
+          accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.mov,.m4v,image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+          onChange={(event) => onFile(event.target.files?.[0] ?? null)}
+        />
+        <p className="text-xs text-muted-foreground">Image up to 2 MB, or video up to 25 MB. A new file replaces the current cover.</p>
+        {existingCover && !mediaFile && mode === "edit" && (
+          <p className="text-xs text-muted-foreground">Current cover stays in place unless you attach a new file or paste a hosted URL.</p>
+        )}
+        {mediaFile && previewUrl && (
+          previewIsVideo
+            ? <video src={previewUrl} controls className="max-h-40 rounded-xl bg-black" />
+            : <img src={previewUrl} alt="" className="max-h-40 rounded-xl object-cover" />
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="feed-media-url">Hosted cover URL</Label>
+        <Input
+          id="feed-media-url"
+          value={mediaUrl}
+          onChange={(event) => setMediaUrl(event.target.value)}
+          placeholder="https:// — only when the file is already hosted"
+          disabled={Boolean(mediaFile)}
+        />
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">

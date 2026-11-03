@@ -123,8 +123,40 @@ export async function getFeedPost(id: string): Promise<ApiResult<FeedPostDto>> {
   return { ...res, data: normalizeFeedPost(res.data) };
 }
 
+function appendText(form: FormData, key: string, value: string | null | undefined) {
+  const text = value?.trim();
+  if (text) form.append(key, text);
+}
+
+/** Multipart when a cover file is attached. JSON otherwise. Thumbnail is never sent. */
+export function buildFeedPostRequest(body: FeedPostCreateDto): FormData | Record<string, unknown> {
+  if (body.media) {
+    const form = new FormData();
+    form.append("Content", body.content);
+    appendText(form, "Title", body.title);
+    form.append("Media", body.media);
+    appendText(form, "ProfessionId", body.professionId);
+    appendText(form, "TopicId", body.topicId);
+    appendText(form, "Visibility", body.visibility);
+    return form;
+  }
+
+  const json: Record<string, unknown> = { content: body.content };
+  if (body.title?.trim()) json.title = body.title.trim();
+  if (body.mediaUrl?.trim()) json.mediaUrl = body.mediaUrl.trim();
+  if (body.professionId) json.professionId = body.professionId;
+  if (body.topicId) json.topicId = body.topicId;
+  if (body.visibility) json.visibility = body.visibility;
+  return json;
+}
+
+function feedRequestBody(body: FeedPostCreateDto): BodyInit {
+  const payload = buildFeedPostRequest(body);
+  return payload instanceof FormData ? payload : JSON.stringify(payload);
+}
+
 export async function createFeedPost(body: FeedPostCreateDto): Promise<ApiResult<FeedPostDto>> {
-  const res = await fetchApi("/api/Feed/posts", { method: "POST", body: JSON.stringify(body) });
+  const res = await fetchApi("/api/Feed/posts", { method: "POST", body: feedRequestBody(body) });
   if (!res.ok) return res;
   return { ...res, data: normalizeFeedPost(res.data) };
 }
@@ -132,7 +164,7 @@ export async function createFeedPost(body: FeedPostCreateDto): Promise<ApiResult
 export async function updateFeedPost(id: string, body: FeedPostCreateDto): Promise<ApiResult<FeedPostDto>> {
   const res = await fetchApi(`/api/Feed/posts/${encodeURIComponent(id)}`, {
     method: "PUT",
-    body: JSON.stringify(body),
+    body: feedRequestBody(body),
   });
   if (!res.ok) return res;
   return { ...res, data: normalizeFeedPost(res.data) };

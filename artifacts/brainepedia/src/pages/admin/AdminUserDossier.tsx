@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { UserAvatar } from "./AdminUsers";
+import { SmartCvHistory } from "@/components/portfolio/SmartCvHistory";
 
 type DossierData = {
   fullName: string;
@@ -376,6 +377,8 @@ export default function AdminUserDossier() {
             </div>
           )}
 
+          {userId && <SmartCvHistory userId={userId} />}
+
           <div className="bg-[#0d1119] border border-white/5 rounded-2xl p-6">
             <h3 className="font-semibold mb-4">Profile Actions</h3>
             <div className="flex flex-wrap gap-3">
@@ -405,6 +408,14 @@ export default function AdminUserDossier() {
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open Public Profile
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/public-profile/${encodeURIComponent(userId)}/virtual-self`)}
+                className="border-white/15"
+              >
+                Virtual self chats
               </Button>
             </div>
           </div>

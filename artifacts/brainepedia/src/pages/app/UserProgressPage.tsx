@@ -13,6 +13,7 @@ import {
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
+import { normalizeUserMissionStatistics } from "@/lib/missionStatistics";
 import { getUserId, getUser } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
@@ -20,6 +21,7 @@ type Stats = { totalXP: number; problemsSolvedCount: number; dayStreak: number; 
 type MissionStats = {
   totalAssignedMissions: number;
   completedMissions: number;
+  pendingMissionsCount: number;
   inProgressMissions: number;
   totalXpEarned: number;
   missionSuccessRate: number;
@@ -73,14 +75,14 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
 }
 
 function normMissionStats(data: any): MissionStats {
-  const root = data?.data ?? data?.statistics ?? data?.missionStatistics ?? data ?? {};
-  const successRateRaw = Number(root.missionSuccessRate ?? root.MissionSuccessRate ?? root.successRate ?? root.SuccessRate ?? 0);
+  const stats = normalizeUserMissionStatistics(data);
   return {
-    totalAssignedMissions: Number(root.totalAssignedMissions ?? root.TotalAssignedMissions ?? root.totalAssigned ?? root.TotalAssigned ?? 0),
-    completedMissions: Number(root.completedMissions ?? root.CompletedMissions ?? root.completedMissionsCount ?? root.CompletedMissionsCount ?? 0),
-    inProgressMissions: Number(root.inProgressMissions ?? root.InProgressMissions ?? root.inProgressMissionsCount ?? root.InProgressMissionsCount ?? 0),
-    totalXpEarned: Number(root.totalXpEarned ?? root.TotalXpEarned ?? root.totalXPEarned ?? root.TotalXPEarned ?? root.totalXP ?? root.TotalXP ?? 0),
-    missionSuccessRate: Math.round(successRateRaw > 1 ? successRateRaw : successRateRaw * 100),
+    totalAssignedMissions: stats.totalAssignedMissions,
+    completedMissions: stats.completedMissions,
+    pendingMissionsCount: stats.pendingMissionsCount,
+    inProgressMissions: stats.inProgressMissions,
+    totalXpEarned: stats.totalXpEarned,
+    missionSuccessRate: stats.missionSuccessRate,
   };
 }
 
@@ -241,7 +243,7 @@ export default function UserProgressPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard icon={<Target className="w-5 h-5" />} label="Assigned Missions" value={missionStats?.totalAssignedMissions ?? 0} sub="Total assigned" color="text-[#00D2FF]" />
               <StatCard icon={<CheckCircle2 className="w-5 h-5" />} label="Completed" value={missionStats?.completedMissions ?? 0} sub="Missions completed" color="text-emerald-400" />
-              <StatCard icon={<Clock className="w-5 h-5" />} label="In Progress" value={missionStats?.inProgressMissions ?? 0} sub={`${missionStats?.missionSuccessRate ?? 0}% success rate`} color="text-[#9D4EDD]" />
+              <StatCard icon={<Clock className="w-5 h-5" />} label="In Progress" value={missionStats?.inProgressMissions ?? 0} sub={`${missionStats?.pendingMissionsCount ?? 0} pending · ${missionStats?.missionSuccessRate ?? 0}% success`} color="text-[#9D4EDD]" />
               <StatCard icon={<Star className="w-5 h-5" />} label="Mission XP" value={(missionStats?.totalXpEarned ?? displayStats.totalXP).toLocaleString()} sub={`Level ${lvData.level}`} color="text-[#FFD700]" />
             </div>
           )}

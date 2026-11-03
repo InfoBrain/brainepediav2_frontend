@@ -352,18 +352,33 @@ export default function AdminProblemNodes() {
     }
     if (!userId) { navigate("/auth/login"); return; }
     setAi(s => ({ ...s, loading: true, preview: null }));
-    const res = await api.problemNodes.aiGenerate(userId, {
-      topic: aiForm.topic,
+    const res = await api.problemNodes.aiGenerate({
+      topic: aiForm.topic.trim(),
       districtId: aiForm.districtId || selectedDistId,
       difficultyId: aiForm.difficultyId,
     });
-    const nodeData = res.ok ? (res.data?.problemNodes || res.data) : null;
+    const nodeData = res.ok ? (res.data?.problemNodes || res.data?.problemNode || res.data) : null;
     setAi(s => ({ ...s, loading: false, preview: nodeData }));
+    if (res.ok && nodeData?.problemNodeId) {
+      showSuccess({
+        title: res.data?.message || "Problem node generated successfully",
+        description: "The challenge is already saved in this district.",
+      });
+      loadNodes(aiForm.districtId || selectedDistId);
+      return;
+    }
     if (res.ok && res.data?.message) {
       showSuccess({ title: res.data.message });
     }
     if (!res.ok) {
-      showError(res.error || "", { title: "AI generation failed" });
+      const title = res.status === 502
+        ? "The model response could not be read"
+        : res.status === 400
+          ? "Topic, district, or difficulty is missing"
+          : res.status === 401
+            ? "Global Admin sign-in required"
+            : "AI generation failed";
+      showError(res.error || res.message || "", { title });
     }
   }
 
@@ -376,6 +391,13 @@ export default function AdminProblemNodes() {
     if (!ai.preview) return;
     if (!userId) { navigate("/auth/login"); return; }
     const p = ai.preview;
+    const generatedId = p.problemNodeId || p.ProblemNodeId;
+    if (generatedId) {
+      setAi({ open: false, loading: false, preview: null });
+      loadNodes(aiForm.districtId || selectedDistId);
+      showSuccess({ title: "Problem node saved", description: "The generated challenge is in this district." });
+      return;
+    }
     const parseArray = (v: any): string[] => {
       if (Array.isArray(v)) return v.map(String);
       if (typeof v === "string") { try { return JSON.parse(v); } catch { return [v]; } }
@@ -949,7 +971,7 @@ export default function AdminProblemNodes() {
                         disabled={saving}
                         className="flex-1 bg-[#00D2FF] hover:bg-[#00D2FF]/80 text-black font-semibold gap-1.5 text-sm"
                       >
-                        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><CheckCircle2 className="w-3.5 h-3.5" /> Save</>}
+                        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><CheckCircle2 className="w-3.5 h-3.5" /> {ai.preview?.problemNodeId ? "Done" : "Save"}</>}
                       </Button>
                     </div>
                   </motion.div>

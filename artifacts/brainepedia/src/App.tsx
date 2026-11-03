@@ -46,6 +46,7 @@ const AdminEmployers = lazy(() => import("@/pages/admin/AdminEmployers"));
 const AdminEmployerDetails = lazy(() => import("@/pages/admin/AdminEmployerDetails"));
 const AdminAnalytics = lazy(() => import("@/pages/admin/AdminAnalytics"));
 const AdminActivityLogs = lazy(() => import("@/pages/admin/AdminActivityLogs"));
+const AdminEmailLogs = lazy(() => import("@/pages/admin/AdminEmailLogs"));
 const AdminSubscriptions = lazy(() => import("@/pages/admin/AdminSubscriptions"));
 const AdminSettings = lazy(() => import("@/pages/admin/AdminSettings"));
 const EmployerOverview = lazy(() => import("@/pages/employer/EmployerOverview"));
@@ -335,6 +336,11 @@ function Router() {
       <Route path="/admin/activity-logs">
         <RequireAuth allow={["GlobalAdmin"]}>
           <AdminActivityLogs />
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/email-logs">
+        <RequireAuth allow={["GlobalAdmin"]}>
+          <AdminEmailLogs />
         </RequireAuth>
       </Route>
       <Route path="/admin/subscriptions">

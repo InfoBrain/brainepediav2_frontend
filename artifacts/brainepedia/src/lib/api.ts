@@ -20,7 +20,8 @@ import type {
   ProfilePrivacySettingsDto,
 } from "./types/billingCredits";
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://api.brainepedia.com";
+const viteEnv = (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env;
+export const API_BASE_URL = viteEnv?.VITE_API_BASE_URL || "https://api.brainepedia.com";
 const BASE_URL = API_BASE_URL;
 const DEFAULT_TIMEOUT_MS = 30_000;
 const AI_TIMEOUT_MS = 120_000;
@@ -297,7 +298,12 @@ export const api = {
       fetchApi(`/api/Profiles/edit/${encodeURIComponent(profileId)}?userId=${encodeURIComponent(userId)}`, { method: "POST", body: formData }),
   virtualSelfChat: (
       userId: string,
-      data: { message: string; history?: Array<{ role?: string | null; content?: string | null }> },
+      data: {
+        message: string;
+        conversationId?: string | null;
+        visitorLabel?: string | null;
+        history?: Array<{ role?: string | null; content?: string | null }>;
+      },
       opts?: { skipAuth?: boolean },
     ) =>
       fetchApi(`/api/Profiles/${encodeURIComponent(userId)}/virtual-self/chat`, {
@@ -308,6 +314,40 @@ export const api = {
         suppressCreditsExhausted: Boolean(opts?.skipAuth),
         timeoutMs: AI_TIMEOUT_MS,
       }),
+    listVirtualSelfHistory: (
+      userId: string,
+      params: { pageNumber?: number; pageSize?: number } = {},
+    ) =>
+      fetchApi(
+        `/api/Profiles/${encodeURIComponent(userId)}/virtual-self/history${queryString({
+          pageNumber: params.pageNumber ?? 1,
+          pageSize: params.pageSize ?? 20,
+        })}`,
+        { suppressForbidden: true },
+      ),
+    getVirtualSelfThread: (userId: string, conversationId: string) =>
+      fetchApi(
+        `/api/Profiles/${encodeURIComponent(userId)}/virtual-self/history/${encodeURIComponent(conversationId)}`,
+        { suppressForbidden: true },
+      ),
+    listSmartDocuments: (
+      userId: string,
+      params: { documentType?: string; includeContent?: boolean; pageNumber?: number; pageSize?: number } = {},
+    ) =>
+      fetchApi(
+        `/api/Profiles/${encodeURIComponent(userId)}/smart-documents${queryString({
+          documentType: params.documentType,
+          includeContent: params.includeContent,
+          pageNumber: params.pageNumber ?? 1,
+          pageSize: params.pageSize ?? 20,
+        })}`,
+        { suppressForbidden: true },
+      ),
+    getSmartDocument: (userId: string, smartDocHistoryId: string) =>
+      fetchApi(
+        `/api/Profiles/${encodeURIComponent(userId)}/smart-documents/${encodeURIComponent(smartDocHistoryId)}`,
+        { suppressForbidden: true },
+      ),
     publicPortfolio: (userId: string, opts?: { public?: boolean }) =>
       fetchApi(`/api/Profiles/public-portfolio/${encodeURIComponent(userId)}`, {
         skipAuth: opts?.public,
@@ -687,9 +727,19 @@ export const api = {
     /** DELETE /api/ProblemNodes/{id}?userId=... */
     delete: (id: string, userId: string) =>
       fetchApi(`/api/ProblemNodes/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`, { method: "DELETE" }),
-    /** POST /api/ProblemNodes/ai-generate?userId=... */
-    aiGenerate: (userId: string, data: { topic: string; districtId: string; difficultyId: string }) =>
-      fetchApi(`/api/ProblemNodes/ai-generate?userId=${encodeURIComponent(userId)}`, { method: "POST", body: JSON.stringify(data) }),
+    /**
+     * POST /api/ProblemNodes/ai-generate
+     * userId is optional. When it is omitted the signed-in Global Admin is used,
+     * so generation is attributed to a real wallet.
+     */
+    aiGenerate: (data: { topic: string; districtId: string; difficultyId: string; userId?: string }) => {
+      const userId = data.userId?.trim();
+      const qs = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+      return fetchApi(`/api/ProblemNodes/ai-generate${qs}`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
   },
   employers: {
     /** POST /api/Employers/onboard — create employer account */

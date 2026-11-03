@@ -20,7 +20,9 @@ import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getProfileId, getUser, getUserId } from "@/lib/auth";
 import { buildProfileFormData } from "@/lib/profileService";
+import { classifyProjectFile } from "@/lib/feedMedia";
 import { generateAndOpenSmartCv } from "@/lib/smartCv";
+import { SmartCvHistory } from "@/components/portfolio/SmartCvHistory";
 import { canUseWallet, useOptionalBrainiacCredits, walletGuidance } from "@/hooks/useBrainiacCredits";
 import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
 import { Button } from "@/components/ui/button";
@@ -80,7 +82,7 @@ const FIELDS: Record<Exclude<SectionKey, "personal-statement">, Field[]> = {
     { key: "projectName", label: "Project Name" },
     { key: "description", label: "Description", type: "textarea", ai: true },
     { key: "projectUrl", label: "Project URL", type: "url" },
-    { key: "projectFile", label: "Upload Image or Video", type: "file" },
+    { key: "projectFile", label: "Project file (image, video, or document)", type: "file" },
   ],
 };
 
@@ -100,6 +102,7 @@ export default function PortfolioPage() {
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [cvInstructions, setCvInstructions] = useState("");
   const [cvGenerating, setCvGenerating] = useState(false);
+  const [historyRevision, setHistoryRevision] = useState(0);
   const credits = useOptionalBrainiacCredits();
 
   const refreshCounts = async () => {
@@ -221,6 +224,7 @@ export default function PortfolioPage() {
                     return;
                   }
                   setCvModalOpen(false);
+                  setHistoryRevision((value) => value + 1);
                   toast({
                     title: "Smart CV generated",
                     description: "Your CV opened in a new tab and is being prepared for download.",
@@ -233,6 +237,8 @@ export default function PortfolioPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {userId && <SmartCvHistory userId={userId} refreshKey={historyRevision} />}
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <nav className="rounded-2xl border border-white/5 bg-[#0d1119] p-3 lg:sticky lg:top-24 lg:self-start">
@@ -649,10 +655,14 @@ function StatusList({ title, items, done }: { title: string; items: string[]; do
   );
 }
 
+function projectMediaUrlOf(item: any): string {
+  return item?.projectMediaUrl ?? item?.ProjectMediaUrl ?? item?.projectFileUrl ?? item?.ProjectFileUrl ?? item?.imageUrl ?? item?.ImageUrl ?? item?.videoUrl ?? item?.VideoUrl ?? "";
+}
+
 function MediaPreview({ form }: { form: any }) {
   const file = form.projectFile instanceof File ? form.projectFile : null;
-  const previewUrl = file ? URL.createObjectURL(file) : form.projectFileUrl || form.imageUrl || form.videoUrl || form.ImageUrl || form.VideoUrl || "";
-  const isVideo = file ? file.type.startsWith("video/") : Boolean(form.isVideo ?? form.IsVideo);
+  const previewUrl = file ? URL.createObjectURL(file) : projectMediaUrlOf(form);
+  const isVideo = file ? classifyProjectFile(file).isVideo : Boolean(form.isVideo ?? form.IsVideo);
   if (!previewUrl) return null;
   return (
     <div className="mt-4">
@@ -666,17 +676,15 @@ function MediaPreview({ form }: { form: any }) {
 }
 
 function ProjectLinks({ item }: { item: any }) {
-  const mediaUrl = item.projectFileUrl ?? item.ProjectFileUrl ?? item.imageUrl ?? item.ImageUrl ?? item.videoUrl ?? item.VideoUrl;
+  const mediaUrl = projectMediaUrlOf(item);
   const isVideo = Boolean(item.isVideo ?? item.IsVideo);
+  const isImage = Boolean(item.isImage ?? item.IsImage);
+  const fileLabel = isVideo ? "Video" : isImage ? "Image" : "File";
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {item.projectUrl && <a href={item.projectUrl} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">Open project</a>}
       {mediaUrl && (
-        isVideo ? (
-          <a href={mediaUrl} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">Video</a>
-        ) : (
-          <a href={mediaUrl} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">Image</a>
-        )
+        <a href={mediaUrl} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">{fileLabel}</a>
       )}
     </div>
   );
@@ -701,10 +709,10 @@ function projectFormData(form: any, editing: any) {
   fd.append("Description", form.description || "");
   fd.append("ProjectUrl", form.projectUrl || "");
   if (form.projectFile instanceof File) {
-    const isVideo = form.projectFile.type.startsWith("video/");
+    const kind = classifyProjectFile(form.projectFile);
     fd.append("ProjectFile", form.projectFile);
-    fd.append("IsVideo", String(isVideo));
-    fd.append("IsImage", String(!isVideo));
+    fd.append("IsVideo", String(kind.isVideo));
+    fd.append("IsImage", String(kind.isImage));
   }
   return fd;
 }
@@ -804,8 +812,10 @@ function itemToForm(section: Exclude<SectionKey, "personal-statement">, item: an
         projectName: textOf(item.projectName ?? item.ProjectName),
         description: textOf(item.description ?? item.Description),
         projectUrl: textOf(item.projectUrl ?? item.ProjectUrl),
-        projectFileUrl: item.projectFileUrl ?? item.ProjectFileUrl ?? item.imageUrl ?? item.ImageUrl ?? item.videoUrl ?? item.VideoUrl ?? "",
+        projectFileUrl: projectMediaUrlOf(item),
+        projectMediaUrl: projectMediaUrlOf(item),
         isVideo: Boolean(item.isVideo ?? item.IsVideo),
+        isImage: Boolean(item.isImage ?? item.IsImage),
       };
     default:
       return base;

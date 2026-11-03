@@ -637,12 +637,13 @@ function ProjectsGrid({ items }: { items: any[] }) {
   return (
     <>
       {items.map((item, index) => {
-        const mediaUrl = item?.projectFileUrl ?? item?.ProjectFileUrl ?? item?.imageUrl ?? item?.ImageUrl;
+        const mediaUrl = item?.projectMediaUrl ?? item?.ProjectMediaUrl ?? item?.projectFileUrl ?? item?.ProjectFileUrl ?? item?.imageUrl ?? item?.ImageUrl;
         const isVideo = Boolean(item?.isVideo ?? item?.IsVideo);
+        const isDocument = typeof mediaUrl === "string" && /\.(pdf|docx|txt)(?:$|\?)/i.test(mediaUrl);
         const projectUrl = fieldValue(item, "projectUrl", "ProjectUrl", "", "");
         return (
           <article key={index} className="card col overflow-hidden rounded-2xl border border-white/10 bg-card shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:border-[#00D2FF]/25 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
-            {mediaUrl && (
+            {mediaUrl && !isDocument && (
               <div className="border-b border-white/10 bg-black/20">
                 {isVideo ? <video src={mediaUrl} controls className="max-h-52 w-full object-cover" /> : <img src={mediaUrl} alt={fieldValue(item, "projectName", "ProjectName")} className="max-h-52 w-full object-cover" />}
               </div>
@@ -652,6 +653,9 @@ function ProjectsGrid({ items }: { items: any[] }) {
               <p className="mt-2 text-sm leading-7 text-muted-foreground">{fieldValue(item, "description", "Description")}</p>
               {projectUrl !== "—" && (
                 <a href={projectUrl} target="_blank" rel="noreferrer" className="mt-4 inline-flex text-sm font-medium text-[#00D2FF] transition hover:text-[#00B8DD] hover:underline">Visit Project</a>
+              )}
+              {isDocument && mediaUrl && (
+                <a href={mediaUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-sm font-medium text-[#00D2FF] transition hover:text-[#00B8DD] hover:underline">Open file</a>
               )}
             </div>
           </article>

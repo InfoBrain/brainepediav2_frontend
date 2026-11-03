@@ -13,6 +13,7 @@ import {
   Coins,
   Settings,
   Activity,
+  Mail,
 } from "lucide-react";
 import type { NavItem } from "@/components/dashboard/DashboardShell";
 
@@ -28,6 +29,7 @@ export const ADMIN_NAV: NavItem[] = [
   { href: "/admin/forum", label: "Forum Management", icon: MessageSquare, tooltip: "Community categories and discussions across the platform." },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3, tooltip: "Platform usage, growth, and talent signal reporting." },
   { href: "/admin/activity-logs", label: "Activity Logs", icon: Activity, tooltip: "Search and audit platform-wide user activity with filters and pagination." },
+  { href: "/admin/email-logs", label: "Email delivery", icon: Mail, tooltip: "Platform email attempts: reminders, verification, and job notices. Status, recipient, and source." },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard, tooltip: "Initiate and Architect user plans plus Grandmaster Corporate employer oversight." },
   { href: "/admin/credits", label: "Brainiac Credits", icon: Coins, tooltip: "Inspect remaining Brainiac AI credits and usage history." },
   { href: "/admin/transactions", label: "Transactions", icon: CreditCard, tooltip: "Audit all billing transactions with status, amount, date, payment type, and search filters." },

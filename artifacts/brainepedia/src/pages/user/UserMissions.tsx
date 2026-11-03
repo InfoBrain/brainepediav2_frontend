@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "wouter";
-import { CheckCircle2, Clock, Info, Percent, RefreshCw, Sparkles, Target, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "wouter";
+import { CheckCircle2, Clock, Info, Loader2, Percent, RefreshCw, Sparkles, Target, Zap } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
-import { asList, numberish, text } from "@/lib/jobData";
+import { buildMissionHref, storeMissionAssignmentContext } from "@/lib/missionAssignmentContext";
 import {
-  buildMissionHref,
-  employerChallengeAssignmentIdOf,
-  hasEmployerAssignmentSignal,
-  storeMissionAssignmentContext,
-} from "@/lib/missionAssignmentContext";
+  normalizeUserMissionStatistics,
+  openContinuableMission,
+  type MissionRecord,
+  type UserMissionStatistics,
+} from "@/lib/missionStatistics";
 import { Button } from "@/components/ui/button";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,32 +20,14 @@ import { EmptyState } from "@/components/ux/EmptyState";
 import { ErrorState } from "@/components/ux/ErrorState";
 import { useApiFeedback } from "@/hooks/useApiFeedback";
 
-type MissionRow = {
-  id: string;
-  challengeName: string;
-  companyName: string;
-  status: string;
-  completedDate?: string;
-  hasCompleted: boolean;
-  employerChallengeAssignmentId: string;
-  assignmentRequired: boolean;
-};
-
-type MissionStats = {
-  totalAssigned: number;
-  completed: number;
-  inProgress: number;
-  totalXp: number;
-  successRate: number;
-  recent: MissionRow[];
-};
-
 export default function UserMissions() {
   usePageTitle("Missions");
   const { showError } = useApiFeedback();
-  const [stats, setStats] = useState<MissionStats | null>(null);
+  const [, navigate] = useLocation();
+  const [stats, setStats] = useState<UserMissionStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [openingId, setOpeningId] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -68,13 +50,24 @@ export default function UserMissions() {
       showError(message, { title: "Missions unavailable" });
       return;
     }
-    setStats(normStats(res.data));
+    setStats(normalizeUserMissionStatistics(res.data));
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
-  const recent = useMemo(() => stats?.recent ?? [], [stats]);
+  const openMission = async (row: MissionRecord) => {
+    const userId = getUserId();
+    if (!userId || !row.problemNodeId) return;
+    setOpeningId(row.problemNodeId + (row.employerChallengeAssignmentId || ""));
+    const result = await openContinuableMission(userId, row);
+    setOpeningId("");
+    if (!result.ok || !result.href) {
+      showError(result.error || "Unable to open this mission.", { title: "Mission unavailable" });
+      return;
+    }
+    navigate(result.href);
+  };
 
   return (
     <DashboardShell nav={USER_NAV} title="Missions" subtitle="Mission statistics and recent activity">
@@ -83,7 +76,7 @@ export default function UserMissions() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#FFD700]">Mission command</p>
-              <h2 className="mt-1 text-2xl font-black">Track active missions, completed work, and assessment history.</h2>
+              <h2 className="mt-1 text-2xl font-black">Continue pending work, then review what you have already finished.</h2>
             </div>
             <div className="flex flex-wrap gap-2">
             <Button asChild className="bg-[#FFD700] font-bold text-black hover:bg-[#F3C800]">
@@ -103,21 +96,35 @@ export default function UserMissions() {
 
         {loading ? (
           <div className="space-y-5">
-            <LoadingState variant="grid" rows={5} className="md:grid-cols-2 xl:grid-cols-5" />
+            <LoadingState variant="grid" rows={6} className="md:grid-cols-2 xl:grid-cols-3" />
             <LoadingState variant="table" rows={6} />
           </div>
         ) : error ? (
           <ErrorState message={error} onRetry={load} />
         ) : (
           <>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-              <Metric icon={Target} label="Total Assigned Missions" value={stats?.totalAssigned ?? 0} color="text-[#00D2FF]" tooltip="All missions assigned to you across districts, jobs, and private challenges." />
-              <Metric icon={CheckCircle2} label="Completed Missions" value={stats?.completed ?? 0} color="text-emerald-400" tooltip="Missions submitted and marked complete or passed." />
-              <Metric icon={Sparkles} label="In Progress Missions" value={stats?.inProgress ?? 0} color="text-[#A78BFA]" tooltip="Assigned missions that are not completed yet." />
-              <Metric icon={Zap} label="Total XP Earned" value={stats?.totalXp ?? 0} color="text-[#FFD700]" tooltip="XP earned from mission performance and evaluation outcomes." />
-              <Metric icon={Percent} label="Mission Success Rate" value={`${stats?.successRate ?? 0}%`} color="text-sky-300" tooltip="Percentage of assigned or attempted missions completed successfully." />
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <Metric icon={Target} label="Total Assigned Missions" value={stats?.totalAssignedMissions ?? 0} color="text-[#00D2FF]" tooltip="All missions assigned to you across districts, jobs, and private challenges." />
+              <Metric icon={Clock} label="Pending Missions" value={stats?.pendingMissionsCount ?? 0} color="text-amber-300" tooltip="Corporate assignments that have not been started." />
+              <Metric icon={Sparkles} label="In Progress Missions" value={stats?.inProgressMissions ?? 0} color="text-[#A78BFA]" tooltip="Missions with an open session that are not completed yet." />
+              <Metric icon={CheckCircle2} label="Completed Missions" value={stats?.completedMissions ?? 0} color="text-emerald-400" tooltip="Missions submitted and marked complete or passed." />
+              <Metric icon={Zap} label="Total XP Earned" value={stats?.totalXpEarned ?? 0} color="text-[#FFD700]" tooltip="XP earned from mission performance and evaluation outcomes." />
+              <Metric icon={Percent} label="Mission Success Rate" value={`${stats?.missionSuccessRate ?? 0}%`} color="text-sky-300" tooltip="Percentage of assigned or attempted missions completed successfully." />
             </div>
-            <MissionSection title="Recent Missions" rows={recent} empty="No missions yet. Start a Mission to choose an eligible challenge and build your history." />
+            <MissionSection
+              title="Continue a mission"
+              rows={stats?.continuableMissions ?? []}
+              empty="No pending or in-progress missions. Start a Mission to choose an eligible challenge."
+              openingId={openingId}
+              onContinue={openMission}
+            />
+            <MissionSection
+              title="Recent Missions"
+              rows={stats?.recentMissions ?? []}
+              empty="No missions yet. Start a Mission to choose an eligible challenge and build your history."
+              openingId={openingId}
+              onContinue={openMission}
+            />
           </>
         )}
       </div>
@@ -125,45 +132,19 @@ export default function UserMissions() {
   );
 }
 
-function normStats(data: any): MissionStats {
-  const root = data?.data ?? data?.statistics ?? data?.missionStatistics ?? data;
-  const recentRaw =
-    root?.recentMissions ??
-    root?.RecentMissions ??
-    root?.missions ??
-    root?.Missions ??
-    root?.items ??
-    [];
-  const completed = numberish(root?.completedMissions ?? root?.CompletedMissions ?? root?.completedMissionsCount ?? root?.CompletedMissionsCount ?? root?.completedCount ?? root?.CompletedCount) ?? 0;
-  const totalAssigned = numberish(root?.totalAssignedMissions ?? root?.TotalAssignedMissions ?? root?.assignedMissions ?? root?.AssignedMissions ?? root?.totalAssigned ?? root?.TotalAssigned) ?? 0;
-  const inProgress = numberish(root?.inProgressMissions ?? root?.InProgressMissions ?? root?.inProgressMissionsCount ?? root?.InProgressMissionsCount ?? root?.inProgressCount ?? root?.InProgressCount) ?? Math.max(totalAssigned - completed, 0);
-  const successRateRaw = numberish(root?.missionSuccessRate ?? root?.MissionSuccessRate ?? root?.successRate ?? root?.SuccessRate) ?? 0;
-  return {
-    totalAssigned,
-    completed,
-    inProgress,
-    totalXp: numberish(root?.totalXpEarned ?? root?.TotalXpEarned ?? root?.totalXPEarned ?? root?.TotalXPEarned ?? root?.totalXp ?? root?.TotalXp) ?? 0,
-    successRate: Math.round(successRateRaw > 1 ? successRateRaw : successRateRaw * 100),
-    recent: asList(recentRaw).map(normRecentMission),
-  };
-}
-
-function normRecentMission(item: any): MissionRow {
-  const hasCompleted = Boolean(item?.hasCompleted ?? item?.HasCompleted);
-  const employerChallengeAssignmentId = employerChallengeAssignmentIdOf(item);
-  return {
-    id: String(item?.problemNodeId ?? item?.ProblemNodeId ?? item?.missionId ?? item?.MissionId ?? item?.id ?? item?.Id ?? ""),
-    challengeName: text(item?.challengeName ?? item?.ChallengeName ?? item?.missionTitle ?? item?.MissionTitle ?? item?.title ?? item?.Title, "Mission"),
-    companyName: text(item?.companyName ?? item?.CompanyName ?? item?.employerName ?? item?.EmployerName, "Company unavailable"),
-    status: hasCompleted ? "Completed" : text(item?.status ?? item?.Status ?? item?.completionStatus ?? item?.CompletionStatus, "Pending"),
-    completedDate: item?.completedDate ?? item?.CompletedDate ?? item?.dateCompleted ?? item?.DateCompleted ?? item?.completedAt ?? item?.CompletedAt,
-    hasCompleted,
-    employerChallengeAssignmentId,
-    assignmentRequired: hasEmployerAssignmentSignal(item),
-  };
-}
-
-function MissionSection({ title, rows, empty }: { title: string; rows: MissionRow[]; empty: string }) {
+function MissionSection({
+  title,
+  rows,
+  empty,
+  openingId,
+  onContinue,
+}: {
+  title: string;
+  rows: MissionRecord[];
+  empty: string;
+  openingId: string;
+  onContinue: (row: MissionRecord) => void;
+}) {
   return (
     <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
       <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-white/70">{title}</h3>
@@ -178,49 +159,55 @@ function MissionSection({ title, rows, empty }: { title: string; rows: MissionRo
         />
       ) : (
         <div className="divide-y divide-white/5">
-          {rows.slice(0, 12).map((row, index) => (
-            <div key={`${row.id}-${index}`} className="flex flex-wrap items-center gap-3 py-3">
-              <Clock className="h-4 w-4 text-[#00D2FF]" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{row.challengeName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {row.companyName} · {row.completedDate ? new Date(row.completedDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No completed date"}
-                </p>
-              </div>
-              <span className={`rounded-full border px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider ${
-                row.hasCompleted
-                  ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                  : "border-amber-400/30 bg-amber-400/10 text-amber-300"
-              }`}>
-                  {row.hasCompleted ? "Completed" : "In progress"}
+          {rows.map((row, index) => {
+            const rowKey = `${row.problemNodeId}-${row.employerChallengeAssignmentId || index}`;
+            const busy = openingId === row.problemNodeId + (row.employerChallengeAssignmentId || "");
+            return (
+              <div key={rowKey} className="flex flex-wrap items-center gap-3 py-3">
+                <Clock className="h-4 w-4 text-[#00D2FF]" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{row.challengeName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {row.companyName} · {row.missionSource}
+                    {row.completedAt ? ` · ${new Date(row.completedAt).toLocaleDateString("en-NG", { month: "short", day: "numeric", year: "numeric", timeZone: "Africa/Lagos" })}` : row.startedAt ? " · Started" : " · Not started"}
+                  </p>
+                </div>
+                <span className={`rounded-full border px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider ${
+                  row.status === "Completed"
+                    ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                    : row.status === "InProgress"
+                      ? "border-[#A78BFA]/30 bg-[#A78BFA]/10 text-[#A78BFA]"
+                      : "border-amber-400/30 bg-amber-400/10 text-amber-300"
+                }`}>
+                  {row.status === "InProgress" ? "In progress" : row.status}
                 </span>
-                <span className="font-mono text-xs text-muted-foreground">{row.status}</span>
-              {row.id ? (
-                <Button asChild size="sm" variant="outline">
-                  <Link
-                    href={
-                      row.id.length > 20
-                        ? buildMissionHref({
-                            problemNodeId: row.id,
-                            employerChallengeAssignmentId: row.employerChallengeAssignmentId || null,
-                          })
-                        : "/profession/select"
-                    }
-                    onClick={() => {
-                      if (row.id.length <= 20) return;
-                      storeMissionAssignmentContext({
-                        problemNodeId: row.id,
-                        employerChallengeAssignmentId: row.employerChallengeAssignmentId || null,
-                        assignmentRequired: row.assignmentRequired,
-                      });
-                    }}
-                  >
-                    {row.hasCompleted ? "View" : "Continue Mission"}
-                  </Link>
-                </Button>
-              ) : null}
-            </div>
-          ))}
+                {row.canContinue ? (
+                  <Button size="sm" variant="outline" disabled={busy} onClick={() => onContinue(row)}>
+                    {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+                    {row.status === "Pending" ? "Start" : "Continue"}
+                  </Button>
+                ) : row.problemNodeId ? (
+                  <Button asChild size="sm" variant="outline">
+                    <Link
+                      href={buildMissionHref({
+                        problemNodeId: row.problemNodeId,
+                        employerChallengeAssignmentId: row.employerChallengeAssignmentId,
+                      })}
+                      onClick={() => {
+                        storeMissionAssignmentContext({
+                          problemNodeId: row.problemNodeId,
+                          employerChallengeAssignmentId: row.employerChallengeAssignmentId,
+                          assignmentRequired: Boolean(row.employerChallengeAssignmentId),
+                        });
+                      }}
+                    >
+                      View
+                    </Link>
+                  </Button>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       )}
     </section>
@@ -244,4 +231,3 @@ function Metric({ icon: Icon, label, value, color, tooltip }: { icon: React.Comp
     </Tooltip>
   );
 }
-

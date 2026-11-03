@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { HtmlContent } from "@/components/editor/HtmlContent";
+import { RichTextEditor, htmlToPlainText } from "@/components/editor/RichTextEditor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ServerPagination } from "@/components/shared/ServerPagination";
 import {
@@ -135,7 +136,7 @@ export default function AdminExternalJobs() {
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!form.jobTitle.trim() || !form.jobDescription.trim() || !form.organisationName.trim()) {
+    if (!form.jobTitle.trim() || !htmlToPlainText(form.jobDescription) || !form.organisationName.trim()) {
       toast({ title: "Missing details", description: "Title, description, and organisation are required.", variant: "destructive" });
       return;
     }
@@ -332,7 +333,13 @@ export default function AdminExternalJobs() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="job-description">Job description</Label>
-            <Textarea id="job-description" value={form.jobDescription} onChange={(event) => setForm({ ...form, jobDescription: event.target.value })} rows={5} />
+            <RichTextEditor
+              id="job-description"
+              value={form.jobDescription}
+              onChange={(html) => setForm({ ...form, jobDescription: html })}
+              placeholder="Describe the role, responsibilities, and what a strong applicant brings."
+              minHeightClassName="min-h-[180px]"
+            />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <Checkbox checked={form.isActive !== false} onCheckedChange={(checked) => setForm({ ...form, isActive: checked === true })} />
@@ -358,7 +365,7 @@ export default function AdminExternalJobs() {
             </div>
             <Button variant="ghost" onClick={() => setDetail(null)}>Close</Button>
           </div>
-          <p className="mt-3 whitespace-pre-wrap text-sm">{detail.jobDescription}</p>
+          <HtmlContent html={detail.jobDescription} className="mt-3 text-sm" />
           <dl className="mt-4 grid gap-2 text-sm md:grid-cols-2">
             <Info label="Location" value={[detail.location, detail.country].filter(Boolean).join(", ")} />
             <Info label="Employment" value={employmentLabel(detail.employmentType)} />
