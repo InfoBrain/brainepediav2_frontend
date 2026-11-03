@@ -13,13 +13,13 @@ export function ThemeToggle() {
   const ActiveIcon = active.icon;
 
   return (
-    <label className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-card/80 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm transition-colors">
+    <label className="relative inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-card/80 px-2 py-1.5 text-xs text-muted-foreground shadow-sm transition-colors sm:gap-2 sm:px-2.5">
       <ActiveIcon className="h-3.5 w-3.5 text-primary" />
       <span className="sr-only">Theme</span>
       <select
         value={theme}
         onChange={(event) => setTheme(event.target.value)}
-        className="bg-transparent text-xs font-mono uppercase tracking-wider text-foreground outline-none"
+        className="absolute inset-0 cursor-pointer opacity-0 sm:static sm:w-auto sm:bg-transparent sm:text-xs sm:font-mono sm:uppercase sm:tracking-wider sm:text-foreground sm:opacity-100 sm:outline-none"
         aria-label="Theme preference"
       >
         {OPTIONS.map((option) => (
