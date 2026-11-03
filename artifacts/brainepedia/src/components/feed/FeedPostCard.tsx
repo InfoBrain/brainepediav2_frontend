@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { likeFeedPost, unlikeFeedPost } from "@/lib/feedService";
+import { HtmlContent } from "@/components/editor/HtmlContent";
+import { isVideoMediaUrl } from "@/lib/feedMedia";
 import { formatFeedDate, publicFeedText, safeHttpUrl } from "@/lib/safeUrl";
 import type { FeedPostDto } from "@/lib/types/socialFeed";
 import { CommentThread } from "./CommentThread";
@@ -146,14 +148,23 @@ export function FeedPostCard({
           <Building2 className="h-4 w-4" /> {post.organisationName}
         </p>
       ) : null}
-      {post.content && <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-foreground/85">{publicFeedText(post.content)}</p>}
-      {media && post.postType !== "SystemAnnouncement" && (
-        <img
-          src={media}
-          alt=""
-          className="mt-4 max-h-72 w-full rounded-xl object-cover"
-          onError={(event) => { (event.currentTarget as HTMLImageElement).style.display = "none"; }}
+      {post.content && (
+        <HtmlContent
+          html={publicFeedText(post.content)}
+          className="mt-3 text-sm leading-6 text-foreground/85"
         />
+      )}
+      {media && post.postType !== "SystemAnnouncement" && (
+        isVideoMediaUrl(media) ? (
+          <video src={media} controls className="mt-4 max-h-72 w-full rounded-xl bg-black" />
+        ) : (
+          <img
+            src={media}
+            alt=""
+            className="mt-4 max-h-72 w-full rounded-xl object-cover"
+            onError={(event) => { (event.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
+        )
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">

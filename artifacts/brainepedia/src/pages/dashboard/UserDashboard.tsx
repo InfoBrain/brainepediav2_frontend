@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
-  Map, Trophy, Activity, CreditCard, Sparkles, Flame, Target, Crown,
+  Map, Trophy, Activity, Clock, CreditCard, Sparkles, Flame, Target, Crown,
   User as UserIcon, LayoutDashboard, Compass, TrendingUp, CheckCircle2,
   Medal, Star, Zap, Share2, Link2, ExternalLink, Shield, MessageSquare,
   BriefcaseBusiness, Pencil,
@@ -20,6 +20,7 @@ import { getUser, getUserId, getProfileId } from "@/lib/auth";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { normalizeUserMissionStatistics } from "@/lib/missionStatistics";
 import { normalizeSubscriptionDetails, type NormalizedSubscriptionDetails } from "@/lib/subscription";
 import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
 import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
@@ -45,10 +46,11 @@ type DashboardStats = {
 type MissionStats = {
   totalAssignedMissions: number;
   completedMissions: number;
+  pendingMissionsCount: number;
   inProgressMissions: number;
   totalXpEarned: number;
   missionSuccessRate: number;
-  recentMissions: any[];
+  recentMissions: unknown[];
 };
 type District = {
   districtName: string;
@@ -680,9 +682,10 @@ export default function UserDashboard() {
           )}
 
           {/* ── QUICK STATS GRID ── */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
             {[
               { label: "Assigned Missions", value: missionStats?.totalAssignedMissions ?? 0, icon: Target, accent: "text-[#00D2FF]", glow: "from-[#00D2FF]/10" },
+              { label: "Pending", value: missionStats?.pendingMissionsCount ?? 0, icon: Clock, accent: "text-amber-300", glow: "from-amber-300/10" },
               { label: "Completed Missions", value: solved, icon: CheckCircle2, accent: "text-emerald-400", glow: "from-emerald-400/10" },
               { label: "In Progress", value: missionStats?.inProgressMissions ?? inProgDist, icon: Activity, accent: "text-[#A78BFA]", glow: "from-[#A78BFA]/10" },
               { label: "Success Rate", value: `${missionStats?.missionSuccessRate ?? 0}%`, icon: Flame, accent: "text-orange-400", glow: "from-orange-400/10", streak: true },
@@ -1069,15 +1072,15 @@ function normDashStats(d: any): DashboardStats {
   };
 }
 function normMissionStats(data: any): MissionStats {
-  const root = data?.data ?? data?.statistics ?? data?.missionStatistics ?? data ?? {};
-  const successRateRaw = Number(root.missionSuccessRate ?? root.MissionSuccessRate ?? root.successRate ?? root.SuccessRate ?? 0);
+  const stats = normalizeUserMissionStatistics(data);
   return {
-    totalAssignedMissions: Number(root.totalAssignedMissions ?? root.TotalAssignedMissions ?? root.totalAssigned ?? root.TotalAssigned ?? 0),
-    completedMissions: Number(root.completedMissions ?? root.CompletedMissions ?? root.completedMissionsCount ?? root.CompletedMissionsCount ?? 0),
-    inProgressMissions: Number(root.inProgressMissions ?? root.InProgressMissions ?? root.inProgressMissionsCount ?? root.InProgressMissionsCount ?? 0),
-    totalXpEarned: Number(root.totalXpEarned ?? root.TotalXpEarned ?? root.totalXPEarned ?? root.TotalXPEarned ?? root.totalXP ?? root.TotalXP ?? 0),
-    missionSuccessRate: Math.round(successRateRaw > 1 ? successRateRaw : successRateRaw * 100),
-    recentMissions: Array.isArray(root.recentMissions ?? root.RecentMissions) ? (root.recentMissions ?? root.RecentMissions) : [],
+    totalAssignedMissions: stats.totalAssignedMissions,
+    completedMissions: stats.completedMissions,
+    pendingMissionsCount: stats.pendingMissionsCount,
+    inProgressMissions: stats.inProgressMissions,
+    totalXpEarned: stats.totalXpEarned,
+    missionSuccessRate: stats.missionSuccessRate,
+    recentMissions: stats.recentMissions,
   };
 }
 function normDistricts(d: any): District[] {

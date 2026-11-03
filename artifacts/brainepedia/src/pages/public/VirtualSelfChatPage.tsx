@@ -3,14 +3,39 @@ import { Link, useParams } from "wouter";
 import { ArrowLeft, Bot, Loader2, Send, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { api } from "@/lib/api";
+import { getUserId, getUserRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { VirtualSelfHistory } from "@/components/virtual-self/VirtualSelfHistory";
 import { VIRTUAL_SELF_RATE_LIMIT_MESSAGE } from "@/lib/aiCredits";
 
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
 };
+
+type StoredThread = {
+  conversationId: string;
+  visitorLabel: string;
+  messages: ChatMessage[];
+};
+
+function threadStorageKey(userId: string) {
+  return `brainepedia.virtual-self.${userId}`;
+}
+
+function readStoredThread(userId: string): StoredThread | null {
+  try {
+    const raw = sessionStorage.getItem(threadStorageKey(userId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredThread;
+    if (!parsed || !Array.isArray(parsed.messages)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 const SUGGESTED_PROMPTS = [
   "What projects have you worked on?",
@@ -25,8 +50,12 @@ export default function VirtualSelfChatPage() {
   const [profileName, setProfileName] = useState("Professional");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [title, setTitle] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const storedThread = userId ? readStoredThread(userId) : null;
+  const [messages, setMessages] = useState<ChatMessage[]>(storedThread?.messages ?? []);
+  const [conversationId, setConversationId] = useState(storedThread?.conversationId ?? "");
+  const [visitorLabel, setVisitorLabel] = useState(storedThread?.visitorLabel ?? "");
   const [input, setInput] = useState("");
+  const canViewHistory = Boolean(userId) && (getUserRole() === "GlobalAdmin" || getUserId() === userId);
   const [loading, setLoading] = useState(false);
   const [typing, setTyping] = useState(false);
   const [error, setError] = useState("");
@@ -66,6 +95,20 @@ export default function VirtualSelfChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
+  useEffect(() => {
+    if (!userId) return;
+    const payload: StoredThread = {
+      conversationId,
+      visitorLabel: visitorLabel.trim().slice(0, 120),
+      messages: messages.slice(-40),
+    };
+    try {
+      sessionStorage.setItem(threadStorageKey(userId), JSON.stringify(payload));
+    } catch {
+      /* the live thread still works if storage is full */
+    }
+  }, [conversationId, messages, userId, visitorLabel]);
+
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || loading || sendingRef.current || !userId || profileMissing) return;
@@ -76,6 +119,7 @@ export default function VirtualSelfChatPage() {
 
     const nextUserMessage: ChatMessage = { role: "user", content: trimmed };
     const history = messages.map((message) => ({ role: message.role, content: message.content }));
+    const activeConversationId = conversationId;
     setMessages((prev) => [...prev, nextUserMessage]);
     setInput("");
     setError("");
@@ -83,9 +127,15 @@ export default function VirtualSelfChatPage() {
     setTyping(true);
     sendingRef.current = true;
 
+    const label = visitorLabel.trim().slice(0, 120);
     const res = await api.profiles.virtualSelfChat(
       userId,
-      { message: trimmed, history },
+      {
+        message: trimmed,
+        ...(activeConversationId ? { conversationId: activeConversationId } : {}),
+        ...(label && !activeConversationId ? { visitorLabel: label } : {}),
+        ...(activeConversationId ? {} : { history }),
+      },
       { skipAuth: true },
     );
 
@@ -108,6 +158,11 @@ export default function VirtualSelfChatPage() {
         return;
       }
       if (res.status === 404) {
+        if (activeConversationId) {
+          setConversationId("");
+          setError("That conversation is no longer on this profile. Send again to start a new one.");
+          return;
+        }
         setProfileMissing(true);
         setError("This profile is not available or doesn't exist.");
         return;
@@ -125,6 +180,8 @@ export default function VirtualSelfChatPage() {
     }
 
     const reply = extractChatReply(res.data);
+    const nextConversationId = conversationIdFrom(res.data);
+    if (nextConversationId) setConversationId(nextConversationId);
     if (!reply) {
       setError("No reply was returned. Please try again.");
       return;
@@ -166,8 +223,11 @@ export default function VirtualSelfChatPage() {
             <p className="truncate text-sm text-white/50">{title || "Virtual Self"}</p>
             <p className="text-xs text-[#00D2FF]/70">Ask me anything about my professional experience.</p>
           </div>
-          <div className="hidden rounded-full border border-[#9D4EDD]/30 bg-[#9D4EDD]/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-[#9D4EDD] sm:block">
-            <Bot className="mr-1 inline h-3 w-3" /> AI Digital Twin
+          <div className="flex items-center gap-2">
+            {canViewHistory && <VirtualSelfHistory userId={userId} />}
+            <div className="hidden rounded-full border border-[#9D4EDD]/30 bg-[#9D4EDD]/10 px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-[#9D4EDD] sm:block">
+              <Bot className="mr-1 inline h-3 w-3" /> AI Digital Twin
+            </div>
           </div>
         </div>
       </header>
@@ -235,6 +295,19 @@ export default function VirtualSelfChatPage() {
         </div>
 
         <form onSubmit={onSubmit} className="sticky bottom-0 border-t border-white/10 bg-[#080b10] pt-4">
+          {!conversationId && (
+            <div className="mb-3">
+              <label htmlFor="visitor-label" className="mb-1 block text-xs text-white/50">Your name (optional, so the profile owner can tell visitors apart)</label>
+              <Input
+                id="visitor-label"
+                value={visitorLabel}
+                maxLength={120}
+                onChange={(event) => setVisitorLabel(event.target.value.slice(0, 120))}
+                placeholder="Ada"
+                className="border-white/10 bg-[#0d1119] text-white placeholder:text-white/30"
+              />
+            </div>
+          )}
           <div className="flex gap-2">
             <Textarea
               ref={inputRef}
@@ -260,6 +333,13 @@ export default function VirtualSelfChatPage() {
       </main>
     </div>
   );
+}
+
+function conversationIdFrom(data: unknown): string {
+  if (!data || typeof data !== "object") return "";
+  const record = data as Record<string, unknown>;
+  const id = record.conversationId ?? record.ConversationId;
+  return typeof id === "string" ? id.trim() : "";
 }
 
 function extractChatReply(data: unknown): string {

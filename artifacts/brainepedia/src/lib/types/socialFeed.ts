@@ -87,8 +87,10 @@ export interface FeedQuery {
 export interface FeedPostCreateDto {
   title?: string | null;
   content: string;
+  /** Cover file. Sent as multipart Media. Do not also send a thumbnail. */
+  media?: File | null;
+  /** Already-hosted cover. Ignored by the server when media is sent. */
   mediaUrl?: string | null;
-  thumbnailUrl?: string | null;
   professionId?: string | null;
   topicId?: string | null;
   visibility?: FeedVisibility | null;

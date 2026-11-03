@@ -251,7 +251,7 @@ function SidebarContent({
           <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono">
             Imperial Console
           </div>
-          <div className="text-[10px] font-mono text-muted-foreground/80">v.2.12.0</div>
+          <div className="text-[10px] font-mono text-muted-foreground/80">v.2.12.1</div>
         </div>
       </div>
 

@@ -36,7 +36,7 @@ const CONTROLS: Array<{
   {
     key: "emailNotificationsEnabled",
     label: "Receive profile and mission reminder emails",
-    hint: "Reminder emails are scheduled by the server when this setting is enabled.",
+    hint: "Turn this off to stop mission and profile reminder emails. They go only to a confirmed address, at most one per sweep.",
   },
 ];
 
