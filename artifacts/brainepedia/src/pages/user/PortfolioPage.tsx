@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useRoute } from "wouter";
+import { Link, useRoute } from "wouter";
 import {
   BriefcaseBusiness,
   CheckCircle2,
   Code2,
   Download,
+  FileText,
   GraduationCap,
   Heart,
   Loader2,
@@ -22,9 +23,7 @@ import { getProfileId, getUser, getUserId } from "@/lib/auth";
 import { buildProfileFormData } from "@/lib/profileService";
 import { classifyProjectFile } from "@/lib/feedMedia";
 import { generateAndOpenSmartCv } from "@/lib/smartCv";
-import { SmartCvHistory } from "@/components/portfolio/SmartCvHistory";
 import { canUseWallet, useOptionalBrainiacCredits, walletGuidance } from "@/hooks/useBrainiacCredits";
-import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -92,7 +91,6 @@ function emptyFor(section: Exclude<SectionKey, "personal-statement">) {
 
 export default function PortfolioPage() {
   const [, params] = useRoute("/user/portfolio/:section");
-  const [, navigate] = useLocation();
   const section = (params?.section as SectionKey) || "personal-statement";
   const active = SECTIONS.some((item) => item.key === section) ? section : "personal-statement";
   const userId = getUserId();
@@ -102,8 +100,6 @@ export default function PortfolioPage() {
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [cvInstructions, setCvInstructions] = useState("");
   const [cvGenerating, setCvGenerating] = useState(false);
-  const [historyRevision, setHistoryRevision] = useState(0);
-  const credits = useOptionalBrainiacCredits();
 
   const refreshCounts = async () => {
     if (!userId) return;
@@ -170,22 +166,13 @@ export default function PortfolioPage() {
             <Button className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]" onClick={() => setCvModalOpen(true)}>
               <Download className="mr-2 h-4 w-4" /> Generate Smart CV
             </Button>
+            <Button asChild variant="outline" className="border-white/15">
+              <Link href="/user/portfolio/cv-history">
+                <FileText className="mr-2 h-4 w-4" /> Previously generated CVs
+              </Link>
+            </Button>
           </div>
         </section>
-
-        {credits && (
-          <BrainiacCreditsCard
-            compact
-            balance={credits.balance}
-            loading={credits.loading}
-            error={credits.error}
-            usageHref="/user/credits"
-            onRefresh={() => void credits.refresh()}
-            onUpgrade={() => navigate("/user/subscription")}
-            onRecharge={() => void credits.startRecharge("User")}
-            actionLoading={credits.rechargeLoading}
-          />
-        )}
 
         <Dialog open={cvModalOpen} onOpenChange={(open) => { if (!cvGenerating) setCvModalOpen(open); }}>
           <DialogContent className="border border-white/10 bg-[#0d1119] text-white sm:max-w-lg">
@@ -224,7 +211,6 @@ export default function PortfolioPage() {
                     return;
                   }
                   setCvModalOpen(false);
-                  setHistoryRevision((value) => value + 1);
                   toast({
                     title: "Smart CV generated",
                     description: "Your CV opened in a new tab and is being prepared for download.",
@@ -237,8 +223,6 @@ export default function PortfolioPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        {userId && <SmartCvHistory userId={userId} refreshKey={historyRevision} />}
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <nav className="rounded-2xl border border-white/5 bg-[#0d1119] p-3 lg:sticky lg:top-24 lg:self-start">
