@@ -19,9 +19,13 @@ export function RoleChrome({
   const role = getUserRole();
   if (!role) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen overflow-x-clip bg-background text-foreground">
         <Nav />
-        <main id="main-content" className="container mx-auto px-4 pb-16 pt-24" tabIndex={-1}>
+        <main
+          id="main-content"
+          className="container mx-auto min-w-0 max-w-full px-4 pb-16 pt-24"
+          tabIndex={-1}
+        >
           {children}
         </main>
         <Footer />
@@ -29,8 +33,18 @@ export function RoleChrome({
     );
   }
 
-  const nav = role === "Employer" ? EMPLOYER_NAV : role === "GlobalAdmin" ? ADMIN_NAV : USER_NAV;
-  const theme = role === "Employer" ? "employer" : role === "GlobalAdmin" ? "admin" : "user";
+  const nav =
+    role === "Employer"
+      ? EMPLOYER_NAV
+      : role === "GlobalAdmin"
+        ? ADMIN_NAV
+        : USER_NAV;
+  const theme =
+    role === "Employer"
+      ? "employer"
+      : role === "GlobalAdmin"
+        ? "admin"
+        : "user";
   return (
     <DashboardShell nav={nav} title={title} subtitle={subtitle} theme={theme}>
       {children}

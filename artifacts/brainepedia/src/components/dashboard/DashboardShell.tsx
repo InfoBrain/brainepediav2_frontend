@@ -16,7 +16,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/app/ThemeToggle";
 import { BrainiacCreditsIndicator } from "@/components/credits/BrainiacCreditsIndicator";
 import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
@@ -146,8 +150,8 @@ export function DashboardShell({
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md transition-colors duration-300">
-          <div className="flex items-center justify-between px-4 md:px-8 py-4 gap-4">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:py-4 md:px-8">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <Button
                 variant="ghost"
                 size="icon"
@@ -158,27 +162,43 @@ export function DashboardShell({
                 <Menu className="h-5 w-5" />
               </Button>
               <div className="min-w-0">
-                <h1 className="text-xl md:text-2xl font-bold truncate">{title}</h1>
+                <h1 className="break-words text-base font-bold leading-tight sm:truncate sm:text-xl md:text-2xl">
+                  {title}
+                </h1>
                 {subtitle && (
-                  <p className="text-xs text-muted-foreground font-mono truncate">{subtitle}</p>
+                  <p className="truncate text-[11px] font-mono text-muted-foreground sm:text-xs">
+                    {subtitle}
+                  </p>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
               <HeaderCreditsChip theme={theme} />
               {headerRight}
               <ThemeToggle />
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-muted-foreground">
                 <span>{user?.email || user?.userName || "operator"}</span>
               </div>
-              <Button variant="ghost" size="icon" onClick={requestLogout} title="Sign out" aria-label="Sign out">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={requestLogout}
+                title="Sign out"
+                aria-label="Sign out"
+              >
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </header>
 
-        <main id="main-content" className="flex-1 px-4 md:px-8 py-6 md:py-8" tabIndex={-1}>{children}</main>
+        <main
+          id="main-content"
+          className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8"
+          tabIndex={-1}
+        >
+          {children}
+        </main>
         <CopyrightBar className="border-t border-border" />
       </div>
 
@@ -188,9 +208,12 @@ export function DashboardShell({
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
         <AlertDialogContent className="bg-[#0d1119] border border-white/10">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-foreground">Sign out of Brainepedia?</AlertDialogTitle>
+            <AlertDialogTitle className="text-foreground">
+              Sign out of Brainepedia?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Your session will end and you'll need to log back in to continue your mission.
+              Your session will end and you'll need to log back in to continue
+              your mission.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -251,7 +274,9 @@ function SidebarContent({
           <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono">
             Imperial Console
           </div>
-          <div className="text-[10px] font-mono text-muted-foreground/80">v.2.12.1</div>
+          <div className="text-[10px] font-mono text-muted-foreground/80">
+            v.2.12.1
+          </div>
         </div>
       </div>
 
@@ -287,7 +312,10 @@ function SidebarContent({
                   </Link>
                 </TooltipTrigger>
                 {item.tooltip && (
-                  <TooltipContent side="right" className="max-w-64 bg-[#111827] text-white border border-white/10">
+                  <TooltipContent
+                    side="right"
+                    className="max-w-64 bg-[#111827] text-white border border-white/10"
+                  >
                     {item.tooltip}
                   </TooltipContent>
                 )}
@@ -329,7 +357,8 @@ function BrainiacWidget() {
               </div>
             </div>
             <p className="text-sm text-foreground/90 leading-relaxed">
-              Tip: Complete a mission today to climb the District ranking. Need a hint? Just ask.
+              Tip: Complete a mission today to climb the District ranking. Need
+              a hint? Just ask.
             </p>
           </motion.div>
         )}
