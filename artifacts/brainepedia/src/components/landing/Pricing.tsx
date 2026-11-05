@@ -7,7 +7,7 @@ import { ARCHITECT_TEAM_SEAT, EMPLOYER_GRANDMASTER_FEATURES, EMPLOYER_GRANDMASTE
 
 export function Pricing() {
   return (
-    <section className="py-32 relative border-t border-border/30" id="pricing">
+    <section className="relative scroll-mt-24 border-t border-[#e6e8ef] bg-white py-20" id="pricing">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-20">
           <h2 className="text-4xl font-bold mb-6">Invest in Your Proof.</h2>

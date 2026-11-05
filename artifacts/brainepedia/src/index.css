@@ -75,58 +75,58 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 0 0% 98%;
-  --foreground: 217 43% 17%;
-  --border: 216 24% 88%;
+  --background: 225 40% 98%;
+  --foreground: 223 39% 15%;
+  --border: 227 22% 92%;
   --card: 0 0% 100%;
-  --card-foreground: 217 43% 17%;
-  --card-border: 216 24% 88%;
-  
+  --card-foreground: 223 39% 15%;
+  --card-border: 227 22% 92%;
+
   --sidebar: 0 0% 100%;
-  --sidebar-foreground: 217 43% 17%;
-  --sidebar-border: 216 24% 88%;
-  --sidebar-primary: 256 86% 59%;
+  --sidebar-foreground: 223 39% 15%;
+  --sidebar-border: 227 22% 92%;
+  --sidebar-primary: 263 56% 55%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 217 100% 92%;
-  --sidebar-accent-foreground: 217 43% 17%;
-  --sidebar-ring: 212 100% 60%;
+  --sidebar-accent: 265 67% 96%;
+  --sidebar-accent-foreground: 263 48% 36%;
+  --sidebar-ring: 263 56% 55%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 217 43% 17%;
-  --popover-border: 216 24% 88%;
+  --popover-foreground: 223 39% 15%;
+  --popover-border: 227 22% 92%;
 
-  --primary: 256 86% 59%;
+  --primary: 263 56% 55%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 212 100% 60%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 218 33% 94%;
-  --muted-foreground: 217 20% 42%;
-  --accent: 44 100% 48%;
-  --accent-foreground: 217 43% 17%;
-  --destructive: 0 72% 51%;
+  --secondary: 0 0% 100%;
+  --secondary-foreground: 223 18% 30%;
+  --muted: 225 33% 97%;
+  --muted-foreground: 221 11% 50%;
+  --accent: 265 67% 96%;
+  --accent-foreground: 263 48% 36%;
+  --destructive: 351 60% 56%;
   --destructive-foreground: 0 0% 100%;
 
-  --input: 216 24% 88%;
-  --ring: 212 100% 60%;
-  
-  --chart-1: 256 86% 59%;
-  --chart-2: 212 100% 60%;
-  --chart-3: 153 77% 43%;
-  --chart-4: 44 100% 48%;
-  --chart-5: 0 72% 51%;
+  --input: 227 22% 92%;
+  --ring: 263 56% 55%;
 
-  --app-font-sans: 'Inter', sans-serif;
+  --chart-1: 263 56% 55%;
+  --chart-2: 219 87% 55%;
+  --chart-3: 162 73% 31%;
+  --chart-4: 36 78% 48%;
+  --chart-5: 351 60% 56%;
+
+  --app-font-sans: 'Manrope', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: 'JetBrains Mono', monospace;
-  --radius: .5rem; /* 8px */
-  --shadow-2xs: 0px 2px 0px 0px hsl(191 100% 50% / 0.05);
-  --shadow-xs: 0px 2px 0px 0px hsl(191 100% 50% / 0.05);
-  --shadow-sm: 0px 2px 0px 0px hsl(191 100% 50% / 0.05), 0px 1px 2px -1px hsl(191 100% 50% / 0.1);
-  --shadow: 0px 2px 0px 0px hsl(191 100% 50% / 0.05), 0px 1px 2px -1px hsl(191 100% 50% / 0.1);
-  --shadow-md: 0px 2px 0px 0px hsl(191 100% 50% / 0.05), 0px 2px 4px -1px hsl(191 100% 50% / 0.1);
-  --shadow-lg: 0px 2px 0px 0px hsl(191 100% 50% / 0.05), 0px 4px 6px -1px hsl(191 100% 50% / 0.1);
-  --shadow-xl: 0px 2px 0px 0px hsl(191 100% 50% / 0.05), 0px 8px 10px -1px hsl(191 100% 50% / 0.1);
-  --shadow-2xl: 0px 2px 0px 0px hsl(191 100% 50% / 0.05);
+  --radius: 1rem;
+  --shadow-2xs: 0 1px 2px rgba(25, 30, 48, 0.04);
+  --shadow-xs: 0 1px 2px rgba(25, 30, 48, 0.05);
+  --shadow-sm: 0 1px 2px rgba(25, 30, 48, 0.06);
+  --shadow: 0 12px 35px rgba(28, 33, 54, 0.08);
+  --shadow-md: 0 12px 35px rgba(28, 33, 54, 0.08);
+  --shadow-lg: 0 18px 45px rgba(28, 33, 54, 0.1);
+  --shadow-xl: 0 28px 70px rgba(39, 42, 69, 0.14);
+  --shadow-2xl: 0 30px 80px rgba(15, 18, 32, 0.18);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -165,32 +165,32 @@
   --sidebar: 216 33% 6%;
   --sidebar-foreground: 210 40% 98%;
   --sidebar-border: 216 33% 15%;
-  --sidebar-primary: 191 100% 50%;
-  --sidebar-primary-foreground: 216 33% 6%;
-  --sidebar-accent: 216 33% 15%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-ring: 191 100% 50%;
+  --sidebar-primary: 263 50% 68%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 263 28% 18%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 263 50% 68%;
 
   --popover: 216 33% 6%;
   --popover-foreground: 210 40% 98%;
   --popover-border: 216 33% 15%;
 
-  --primary: 191 100% 50%;
-  --primary-foreground: 216 33% 6%;
+  --primary: 263 50% 68%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 216 33% 15%;
   --secondary-foreground: 210 40% 98%;
   --muted: 216 33% 12%;
   --muted-foreground: 215 20.2% 65.1%;
-  --accent: 46 100% 50%;
-  --accent-foreground: 216 33% 6%;
+  --accent: 263 28% 18%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
 
   --input: 216 33% 15%;
-  --ring: 191 100% 50%;
-  
-  --chart-1: 191 100% 50%;
-  --chart-2: 46 100% 50%;
+  --ring: 263 50% 68%;
+
+  --chart-1: 263 50% 68%;
+  --chart-2: 219 87% 65%;
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
@@ -214,6 +214,10 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 
+  h1, h2, h3 {
+    letter-spacing: -0.035em;
+  }
+
   html {
     color-scheme: light;
   }
@@ -230,86 +234,106 @@
 }
 
 @layer utilities {
-  .light [class*="bg-[#0d1119]"],
-  .light [class*="bg-[#0A0E14]"],
-  .light [class*="bg-[#0d1117]"],
-  .light [class*="bg-[#111827]"],
-  .light [class*="bg-[#131822"] {
-    background-color: #FFFFFF !important;
+  html.light [class*="bg-[#0d1119]"],
+  html.light [class*="bg-[#0A0E14]"],
+  html.light [class*="bg-[#0a0e14]"],
+  html.light [class*="bg-[#0d1117]"],
+  html.light [class*="bg-[#0a0f16]"],
+  html.light [class*="bg-[#0A0F16]"],
+  html.light [class*="bg-[#0d1020]"],
+  html.light [class*="bg-[#060a10]"],
+  html.light [class*="bg-[#1a1230]"],
+  html.light [class*="bg-[#111827]"],
+  html.light [class*="bg-[#131822"] {
+    background-color: #ffffff !important;
+    color: #182137;
   }
 
-  .light [class*="via-[#0d1119]"],
-  .light [class*="to-[#0d1119]"],
-  .light [class*="to-[#0A0E14]"],
-  .light [class*="to-[#0d1117]"],
-  .light [class*="from-[#0d1119]"],
-  .light [class*="from-[#0A0E14]"],
-  .light [class*="from-[#0d1117]"] {
-    background-image: linear-gradient(135deg, rgba(106, 61, 240, 0.11), rgba(50, 132, 255, 0.08), rgba(255, 255, 255, 0.98)) !important;
-    background-color: #FFFFFF !important;
+  html.light [class*="via-[#0d1119]"],
+  html.light [class*="to-[#0d1119]"],
+  html.light [class*="to-[#0A0E14]"],
+  html.light [class*="to-[#0d1117]"],
+  html.light [class*="to-[#0a0f16]"],
+  html.light [class*="from-[#0d1119]"],
+  html.light [class*="from-[#0A0E14]"],
+  html.light [class*="from-[#0d1117]"],
+  html.light [class*="from-[#0a0f16]"],
+  html.light [class*="from-[#0d1020]"] {
+    background-image: linear-gradient(135deg, #ffffff, #f7f5fc) !important;
+    background-color: #ffffff !important;
+    color: #182137;
   }
 
-  .light [class*="border-white/5"],
-  .light [class*="border-white/6"],
-  .light [class*="border-white/8"],
-  .light [class*="border-white/10"] {
-    border-color: hsl(var(--border)) !important;
+  html.light [class*="border-white/"] {
+    border-color: #e6e8ef !important;
   }
 
-  .light [class*="text-white/30"],
-  .light [class*="text-white/40"],
-  .light [class*="text-white/50"],
-  .light [class*="text-white/60"],
-  .light [class*="text-white/70"] {
-    color: #50627f !important;
+  html.light [class*="bg-[#0d1119]"] .text-white,
+  html.light [class*="bg-[#0A0E14]"] .text-white,
+  html.light [class*="bg-[#0d1117]"] .text-white,
+  html.light [class*="bg-[#0a0f16]"] .text-white,
+  html.light [class*="bg-[#0d1020]"] .text-white,
+  html.light [class*="bg-[#111827]"] .text-white,
+  html.light [class*="from-[#0d1119]"] .text-white,
+  html.light [class*="from-[#0d1117]"] .text-white,
+  html.light [class*="from-[#0a0f16]"] .text-white,
+  html.light [class*="bg-[#0d1119]"] [class*="text-white/"],
+  html.light [class*="bg-[#0a0f16]"] [class*="text-white/"],
+  html.light [class*="bg-[#0d1020]"] [class*="text-white/"],
+  html.light [class*="bg-[#0d1117]"] [class*="text-white/"],
+  html.light [class*="from-[#0d1119]"] [class*="text-white/"] {
+    color: #323b50 !important;
   }
 
-  .light [class*="text-white/80"],
-  .light [class*="text-white/85"],
-  .light [class*="text-white"] {
-    color: #18263D !important;
+  html.light [class*="bg-white/"] {
+    background-color: #f7f8fb !important;
   }
 
-  .light [class*="text-white/15"],
-  .light [class*="text-white/20"],
-  .light [class*="text-white/25"],
-  .light [class*="text-white/30"],
-  .light [class*="text-white/40"],
-  .light [class*="text-white/50"],
-  .light [class*="text-white/60"],
-  .light [class*="text-white/70"] {
-    color: #50627f !important;
+  html.light [class*="text-[#00D2FF]"] { color: #276ef1 !important; }
+  html.light [class*="text-[#FFD700]"] { color: #b87412 !important; }
+  html.light [class*="text-[#A78BFA]"],
+  html.light [class*="text-[#7C3AED]"],
+  html.light [class*="text-[#9D4EDD]"] { color: #7d4ccc !important; }
+  html.light [class*="bg-[#00D2FF]/"] { background-color: #edf4ff !important; }
+  html.light [class*="bg-[#FFD700]/"] { background-color: #fff6e5 !important; }
+  html.light [class*="bg-[#7C3AED]/"],
+  html.light [class*="bg-[#9D4EDD]/"] { background-color: #f5f0fc !important; }
+  html.light [class*="border-[#00D2FF]"] { border-color: #c9d8f8 !important; }
+  html.light [class*="border-[#FFD700]"] { border-color: #f0ddb4 !important; }
+  html.light [class*="border-[#7C3AED]"],
+  html.light [class*="border-[#9D4EDD]"] { border-color: #e0d2f3 !important; }
+  html.light [class*="shadow-[0_0_"] { box-shadow: 0 8px 24px rgba(28, 33, 54, 0.08) !important; }
+
+  html.light .text-accent { color: #7d4ccc; }
+
+  html.light .font-mono.uppercase,
+  html.light .uppercase.font-mono,
+  html.light .font-mono.tracking-wider,
+  html.light .font-mono.tracking-widest,
+  html.light .font-mono.tracking-\[0\.2em\],
+  html.light .font-mono.tracking-\[0\.18em\] {
+    font-family: Manrope, sans-serif;
   }
 
-  .light [class*="bg-white/2"],
-  .light [class*="bg-white/3"],
-  .light [class*="bg-white/4"],
-  .light [class*="bg-white/5"],
-  .light [class*="bg-white/8"],
-  .light [class*="bg-white/10"] {
-    background-color: #F2F5FA !important;
+  html.light input,
+  html.light textarea,
+  html.light select {
+    color: #182137;
   }
 
-  .light .text-muted-foreground {
-    color: #50627f !important;
+  html.light input::placeholder,
+  html.light textarea::placeholder {
+    color: #8a91a1;
   }
 
-  .light input,
-  .light textarea,
-  .light select {
-    background-color: #FFFFFF;
-    color: #18263D;
-    border-color: #C9D3E3;
+  html.light table thead {
+    background: #f8f9fb;
+    color: #8c93a2;
   }
 
-  .light input::placeholder,
-  .light textarea::placeholder {
-    color: #71829d;
-  }
-
-  .light table thead,
-  .light [role="dialog"] {
-    color: #18263D;
+  html.light [role="dialog"] {
+    color: #182137;
+    border-radius: 18px;
   }
 }
 

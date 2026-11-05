@@ -9,13 +9,20 @@ import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
   { href: "/", label: "Home", type: "link" },
-  { href: "/#problem", label: "The Problem", type: "anchor" },
-  { href: "/#solution", label: "The Solution", type: "anchor" },
   { href: "/#how-it-works", label: "How It Works", type: "anchor" },
-  { href: "/feed", label: "Feed", type: "link" },
-  { href: "/jobs", label: "Jobs", type: "link" },
-  { href: "/forum", label: "Community", type: "link" },
+  { href: "/#professionals", label: "For Professionals", type: "anchor" },
+  { href: "/#employers", label: "For Employers", type: "anchor" },
+  { href: "/#jobs-preview", label: "Explore Jobs", type: "anchor" },
+  { href: "/#community", label: "Community", type: "anchor" },
+] as const;
+
+const MORE_LINKS = [
+  { href: "/problem", label: "The Problem", type: "link" },
+  { href: "/solution", label: "The Solution", type: "link" },
   { href: "/#pricing", label: "Pricing", type: "anchor" },
+  { href: "/feed", label: "Feed", type: "link" },
+  { href: "/forum", label: "Forum", type: "link" },
+  { href: "/jobs", label: "All jobs", type: "link" },
 ] as const;
 
 function scrollToHomeSection(event: MouseEvent<HTMLAnchorElement>, href: string, onDone?: () => void) {
@@ -37,34 +44,26 @@ export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group">
-          <img
-            src={lightLogo}
-            alt="Brainepedia"
-            className="h-8 w-auto drop-shadow-[0_0_8px_rgba(106,61,240,0.18)] transition-all duration-300 dark:hidden"
-          />
-          <img
-            src={darkLogo}
-            alt="Brainepedia"
-            className="hidden h-8 w-auto drop-shadow-[0_0_8px_rgba(0,210,255,0.35)] transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(0,210,255,0.6)] dark:block"
-          />
-          <span className="font-bold text-xl tracking-tight text-foreground">Brainepedia</span>
+    <nav className="fixed top-0 z-50 h-[68px] w-full border-b border-[#e6e8ef] bg-white/95 backdrop-blur-md dark:border-border dark:bg-background/90">
+      <div className="mx-auto flex h-full w-[min(1280px,calc(100%-28px))] items-center gap-6">
+        <Link href="/" className="flex items-center gap-2">
+          <img src={lightLogo} alt="" className="h-9 w-9 mix-blend-screen dark:hidden" />
+          <img src={darkLogo} alt="" className="hidden h-9 w-9 mix-blend-screen dark:block" />
+          <span className="text-base font-extrabold tracking-tight text-[#182137] dark:text-white">Brainepedia</span>
         </Link>
-        <div className="hidden lg:flex items-center gap-6">
+        <div className="ml-auto hidden items-center gap-4 xl:flex">
           {NAV_LINKS.map((item) => (
             item.type === "anchor" ? (
-              <a key={item.href} href={item.href} onClick={(event) => scrollToHomeSection(event, item.href)} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">{item.label}</a>
+              <a key={item.href} href={item.href} onClick={(event) => scrollToHomeSection(event, item.href)} className="text-[13px] font-bold text-[#5f687d] transition-colors hover:text-[#7d4ccc]">{item.label}</a>
             ) : (
-              <Link key={item.href} href={item.href} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">{item.label}</Link>
+              <Link key={item.href} href={item.href} className="text-[13px] font-bold text-[#5f687d] transition-colors hover:text-[#7d4ccc]">{item.label}</Link>
             )
           ))}
         </div>
         <div className="flex items-center gap-4">
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:text-foreground lg:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] text-[#667084] transition-colors hover:bg-[#f5f0fc] hover:text-[#7d4ccc] xl:hidden"
             onClick={() => setMobileOpen((open) => !open)}
             aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={mobileOpen}
@@ -76,7 +75,7 @@ export function Nav() {
               href={dashboardPath}
               className={cn(
                 buttonVariants({ variant: "default" }),
-                "hidden sm:inline-flex bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] border border-primary/50"
+                "hidden sm:inline-flex"
               )}
             >
               Dashboard
@@ -86,7 +85,7 @@ export function Nav() {
               <Link href="/auth/login" className={cn(buttonVariants({ variant: "ghost" }), "hidden sm:inline-flex text-muted-foreground hover:text-foreground")}>
                 Login
               </Link>
-              <Link href="/auth/register" className={cn(buttonVariants({ variant: "default" }), "hidden sm:inline-flex bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] border border-primary/50")}>
+              <Link href="/auth/register" className={cn(buttonVariants({ variant: "default" }), "hidden sm:inline-flex")}>
                 Get Started
               </Link>
             </>
@@ -94,7 +93,7 @@ export function Nav() {
         </div>
       </div>
       {mobileOpen && (
-        <div className="border-t border-border/40 bg-background/95 px-4 py-4 shadow-lg lg:hidden">
+        <div className="border-t border-[#e6e8ef] bg-white px-4 py-4 shadow-lg xl:hidden">
           <div className="container mx-auto grid gap-2">
             {NAV_LINKS.map((item) => (
               item.type === "anchor" ? (
@@ -117,7 +116,28 @@ export function Nav() {
                 </Link>
               )
             ))}
-            <div className="mt-3 grid gap-2 border-t border-border/40 pt-3 sm:hidden">
+            {MORE_LINKS.map((item) => (
+              item.type === "anchor" ? (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(event) => scrollToHomeSection(event, item.href, () => setMobileOpen(false))}
+                  className="rounded-lg px-3 py-2 text-sm font-bold text-[#5f687d] hover:bg-[#f5f0fc] hover:text-[#7d4ccc]"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-bold text-[#5f687d] hover:bg-[#f5f0fc] hover:text-[#7d4ccc]"
+                >
+                  {item.label}
+                </Link>
+              )
+            ))}
+            <div className="mt-3 grid gap-2 border-t border-[#e6e8ef] pt-3 sm:hidden">
               {user ? (
                 <Link
                   href={dashboardPath}

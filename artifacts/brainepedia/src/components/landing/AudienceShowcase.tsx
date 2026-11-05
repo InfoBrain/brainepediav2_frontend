@@ -121,10 +121,11 @@ const PLATFORM_VIEWS = [
 
 export function AudienceShowcase() {
   return (
-    <section className="container mx-auto px-4 py-16" aria-labelledby="audience-heading">
+    <section className="bg-white py-16" aria-labelledby="audience-heading">
+      <div className="mx-auto w-[min(1180px,calc(100%-48px))]">
       <div className="mx-auto mb-10 max-w-3xl text-center">
-        <p className="text-sm font-mono uppercase tracking-[0.2em] text-primary">Built for every stakeholder</p>
-        <h2 id="audience-heading" className="mt-3 text-3xl font-black md:text-4xl">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#7d4ccc]">Built for every stakeholder</p>
+        <h2 id="audience-heading" className="mt-3 text-3xl font-extrabold md:text-4xl">
           One platform. Six ways to win.
         </h2>
         <p className="mt-3 text-muted-foreground">
@@ -135,7 +136,7 @@ export function AudienceShowcase() {
         {AUDIENCES.map(({ id, icon: Icon, title, summary, bullets, href, cta }) => (
           <article
             key={id}
-            className="flex flex-col rounded-2xl border border-white/10 bg-card/50 p-6 shadow-[0_0_24px_rgba(0,210,255,0.06)] transition-colors hover:border-primary/30"
+            className="flex flex-col rounded-[20px] border border-[#e0d5f0] bg-[linear-gradient(135deg,#fff,#fbf8fe)] p-6"
           >
             <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
               <Icon className="h-5 w-5" aria-hidden="true" />
@@ -155,6 +156,7 @@ export function AudienceShowcase() {
             </Button>
           </article>
         ))}
+      </div>
       </div>
     </section>
   );
@@ -214,11 +216,11 @@ export function PlatformScreenshots() {
         <ScreenshotLightbox src={lightbox.src} alt={lightbox.alt} onClose={closeLightbox} />
       )}
 
-      <section className="border-y border-white/5 bg-[#07090F]/60 py-16" aria-labelledby="platform-views-heading">
+      <section className="bg-[#f7f8fb] py-16" aria-labelledby="platform-views-heading">
         <div className="container mx-auto px-4">
           <div className="mx-auto mb-10 max-w-2xl text-center">
-            <p className="text-sm font-mono uppercase tracking-[0.2em] text-accent">Platform preview</p>
-            <h2 id="platform-views-heading" className="mt-3 text-3xl font-black md:text-4xl">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#7d4ccc]">Platform preview</p>
+            <h2 id="platform-views-heading" className="mt-3 text-3xl font-extrabold md:text-4xl">
               See the experience before you sign up
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">Click any screenshot to view it full size</p>
@@ -227,10 +229,10 @@ export function PlatformScreenshots() {
             {PLATFORM_VIEWS.map(({ title, description, icon: Icon, accent, screenshot }) => (
               <div
                 key={title}
-                className={`overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${accent} to-[#0d1119]`}
+                className="overflow-hidden rounded-2xl border border-[#e6e8ef] bg-white shadow-[0_1px_2px_rgba(25,30,48,0.04)]"
               >
                 {/* Browser chrome bar */}
-                <div className="border-b border-white/10 bg-[#0A0E14]/80 px-4 py-3">
+                <div className="border-b border-[#e6e8ef] bg-[#f8f9fb] px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" aria-hidden="true" />
                     <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" aria-hidden="true" />

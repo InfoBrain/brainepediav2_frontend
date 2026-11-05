@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -24,8 +24,8 @@ export function FinalCTA() {
           <p className="text-2xl text-muted-foreground mb-12">
             Will you prove yourself? Or will you keep collecting meaningless certificates?
           </p>
-          <Link href="/auth/register" className={cn(buttonVariants({ size: "lg" }), "h-16 px-12 text-xl font-bold bg-foreground text-background hover:bg-foreground/90 shadow-[0_0_40px_rgba(255,255,255,0.2)]")}>
-            Start Your First Challenge
+          <Link href="/auth/register" className={cn(buttonVariants({ size: "lg" }), "h-14 px-8 text-base")}>
+            Get Started Free
           </Link>
         </motion.div>
       </div>

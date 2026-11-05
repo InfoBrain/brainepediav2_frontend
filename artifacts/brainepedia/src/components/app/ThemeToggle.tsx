@@ -13,7 +13,7 @@ export function ThemeToggle() {
   const ActiveIcon = active.icon;
 
   return (
-    <label className="relative inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-card/80 px-2 py-1.5 text-xs text-muted-foreground shadow-sm transition-colors sm:gap-2 sm:px-2.5">
+    <label className="relative inline-flex items-center gap-1.5 rounded-[10px] border border-[#e6e8ef] bg-white px-2 py-1.5 text-xs font-bold text-[#667084] dark:border-border dark:bg-card">
       <ActiveIcon className="h-3.5 w-3.5 text-primary" />
       <span className="sr-only">Theme</span>
       <select
