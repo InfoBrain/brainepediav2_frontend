@@ -80,8 +80,12 @@ function ApplicationPostingPicker() {
       <div className="space-y-5">
         <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-[#0d1119] p-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-xl font-bold">Choose a posting</h2>
-            <p className="text-sm text-muted-foreground">Select a job posting to view applicants and assessment performance.</p>
+            <h2 className="text-xl font-bold">{new URLSearchParams(window.location.search).get("status") === "Shortlisted" ? "Shortlisted applicants" : "Choose a posting"}</h2>
+            <p className="text-sm text-muted-foreground">
+              {new URLSearchParams(window.location.search).get("status") === "Shortlisted"
+                ? "Open a role to review applicants whose status is Shortlisted."
+                : "Select a job posting to view applicants and assessment performance."}
+            </p>
           </div>
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -149,7 +153,7 @@ function ApplicationPostingPicker() {
                     </div>
                     <div className="flex w-full flex-col gap-2 sm:w-auto">
                       <Button asChild className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]">
-                        <Link href={`/employer/applications/${encodeURIComponent(id)}`}>
+                        <Link href={`/employer/applications/${encodeURIComponent(id)}${window.location.search}`}>
                           <ClipboardList className="mr-2 h-4 w-4" /> Applications
                         </Link>
                       </Button>
@@ -159,7 +163,7 @@ function ApplicationPostingPicker() {
                         </Link>
                       </Button>
                       <Button asChild variant="outline">
-                        <Link href={`/employer/applications/${encodeURIComponent(id)}`}>
+                        <Link href={`/employer/applications/${encodeURIComponent(id)}${window.location.search}`}>
                           <Users className="mr-2 h-4 w-4" /> View Applicants
                         </Link>
                       </Button>
@@ -253,11 +257,16 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
     setResult(res.data);
   };
 
+  const focusStatus = new URLSearchParams(window.location.search).get("status") || "";
+  const visibleApplications = focusStatus
+    ? applications.filter((application) => text(application?.status ?? application?.applicationStatus ?? application?.Status, "").toLowerCase() === focusStatus.toLowerCase())
+    : applications;
+
   return (
-    <DashboardShell nav={EMPLOYER_NAV} title="Applications" subtitle="// jobs.application-review" theme="employer">
+    <DashboardShell nav={EMPLOYER_NAV} title={focusStatus || "Applications"} subtitle="// jobs.application-review" theme="employer">
       <div className="space-y-5">
         <Button asChild variant="ghost" className="pl-0 text-muted-foreground hover:text-foreground">
-          <Link href="/employer/applications">Back to postings</Link>
+          <Link href={`/employer/applications${window.location.search}`}>Back to postings</Link>
         </Button>
 
         {loading ? (
@@ -272,9 +281,17 @@ function ApplicationsForJob({ jobId }: { jobId: string }) {
             actionLabel="View postings"
             actionHref="/employer/jobs"
           />
+        ) : visibleApplications.length === 0 ? (
+          <EmptyState
+            icon={ClipboardList}
+            title={`No ${focusStatus.toLowerCase()} applicants`}
+            description="Applicants appear here after their status is updated on this role."
+            actionLabel="View all applications"
+            actionHref={`/employer/applications/${encodeURIComponent(jobId)}`}
+          />
         ) : (
           <div className="grid gap-4">
-            {applications.map((application, index) => {
+            {visibleApplications.map((application, index) => {
               const id = idOf(application) || String(index);
               const draft = drafts[id] || { newStatus: "", notes: "" };
               const profile = profileDetailsOf(application);

@@ -274,6 +274,19 @@ export function SocialFeedPanel({
         </DialogContent>
       </Dialog>
 
+      {preview && signedIn && (
+        <button
+          type="button"
+          onClick={() => setComposerOpen(true)}
+          className="flex w-full items-center gap-3 rounded-2xl border border-[#e6e8ef] bg-[#fafbfc] px-3 py-3 text-left text-sm text-[#9298a8]"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#f5f0fc] text-xs font-extrabold text-[#7d4ccc]">
+            <PenLine className="h-4 w-4" />
+          </span>
+          Share something with the Brainepedia community…
+        </button>
+      )}
+
       {loading ? (
         <div className="flex items-center gap-2 rounded-2xl border border-white/8 bg-[#0d1119] p-6 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin text-[#00D2FF]" /> Loading the feed…
