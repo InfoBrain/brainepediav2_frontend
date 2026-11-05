@@ -1,16 +1,12 @@
 import { useEffect, useState } from "react";
+import { Link, useLocation } from "wouter";
 import {
-  Activity,
-  Building2,
-  CheckCircle2,
-  Clock,
-  CreditCard,
-  Loader2,
-  Bookmark,
   BriefcaseBusiness,
+  Building2,
+  Clock,
+  Loader2,
   UserCheck,
   Users,
-  Zap,
 } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
@@ -19,7 +15,6 @@ import { getUser } from "@/lib/auth";
 import { formatDisplayDate, text } from "@/lib/jobData";
 import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
 import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
-import { useLocation } from "wouter";
 
 type ProfileData = {
   companyName?: string;
@@ -49,31 +44,28 @@ type ActivityItem = {
   date: string;
 };
 
-function StatCard({
+function MetricCard({
   icon: Icon,
   label,
   value,
   sub,
-  color = "#00D2FF",
+  tint,
 }: {
   icon: React.ElementType;
   label: string;
   value: string | number;
   sub?: string;
-  color?: string;
+  tint: string;
 }) {
   return (
-    <div className="bg-[#0d1119] border border-white/5 rounded-xl p-5 flex items-start gap-4">
-      <div
-        className="h-11 w-11 rounded-lg flex items-center justify-center shrink-0"
-        style={{ background: `${color}18`, border: `1px solid ${color}30` }}
-      >
-        <Icon className="h-5 w-5" style={{ color }} />
-      </div>
+    <div className="flex items-start gap-3 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+      <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${tint}`}>
+        <Icon className="h-4 w-4" />
+      </span>
       <div className="min-w-0">
-        <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider mb-0.5">{label}</p>
-        <p className="text-2xl font-bold">{value}</p>
-        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+        <p className="text-2xl font-extrabold leading-none tracking-tight text-[#182137]">{value}</p>
+        <p className="mt-1 text-sm font-bold text-[#182137]">{label}</p>
+        {sub && <p className="mt-0.5 text-xs text-[#70798d]">{sub}</p>}
       </div>
     </div>
   );
@@ -108,115 +100,181 @@ export default function EmployerOverview() {
     load();
   }, []);
 
-  const companyName = profile?.companyName || user?.firstName || "Your Company";
+  const companyName = profile?.companyName || user?.companyName || user?.firstName || "Your company";
   const logoUrl = profile?.companyLogoUrl;
+  const plan = summary?.activeSubscriptionTier && summary.activeSubscriptionTier !== "-"
+    ? summary.activeSubscriptionTier
+    : profile?.planType || "Employer workspace";
+  const lagosHour = (new Date().getUTCHours() + 1) % 24;
+  const greeting = lagosHour < 12 ? "Good morning" : lagosHour < 17 ? "Good afternoon" : "Good evening";
+  const mark = companyName.split(/\s+/).filter(Boolean).slice(0, 2).map((part: string) => part[0]).join("").toUpperCase();
 
   return (
-    <DashboardShell nav={EMPLOYER_NAV} title="Employer Dashboard" subtitle="// employer.command.center" theme="employer">
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          {logoUrl ? (
-            <img src={logoUrl} alt={companyName} className="h-14 w-14 rounded-xl object-cover border border-white/10" />
-          ) : (
-            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#00D2FF]/30 to-[#7C3AED]/20 flex items-center justify-center border border-white/10">
-              <Building2 className="h-6 w-6 text-[#00D2FF]" />
-            </div>
-          )}
+    <DashboardShell nav={EMPLOYER_NAV} title="Dashboard" theme="employer" showHeading={false}>
+      <div className="space-y-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-xl font-bold">{companyName}</h2>
-            <p className="text-sm text-muted-foreground font-mono">
-              {summary?.activeSubscriptionTier ? `Plan: ${summary.activeSubscriptionTier}` : profile?.planType ? `Plan: ${profile.planType}` : "Employer Account"}
-            </p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#276ef1]">Employer overview</p>
+            <h1 className="mt-1 text-[1.85rem] font-extrabold tracking-tight text-[#182137]">
+              {greeting}, {companyName}.
+            </h1>
+            <p className="mt-1 max-w-xl text-sm text-[#70798d]">Manage recruitment, discover skilled professionals, and find the right talent.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/employer/candidates" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] bg-white px-4 text-sm font-bold text-[#182137] shadow-sm">
+              Discover Talent
+            </Link>
+            <Link href="/employer/jobs/create" className="inline-flex h-10 items-center rounded-[10px] bg-[#7d4ccc] px-4 text-sm font-bold text-white shadow-[0_8px_18px_rgba(125,76,204,0.28)]">
+              + Post a Job
+            </Link>
           </div>
         </div>
 
-        {credits && (
-          <BrainiacCreditsCard
-            title="Organization Brainiac credits"
-            compact
-            balance={credits.organizationBalance}
-            loading={credits.organizationLoading}
-            error={credits.organizationError}
-            usageHref="/employer/credits"
-            billingHref="/employer/billing"
-            onRefresh={() => void credits.refreshOrganization()}
-            onUpgrade={() => navigate("/employer/subscription")}
-            onRecharge={() => navigate("/employer/billing")}
-          />
-        )}
-
         {loading ? (
-          <div className="flex items-center justify-center py-24 text-muted-foreground gap-3">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="font-mono text-sm">Loading overview...</span>
+          <div className="flex items-center justify-center gap-3 py-24 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin text-[#276ef1]" />
+            <span className="text-sm font-semibold">Loading overview...</span>
           </div>
         ) : error ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">
-            {error}
-          </div>
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">{error}</div>
         ) : summary ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              <StatCard icon={BriefcaseBusiness} label="TotalJobsPosted" value={summary.totalJobsPosted} sub="All postings created" color="#00D2FF" />
-              <StatCard icon={CheckCircle2} label="ActiveJobsCount" value={summary.activeJobsCount} sub="Currently open roles" color="#19C37D" />
-              <StatCard icon={UserCheck} label="TotalApplicantsCount" value={summary.totalApplicantsCount} sub="Across job postings" color="#9D4EDD" />
-              <StatCard icon={Clock} label="PendingApplicantsCount" value={summary.pendingApplicantsCount} sub="Awaiting review" color="#3284FF" />
-              <StatCard icon={Users} label="TotalActiveTeamMembers" value={summary.totalActiveTeamMembers} sub="Active team seats" color="#22c55e" />
-              <StatCard icon={Bookmark} label="TotalSavedCandidatesCount" value={summary.totalSavedCandidatesCount} sub="Shortlisted talent" color="#FFD700" />
-              <StatCard icon={Zap} label="ActiveSubscriptionTier" value={summary.activeSubscriptionTier} sub="Organization plan" color="#FFD700" />
-              <StatCard icon={CreditCard} label="BillingStatus" value={summary.billingStatus} sub={`NextBillingDate: ${summary.nextBillingDate}`} color="#f97316" />
-              <StatCard icon={Activity} label="GlobalTeamCompletionRate" value={`${summary.globalTeamCompletionRate}%`} sub="Team mission completion" color="#00D2FF" />
+            <section className="flex flex-col gap-4 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)] sm:flex-row sm:items-center">
+              {logoUrl ? (
+                <img src={logoUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
+              ) : (
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-[#276ef1] text-sm font-extrabold text-white">{mark}</span>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#276ef1]">
+                  {summary.activeSubscriptionTier && summary.activeSubscriptionTier !== "-" ? "Verified employer" : "Employer"}
+                </p>
+                <h2 className="text-lg font-extrabold text-[#182137]">{companyName}</h2>
+                <p className="text-sm text-[#70798d]">{plan}{user?.email ? ` · ${user.email}` : ""}</p>
+              </div>
+              <span className="inline-flex items-center rounded-full bg-[#edf4ff] px-3 py-1 text-xs font-extrabold text-[#276ef1]">
+                Employer workspace active
+              </span>
+            </section>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <MetricCard icon={BriefcaseBusiness} label="Active jobs" value={summary.activeJobsCount} sub={`${summary.totalJobsPosted} posted in total`} tint="bg-[#edf4ff] text-[#276ef1]" />
+              <MetricCard icon={Users} label="Total applications" value={summary.totalApplicantsCount} sub="Across all jobs" tint="bg-[#f5f0fc] text-[#7d4ccc]" />
+              <MetricCard icon={Clock} label="New applications" value={summary.pendingApplicantsCount} sub="Awaiting review" tint="bg-[#fff6e8] text-[#d88c1b]" />
+              <MetricCard icon={UserCheck} label="Saved professionals" value={summary.totalSavedCandidatesCount} sub="Ready for follow-up" tint="bg-[#eefaf4] text-[#168a68]" />
+              <MetricCard icon={Building2} label="Team members" value={summary.totalActiveTeamMembers} sub={`${summary.globalTeamCompletionRate}% mission completion`} tint="bg-[#f3f5f8] text-[#276ef1]" />
             </div>
 
-            <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-              <h3 className="text-base font-bold mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  { label: "Add Team Member", href: "/employer/team", color: "#00D2FF" },
-                  { label: "Create Job", href: "/employer/jobs/create", color: "#9D4EDD" },
-                  { label: "Review Applicants", href: "/employer/applications", color: "#FFD700" },
-                  { label: "Explore Candidates", href: "/employer/candidates", color: "#22c55e" },
-                ].map((action) => (
-                  <a
-                    key={action.href}
-                    href={action.href}
-                    className="rounded-lg p-3 text-center text-sm font-medium border transition-all hover:scale-[1.02]"
-                    style={{ background: `${action.color}10`, borderColor: `${action.color}30`, color: action.color }}
-                  >
-                    {action.label}
-                  </a>
-                ))}
+            <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
+              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-extrabold text-[#182137]">Recent activity</h2>
+                    <p className="text-xs text-[#70798d]">Latest updates from your employer workspace</p>
+                  </div>
+                  <Link href="/employer/applications" className="text-sm font-bold text-[#276ef1]">View all</Link>
+                </div>
+                {summary.recentActivities.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-[#e6e8ef] px-4 py-10 text-center">
+                    <p className="text-sm font-semibold text-[#182137]">No recent activity yet</p>
+                    <p className="mt-1 text-sm text-[#70798d]">Applications and hiring updates will show here as they happen.</p>
+                    <Link href="/employer/applications" className="mt-3 inline-flex text-sm font-bold text-[#276ef1]">Review applications</Link>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-[#eef0f4]">
+                    {summary.recentActivities.map((item) => (
+                      <div key={item.id} className="flex items-start justify-between gap-3 py-3">
+                        <div className="min-w-0">
+                          <p className="font-bold text-[#182137]">{item.title}</p>
+                          {item.description && <p className="text-sm text-[#70798d]">{item.description}</p>}
+                          <p className="mt-1 text-xs text-[#8c93a2]">{formatDisplayDate(item.date, "Date unavailable")}</p>
+                        </div>
+                        <Link href="/employer/applications" className="shrink-0 text-sm font-bold text-[#276ef1]">Review</Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <div className="space-y-4">
+                <section className="rounded-2xl bg-gradient-to-br from-[#5b35c5] to-[#7d4ccc] p-5 text-white shadow-[0_12px_30px_rgba(125,76,204,0.28)]">
+                  <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-white/80">Brainiac employer insights</p>
+                  <h2 className="mt-2 text-xl font-extrabold">Smarter talent insights</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-white/85">Compare profile evidence with your job requirements. AI insights support, and do not replace, your recruitment decisions.</p>
+                  <Link href="/employer/candidates" className="mt-4 inline-flex h-10 items-center rounded-[10px] bg-white px-4 text-sm font-bold text-[#5b35c5]">
+                    Explore compatibility insights
+                  </Link>
+                </section>
+
+                <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+                  <h2 className="text-base font-extrabold text-[#182137]">Recruitment pipeline</h2>
+                  <div className="mt-4 space-y-3">
+                    <PipelineRow label="Active jobs" value={summary.activeJobsCount} max={Math.max(summary.activeJobsCount, summary.totalApplicantsCount, summary.pendingApplicantsCount, summary.totalSavedCandidatesCount, 1)} />
+                    <PipelineRow label="Awaiting review" value={summary.pendingApplicantsCount} max={Math.max(summary.activeJobsCount, summary.totalApplicantsCount, summary.pendingApplicantsCount, summary.totalSavedCandidatesCount, 1)} />
+                    <PipelineRow label="Total applications" value={summary.totalApplicantsCount} max={Math.max(summary.activeJobsCount, summary.totalApplicantsCount, summary.pendingApplicantsCount, summary.totalSavedCandidatesCount, 1)} />
+                    <PipelineRow label="Saved professionals" value={summary.totalSavedCandidatesCount} max={Math.max(summary.activeJobsCount, summary.totalApplicantsCount, summary.pendingApplicantsCount, summary.totalSavedCandidatesCount, 1)} />
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-[#70798d]">
+                    <p>Plan: <span className="font-bold text-[#182137]">{summary.activeSubscriptionTier}</span></p>
+                    <p>Billing: <span className="font-bold text-[#182137]">{summary.billingStatus}</span></p>
+                    <p className="col-span-2">Next billing: <span className="font-bold text-[#182137]">{summary.nextBillingDate}</span></p>
+                  </div>
+                </section>
               </div>
             </div>
 
-            <div className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
-              <h3 className="text-base font-bold mb-4 flex items-center gap-2">
-                <Activity className="h-4 w-4 text-[#00D2FF]" />
-                RecentActivities
-              </h3>
-              {summary.recentActivities.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-white/10 p-8 text-center text-sm text-muted-foreground">
-                  No recent activity returned yet.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {summary.recentActivities.map((item) => (
-                    <div key={item.id} className="relative flex gap-4 border-l border-[#00D2FF]/25 pl-4">
-                      <span className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-[#00D2FF] shadow-[0_0_12px_rgba(0,210,255,0.5)]" />
-                      <div className="min-w-0">
-                        <p className="font-semibold">{item.title}</p>
-                        {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
-                        <p className="mt-1 text-xs font-mono text-muted-foreground">{formatDisplayDate(item.date, "Date unavailable")}</p>
-                      </div>
-                    </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {credits && (
+                <BrainiacCreditsCard
+                  title="Organization Brainiac credits"
+                  compact
+                  balance={credits.organizationBalance}
+                  loading={credits.organizationLoading}
+                  error={credits.organizationError}
+                  usageHref="/employer/credits"
+                  billingHref="/employer/billing"
+                  onRefresh={() => void credits.refreshOrganization()}
+                  onUpgrade={() => navigate("/employer/subscription")}
+                  onRecharge={() => navigate("/employer/billing")}
+                />
+              )}
+              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+                <h2 className="text-base font-extrabold text-[#182137]">Workspace actions</h2>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {[
+                    { label: "Add team member", href: "/employer/team" },
+                    { label: "Create job", href: "/employer/jobs/create" },
+                    { label: "Review applicants", href: "/employer/applications" },
+                    { label: "Discover professionals", href: "/employer/candidates" },
+                    { label: "Saved professionals", href: "/employer/saved-candidates" },
+                    { label: "Team analytics", href: "/employer/analytics" },
+                  ].map((action) => (
+                    <Link key={action.href} href={action.href} className="rounded-xl border border-[#e6e8ef] px-3 py-3 text-sm font-bold text-[#276ef1] hover:bg-[#edf4ff]">
+                      {action.label}
+                    </Link>
                   ))}
                 </div>
-              )}
+              </section>
             </div>
           </>
         ) : null}
       </div>
     </DashboardShell>
+  );
+}
+
+function PipelineRow({ label, value, max }: { label: string; value: number; max: number }) {
+  const width = Math.max(6, Math.round((value / max) * 100));
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-sm">
+        <span className="font-semibold text-[#626b7d]">{label}</span>
+        <span className="font-extrabold text-[#182137]">{value}</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-[#eef1f6]">
+        <div className="h-full rounded-full bg-[#276ef1]" style={{ width: `${width}%` }} />
+      </div>
+    </div>
   );
 }
 

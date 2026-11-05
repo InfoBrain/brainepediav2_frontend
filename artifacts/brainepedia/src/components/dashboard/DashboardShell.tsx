@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Bell, LogOut, Menu, MessageCircle, Search, Sparkles, X } from "lucide-react";
+import { Bell, LogOut, Menu, MessageCircle, MessageSquare, Search, Sparkles, X } from "lucide-react";
 import { clearToken, getUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,10 +35,33 @@ export type NavItem = {
 
 type Theme = "user" | "admin" | "employer";
 
-const workspaceCopy: Record<Theme, { label: string; activityHref: string; settingsHref: string }> = {
-  user: { label: "Professional", activityHref: "/user/activity", settingsHref: "/user/settings" },
-  employer: { label: "Employer", activityHref: "/feed", settingsHref: "/employer/settings" },
-  admin: { label: "Administrator", activityHref: "/admin/activity-logs", settingsHref: "/admin/settings" },
+const workspaceCopy: Record<Theme, { label: string; activityHref: string; settingsHref: string; search: string; messagesHref?: string }> = {
+  user: {
+    label: "Professional workspace",
+    activityHref: "/user/activity",
+    settingsHref: "/user/settings",
+    search: "Search jobs, missions, and community",
+    messagesHref: "/forum",
+  },
+  employer: {
+    label: "Employer workspace",
+    activityHref: "/feed",
+    settingsHref: "/employer/settings",
+    search: "Search jobs, candidates, and talent",
+    messagesHref: "/feed",
+  },
+  admin: {
+    label: "Administrator workspace",
+    activityHref: "/admin/activity-logs",
+    settingsHref: "/admin/settings",
+    search: "Search admin menus",
+  },
+};
+
+const accents: Record<Theme, { text: string; soft: string; hover: string; dot: string }> = {
+  user: { text: "text-[#7d4ccc]", soft: "bg-[#f5f0fc] text-[#7d4ccc]", hover: "hover:bg-[#f5f0fc] hover:text-[#7d4ccc]", dot: "bg-[#7d4ccc]" },
+  employer: { text: "text-[#276ef1]", soft: "bg-[#edf4ff] text-[#276ef1]", hover: "hover:bg-[#edf4ff] hover:text-[#276ef1]", dot: "bg-[#276ef1]" },
+  admin: { text: "text-[#7d4ccc]", soft: "bg-[#f5f0fc] text-[#7d4ccc]", hover: "hover:bg-[#f5f0fc] hover:text-[#7d4ccc]", dot: "bg-[#7d4ccc]" },
 };
 
 export function DashboardShell({
@@ -48,6 +71,7 @@ export function DashboardShell({
   headerRight,
   theme = "user",
   showBrainiac = false,
+  showHeading = true,
   children,
 }: {
   nav: NavItem[];
@@ -56,6 +80,7 @@ export function DashboardShell({
   headerRight?: ReactNode;
   theme?: Theme;
   showBrainiac?: boolean;
+  showHeading?: boolean;
   children: ReactNode;
 }) {
   const [location, setLocation] = useLocation();
@@ -102,8 +127,10 @@ export function DashboardShell({
   }, [nav, query]);
 
   const mobileItems = useMemo(() => pickMobileNav(nav), [nav]);
-  const displayName = user?.userName || user?.email || "Account";
+  const personName = [user?.firstName, user?.lastName || user?.surName].filter(Boolean).join(" ").trim();
+  const displayName = user?.companyName || user?.organisationName || personName || user?.userName || user?.email || "Account";
   const cleanedSubtitle = subtitle?.replace(/^\/\/\s*/, "");
+  const accent = accents[theme];
 
   const goToMatch = (href: string) => {
     setSearchOpen(false);
@@ -113,12 +140,14 @@ export function DashboardShell({
 
   return (
     <div className="min-h-screen bg-[#f7f8fb] text-[#182137] dark:bg-background dark:text-foreground">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col border-r border-[#e6e8ef] bg-white dark:border-border dark:bg-card md:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-[#e6e8ef] bg-white dark:border-border dark:bg-card md:flex">
         <SidebarContent
           nav={nav}
           location={location}
           workspaceLabel={workspace.label}
           displayName={displayName}
+          accent={accent}
+          mark={theme === "employer" ? initials(displayName) : displayName.slice(0, 1).toUpperCase()}
           onNavigate={() => setMobileOpen(false)}
           onLogout={requestLogout}
         />
@@ -146,6 +175,8 @@ export function DashboardShell({
                 location={location}
                 workspaceLabel={workspace.label}
                 displayName={displayName}
+                accent={accent}
+                mark={theme === "employer" ? initials(displayName) : displayName.slice(0, 1).toUpperCase()}
                 onNavigate={() => setMobileOpen(false)}
                 onLogout={requestLogout}
                 showClose
@@ -156,7 +187,7 @@ export function DashboardShell({
         )}
       </AnimatePresence>
 
-      <div className="flex min-h-screen min-w-0 flex-col md:pl-56">
+      <div className="flex min-h-screen min-w-0 flex-col md:pl-64">
         <header className="sticky top-0 z-30 border-b border-[#e6e8ef] bg-white/95 backdrop-blur-md dark:border-border dark:bg-background/90">
           <div className="flex items-center gap-2 px-3 py-3 sm:gap-3 sm:px-5">
             <Button
@@ -186,8 +217,8 @@ export function DashboardShell({
                     setSearchOpen(true);
                   }}
                   onFocus={() => setSearchOpen(true)}
-                  placeholder="Search menus"
-                  aria-label="Search menus"
+                  placeholder={workspace.search}
+                  aria-label={workspace.search}
                   className="w-full bg-transparent text-sm text-[#182137] outline-none placeholder:text-[#9298a8] dark:text-foreground"
                 />
               </form>
@@ -202,7 +233,7 @@ export function DashboardShell({
                         <button
                           key={`${item.href}-${item.label}`}
                           type="button"
-                          className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-[#626b7d] hover:bg-[#f5f0fc] hover:text-[#7d4ccc]"
+                          className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-[#626b7d] ${accent.hover}`}
                           onClick={() => goToMatch(item.href)}
                         >
                           <Icon className="h-4 w-4" />
@@ -218,6 +249,15 @@ export function DashboardShell({
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
               <HeaderCreditsChip theme={theme} />
               {headerRight}
+              {workspace.messagesHref && (
+                <Link
+                  href={workspace.messagesHref}
+                  aria-label={theme === "employer" ? "Open feed" : "Open community"}
+                  className="grid h-9 w-9 place-items-center rounded-[10px] text-[#667084] hover:bg-[#f2f3f6] dark:hover:bg-muted"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                </Link>
+              )}
               <ThemeToggle />
               <div ref={noticeRef} className="relative">
                 <Button
@@ -241,10 +281,10 @@ export function DashboardShell({
                       Activity, feed, and audit pages stay in their existing destinations.
                     </p>
                     <div className="mt-3 grid gap-1">
-                      <Link href={workspace.activityHref} onClick={() => setNoticesOpen(false)} className="rounded-lg px-2 py-2 text-sm font-bold text-[#7d4ccc] hover:bg-[#f5f0fc]">
+                      <Link href={workspace.activityHref} onClick={() => setNoticesOpen(false)} className={`rounded-lg px-2 py-2 text-sm font-bold ${accent.text} ${accent.hover}`}>
                         Open activity
                       </Link>
-                      <Link href="/feed" onClick={() => setNoticesOpen(false)} className="rounded-lg px-2 py-2 text-sm font-bold text-[#7d4ccc] hover:bg-[#f5f0fc]">
+                      <Link href="/feed" onClick={() => setNoticesOpen(false)} className={`rounded-lg px-2 py-2 text-sm font-bold ${accent.text} ${accent.hover}`}>
                         Open feed
                       </Link>
                     </div>
@@ -261,8 +301,8 @@ export function DashboardShell({
                     setNoticesOpen(false);
                   }}
                 >
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-[#7d4ccc] text-xs font-extrabold text-white">
-                    {displayName.slice(0, 1).toUpperCase()}
+                  <span className={`grid h-8 w-8 place-items-center rounded-full text-xs font-extrabold text-white ${accent.dot}`}>
+                    {theme === "employer" ? initials(displayName) : displayName.slice(0, 1).toUpperCase()}
                   </span>
                 </button>
                 {accountOpen && (
@@ -271,7 +311,7 @@ export function DashboardShell({
                       <p className="truncate text-sm font-extrabold">{displayName}</p>
                       <p className="truncate text-xs text-muted-foreground">{user?.email || workspace.label}</p>
                     </div>
-                    <Link href={workspace.settingsHref} onClick={() => setAccountOpen(false)} className="mt-1 flex rounded-lg px-2 py-2 text-sm font-semibold text-[#626b7d] hover:bg-[#f5f0fc] hover:text-[#7d4ccc]">
+                    <Link href={workspace.settingsHref} onClick={() => setAccountOpen(false)} className={`mt-1 flex rounded-lg px-2 py-2 text-sm font-semibold text-[#626b7d] ${accent.hover}`}>
                       Settings
                     </Link>
                     <button
@@ -292,13 +332,15 @@ export function DashboardShell({
         </header>
 
         <main id="main-content" className="min-w-0 flex-1 px-4 py-6 pb-24 md:px-8 md:pb-10" tabIndex={-1}>
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#7d4ccc]">{workspace.label}</p>
-              <h1 className="mt-1 text-[1.7rem] font-extrabold leading-tight tracking-tight">{title}</h1>
-              {cleanedSubtitle && <p className="mt-1 text-sm text-muted-foreground">{cleanedSubtitle}</p>}
+          {showHeading && (
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className={`text-[11px] font-extrabold uppercase tracking-[0.12em] ${accent.text}`}>{workspace.label}</p>
+                <h1 className="mt-1 text-[1.7rem] font-extrabold leading-tight tracking-tight">{title}</h1>
+                {cleanedSubtitle && <p className="mt-1 text-sm text-muted-foreground">{cleanedSubtitle}</p>}
+              </div>
             </div>
-          </div>
+          )}
           {children}
         </main>
         <CopyrightBar className="border-t border-[#e6e8ef] dark:border-border" />
@@ -307,12 +349,12 @@ export function DashboardShell({
       <nav className="fixed inset-x-0 bottom-0 z-30 grid h-16 grid-cols-4 border-t border-[#e6e8ef] bg-white/95 backdrop-blur-md dark:border-border dark:bg-card/95 md:hidden" aria-label="Primary">
         {mobileItems.map((item) => {
           const Icon = item.icon;
-          const active = isActive(location, item.href);
+          const active = isActive(location, item.href, nav);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 text-[11px] font-bold ${active ? "text-[#7d4ccc]" : "text-[#7b8293]"}`}
+              className={`flex flex-col items-center justify-center gap-1 text-[11px] font-bold ${active ? accent.text : "text-[#7b8293]"}`}
             >
               <Icon className="h-4 w-4" />
               <span className="max-w-[72px] truncate">{item.label}</span>
@@ -368,8 +410,28 @@ function HeaderCreditsChip({ theme }: { theme: Theme }) {
   );
 }
 
-function isActive(location: string, href: string) {
-  return location === href || (href !== "/" && location.startsWith(`${href}/`));
+function isActive(location: string, href: string, nav: NavItem[] = []) {
+  const path = href.split("?")[0];
+  const query = href.includes("?") ? href.slice(href.indexOf("?")) : "";
+  const currentPath = location.split("?")[0];
+  const currentQuery = location.includes("?") ? location.slice(location.indexOf("?")) : "";
+  const matchesPath = currentPath === path || (path !== "/" && currentPath.startsWith(`${path}/`));
+  if (!matchesPath) return false;
+  if (query) return currentQuery === query;
+  const querySibling = nav.some((item) => item.href.startsWith(`${path}?`) && currentQuery === item.href.slice(item.href.indexOf("?")));
+  if (querySibling) return false;
+  const longer = nav.some((item) => {
+    const other = item.href.split("?")[0];
+    if (other.length <= path.length) return false;
+    return currentPath === other || currentPath.startsWith(`${other}/`);
+  });
+  return !longer;
+}
+
+function initials(name: string) {
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  return name.slice(0, 1).toUpperCase() || "B";
 }
 
 function pickMobileNav(nav: NavItem[]) {
@@ -403,6 +465,8 @@ function SidebarContent({
   location,
   workspaceLabel,
   displayName,
+  accent,
+  mark,
   onNavigate,
   onLogout,
   showClose = false,
@@ -412,6 +476,8 @@ function SidebarContent({
   location: string;
   workspaceLabel: string;
   displayName: string;
+  accent: { text: string; soft: string; hover: string; dot: string };
+  mark: string;
   onNavigate: () => void;
   onLogout: () => void;
   showClose?: boolean;
@@ -431,18 +497,18 @@ function SidebarContent({
         )}
       </div>
       <div className="flex items-center gap-2 border-b border-[#e6e8ef] px-4 py-3 dark:border-border">
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-[#7d4ccc] text-xs font-extrabold text-white">
-          {displayName.slice(0, 1).toUpperCase()}
+        <span className={`grid h-9 w-9 place-items-center rounded-full text-xs font-extrabold text-white ${accent.dot}`}>
+          {mark}
         </span>
         <div className="min-w-0">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#7d4ccc]">{workspaceLabel}</p>
+          <p className={`text-[10px] font-extrabold uppercase tracking-[0.08em] ${accent.text}`}>{workspaceLabel}</p>
           <p className="truncate text-sm font-bold">{displayName}</p>
         </div>
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
         {nav.map((item, i) => {
-          const active = isActive(location, item.href);
+          const active = isActive(location, item.href, nav);
           const Icon = item.icon;
           const showSectionHeader = !!item.section && (i === 0 || nav[i - 1].section !== item.section);
           return (
@@ -460,8 +526,8 @@ function SidebarContent({
                     aria-current={active ? "page" : undefined}
                     className={`flex min-h-[39px] items-center gap-2.5 rounded-lg px-3 text-sm font-bold transition-colors ${
                       active
-                        ? "bg-[#f5f0fc] text-[#7d4ccc]"
-                        : "text-[#667084] hover:bg-[#f5f0fc] hover:text-[#7d4ccc]"
+                        ? accent.soft
+                        : `text-[#667084] ${accent.hover}`
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
@@ -484,7 +550,7 @@ function SidebarContent({
         className="flex min-h-[50px] items-center gap-2 border-t border-[#e6e8ef] px-5 text-sm font-bold text-[#7b8293] hover:text-[#d34d62] dark:border-border"
       >
         <LogOut className="h-4 w-4" />
-        <span>Sign out</span>
+        <span>Log Out</span>
       </button>
     </>
   );
