@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import darkLogo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
+import darkLogo from "@assets/branepedia_mark_white.png";
 
 export function Footer() {
   return (
@@ -7,7 +7,7 @@ export function Footer() {
       <div className="mx-auto grid w-[min(1180px,calc(100%-48px))] gap-8 sm:grid-cols-2 lg:grid-cols-[1.7fr_1fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2">
-            <img src={darkLogo} alt="" className="h-10 w-10 mix-blend-screen" />
+            <img src={darkLogo} alt="" className="h-10 w-auto shrink-0 object-contain" />
             <span className="text-lg font-extrabold text-white">Brainepedia</span>
           </div>
           <p className="mt-3 max-w-sm text-sm text-[#9fa4b3]">Don’t just learn. Prove your competence.</p>

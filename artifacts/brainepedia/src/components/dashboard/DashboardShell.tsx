@@ -4,7 +4,7 @@ import { Bell, LogOut, Menu, MessageCircle, MessageSquare, Search, Sparkles, X }
 import { clearToken, getUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import logoUrl from "@assets/branepedia_logo_1777539679828.png";
+import logoUrl from "@assets/branepedia_mark_color.png";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 import {
   AlertDialog,
@@ -487,7 +487,7 @@ function SidebarContent({
     <>
       <div className="flex h-[68px] items-center gap-2 border-b border-[#e6e8ef] px-4 dark:border-border">
         <Link href="/" className="flex min-w-0 items-center gap-2" onClick={onNavigate}>
-          <img src={logoUrl} alt="" className="h-8 w-8 mix-blend-screen" />
+          <img src={logoUrl} alt="" className="h-8 w-auto shrink-0 object-contain" />
           <span className="text-sm font-extrabold tracking-tight">Brainepedia</span>
         </Link>
         {showClose && (
