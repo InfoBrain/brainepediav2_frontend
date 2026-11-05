@@ -487,450 +487,300 @@ export default function UserDashboard() {
   const level      = Math.floor(totalXP / 1000) + 1;
   const rank       = currentUserRank?.rank ?? null;
 
-  const displayName = profile
-    ? `${profile.firstName || ""} ${profile.surName || profile.lastName || ""}`.trim() || user?.firstName || user?.email || "Member"
-    : user?.firstName ? `${user.firstName} ${user?.lastName || ""}`.trim() : user?.email || "Member";
+  const profileName = `${profile?.firstName || ""} ${profile?.surName || profile?.lastName || ""}`.trim();
+  const accountName = [user?.firstName, user?.lastName || user?.surName].filter(Boolean).join(" ").trim();
+  const displayName = profileName || accountName || user?.email || "Member";
   const nickName    = profile?.nickName || displayName;
   const displayTitle= profile?.currentTitle || "Brainepedia Member";
   const avatarUrl   = profile?.avatarUrl || profile?.imageUrl || null;
   const initial     = displayName.charAt(0).toUpperCase();
 
-  const headerRight = (
-    <div className="hidden md:flex items-center gap-3">
-      {rank && (
-        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 text-xs font-mono text-[#FFD700]">
-          <Medal className="h-3 w-3" />#{rank}
-        </div>
-      )}
-      <div className="text-right">
-        <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">XP</div>
-        <div className="text-base font-bold text-amber-400">{totalXP.toLocaleString()}</div>
-      </div>
-      <div className={`px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider border ${subStyle.bg} ${subStyle.text} ${subStyle.border} ${subStyle.glow}`}>
-        {subName}
-      </div>
-      <div className="hidden lg:block text-right">
-        <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">Expires</div>
-        <div className="text-xs font-bold text-muted-foreground">{subscriptionStatus.expiryDate}</div>
-      </div>
-      <div className={`hidden xl:block px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider border ${subscriptionStatus.badgeClass}`}>
-        {subscriptionStatus.status}
-      </div>
-      {avatarUrl ? (
-        <img src={avatarUrl} alt={displayName} className="h-9 w-9 rounded-full object-cover border-2 border-amber-400/60 shadow-[0_0_12px_rgba(255,215,0,0.4)]" />
-      ) : (
-        <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#4C1D95] flex items-center justify-center font-bold text-white border-2 border-amber-400/60 shadow-[0_0_12px_rgba(255,215,0,0.4)]">
-          {initial}
-        </div>
-      )}
-    </div>
-  );
+  const firstName = (profile?.firstName || nickName || "there").split(" ")[0];
+  const lagosHour = (new Date().getUTCHours() + 1) % 24;
+  const greeting = lagosHour < 12 ? "Good morning" : lagosHour < 17 ? "Good afternoon" : "Good evening";
+  const strengthChecks = [
+    Boolean(profile?.firstName),
+    Boolean(profile?.currentTitle),
+    Boolean(avatarUrl),
+    Boolean(vxIdentity?.activeProfession),
+    earnedBadges.length > 0,
+    solved > 0,
+  ];
+  const profileStrength = Math.round((strengthChecks.filter(Boolean).length / strengthChecks.length) * 100);
+  const verified = (vxIdentity?.verifiedExperienceYears ?? 0) > 0 || earnedBadges.length > 0;
+  const vxYears = vxIdentity?.verifiedExperienceYears ?? 0;
+  const locationLine = [displayTitle, vxIdentity?.activeProfession].filter(Boolean).join(" · ");
 
   return (
-    <DashboardShell nav={USER_NAV} title="Learning Hub" subtitle="// your progress" headerRight={headerRight} theme="user" showBrainiac>
+    <DashboardShell nav={USER_NAV} title="Home" theme="user" showBrainiac showHeading={false}>
       {loading ? <BrainiacSpinner /> : (
-        <div className="w-full min-w-0 space-y-6">
+        <div className="space-y-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#7d4ccc]">Professional overview</p>
+              <h1 className="mt-1 text-[1.85rem] font-extrabold tracking-tight text-[#182137]">{greeting}, {firstName}.</h1>
+              <p className="mt-1 max-w-xl text-sm text-[#70798d]">Your next opportunity starts with demonstrating what you can do.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/jobs" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] bg-white px-4 text-sm font-bold text-[#182137] shadow-sm">
+                Explore Jobs
+              </Link>
+              <Link href="/profession/select" className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-[#7d4ccc] px-4 text-sm font-bold text-white shadow-[0_8px_18px_rgba(125,76,204,0.28)]">
+                <Target className="h-4 w-4" /> Start a Mission
+              </Link>
+            </div>
+          </div>
 
-          <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-5">
-          {/* ── HERO PROFILE ── */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            className={`relative overflow-hidden flex flex-col sm:flex-row items-center sm:items-stretch gap-5 bg-gradient-to-r from-[#0d1119] via-[#0d1119] to-[#0d1119]/60 border border-white/8 rounded-2xl p-6 ${credits ? "xl:col-span-3" : "xl:col-span-5"}`}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/8 via-transparent to-[#00D2FF]/5 pointer-events-none" />
-            {/* Avatar */}
+          <section className="flex flex-col gap-4 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)] lg:flex-row lg:items-center">
             {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className="h-20 w-20 rounded-2xl object-cover border-2 border-amber-400/60 shadow-[0_0_22px_rgba(255,215,0,0.35)] shrink-0" />
+              <img src={avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
             ) : (
-              <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#4C1D95] flex items-center justify-center text-3xl font-bold text-white border-2 border-amber-400/60 shadow-[0_0_22px_rgba(255,215,0,0.35)] shrink-0">
-                {initial}
-              </div>
+              <span className="grid h-16 w-16 place-items-center rounded-full bg-[#7d4ccc] text-lg font-extrabold text-white">{initial}</span>
             )}
-            {/* Info */}
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <p className="text-2xl font-bold text-white truncate">{nickName}</p>
-              <p className="text-sm text-white/40 truncate">{displayTitle}</p>
-              <div className="flex flex-wrap items-center gap-2 mt-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-mono uppercase tracking-wider border ${subStyle.bg} ${subStyle.text} ${subStyle.border} ${subStyle.glow}`}>
-                  {subName} Tier
-                </span>
-                {rank && (
-                  <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/30">
-                    <Trophy className="h-3 w-3" /> Rank #{rank}
-                  </span>
-                )}
-                <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono bg-white/5 text-white/50 border border-white/10">
-                  <Star className="h-3 w-3 text-amber-400" /> Lv.{level}
-                </span>
-              </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#168a68]">{verified ? "Verified professional" : "Professional"}</p>
+              <h2 className="text-lg font-extrabold text-[#182137]">{displayName}</h2>
+              <p className="text-sm text-[#70798d]">{locationLine}</p>
             </div>
-            {/* XP display */}
-            <div className="flex flex-col items-center justify-center shrink-0 text-center px-4 py-2 rounded-xl border border-amber-400/20 bg-amber-400/5">
-              <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-amber-400/60 mb-0.5">Total XP</div>
-              <AnimatedXP value={totalXP} />
-              <Button asChild size="sm" className="mt-3 bg-amber-400 text-black hover:bg-amber-300">
-                <Link href="/profile/edit">
-                  <Pencil className="mr-1.5 h-3.5 w-3.5" /> Update Profile
+            <div className="w-full max-w-xs">
+              <div className="mb-1 flex items-center justify-between text-xs font-bold">
+                <span className="text-[#7d4ccc]">{profileStrength}%</span>
+                <span className="text-[#70798d]">Profile strength</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-[#efe8f8]">
+                <div className="h-full rounded-full bg-[#7d4ccc]" style={{ width: `${profileStrength}%` }} />
+              </div>
+              <Link href="/profile/edit" className="mt-2 inline-flex text-sm font-bold text-[#7d4ccc]">Complete profile →</Link>
+            </div>
+          </section>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <OverviewMetric icon={Zap} label="Experience points" value={totalXP.toLocaleString()} sub={dayStreak > 0 ? `${dayStreak}-day streak` : "From missions and assessments"} tint="bg-[#f5f0fc] text-[#7d4ccc]" />
+            <OverviewMetric icon={Shield} label="Verified experience" value={vxYears > 0 ? vxYears.toLocaleString() : "—"} sub={vxIdentity?.professionalTitle || "Years of verified experience"} tint="bg-[#edf4ff] text-[#276ef1]" />
+            <OverviewMetric icon={Trophy} label="Badges earned" value={earnedBadges.length} sub={newBadges.length > 0 ? `${newBadges.length} newly unlocked` : rank ? `Rank #${rank}` : "Milestones from your work"} tint="bg-[#fff6e8] text-[#d88c1b]" />
+            <OverviewMetric icon={Target} label="Completed missions" value={solved} sub={`${missionStats?.inProgressMissions ?? 0} currently active`} tint="bg-[#eefaf4] text-[#168a68]" />
+          </div>
+
+          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
+            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+              <SocialFeedPanel variant="preview" />
+            </section>
+            <div className="space-y-4">
+              <JobsForYou />
+              <section className="rounded-2xl bg-gradient-to-br from-[#5b35c5] to-[#7d4ccc] p-5 text-white shadow-[0_12px_30px_rgba(125,76,204,0.28)]">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-white/80">Powered by Brainiac</p>
+                <h2 className="mt-2 text-xl font-extrabold">Find jobs that fit you</h2>
+                <p className="mt-2 text-sm leading-relaxed text-white/85">Compare your verified skills with open opportunities.</p>
+                <Link href="/jobs/compatibility" className="mt-4 inline-flex h-10 items-center rounded-[10px] bg-white px-4 text-sm font-bold text-[#5b35c5]">
+                  Analyse compatibility →
                 </Link>
-              </Button>
+              </section>
+              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-base font-extrabold text-[#182137]">Recommended missions</h2>
+                  <Link href="/user/missions" className="text-sm font-bold text-[#7d4ccc]">View all</Link>
+                </div>
+                <p className="mt-2 text-sm text-[#70798d]">
+                  {missionStats?.pendingMissionsCount ?? 0} pending · {missionStats?.inProgressMissions ?? 0} in progress · {missionStats?.totalAssignedMissions ?? 0} assigned
+                </p>
+                <Link href="/profession/select" className="mt-3 inline-flex text-sm font-bold text-[#7d4ccc]">Start a mission →</Link>
+              </section>
             </div>
-          </motion.div>
-
-          {credits && (
-            <div className="xl:col-span-2">
-            <BrainiacCreditsCard
-              compact
-              balance={credits.balance}
-              loading={credits.loading}
-              error={credits.error}
-              usageHref="/user/credits"
-              onRefresh={() => void credits.refresh()}
-              onUpgrade={() => navigate("/user/subscription")}
-              onRecharge={() => void credits.startRecharge("User")}
-              actionLoading={credits.rechargeLoading}
-            />
-            </div>
-          )}
           </div>
 
-          <GuidanceCards />
-
-          {/* ── VX IDENTITY CARD ── */}
-          {vxIdentity && (vxIdentity.professionalTitle || vxIdentity.activeProfession || vxIdentity.verifiedExperienceYears > 0) && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-              className="relative overflow-hidden rounded-2xl border border-[#00D2FF]/20 bg-gradient-to-r from-[#00D2FF]/5 via-[#0d1119] to-[#9D4EDD]/5 p-5 sm:p-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00D2FF]/4 via-transparent to-[#9D4EDD]/4 pointer-events-none" />
-              <div className="absolute inset-0 opacity-[0.025] pointer-events-none"
-                style={{ backgroundImage: "linear-gradient(rgba(0,210,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,255,1) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5">
-                {/* Identity */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Shield className="w-3.5 h-3.5 text-[#00D2FF]/50" />
-                    <p className="text-[10px] font-mono text-[#00D2FF]/50 uppercase tracking-[0.25em]">Verified Career Identity</p>
-                  </div>
-                  {vxIdentity.displayString ? (
-                    <p className="text-base sm:text-lg font-bold text-white">{vxIdentity.displayString}</p>
-                  ) : (
-                    <p className="text-base sm:text-lg font-bold text-white">
-                      {vxIdentity.activeProfession}
-                      {vxIdentity.professionalTitle && ` — ${vxIdentity.professionalTitle}`}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap items-center gap-2 mt-3">
-                    {vxIdentity.verifiedExperienceYears > 0 && (
-                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#00D2FF]/30 bg-[#00D2FF]/8 text-[#00D2FF] text-sm font-black font-mono shadow-[0_0_12px_rgba(0,210,255,0.12)]">
-                        <Shield className="w-3.5 h-3.5" /> VX-{vxIdentity.verifiedExperienceYears.toFixed(1)}
-                      </span>
-                    )}
-                    {vxIdentity.verifiedExperienceYears > 0 && (
-                      <span className="text-sm text-white/40 font-mono">
-                        {vxIdentity.verifiedExperienceYears.toFixed(1)} years of Verified Experience
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {/* Stats + actions */}
-                <div className="flex items-center gap-3 sm:gap-4 shrink-0 flex-wrap">
-                  {vxIdentity.totalAccumulatedXp > 0 && (
-                    <div className="text-center px-3 py-2 rounded-xl border border-[#FFD700]/15 bg-[#FFD700]/5">
-                      <p className="text-[10px] font-mono text-[#FFD700]/50 uppercase tracking-wider">Total XP</p>
-                      <p className="text-lg font-black font-mono text-[#FFD700]">{vxIdentity.totalAccumulatedXp.toLocaleString()}</p>
-                    </div>
-                  )}
-                  <div className="flex flex-col gap-2">
-                    <button onClick={handleCopyProfileLink}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#00D2FF]/8 border border-[#00D2FF]/20 text-[#00D2FF] text-xs font-mono hover:bg-[#00D2FF]/15 transition-all whitespace-nowrap">
-                      <Link2 className="w-3.5 h-3.5" /> Copy Dossier Link
-                    </button>
-                    <a href={`/public-profile/${userId}`} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/4 border border-white/8 text-white/40 text-xs font-mono hover:bg-white/8 hover:text-white/70 transition-all whitespace-nowrap">
-                      <ExternalLink className="w-3.5 h-3.5" /> Open Public Dossier
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── FALLBACK SHARE STRIP (always visible when VX card is hidden) ── */}
-          {!(vxIdentity && (vxIdentity.professionalTitle || vxIdentity.activeProfession || vxIdentity.verifiedExperienceYears > 0)) && userId && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-              className="relative overflow-hidden rounded-2xl border border-[#00D2FF]/15 bg-gradient-to-r from-[#00D2FF]/4 via-[#0d1119] to-[#9D4EDD]/4 p-4 sm:p-5">
-              <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#00D2FF]/8 border border-[#00D2FF]/20 shrink-0">
-                    <Shield className="w-5 h-5 text-[#00D2FF]" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-mono text-[#00D2FF]/60 uppercase tracking-[0.25em] mb-0.5">Your Public Dossier</p>
-                    <p className="text-sm text-white/70">Share your verified profile with recruiters and on social media.</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                  <button onClick={handleCopyProfileLink}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#00D2FF]/8 border border-[#00D2FF]/20 text-[#00D2FF] text-xs font-mono hover:bg-[#00D2FF]/15 transition-all whitespace-nowrap">
-                    <Link2 className="w-3.5 h-3.5" /> Copy Profile Link
-                  </button>
-                  <a href={`/public-profile/${userId}`} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/4 border border-white/8 text-white/50 text-xs font-mono hover:bg-white/8 hover:text-white/80 transition-all whitespace-nowrap">
-                    <ExternalLink className="w-3.5 h-3.5" /> Open Public Profile
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── QUICK STATS GRID ── */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-            {[
-              { label: "Assigned Missions", value: missionStats?.totalAssignedMissions ?? 0, icon: Target, accent: "text-[#00D2FF]", glow: "from-[#00D2FF]/10" },
-              { label: "Pending", value: missionStats?.pendingMissionsCount ?? 0, icon: Clock, accent: "text-amber-300", glow: "from-amber-300/10" },
-              { label: "Completed Missions", value: solved, icon: CheckCircle2, accent: "text-emerald-400", glow: "from-emerald-400/10" },
-              { label: "In Progress", value: missionStats?.inProgressMissions ?? inProgDist, icon: Activity, accent: "text-[#A78BFA]", glow: "from-[#A78BFA]/10" },
-              { label: "Success Rate", value: `${missionStats?.missionSuccessRate ?? 0}%`, icon: Flame, accent: "text-orange-400", glow: "from-orange-400/10", streak: true },
-            ].map((card, i) => (
-              <motion.div key={card.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                className={`relative bg-[#0d1119] border border-white/6 rounded-xl p-5 overflow-hidden`}>
-                <div className={`absolute inset-0 bg-gradient-to-br ${card.glow} to-transparent opacity-40`} />
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[10px] uppercase tracking-wider font-mono text-white/40">{card.label}</span>
-                    <card.icon className={`h-4 w-4 ${card.accent}`} />
-                  </div>
-                  <div className={`text-3xl font-black font-mono ${card.accent}`}>
-                    {card.value}
-                  </div>
-                  {card.streak && <StreakFlame active={dayStreak >= 3} />}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* ── VIEW PROGRESS CTA ── */}
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-            <Link href="/app/dashboard"
-              className="flex items-center justify-between w-full bg-[#0d1119] border border-[#00D2FF]/20 hover:border-[#00D2FF]/50 rounded-xl px-5 py-4 group transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-[#00D2FF]/10 flex items-center justify-center group-hover:bg-[#00D2FF]/20 transition-colors">
-                  <TrendingUp className="h-5 w-5 text-[#00D2FF]" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">View Full Progress</p>
-                  <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Track challenges, XP &amp; district completion</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-[10px] font-mono uppercase tracking-wider text-[#00D2FF]/60">Total XP</p>
-                  <p className="text-base font-bold font-mono text-[#00D2FF]">{totalXP.toLocaleString()}</p>
-                </div>
-                <span className="text-xs font-mono text-[#00D2FF] group-hover:translate-x-1 transition-transform inline-block">→</span>
-              </div>
-            </Link>
-          </motion.div>
-
-          <div className="grid grid-cols-1 items-start gap-6 2xl:grid-cols-2">
-          {/* ── LEADERBOARD (top 5 + your position) ── */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="bg-[#0d1119] border border-white/6 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-[#FFD700]" /> Top Problem Solvers
-                </h2>
-                <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider mt-0.5">Global leaderboard · Top 5</p>
-              </div>
-              {rank && (
-                <div className="text-right">
-                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider">Your Rank</p>
-                  <p className="text-2xl font-black text-[#FFD700] font-mono">#{rank}</p>
-                </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {credits && (
+              <BrainiacCreditsCard
+                compact
+                balance={credits.balance}
+                loading={credits.loading}
+                error={credits.error}
+                usageHref="/user/credits"
+                onRefresh={() => void credits.refresh()}
+                onUpgrade={() => navigate("/user/subscription")}
+                onRecharge={() => void credits.startRecharge("User")}
+                actionLoading={credits.rechargeLoading}
+              />
+            )}
+            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+              <h2 className="text-base font-extrabold text-[#182137]">Verified identity</h2>
+              {vxIdentity?.displayString ? (
+                <p className="mt-2 text-sm font-semibold text-[#182137]">{vxIdentity.displayString}</p>
+              ) : (
+                <p className="mt-2 text-sm text-[#70798d]">Complete missions to build a verified experience record employers can review.</p>
               )}
-            </div>
-            <Leaderboard
-              topUsers={topUsers.filter(u => u.totalXP > 0).slice(0, 5)}
-              currentUser={currentUserRank}
-              loading={leaderboardLoading}
-              onUserClick={(uid) => navigate(`/public-profile/${uid}`)}
-            />
-          </motion.div>
-
-          <div className="space-y-6">
-          {userId && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
-              <OngoingMissionsSection userId={userId} />
-            </motion.div>
-          )}
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <MissionActivityFeed />
-          </motion.div>
-          <SocialFeedPanel variant="preview" />
-          </div>
-          </div>
-
-          {/* ── XP RING + DISTRICT OVERVIEW ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* XP Ring */}
-            <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
-              className="bg-[#0d1119] border border-white/6 rounded-2xl p-6 flex flex-col items-center gap-2">
-              <div className="w-full flex items-center justify-between mb-2">
-                <div>
-                  <h2 className="text-base font-bold text-white">XP Progress</h2>
-                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider">Level system</p>
-                </div>
-                <Zap className="h-5 w-5 text-[#FFD700]" />
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button variant="outline" onClick={handleCopyProfileLink} disabled={!userId}>
+                  <Share2 className="mr-2 h-4 w-4" /> Share dossier
+                </Button>
+                <Link href={(profileId || userId) ? `/profile/${encodeURIComponent(profileId || userId || "")}` : "/user/portfolio"} className="inline-flex h-10 items-center rounded-[10px] px-3 text-sm font-bold text-[#7d4ccc]">
+                  Public profile
+                </Link>
               </div>
-              <XPRing totalXP={totalXP} size={190} />
-            </motion.div>
+            </section>
+          </div>
 
-            {/* District Overview */}
-            <motion.div initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
-              className="bg-[#0d1119] border border-white/6 rounded-2xl p-6 space-y-5">
+          <div className="grid items-start gap-4 2xl:grid-cols-2">
+            <section className="rounded-2xl border border-[#e6e8ef] bg-[#0d1119] p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-base font-extrabold">Top problem solvers</h2>
+                {rank && <p className="text-sm font-extrabold text-[#d88c1b]">Your rank #{rank}</p>}
+              </div>
+              <Leaderboard
+                topUsers={topUsers.filter(u => u.totalXP > 0).slice(0, 5)}
+                currentUser={currentUserRank}
+                loading={leaderboardLoading}
+                onUserClick={(uid) => navigate(`/public-profile/${uid}`)}
+              />
+            </section>
+            <div className="space-y-4">
+              {userId && <OngoingMissionsSection userId={userId} />}
+              <MissionActivityFeed />
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <section className="flex flex-col items-center rounded-2xl border border-[#e6e8ef] bg-[#0d1119] p-5">
+              <h2 className="mb-3 w-full text-base font-extrabold">XP progress</h2>
+              <XPRing totalXP={totalXP} size={190} />
+              <Link href="/user/xp-progress" className="mt-3 text-sm font-bold text-[#7d4ccc]">Open XP ledger</Link>
+            </section>
+            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
               <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-base font-bold text-white">District Status</h2>
-                  <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider">Territorial control</p>
-                </div>
-                <Map className="h-5 w-5 text-amber-400" />
+                <h2 className="text-base font-extrabold text-[#182137]">District status</h2>
+                <Link href="/profession/select" className="text-sm font-bold text-[#7d4ccc]">Learning map</Link>
               </div>
               {!hasDistricts ? (
-                <EmptyState label="No territories claimed yet." cta="Explore Professions" href="/profession/select" />
+                <EmptyState label="No territories claimed yet." cta="Explore professions" href="/profession/select" />
               ) : (
-                <div className="space-y-4">
+                <div className="mt-4 space-y-4">
                   {[
-                    { label: "Claimed", value: claimedDist, total: totalDist, color: "bg-emerald-400", text: "text-emerald-400" },
-                    { label: "In Progress", value: inProgDist, total: totalDist, color: "bg-[#00D2FF]", text: "text-[#00D2FF]" },
-                    { label: "Total Districts", value: totalDist, total: totalDist, color: "bg-[#A78BFA]", text: "text-white" },
-                  ].map(bar => (
+                    { label: "Claimed", value: claimedDist },
+                    { label: "In progress", value: inProgDist },
+                    { label: "Total districts", value: totalDist },
+                  ].map((bar) => (
                     <div key={bar.label}>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-mono text-white/50">{bar.label}</span>
-                        <span className={`text-sm font-bold font-mono ${bar.text}`}>{bar.value} / {bar.total}</span>
+                      <div className="mb-1 flex items-center justify-between text-sm">
+                        <span className="text-[#626b7d]">{bar.label}</span>
+                        <span className="font-extrabold text-[#182137]">{bar.value} / {totalDist}</span>
                       </div>
-                      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-                        <motion.div className={`h-full rounded-full ${bar.color}`}
-                          initial={{ width: 0 }}
-                          animate={{ width: bar.total > 0 ? `${(bar.value / bar.total) * 100}%` : "0%" }}
-                          transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
-                        />
+                      <div className="h-2 overflow-hidden rounded-full bg-[#eef1f6]">
+                        <div className="h-full rounded-full bg-[#7d4ccc]" style={{ width: totalDist > 0 ? `${(bar.value / totalDist) * 100}%` : "0%" }} />
                       </div>
                     </div>
                   ))}
-                  <Link href="/profession/select"
-                    className="block mt-3 text-center text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400 transition-colors border border-dashed border-white/10 rounded-lg py-2.5">
-                    View Learning Map →
-                  </Link>
                 </div>
               )}
-            </motion.div>
+            </section>
           </div>
 
-          {/* ── ACHIEVEMENT STATUS ── */}
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className={`flex items-center gap-4 rounded-xl border p-4 ${hasBadges ? "border-[#FFD700]/25 bg-[#FFD700]/5" : "border-white/8 bg-[#0d1117]"}`}>
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${hasBadges ? "bg-[#FFD700]/15" : "bg-white/5"}`}>
-              <Trophy className={`h-5 w-5 ${hasBadges ? "text-[#FFD700]" : "text-white/20"}`} />
-            </div>
-            <div>
-              <p className={`text-sm font-bold ${hasBadges ? "text-[#FFD700]" : "text-white/30"}`}>
-                {hasBadges ? "Badge Collector Active" : "No badges unlocked yet"}
-              </p>
-              <p className="text-xs text-white/30 font-mono">
-                {hasBadges
-                  ? `${earnedBadges.length} badge${earnedBadges.length !== 1 ? "s" : ""} earned — keep going`
-                  : "Complete challenges to unlock your first achievement"}
-              </p>
-            </div>
-            <Link href="/user/badges" className="ml-auto text-[10px] font-mono uppercase tracking-wider text-white/30 hover:text-amber-400 transition-colors shrink-0">
-              All Badges →
-            </Link>
-          </motion.div>
-
-          {/* ── LEARNING / DISCOVERY + SUBSCRIPTION ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-[#0d1119] border border-white/6 rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <h2 className="text-lg font-bold text-amber-400">Learning &amp; Discovery</h2>
-                  <p className="text-xs text-muted-foreground font-mono">Explore professions and new missions</p>
-                </div>
-                <Compass className="h-5 w-5 text-amber-400" />
-              </div>
-              <p className="text-sm text-white/45 mb-5">
-                Browse districts, discover new problem nodes, and grow your verified experience across professions.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Link href="/profession/select">
-                  <Button className="bg-amber-400 hover:bg-amber-300 text-black font-mono text-xs gap-2">
-                    <Compass className="h-4 w-4" />
-                    Explore Missions
-                  </Button>
-                </Link>
-                <Link href="/profession/select"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-xs font-mono text-white/50 hover:text-amber-400 hover:border-amber-400/30 transition-colors">
-                  <Map className="h-4 w-4" />
-                  View Learning Map
+          <div className="grid gap-4 lg:grid-cols-3">
+            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)] lg:col-span-2">
+              <h2 className="text-base font-extrabold text-[#182137]">Learning and discovery</h2>
+              <p className="mt-2 text-sm text-[#70798d]">Browse districts, discover problem nodes, and grow verified experience across professions.</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link href="/profession/select" className="inline-flex h-10 items-center rounded-[10px] bg-[#7d4ccc] px-4 text-sm font-bold text-white">Explore missions</Link>
+                <Link href="/user/vx-progress" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] px-4 text-sm font-bold text-[#182137]">VX progress</Link>
+                <Link href="/user/badges" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] px-4 text-sm font-bold text-[#182137]">
+                  {hasBadges ? `${earnedBadges.length} badges` : "Achievements"}
                 </Link>
               </div>
-            </div>
-            {subName === "Architect" || subName === "Grandmaster" ? (
-              <div className="bg-gradient-to-br from-[#00D2FF]/10 to-[#0d1119] border border-[#00D2FF]/30 rounded-2xl p-6 shadow-[0_0_18px_rgba(0,210,255,0.12)] flex flex-col">
-                <Zap className="h-6 w-6 text-[#00D2FF] mb-3" />
-                <h3 className="text-lg font-bold text-[#00D2FF] mb-1">
-                  {subscriptionStatus.status === "Expired" ? `${subName} Expired` : `${subName} Active`}
-                </h3>
-                <SubscriptionStatusDetails plan={subName} status={subscriptionStatus.status} expiryDate={subscriptionStatus.expiryDate} />
-                {subscriptionStatus.status === "Expired" && (
-                  <Button
-                    className="mb-3 w-full font-bold bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
-                    onClick={() => navigate("/user/subscription")}
-                  >
-                    Make Payment
-                  </Button>
-                )}
-                <Link href="/user/subscription"
-                  className="block text-center text-xs font-mono uppercase tracking-wider text-[#00D2FF]/70 hover:text-[#00D2FF] transition-colors border border-[#00D2FF]/20 rounded-lg py-2.5">
-                  Manage Subscription →
-                </Link>
-              </div>
-            ) : (
-              /* Upgrade card — shows next tier */
-              <div className={`bg-gradient-to-br rounded-2xl p-6 flex flex-col ${
-                "from-[#7C3AED]/15 to-[#0d1119] border border-[#7C3AED]/30 shadow-[0_0_15px_rgba(124,58,237,0.2)]"
-              }`}>
-                <Crown className="h-6 w-6 text-amber-400 mb-3" />
-                <h3 className="text-lg font-bold mb-1">
-                  Ascend to Architect
-                </h3>
-                <p className="text-sm text-muted-foreground mb-5 flex-1">
-                  Unlock advanced missions, premium badges, and priority Brainiac access.
-                </p>
-                <SubscriptionStatusDetails plan={subName} status={subscriptionStatus.status} expiryDate={subscriptionStatus.expiryDate} />
-                <Button
-                  className="w-full font-bold bg-amber-400 hover:bg-amber-300 text-black shadow-[0_0_14px_rgba(124,58,237,0.3)]"
-                  onClick={handleUpgrade}
-                  disabled={upgradeLoading}
-                >
-                  {upgradeLoading
-                    ? "Preparing…"
-                    : subscriptionStatus.status === "Expired" ? "Make Payment" : "Upgrade — $19.99/mo"}
-                </Button>
-                <Link href="/user/subscription"
-                  className="block mt-3 text-center text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400 transition-colors">
-                  View all plans →
-                </Link>
-                <Link href={(profileId || userId) ? `/profile/${encodeURIComponent(profileId || userId || "")}` : "/"}
-                  className="block mt-1.5 text-center text-[10px] font-mono text-muted-foreground/50 hover:text-amber-400 transition-colors">
-                  View public profile →
-                </Link>
-              </div>
-            )}
+            </section>
+            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+              <h2 className="text-base font-extrabold text-[#182137]">{subName} {subscriptionStatus.status === "Expired" ? "expired" : "plan"}</h2>
+              <SubscriptionStatusDetails plan={subName} status={subscriptionStatus.status} expiryDate={subscriptionStatus.expiryDate} />
+              <Button className="mt-3 w-full" onClick={handleUpgrade} disabled={upgradeLoading}>
+                {upgradeLoading ? "Preparing…" : subscriptionStatus.status === "Expired" ? "Make payment" : subName === "Architect" ? "Manage plan" : "Upgrade plan"}
+              </Button>
+              <Link href="/user/subscription" className="mt-3 block text-center text-sm font-bold text-[#7d4ccc]">View all plans</Link>
+            </section>
           </div>
-
         </div>
       )}
     </DashboardShell>
+  );
+}
+
+function OverviewMetric({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  tint,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number;
+  sub?: string;
+  tint: string;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+      <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${tint}`}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-2xl font-extrabold leading-none tracking-tight text-[#182137]">{value}</p>
+        <p className="mt-1 text-sm font-bold text-[#182137]">{label}</p>
+        {sub && <p className="mt-0.5 truncate text-xs text-[#70798d]">{sub}</p>}
+      </div>
+    </div>
+  );
+}
+
+function JobsForYou() {
+  const [jobs, setJobs] = useState<Array<{ id: string; title: string; company: string; location: string }>>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.jobs.feed(1, 3).then((res) => {
+      if (cancelled) return;
+      const root = res.ok ? (res.data as any) : null;
+      const rows = Array.isArray(root) ? root : root?.items ?? root?.data ?? root?.jobs ?? root?.results ?? [];
+      const list = (Array.isArray(rows) ? rows : []).slice(0, 3).map((job: any) => ({
+        id: String(job?.id ?? job?.jobId ?? job?.jobPostingId ?? job?.Id ?? ""),
+        title: job?.title || job?.jobTitle || job?.Title || "Untitled role",
+        company: job?.companyName || job?.company || job?.employerName || "Employer",
+        location: job?.location || job?.Location || "Remote / flexible",
+      })).filter((job: { id: string }) => job.id);
+      setJobs(list);
+      setLoadingJobs(false);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const tones = ["bg-[#f5f0fc] text-[#7d4ccc]", "bg-[#edf4ff] text-[#276ef1]", "bg-[#eefaf4] text-[#168a68]"];
+
+  return (
+    <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-base font-extrabold text-[#182137]">Jobs for you</h2>
+        <Link href="/jobs" className="text-sm font-bold text-[#7d4ccc]">View all</Link>
+      </div>
+      {loadingJobs ? (
+        <p className="py-6 text-sm text-[#70798d]">Loading open roles…</p>
+      ) : jobs.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-[#e6e8ef] px-3 py-6 text-center">
+          <p className="text-sm font-semibold text-[#182137]">No roles loaded yet</p>
+          <Link href="/jobs" className="mt-2 inline-flex text-sm font-bold text-[#7d4ccc]">Explore the job feed</Link>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {jobs.map((job, index) => (
+            <Link key={job.id} href={`/jobs/${encodeURIComponent(job.id)}`} className="flex items-center gap-3 rounded-xl px-1 py-2 hover:bg-[#f7f8fb]">
+              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${tones[index % tones.length]}`}>
+                <BriefcaseBusiness className="h-4 w-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-extrabold text-[#182137]">{job.title}</span>
+                <span className="block truncate text-xs text-[#70798d]">{job.company} · {job.location}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
