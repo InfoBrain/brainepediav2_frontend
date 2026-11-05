@@ -173,10 +173,10 @@ export default function CreateProfile() {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-4 bg-gradient-to-r from-[#7C3AED]/20 to-[#0d1119] border border-[#7C3AED]/30 rounded-xl p-5"
         >
-          <Sparkles className="h-8 w-8 text-amber-400 flex-shrink-0" />
+          <Sparkles className="h-8 w-8 flex-shrink-0 text-[#7d4ccc] dark:text-amber-400" />
           <div>
-            <p className="text-base font-bold text-white">Initialize your operative profile</p>
-            <p className="text-sm text-gray-400">
+            <p className="text-base font-bold text-[#182137] dark:text-white">Initialize your operative profile</p>
+            <p className="text-sm text-[#70798d] dark:text-gray-400">
               Complete your profile to appear on the Imperial Grid and start earning XP.
             </p>
           </div>
@@ -203,7 +203,7 @@ export default function CreateProfile() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-amber-400 hover:bg-amber-300 text-black flex items-center justify-center shadow-lg"
+              className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#7d4ccc] text-white shadow-lg hover:bg-[#6538ad] dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
               aria-label="Upload avatar"
             >
               <Camera className="h-4 w-4" />
@@ -338,7 +338,7 @@ export default function CreateProfile() {
           <Button
             type="submit"
             disabled={submitting}
-            className="bg-amber-400 hover:bg-amber-300 text-black font-bold shadow-[0_0_15px_rgba(255,215,0,0.4)] px-8"
+            className="bg-[#7d4ccc] px-8 font-bold text-white hover:bg-[#6538ad] dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300 dark:shadow-[0_0_15px_rgba(255,215,0,0.4)]"
           >
             {submitting ? (
               <>
@@ -368,7 +368,7 @@ function Section({
   return (
     <section className="bg-[#0d1119] border border-white/5 rounded-xl p-6">
       <div className="mb-4">
-        <h2 className="text-lg font-bold text-amber-400">{title}</h2>
+        <h2 className="text-lg font-extrabold text-[#182137] dark:text-amber-400">{title}</h2>
         {subtitle && (
           <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-0.5">
             {subtitle}

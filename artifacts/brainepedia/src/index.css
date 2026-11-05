@@ -306,6 +306,54 @@
 
   html.light .text-accent { color: #7d4ccc; }
 
+  html.light .text-amber-200,
+  html.light .text-amber-300,
+  html.light .text-amber-400,
+  html.light .text-yellow-200,
+  html.light .text-yellow-300,
+  html.light .text-yellow-400,
+  html.light .text-yellow-500 {
+    color: #b87412 !important;
+  }
+
+  html.light .text-cyan-200,
+  html.light .text-cyan-300,
+  html.light .text-cyan-400,
+  html.light .text-sky-300,
+  html.light .text-sky-400 {
+    color: #276ef1 !important;
+  }
+
+  html.light .text-purple-300,
+  html.light .text-purple-400,
+  html.light .text-fuchsia-300,
+  html.light .text-fuchsia-400 {
+    color: #7d4ccc !important;
+  }
+
+  html.light .text-emerald-300,
+  html.light .text-emerald-400,
+  html.light .text-green-300,
+  html.light .text-green-400 {
+    color: #168a68 !important;
+  }
+
+  html.light .text-rose-300,
+  html.light .text-rose-400,
+  html.light .text-red-300 {
+    color: #d34d62 !important;
+  }
+
+  html.light [class*="bg-[#0a0d16]"] .text-amber-200 { color: #fde68a !important; }
+  html.light [class*="bg-[#0a0d16]"] .text-amber-300 { color: #fcd34d !important; }
+  html.light [class*="bg-[#0a0d16]"] .text-amber-400 { color: #fbbf24 !important; }
+  html.light [class*="bg-[#0a0d16]"] .text-cyan-300 { color: #67e8f9 !important; }
+  html.light [class*="bg-[#0a0d16]"] .text-cyan-400 { color: #22d3ee !important; }
+  html.light [class*="bg-[#0a0d16]"] .text-purple-300 { color: #d8b4fe !important; }
+  html.light [class*="bg-[#0a0d16]"] .text-purple-400 { color: #c084fc !important; }
+  html.light [class*="bg-[#0a0d16]"] .text-emerald-300 { color: #6ee7b7 !important; }
+  html.light [class*="bg-[#0a0d16]"] .text-emerald-400 { color: #34d399 !important; }
+
   html.light .font-mono.uppercase,
   html.light .uppercase.font-mono,
   html.light .font-mono.tracking-wider,

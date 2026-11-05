@@ -514,7 +514,7 @@ function SidebarContent({
           return (
             <div key={`${item.href}__${item.label}`}>
               {showSectionHeader && (
-                <div className="px-3 pb-1.5 pt-4 text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#8c93a2]">
+                <div className={`px-3 pb-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#8c93a2] ${i === 0 ? "pt-1" : "mt-2 border-t border-[#eef0f4] pt-3 dark:border-border"}`}>
                   {item.section}
                 </div>
               )}

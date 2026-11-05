@@ -10,9 +10,7 @@ import { motion } from "framer-motion";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { USER_NAV } from "@/lib/userNav";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
-import { XPRing } from "@/components/dashboard/XPRing";
-import { Leaderboard, type LeaderboardUser, type CurrentUserRank } from "@/components/dashboard/Leaderboard";
-import { MissionActivityFeed } from "@/components/dashboard/MissionActivityFeed";
+import { type LeaderboardUser, type CurrentUserRank } from "@/components/dashboard/Leaderboard";
 import { OngoingMissionsSection } from "@/components/dashboard/OngoingMissionsSection";
 import { SocialFeedPanel } from "@/components/feed/SocialFeedPanel";
 import { api } from "@/lib/api";
@@ -22,8 +20,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { normalizeUserMissionStatistics } from "@/lib/missionStatistics";
 import { normalizeSubscriptionDetails, type NormalizedSubscriptionDetails } from "@/lib/subscription";
-import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
-import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */
 type Stats = {
@@ -150,7 +146,6 @@ export default function UserDashboard() {
   const profileId = getProfileId();
   const user = getUser();
   const { toast } = useToast();
-  const credits = useOptionalBrainiacCredits();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -531,169 +526,55 @@ export default function UserDashboard() {
             </div>
           </div>
 
-          <section className="flex flex-col gap-4 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)] lg:flex-row lg:items-center">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
-            ) : (
-              <span className="grid h-16 w-16 place-items-center rounded-full bg-[#7d4ccc] text-lg font-extrabold text-white">{initial}</span>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#168a68]">{verified ? "Verified professional" : "Professional"}</p>
-              <h2 className="text-lg font-extrabold text-[#182137]">{displayName}</h2>
-              <p className="text-sm text-[#70798d]">{locationLine}</p>
-            </div>
-            <div className="w-full max-w-xs">
-              <div className="mb-1 flex items-center justify-between text-xs font-bold">
-                <span className="text-[#7d4ccc]">{profileStrength}%</span>
-                <span className="text-[#70798d]">Profile strength</span>
+          <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.82fr)]">
+            <section className="min-w-0 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)] sm:p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-base font-extrabold text-[#182137]">Feed</h2>
+                <Link href="/feed" className="text-sm font-bold text-[#7d4ccc]">Open full feed</Link>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-[#efe8f8]">
-                <div className="h-full rounded-full bg-[#7d4ccc]" style={{ width: `${profileStrength}%` }} />
-              </div>
-              <Link href="/profile/edit" className="mt-2 inline-flex text-sm font-bold text-[#7d4ccc]">Complete profile →</Link>
-            </div>
-          </section>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <OverviewMetric icon={Zap} label="Experience points" value={totalXP.toLocaleString()} sub={dayStreak > 0 ? `${dayStreak}-day streak` : "From missions and assessments"} tint="bg-[#f5f0fc] text-[#7d4ccc]" />
-            <OverviewMetric icon={Shield} label="Verified experience" value={vxYears > 0 ? vxYears.toLocaleString() : "—"} sub={vxIdentity?.professionalTitle || "Years of verified experience"} tint="bg-[#edf4ff] text-[#276ef1]" />
-            <OverviewMetric icon={Trophy} label="Badges earned" value={earnedBadges.length} sub={newBadges.length > 0 ? `${newBadges.length} newly unlocked` : rank ? `Rank #${rank}` : "Milestones from your work"} tint="bg-[#fff6e8] text-[#d88c1b]" />
-            <OverviewMetric icon={Target} label="Completed missions" value={solved} sub={`${missionStats?.inProgressMissions ?? 0} currently active`} tint="bg-[#eefaf4] text-[#168a68]" />
-          </div>
-
-          <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
-            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
-              <SocialFeedPanel variant="preview" />
+              <SocialFeedPanel variant="full" />
             </section>
+
             <div className="space-y-4">
+              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+                <div className="flex items-center gap-3">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover" />
+                  ) : (
+                    <span className="grid h-12 w-12 place-items-center rounded-full bg-[#7d4ccc] text-sm font-extrabold text-white">{initial}</span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#168a68]">{verified ? "Verified professional" : "Professional"}</p>
+                    <h2 className="truncate text-base font-extrabold text-[#182137]">{displayName}</h2>
+                    <p className="truncate text-xs text-[#70798d]">{locationLine}</p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <div className="mb-1 flex items-center justify-between text-xs font-bold">
+                    <span className="text-[#70798d]">Profile strength</span>
+                    <span className="text-[#7d4ccc]">{profileStrength}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-[#efe8f8]">
+                    <div className="h-full rounded-full bg-[#7d4ccc]" style={{ width: `${profileStrength}%` }} />
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm font-bold">
+                  <Link href="/profile/edit" className="text-[#7d4ccc]">Complete profile</Link>
+                  <Link href={(profileId || userId) ? `/profile/${encodeURIComponent(profileId || userId || "")}` : "/user/portfolio"} className="text-[#276ef1]">Public profile</Link>
+                  <button type="button" onClick={handleCopyProfileLink} disabled={!userId} className="text-[#70798d] disabled:opacity-50">Share</button>
+                </div>
+              </section>
+
+              <div className="grid grid-cols-2 gap-3">
+                <OverviewMetric icon={Zap} label="Experience points" value={totalXP.toLocaleString()} sub={dayStreak > 0 ? `${dayStreak}-day streak` : "From your missions"} tint="bg-[#f5f0fc] text-[#7d4ccc]" />
+                <OverviewMetric icon={Shield} label="Verified experience" value={vxYears > 0 ? vxYears.toLocaleString() : "—"} sub={vxIdentity?.professionalTitle || "Years verified"} tint="bg-[#edf4ff] text-[#276ef1]" />
+                <OverviewMetric icon={Trophy} label="Badges earned" value={earnedBadges.length} sub={rank ? `Rank #${rank}` : "Milestones"} tint="bg-[#fff6e8] text-[#b87412]" />
+                <OverviewMetric icon={Target} label="Completed missions" value={solved} sub={`${missionStats?.inProgressMissions ?? 0} active`} tint="bg-[#eefaf4] text-[#168a68]" />
+              </div>
+
               <JobsForYou />
-              <section className="rounded-2xl bg-gradient-to-br from-[#5b35c5] to-[#7d4ccc] p-5 text-white shadow-[0_12px_30px_rgba(125,76,204,0.28)]">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-white/80">Powered by Brainiac</p>
-                <h2 className="mt-2 text-xl font-extrabold">Find jobs that fit you</h2>
-                <p className="mt-2 text-sm leading-relaxed text-white/85">Compare your verified skills with open opportunities.</p>
-                <Link href="/jobs/compatibility" className="mt-4 inline-flex h-10 items-center rounded-[10px] bg-white px-4 text-sm font-bold text-[#5b35c5]">
-                  Analyse compatibility →
-                </Link>
-              </section>
-              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-extrabold text-[#182137]">Recommended missions</h2>
-                  <Link href="/user/missions" className="text-sm font-bold text-[#7d4ccc]">View all</Link>
-                </div>
-                <p className="mt-2 text-sm text-[#70798d]">
-                  {missionStats?.pendingMissionsCount ?? 0} pending · {missionStats?.inProgressMissions ?? 0} in progress · {missionStats?.totalAssignedMissions ?? 0} assigned
-                </p>
-                <Link href="/profession/select" className="mt-3 inline-flex text-sm font-bold text-[#7d4ccc]">Start a mission →</Link>
-              </section>
-            </div>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            {credits && (
-              <BrainiacCreditsCard
-                compact
-                balance={credits.balance}
-                loading={credits.loading}
-                error={credits.error}
-                usageHref="/user/credits"
-                onRefresh={() => void credits.refresh()}
-                onUpgrade={() => navigate("/user/subscription")}
-                onRecharge={() => void credits.startRecharge("User")}
-                actionLoading={credits.rechargeLoading}
-              />
-            )}
-            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
-              <h2 className="text-base font-extrabold text-[#182137]">Verified identity</h2>
-              {vxIdentity?.displayString ? (
-                <p className="mt-2 text-sm font-semibold text-[#182137]">{vxIdentity.displayString}</p>
-              ) : (
-                <p className="mt-2 text-sm text-[#70798d]">Complete missions to build a verified experience record employers can review.</p>
-              )}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button variant="outline" onClick={handleCopyProfileLink} disabled={!userId}>
-                  <Share2 className="mr-2 h-4 w-4" /> Share dossier
-                </Button>
-                <Link href={(profileId || userId) ? `/profile/${encodeURIComponent(profileId || userId || "")}` : "/user/portfolio"} className="inline-flex h-10 items-center rounded-[10px] px-3 text-sm font-bold text-[#7d4ccc]">
-                  Public profile
-                </Link>
-              </div>
-            </section>
-          </div>
-
-          <div className="grid items-start gap-4 2xl:grid-cols-2">
-            <section className="rounded-2xl border border-[#e6e8ef] bg-[#0d1119] p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-base font-extrabold">Top problem solvers</h2>
-                {rank && <p className="text-sm font-extrabold text-[#d88c1b]">Your rank #{rank}</p>}
-              </div>
-              <Leaderboard
-                topUsers={topUsers.filter(u => u.totalXP > 0).slice(0, 5)}
-                currentUser={currentUserRank}
-                loading={leaderboardLoading}
-                onUserClick={(uid) => navigate(`/public-profile/${uid}`)}
-              />
-            </section>
-            <div className="space-y-4">
               {userId && <OngoingMissionsSection userId={userId} />}
-              <MissionActivityFeed />
             </div>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <section className="flex flex-col items-center rounded-2xl border border-[#e6e8ef] bg-[#0d1119] p-5">
-              <h2 className="mb-3 w-full text-base font-extrabold">XP progress</h2>
-              <XPRing totalXP={totalXP} size={190} />
-              <Link href="/user/xp-progress" className="mt-3 text-sm font-bold text-[#7d4ccc]">Open XP ledger</Link>
-            </section>
-            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-extrabold text-[#182137]">District status</h2>
-                <Link href="/profession/select" className="text-sm font-bold text-[#7d4ccc]">Learning map</Link>
-              </div>
-              {!hasDistricts ? (
-                <EmptyState label="No territories claimed yet." cta="Explore professions" href="/profession/select" />
-              ) : (
-                <div className="mt-4 space-y-4">
-                  {[
-                    { label: "Claimed", value: claimedDist },
-                    { label: "In progress", value: inProgDist },
-                    { label: "Total districts", value: totalDist },
-                  ].map((bar) => (
-                    <div key={bar.label}>
-                      <div className="mb-1 flex items-center justify-between text-sm">
-                        <span className="text-[#626b7d]">{bar.label}</span>
-                        <span className="font-extrabold text-[#182137]">{bar.value} / {totalDist}</span>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-[#eef1f6]">
-                        <div className="h-full rounded-full bg-[#7d4ccc]" style={{ width: totalDist > 0 ? `${(bar.value / totalDist) * 100}%` : "0%" }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-3">
-            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)] lg:col-span-2">
-              <h2 className="text-base font-extrabold text-[#182137]">Learning and discovery</h2>
-              <p className="mt-2 text-sm text-[#70798d]">Browse districts, discover problem nodes, and grow verified experience across professions.</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link href="/profession/select" className="inline-flex h-10 items-center rounded-[10px] bg-[#7d4ccc] px-4 text-sm font-bold text-white">Explore missions</Link>
-                <Link href="/user/vx-progress" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] px-4 text-sm font-bold text-[#182137]">VX progress</Link>
-                <Link href="/user/badges" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] px-4 text-sm font-bold text-[#182137]">
-                  {hasBadges ? `${earnedBadges.length} badges` : "Achievements"}
-                </Link>
-              </div>
-            </section>
-            <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
-              <h2 className="text-base font-extrabold text-[#182137]">{subName} {subscriptionStatus.status === "Expired" ? "expired" : "plan"}</h2>
-              <SubscriptionStatusDetails plan={subName} status={subscriptionStatus.status} expiryDate={subscriptionStatus.expiryDate} />
-              <Button className="mt-3 w-full" onClick={handleUpgrade} disabled={upgradeLoading}>
-                {upgradeLoading ? "Preparing…" : subscriptionStatus.status === "Expired" ? "Make payment" : subName === "Architect" ? "Manage plan" : "Upgrade plan"}
-              </Button>
-              <Link href="/user/subscription" className="mt-3 block text-center text-sm font-bold text-[#7d4ccc]">View all plans</Link>
-            </section>
           </div>
         </div>
       )}
