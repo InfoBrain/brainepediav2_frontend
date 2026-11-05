@@ -145,7 +145,7 @@ export default function PortfolioPage() {
   return (
     <DashboardShell nav={USER_NAV} title="Portfolio" subtitle="// professional.cv.builder" theme="user" showBrainiac headerRight={headerRight}>
       <div className="space-y-6">
-        <section className="rounded-2xl border border-[#e6e8ef] bg-white bg-gradient-to-br from-white via-white to-[#f5f0fc] dark:border-amber-400/20 dark:from-amber-400/10 dark:via-[#0d1119] dark:to-[#7C3AED]/10 p-5">
+        <section className="rounded-2xl border border-[#e6e8ef] bg-white bg-gradient-to-br from-white via-white to-[#f5f0fc] dark:border-amber-400/20 dark:bg-transparent dark:from-amber-400/10 dark:via-[#0d1119] dark:to-[#7C3AED]/10 p-5">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#7d4ccc] dark:font-mono dark:text-amber-400/70">Portfolio Completion</p>
