@@ -12,24 +12,23 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "wouter";
-import { Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, X } from "lucide-react";
 import { SocialLoginSection } from "@/components/auth/SocialLoginSection";
+import { AuthIntro } from "@/components/auth/AuthLayout";
 
 export function AuthBanner({ type, message }: { type: "error" | "success" | "info", message: string }) {
   if (!message) return null;
   const isError = type === "error";
   const isSuccess = type === "success";
-  
+
   return (
-    <div className={`p-3 mb-6 border-l-4 rounded-r-md text-sm font-mono ${
-      isError ? "bg-destructive/10 border-destructive text-destructive-foreground" : 
-      isSuccess ? "bg-primary/10 border-primary text-primary" : 
-      "bg-accent/10 border-accent text-accent"
+    <div className={`mt-4 flex items-start gap-2 rounded-[9px] border px-3 py-2.5 text-sm leading-relaxed ${
+      isError ? "border-[#f0cbd2] bg-[#fff3f5] text-[#a23f52]" :
+      isSuccess ? "border-[#c9eadc] bg-[#eefaf4] text-[#168a68]" :
+      "border-[#d5e2fb] bg-[#edf4ff] text-[#276ef1]"
     }`}>
-      <span className="font-bold mr-2">
-        //{isError ? " ERROR" : isSuccess ? " CONFIRMED" : " INFO"}
-      </span>
-      {message}
+      {isError ? <X className="mt-0.5 h-4 w-4 shrink-0" /> : null}
+      <span>{message}</span>
     </div>
   );
 }
@@ -101,59 +100,54 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout quote="Welcome back.">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Welcome back.</h1>
-        <p className="text-muted-foreground">Sign in to your account to continue.</p>
-      </div>
+    <AuthLayout>
+      <AuthIntro eyebrow="Welcome back" title="Continue your Brainepedia journey.">
+        Sign in and we’ll take you to the workspace linked to your account.
+      </AuthIntro>
 
       <AuthBanner type="error" message={error} />
       <AuthBanner type="success" message={success} />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
-          {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-6 grid gap-4">
+        <div className="grid gap-1.5">
+          <Label htmlFor="email" className="text-xs font-extrabold text-[#4e576b]">Email Address</Label>
+          <Input id="email" type="email" placeholder="you@example.com" autoComplete="email" {...register("email")} />
+          {errors.email && <p className="text-xs text-[#d34d62]">{errors.email.message}</p>}
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <Label htmlFor="password">Password</Label>
+        <div className="grid gap-1.5">
+          <Label htmlFor="password" className="text-xs font-extrabold text-[#4e576b]">Password</Label>
+          <PasswordInput id="password" placeholder="Enter your password" autoComplete="current-password" {...register("password")} />
+          {errors.password && <p className="text-xs text-[#d34d62]">{errors.password.message}</p>}
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="rememberMe"
+              checked={rememberMe}
+              onCheckedChange={(c) => setValue("rememberMe", c as boolean)}
+            />
+            <Label htmlFor="rememberMe" className="text-sm font-medium text-[#70798d]">Remember me</Label>
           </div>
-          <PasswordInput id="password" {...register("password")} />
-          {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
+          <Link href="/auth/forgot-password" className="text-sm font-bold text-[#7d4ccc]">
+            Forgot password?
+          </Link>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Checkbox 
-            id="rememberMe" 
-            checked={rememberMe}
-            onCheckedChange={(c) => setValue("rememberMe", c as boolean)}
-          />
-          <Label htmlFor="rememberMe" className="text-sm font-normal">Remember me</Label>
-        </div>
-
-        <Button type="submit" className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)]" disabled={isSubmitting}>
-          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {isSubmitting ? "Authenticating..." : "Login"}
+        <Button type="submit" className="h-11 w-full" disabled={isSubmitting}>
+          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {isSubmitting ? "Signing in..." : "Log In"}
+          {!isSubmitting && <ArrowRight className="h-4 w-4" />}
         </Button>
       </form>
 
       <SocialLoginSection />
 
-      <div className="mt-6 space-y-2 text-center text-sm">
-        <div>
-          <Link href="/auth/forgot-password" className="text-muted-foreground hover:text-primary transition-colors">
-            Forgot your password?
-          </Link>
-        </div>
-        <div>
-          <Link href="/auth/register" className="text-muted-foreground hover:text-primary transition-colors">
-            New here? <span className="font-bold text-primary">Create an account →</span>
-          </Link>
-        </div>
-      </div>
+      <p className="mt-6 text-center text-sm text-[#70798d]">
+        Don’t have an account?{" "}
+        <Link href="/auth/register" className="font-extrabold text-[#7d4ccc]">Create Account</Link>
+      </p>
     </AuthLayout>
   );
 }

@@ -5,13 +5,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { api } from "@/lib/api";
 import { getToken, getUser } from "@/lib/auth";
-import { AuthLayout } from "@/components/auth/AuthLayout";
+import { AuthIntro, AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthBanner } from "@/pages/auth/Login";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 const changeSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -59,43 +59,43 @@ export default function ChangePassword() {
   if (!getToken()) return null;
 
   return (
-    <AuthLayout quote="Rotate your credentials.">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Rotate Your Credentials.</h1>
-        <p className="text-muted-foreground">Update your password while signed in.</p>
-      </div>
+    <AuthLayout>
+      <AuthIntro eyebrow="Account security" title="Update your password.">
+        Choose a new password for the account you’re signed in with.
+      </AuthIntro>
 
       <AuthBanner type="error" message={error} />
       <AuthBanner type="success" message={success} />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-6 grid gap-4">
+        <div className="grid gap-1.5">
+          <Label htmlFor="email" className="text-xs font-extrabold text-[#4e576b]">Email Address</Label>
           <Input id="email" type="email" {...register("email")} />
-          {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
+          {errors.email && <p className="text-xs text-[#d34d62]">{errors.email.message}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="oldPassword">Current Password</Label>
+        <div className="grid gap-1.5">
+          <Label htmlFor="oldPassword" className="text-xs font-extrabold text-[#4e576b]">Current Password</Label>
           <PasswordInput id="oldPassword" {...register("oldPassword")} />
-          {errors.oldPassword && <p className="text-destructive text-xs font-mono">{errors.oldPassword.message}</p>}
+          {errors.oldPassword && <p className="text-xs text-[#d34d62]">{errors.oldPassword.message}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">New Password</Label>
+        <div className="grid gap-1.5">
+          <Label htmlFor="password" className="text-xs font-extrabold text-[#4e576b]">New Password</Label>
           <PasswordInput id="password" {...register("password")} />
-          {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm New Password</Label>
-          <PasswordInput id="confirmPassword" {...register("confirmPassword")} />
-          {errors.confirmPassword && <p className="text-destructive text-xs font-mono">{errors.confirmPassword.message}</p>}
+          {errors.password && <p className="text-xs text-[#d34d62]">{errors.password.message}</p>}
         </div>
 
-        <Button type="submit" className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)]" disabled={isSubmitting}>
-          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        <div className="grid gap-1.5">
+          <Label htmlFor="confirmPassword" className="text-xs font-extrabold text-[#4e576b]">Confirm New Password</Label>
+          <PasswordInput id="confirmPassword" {...register("confirmPassword")} />
+          {errors.confirmPassword && <p className="text-xs text-[#d34d62]">{errors.confirmPassword.message}</p>}
+        </div>
+
+        <Button type="submit" className="h-11 w-full" disabled={isSubmitting}>
+          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {isSubmitting ? "Updating..." : "Update Password"}
+          {!isSubmitting && <ArrowRight className="h-4 w-4" />}
         </Button>
       </form>
     </AuthLayout>

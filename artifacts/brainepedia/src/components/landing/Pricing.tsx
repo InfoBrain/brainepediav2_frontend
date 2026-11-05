@@ -37,7 +37,7 @@ export function Pricing() {
               } bg-card relative flex flex-col`}
             >
               {popular && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_0_15px_rgba(0,210,255,0.4)]">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-[0_6px_17px_rgba(125,76,204,0.2)]">
                   Most Chosen
                 </div>
               )}

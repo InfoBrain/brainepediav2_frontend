@@ -191,7 +191,7 @@ export function BrainiacWidget() {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.92 }}
         title={open ? "Close Brainiac" : "Ask Brainiac"}
-        className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#9D4EDD] to-[#00D2FF] text-white shadow-2xl shadow-[#9D4EDD]/30 transition-all sm:bottom-6 sm:right-6"
+        className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-[#7d4ccc] text-white shadow-[0_8px_20px_rgba(125,76,204,0.28)] transition-all sm:bottom-6 sm:right-6"
         style={{
           boxShadow: open
             ? "0 0 0 3px rgba(157,78,221,0.35), 0 8px 24px rgba(157,78,221,0.35)"

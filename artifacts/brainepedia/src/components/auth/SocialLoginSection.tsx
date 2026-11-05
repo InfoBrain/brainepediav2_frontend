@@ -17,15 +17,15 @@ export function SocialLoginSection({ label = "Or continue with" }: Props) {
   return (
     <div className="mt-6">
       <div className="relative flex items-center gap-3 py-1">
-        <div className="flex-1 h-px bg-border/60" />
-        <span className="text-xs text-muted-foreground shrink-0">{label}</span>
-        <div className="flex-1 h-px bg-border/60" />
+        <div className="h-px flex-1 bg-[#e6e8ef]" />
+        <span className="shrink-0 text-[11px] font-extrabold uppercase tracking-[0.08em] text-[#9aa0af]">{label}</span>
+        <div className="h-px flex-1 bg-[#e6e8ef]" />
       </div>
 
       <button
         type="button"
         onClick={loginWithGoogle}
-        className="mt-4 w-full flex items-center justify-center gap-3 rounded-lg border border-border/70 bg-background/60 px-4 py-3 text-sm font-medium text-foreground transition-all hover:border-primary/50 hover:bg-primary/5 hover:shadow-[0_0_12px_rgba(0,210,255,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 active:scale-[0.98]"
+        className="mt-4 flex w-full items-center justify-center gap-3 rounded-[10px] border border-[#e6e8ef] bg-white px-4 py-3 text-sm font-bold text-[#182137] transition-colors hover:border-[#c8b4e3] hover:bg-[#fbf9fe] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b89cdd]"
       >
         <GoogleIcon />
         Continue with Google

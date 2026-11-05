@@ -36,7 +36,7 @@ export function HowItWorks() {
                 transition={{ delay: i * 0.1 }}
                 className="relative flex flex-col items-center text-center"
               >
-                <div className="w-16 h-16 rounded-xl bg-card border border-primary/30 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(0,210,255,0.1)] relative group cursor-default">
+                <div className="w-16 h-16 rounded-xl bg-card border border-primary/30 flex items-center justify-center mb-6 shadow-[0_8px_24px_rgba(28,33,54,0.06)] relative group cursor-default">
                   <div className="absolute inset-0 bg-primary/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                   <step.icon className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
                   

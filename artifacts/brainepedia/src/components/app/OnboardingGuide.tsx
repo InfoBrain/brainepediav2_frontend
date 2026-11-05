@@ -18,33 +18,33 @@ const USER_STEPS: Step[] = [
   {
     title: "Welcome to Brainepedia",
     body: "Learn by solving real-world missions. Your dashboard turns practical problem solving into visible career evidence.",
-    icon: <LayoutDashboard className="w-6 h-6 text-[#00D2FF]" />,
+    icon: <LayoutDashboard className="w-6 h-6 text-[#7d4ccc]" />,
   },
   {
     title: "Complete your Profile",
     body: "Add your identity, title, avatar, and professional details so your dossier represents you accurately.",
-    icon: <User className="w-6 h-6 text-[#00D2FF]" />,
+    icon: <User className="w-6 h-6 text-[#7d4ccc]" />,
     cta: "Complete Profile",
     href: "/profile/edit",
   },
   {
     title: "Build your Portfolio",
     body: "Create your CV-style Portfolio with a personal statement, education, experience, skills, services, projects, and interests.",
-    icon: <BriefcaseBusiness className="w-6 h-6 text-[#FFD700]" />,
+    icon: <BriefcaseBusiness className="w-6 h-6 text-[#d88c1b]" />,
     cta: "Build Portfolio",
     href: "/user/portfolio",
   },
   {
     title: "Choose Your Profession",
     body: "Select a profession to unlock your personalised Learning Map filled with districts to explore.",
-    icon: <Map className="w-6 h-6 text-[#9D4EDD]" />,
+    icon: <Map className="w-6 h-6 text-[#7d4ccc]" />,
     cta: "Select Profession",
     href: "/profession/select",
   },
   {
     title: "Start your first Mission",
     body: "Each mission is a practical challenge. Complete one to begin building verified proof of skill.",
-    icon: <Sparkles className="w-6 h-6 text-[#FFD700]" />,
+    icon: <Sparkles className="w-6 h-6 text-[#d88c1b]" />,
   },
   {
     title: "Earn XP",
@@ -54,14 +54,14 @@ const USER_STEPS: Step[] = [
   {
     title: "Unlock VX",
     body: "Verified Experience (VX) converts mission performance into a career-ready evidence signal.",
-    icon: <Shield className="w-6 h-6 text-[#00D2FF]" />,
+    icon: <Shield className="w-6 h-6 text-[#7d4ccc]" />,
     cta: "View VX",
     href: "/user/vx-progress",
   },
   {
     title: "Become discoverable by employers",
     body: "A complete profile and portfolio make your public dossier more recruiter friendly and easier to share.",
-    icon: <BriefcaseBusiness className="w-6 h-6 text-[#00D2FF]" />,
+    icon: <BriefcaseBusiness className="w-6 h-6 text-[#7d4ccc]" />,
     cta: "Open Portfolio",
     href: "/user/portfolio",
   },
@@ -119,7 +119,7 @@ export function OnboardingGuide() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-[rgba(21,24,40,0.45)] backdrop-blur-sm"
             onClick={dismiss}
           />
 
@@ -130,12 +130,12 @@ export function OnboardingGuide() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[61] w-[min(420px,calc(100vw-32px))] rounded-2xl border border-[#9D4EDD]/30 bg-[#0a0d16] shadow-2xl overflow-hidden"
+            className="fixed bottom-6 left-1/2 z-[61] w-[min(420px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-2xl border border-[#e6e8ef] bg-white text-[#182137] shadow-[0_18px_50px_rgba(28,33,54,0.16)]"
           >
             {/* Progress bar */}
-            <div className="h-0.5 w-full bg-white/5">
+            <div className="h-0.5 w-full bg-[#efe8f8]">
               <motion.div
-                className="h-full bg-gradient-to-r from-[#9D4EDD] to-[#00D2FF]"
+                className="h-full bg-[#7d4ccc]"
                 animate={{ width: `${((step + 1) / steps.length) * 100}%` }}
                 transition={{ duration: 0.35 }}
               />
@@ -145,27 +145,27 @@ export function OnboardingGuide() {
               {/* Close */}
               <button
                 onClick={dismiss}
-                className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5"
+                className="absolute right-4 top-4 rounded-lg p-1 text-[#8c93a2] transition-colors hover:bg-[#f5f0fc] hover:text-[#7d4ccc]"
                 title="Skip guide"
               >
                 <X className="w-4 h-4" />
               </button>
 
               {/* Step indicator */}
-              <p className="text-[10px] font-mono text-white/25 uppercase tracking-widest mb-4">
+              <p className="mb-4 text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#7d4ccc]">
                 Step {step + 1} of {steps.length}
               </p>
 
               {/* Icon + title */}
               <div className="flex items-start gap-3 mb-3">
-                <div className="shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#efe8f8] bg-[#f5f0fc] text-[#7d4ccc]">
                   {current.icon}
                 </div>
-                <h3 className="text-base font-bold text-white mt-1.5 leading-snug">{current.title}</h3>
+                <h3 className="mt-1.5 text-base font-extrabold leading-snug text-[#182137]">{current.title}</h3>
               </div>
 
               {/* Body */}
-              <p className="text-sm text-white/50 leading-relaxed mb-6">{current.body}</p>
+              <p className="mb-6 text-sm leading-relaxed text-[#60697b]">{current.body}</p>
 
               {/* Dot indicators */}
               <div className="flex items-center gap-1.5 mb-5">
@@ -178,8 +178,8 @@ export function OnboardingGuide() {
                     <div
                       className={`rounded-full transition-all ${
                         i === step
-                          ? "w-5 h-1.5 bg-[#9D4EDD]"
-                          : "w-1.5 h-1.5 bg-white/15"
+                          ? "h-1.5 w-5 bg-[#7d4ccc]"
+                          : "h-1.5 w-1.5 bg-[#e6e8ef]"
                       }`}
                     />
                   </button>
@@ -191,7 +191,7 @@ export function OnboardingGuide() {
                 {step > 0 && (
                   <button
                     onClick={prev}
-                    className="flex items-center gap-1 px-3 py-2 text-xs font-mono text-white/40 hover:text-white/70 transition-colors rounded-lg hover:bg-white/5"
+                    className="flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-bold text-[#70798d] transition-colors hover:bg-[#f5f0fc] hover:text-[#7d4ccc]"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" /> Back
                   </button>
@@ -200,14 +200,14 @@ export function OnboardingGuide() {
                 {current.cta && current.href && (
                   <button
                     onClick={() => handleCta(current.href)}
-                    className="px-3 py-2 text-xs font-mono rounded-lg border border-[#FFD700]/40 text-[#FFD700] hover:bg-[#FFD700]/10 transition-colors"
+                    className="rounded-lg border border-[#e6e8ef] px-3 py-2 text-xs font-bold text-[#182137] transition-colors hover:bg-[#f7f8fb]"
                   >
                     {current.cta}
                   </button>
                 )}
                 <button
                   onClick={next}
-                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold font-mono rounded-xl bg-gradient-to-r from-[#9D4EDD] to-[#00D2FF] text-white hover:opacity-90 transition-opacity"
+                  className="flex items-center gap-1.5 rounded-[10px] bg-[#7d4ccc] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#6538ad]"
                 >
                   {isLast ? "Start Now" : "Next"}
                   {!isLast && <ChevronRight className="w-3.5 h-3.5" />}
@@ -217,7 +217,7 @@ export function OnboardingGuide() {
               {/* Skip link */}
               <button
                 onClick={dismiss}
-                className="mt-3 w-full text-center text-[10px] font-mono text-white/20 hover:text-white/40 transition-colors"
+                className="mt-3 w-full text-center text-[11px] font-bold text-[#8c93a2] transition-colors hover:text-[#7d4ccc]"
               >
                 Skip guide
               </button>
