@@ -195,7 +195,7 @@ export default function PrivateChallenges() {
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button className="font-bold shadow-[0_0_12px_rgba(157,78,221,0.35)]" style={{ background: "#9D4EDD", color: "#fff" }}>
+                <Button className="font-bold bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-[#9D4EDD] dark:hover:bg-[#9D4EDD]/90 dark:shadow-[0_0_12px_rgba(157,78,221,0.35)]">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Challenge
                 </Button>
@@ -272,8 +272,7 @@ export default function PrivateChallenges() {
                     <Input {...register("endDate")} type="date" min={new Date().toISOString().split("T")[0]} />
                     {errors.endDate && <p className="text-destructive text-xs">{errors.endDate.message}</p>}
                   </div>
-                  <Button type="submit" className="w-full font-bold" disabled={isSubmitting}
-                    style={{ background: "#9D4EDD" }}>
+                  <Button type="submit" className="w-full font-bold bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-[#9D4EDD] dark:hover:bg-[#9D4EDD]/90" disabled={isSubmitting}>
                     <ButtonLoading loading={isSubmitting}>
                       {isSubmitting ? "Creating…" : "Create Challenge"}
                     </ButtonLoading>

@@ -139,7 +139,7 @@ export function DashboardShell({
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f8fb] text-[#182137] dark:bg-background dark:text-foreground">
+    <div data-app-canvas className="min-h-screen bg-[#f7f8fb] text-[#182137] dark:bg-background dark:text-foreground">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-[#e6e8ef] bg-white dark:border-border dark:bg-card md:flex">
         <SidebarContent
           nav={nav}

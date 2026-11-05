@@ -186,7 +186,7 @@ export default function AdminProfessions() {
   }
 
   return (
-    <DashboardShell nav={ADMIN_NAV} title="Professions">
+    <DashboardShell nav={ADMIN_NAV} theme="admin" title="Professions">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">

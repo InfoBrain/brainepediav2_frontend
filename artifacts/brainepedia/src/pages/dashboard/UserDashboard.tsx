@@ -12,6 +12,7 @@ import { USER_NAV } from "@/lib/userNav";
 import { BrainiacSpinner } from "@/components/dashboard/BrainiacSpinner";
 import { type LeaderboardUser, type CurrentUserRank } from "@/components/dashboard/Leaderboard";
 import { OngoingMissionsSection } from "@/components/dashboard/OngoingMissionsSection";
+import { LeaderboardList, MissionActivityCarousel, TokenUsageCard } from "@/components/dashboard/DashboardInsights";
 import { SocialFeedPanel } from "@/components/feed/SocialFeedPanel";
 import { api } from "@/lib/api";
 import { getUser, getUserId, getProfileId } from "@/lib/auth";
@@ -513,11 +514,11 @@ export default function UserDashboard() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#7d4ccc]">Professional overview</p>
-              <h1 className="mt-1 text-[1.85rem] font-extrabold tracking-tight text-[#182137]">{greeting}, {firstName}.</h1>
-              <p className="mt-1 max-w-xl text-sm text-[#70798d]">Your next opportunity starts with demonstrating what you can do.</p>
+              <h1 className="mt-1 text-[1.85rem] font-extrabold tracking-tight text-[#182137] dark:text-white">{greeting}, {firstName}.</h1>
+              <p className="mt-1 max-w-xl text-sm text-[#70798d] dark:text-white/50">Your next opportunity starts with demonstrating what you can do.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href="/jobs" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] bg-white px-4 text-sm font-bold text-[#182137] shadow-sm">
+              <Link href="/jobs" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] dark:border-white/10 bg-white dark:bg-[#0d1119] px-4 text-sm font-bold text-[#182137] dark:text-white shadow-sm">
                 Explore Jobs
               </Link>
               <Link href="/profession/select" className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-[#7d4ccc] px-4 text-sm font-bold text-white shadow-[0_8px_18px_rgba(125,76,204,0.28)]">
@@ -527,16 +528,31 @@ export default function UserDashboard() {
           </div>
 
           <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.82fr)]">
-            <section className="min-w-0 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)] sm:p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <h2 className="text-base font-extrabold text-[#182137]">Feed</h2>
-                <Link href="/feed" className="text-sm font-bold text-[#7d4ccc]">Open full feed</Link>
+            <div className="min-w-0 space-y-4">
+              <div className="grid items-stretch gap-4 md:grid-cols-2">
+                <div className="flex min-w-0 flex-col gap-4">
+                  <TokenUsageCard />
+                  <MissionActivityCarousel />
+                </div>
+                <LeaderboardList
+                  topUsers={topUsers}
+                  currentUser={currentUserRank}
+                  loading={leaderboardLoading}
+                  onRefresh={() => void refreshLeaderboard()}
+                />
               </div>
-              <SocialFeedPanel variant="full" />
-            </section>
+
+              <section className="min-w-0 rounded-2xl border border-[#e6e8ef] dark:border-white/10 bg-white dark:bg-[#0d1119] p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)] sm:p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h2 className="text-base font-extrabold text-[#182137] dark:text-white">Feed</h2>
+                  <Link href="/feed" className="text-sm font-bold text-[#7d4ccc]">Open full feed</Link>
+                </div>
+                <SocialFeedPanel variant="full" />
+              </section>
+            </div>
 
             <div className="space-y-4">
-              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+              <section className="rounded-2xl border border-[#e6e8ef] dark:border-white/10 bg-white dark:bg-[#0d1119] p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
                 <div className="flex items-center gap-3">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover" />
@@ -545,23 +561,23 @@ export default function UserDashboard() {
                   )}
                   <div className="min-w-0">
                     <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#168a68]">{verified ? "Verified professional" : "Professional"}</p>
-                    <h2 className="truncate text-base font-extrabold text-[#182137]">{displayName}</h2>
-                    <p className="truncate text-xs text-[#70798d]">{locationLine}</p>
+                    <h2 className="truncate text-base font-extrabold text-[#182137] dark:text-white">{displayName}</h2>
+                    <p className="truncate text-xs text-[#70798d] dark:text-white/50">{locationLine}</p>
                   </div>
                 </div>
                 <div className="mt-4">
                   <div className="mb-1 flex items-center justify-between text-xs font-bold">
-                    <span className="text-[#70798d]">Profile strength</span>
+                    <span className="text-[#70798d] dark:text-white/50">Profile strength</span>
                     <span className="text-[#7d4ccc]">{profileStrength}%</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[#efe8f8]">
+                  <div className="h-2 overflow-hidden rounded-full bg-[#efe8f8] dark:bg-white/10">
                     <div className="h-full rounded-full bg-[#7d4ccc]" style={{ width: `${profileStrength}%` }} />
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm font-bold">
                   <Link href="/profile/edit" className="text-[#7d4ccc]">Complete profile</Link>
                   <Link href={(profileId || userId) ? `/profile/${encodeURIComponent(profileId || userId || "")}` : "/user/portfolio"} className="text-[#276ef1]">Public profile</Link>
-                  <button type="button" onClick={handleCopyProfileLink} disabled={!userId} className="text-[#70798d] disabled:opacity-50">Share</button>
+                  <button type="button" onClick={handleCopyProfileLink} disabled={!userId} className="text-[#70798d] dark:text-white/50 disabled:opacity-50">Share</button>
                 </div>
               </section>
 
@@ -596,14 +612,14 @@ function OverviewMetric({
   tint: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+    <div className="flex items-start gap-3 rounded-2xl border border-[#e6e8ef] dark:border-white/10 bg-white dark:bg-[#0d1119] p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
       <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${tint}`}>
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="text-2xl font-extrabold leading-none tracking-tight text-[#182137]">{value}</p>
-        <p className="mt-1 text-sm font-bold text-[#182137]">{label}</p>
-        {sub && <p className="mt-0.5 truncate text-xs text-[#70798d]">{sub}</p>}
+        <p className="text-2xl font-extrabold leading-none tracking-tight text-[#182137] dark:text-white">{value}</p>
+        <p className="mt-1 text-sm font-bold text-[#182137] dark:text-white">{label}</p>
+        {sub && <p className="mt-0.5 truncate text-xs text-[#70798d] dark:text-white/50">{sub}</p>}
       </div>
     </div>
   );
@@ -634,28 +650,28 @@ function JobsForYou() {
   const tones = ["bg-[#f5f0fc] text-[#7d4ccc]", "bg-[#edf4ff] text-[#276ef1]", "bg-[#eefaf4] text-[#168a68]"];
 
   return (
-    <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+    <section className="rounded-2xl border border-[#e6e8ef] dark:border-white/10 bg-white dark:bg-[#0d1119] p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-base font-extrabold text-[#182137]">Jobs for you</h2>
+        <h2 className="text-base font-extrabold text-[#182137] dark:text-white">Jobs for you</h2>
         <Link href="/jobs" className="text-sm font-bold text-[#7d4ccc]">View all</Link>
       </div>
       {loadingJobs ? (
-        <p className="py-6 text-sm text-[#70798d]">Loading open roles…</p>
+        <p className="py-6 text-sm text-[#70798d] dark:text-white/50">Loading open roles…</p>
       ) : jobs.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[#e6e8ef] px-3 py-6 text-center">
-          <p className="text-sm font-semibold text-[#182137]">No roles loaded yet</p>
+        <div className="rounded-xl border border-dashed border-[#e6e8ef] dark:border-white/10 px-3 py-6 text-center">
+          <p className="text-sm font-semibold text-[#182137] dark:text-white">No roles loaded yet</p>
           <Link href="/jobs" className="mt-2 inline-flex text-sm font-bold text-[#7d4ccc]">Explore the job feed</Link>
         </div>
       ) : (
         <div className="space-y-2">
           {jobs.map((job, index) => (
-            <Link key={job.id} href={`/jobs/${encodeURIComponent(job.id)}`} className="flex items-center gap-3 rounded-xl px-1 py-2 hover:bg-[#f7f8fb]">
+            <Link key={job.id} href={`/jobs/${encodeURIComponent(job.id)}`} className="flex items-center gap-3 rounded-xl px-1 py-2 hover:bg-[#f7f8fb] dark:hover:bg-white/5">
               <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${tones[index % tones.length]}`}>
                 <BriefcaseBusiness className="h-4 w-4" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-sm font-extrabold text-[#182137]">{job.title}</span>
-                <span className="block truncate text-xs text-[#70798d]">{job.company} · {job.location}</span>
+                <span className="block truncate text-sm font-extrabold text-[#182137] dark:text-white">{job.title}</span>
+                <span className="block truncate text-xs text-[#70798d] dark:text-white/50">{job.company} · {job.location}</span>
               </span>
             </Link>
           ))}
