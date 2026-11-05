@@ -233,42 +233,42 @@ export function PublicHome() {
         </div>
       </section>
 
-      <section className="bg-white pb-6">
-        <div className="mx-auto grid w-[min(1180px,calc(100%-48px))] items-center gap-10 rounded-[25px] bg-[radial-gradient(circle_at_5%_10%,#7048b4,transparent_40%),#232642] px-6 py-12 text-white lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:px-14">
+      <section className="bg-white py-16">
+        <div className="mx-auto grid w-[min(1180px,calc(100%-48px))] items-center gap-10 rounded-[25px] bg-[radial-gradient(circle_at_12%_18%,#8a5ad8,transparent_46%),linear-gradient(105deg,#5b36b3_0%,#3d2a78_48%,#241f4a_100%)] px-6 py-12 text-white shadow-[0_18px_40px_rgba(61,36,120,0.18)] sm:px-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:px-14 lg:py-14">
           <div>
-            <p className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#ddd0f5]"><Sparkles className="h-3.5 w-3.5" /> Brainiac AI</p>
-            <h2 className="mt-2 text-[clamp(28px,3vw,35px)] font-extrabold leading-tight tracking-[-0.04em]">Your AI-Powered Career and Competence Assistant.</h2>
-            <p className="mt-3 text-sm leading-7 text-[#cccbd9]">Use Brainiac to understand job compatibility, plan career growth, get mission guidance, generate a Smart CV, and explore your documented experience through your Virtual Self.</p>
-            <div className="my-4 flex flex-wrap gap-3 text-xs text-[#deddea]">
-              <span className="inline-flex items-center gap-1"><Check className="h-3.5 w-3.5 text-[#8ee0bd]" /> Career guidance</span>
-              <span className="inline-flex items-center gap-1"><Check className="h-3.5 w-3.5 text-[#8ee0bd]" /> Mission support</span>
-              <span className="inline-flex items-center gap-1"><Check className="h-3.5 w-3.5 text-[#8ee0bd]" /> Candidate insights</span>
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-white/80"><Sparkles className="h-3.5 w-3.5" /> Brainiac AI</p>
+            <h2 className="mt-3 max-w-md text-[clamp(30px,3vw,40px)] font-extrabold leading-[1.12] tracking-[-0.04em]">Your AI-Powered Career and Competence Assistant.</h2>
+            <p className="mt-4 max-w-md text-sm leading-7 text-white/75">Use Brainiac to understand job compatibility, plan career growth, get mission guidance, generate a Smart CV, and explore your documented experience through your Virtual Self.</p>
+            <div className="my-5 flex flex-wrap gap-x-4 gap-y-2 text-sm text-white/85">
+              <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-[#8ee0bd]" /> Career guidance</span>
+              <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-[#8ee0bd]" /> Mission support</span>
+              <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-[#8ee0bd]" /> Candidate insights</span>
             </div>
-            <Link href="/auth/register" className="inline-flex min-h-[42px] items-center gap-1.5 rounded-[10px] bg-white px-4 text-sm font-extrabold text-[#7d4ccc]">
+            <Link href="/auth/register" className="inline-flex min-h-[42px] items-center gap-1.5 rounded-[10px] bg-[#7d4ccc] px-4 text-sm font-extrabold text-white shadow-[0_8px_18px_rgba(40,16,90,0.28)] hover:bg-[#6538ad]">
               Get Started with Brainepedia <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="rounded-[17px] border border-white/20 bg-white p-4 text-[#182137] shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
-            <div className="flex items-center gap-3 border-b border-[#e6e8ef] pb-3">
-              <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[#7d4ccc] text-white"><Bot className="h-4 w-4" /></span>
-              <div className="flex-1">
+          <div className="rounded-[18px] bg-white p-4 text-[#182137] shadow-[0_20px_50px_rgba(18,12,40,0.28)] sm:p-5">
+            <div className="flex items-center gap-3 border-b border-[#eef0f4] pb-3">
+              <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-[#7d4ccc] text-white"><Bot className="h-4 w-4" /></span>
+              <div className="min-w-0 flex-1">
                 <strong className="block text-sm">Brainiac AI</strong>
                 <small className="text-xs text-[#70798d]">Professional intelligence assistant</small>
               </div>
-              <i className="h-2 w-2 rounded-full bg-[#51c99a]" />
+              <i className="h-2.5 w-2.5 rounded-full bg-[#3dcb8a]" />
             </div>
-            <p className="ml-auto mt-3 max-w-[85%] rounded-[11px] bg-[#7d4ccc] px-3 py-2.5 text-sm leading-6 text-white">Which jobs best match my verified experience?</p>
-            <p className="mt-3 flex max-w-[85%] gap-2 rounded-[11px] bg-[#f3eff9] px-3 py-2.5 text-sm leading-6 text-[#60687a]">
+            <p className="ml-auto mt-4 max-w-[88%] rounded-[12px] bg-[#7d4ccc] px-4 py-3 text-sm leading-6 text-white">Which jobs best match my verified experience?</p>
+            <p className="mt-3 flex max-w-[92%] gap-2 rounded-[12px] bg-[#f4eefe] px-4 py-3 text-sm leading-6 text-[#5c6578]">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#7d4ccc]" />
-              <span>Your Product Design evidence is strongest in research and prototyping. I found <strong className="text-[#182137]">3 roles above 88% compatibility</strong>.</span>
+              <span>Your Product Design evidence is strongest in research and prototyping. I found <strong className="font-extrabold text-[#182137]">3 roles above 88% compatibility</strong>.</span>
             </p>
-            <div className="mt-3 flex items-center gap-2 rounded-[10px] border border-[#e6e8ef] p-2.5">
-              <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-[linear-gradient(145deg,#7d4ccc,#4974dc)] text-sm font-extrabold text-white">F</span>
-              <div className="flex-1">
+            <div className="mt-3 flex items-center gap-3 rounded-[12px] border border-[#e6e8ef] bg-white px-3 py-2.5">
+              <span className="grid h-10 w-10 place-items-center rounded-[10px] bg-[linear-gradient(145deg,#7d4ccc,#5b7de0)] text-sm font-extrabold text-white">F</span>
+              <div className="min-w-0 flex-1">
                 <strong className="block text-sm">Product Designer</strong>
                 <small className="text-xs font-bold text-[#168a68]">Flutterwave · 94% match</small>
               </div>
-              <ArrowRight className="h-4 w-4 text-[#9aa1b0]" />
+              <ArrowRight className="h-4 w-4 shrink-0 text-[#9aa1b0]" />
             </div>
           </div>
         </div>

@@ -5,7 +5,6 @@ import { Pricing } from "@/components/landing/Pricing";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { FAQ } from "@/components/landing/FAQ";
 import { Footer } from "@/components/landing/Footer";
-import { PlatformScreenshots } from "@/components/landing/AudienceShowcase";
 import { SkipToContent } from "@/components/ux/SkipToContent";
 
 export default function Home() {
@@ -15,7 +14,6 @@ export default function Home() {
       <Nav />
       <main id="main-content" tabIndex={-1}>
         <PublicHome />
-        <PlatformScreenshots />
         <Professions />
         <Pricing />
         <FAQ />
