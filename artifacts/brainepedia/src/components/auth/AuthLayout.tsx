@@ -1,7 +1,8 @@
-import { motion } from "framer-motion";
 import { Link } from "wouter";
-import logo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
+import whiteLogo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
+import colorLogo from "@assets/branepedia_logo_1777539679828.png";
 import { ReactNode } from "react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 
 interface AuthLayoutProps {
@@ -11,68 +12,42 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ children, quote }: AuthLayoutProps) {
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background overflow-hidden">
-    <div className="flex flex-col md:flex-row flex-1 relative">
-      {/* Absolute Back Link */}
-      <div className="absolute top-6 left-6 z-50 leading-none">
-        <Link href="/" className="inline-flex items-center text-sm font-mono text-muted-foreground hover:text-primary transition-colors">
-          ← Back to brainepedia.com
-        </Link>
-      </div>
-
-      {/* LEFT PANEL (Hidden on mobile) */}
-      <div className="hidden md:flex md:w-[45%] lg:w-[40%] relative flex-col justify-between p-12 bg-gradient-to-b from-background via-background to-secondary/20 border-r border-border/50">
-        {/* Animated Grid Background */}
-        <div className="absolute inset-0 z-0 opacity-20">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:32px_32px]"></div>
-          <div className="absolute left-0 top-1/4 -z-10 h-[300px] w-[300px] -translate-x-1/2 rounded-full bg-primary/20 blur-[120px]"></div>
-        </div>
-
-        <div className="relative z-10 pt-10">
-          <img src={logo} alt="Brainepedia" className="h-10 w-auto drop-shadow-[0_0_12px_rgba(0,210,255,0.4)]" />
-        </div>
-
-        <div className="relative z-10 max-w-sm">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            key={quote} // re-animates when quote changes
-            className="text-4xl font-bold leading-tight mb-4 text-foreground/90"
-          >
-            "{quote}"
-          </motion.h2>
-          <div className="w-12 h-1 bg-primary/50 shadow-[0_0_10px_rgba(0,210,255,0.5)]"></div>
-        </div>
-
-        <div className="relative z-10 mt-auto">
-          <p className="font-mono text-xs text-muted-foreground opacity-60">
-            Secure login · Brainepedia
-          </p>
-        </div>
-      </div>
-
-      {/* RIGHT PANEL (Form Area) */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 relative">
-        {/* Ambient Glows */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px] pointer-events-none"></div>
-
-        {/* Mobile Logo */}
-        <div className="md:hidden w-full flex justify-center mb-12 mt-12">
-          <img src={logo} alt="Brainepedia" className="h-8 w-auto drop-shadow-[0_0_8px_rgba(0,210,255,0.4)]" />
-        </div>
-
-        <motion.div 
-          className="w-full max-w-md relative z-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
+    <div className="flex min-h-[100dvh] flex-col bg-white text-[#182137]">
+      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(320px,0.82fr)_minmax(420px,1.18fr)]">
+        <Link
+          href="/"
+          className="absolute left-5 top-5 z-20 inline-flex items-center gap-1.5 text-xs font-bold text-[#7d4ccc] lg:text-[#ddd0f5]"
         >
-          {children}
-        </motion.div>
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to brainepedia.com
+        </Link>
+
+        <aside className="relative hidden min-h-[100dvh] flex-col justify-between bg-[radial-gradient(circle_at_15%_15%,#8054c1,transparent_38%),linear-gradient(145deg,#292744,#1c2035)] px-12 pb-10 pt-24 text-white lg:flex">
+          <img src={whiteLogo} alt="Brainepedia" className="h-10 w-auto" />
+          <div className="max-w-lg">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#ddd0f5]">Brainepedia</p>
+            <h1 className="mt-3 text-4xl font-extrabold leading-[1.08] tracking-tight xl:text-5xl">"{quote}"</h1>
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-[#cccbd8]">
+              Prove your skills with missions, then carry that verified experience into jobs, profiles, and employer reviews.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 rounded-[13px] border border-white/15 bg-white/10 p-4">
+            <ShieldCheck className="h-5 w-5 text-[#9de4c6]" />
+            <div>
+              <p className="text-sm font-extrabold">Verified career proof</p>
+              <p className="text-xs text-[#c6c7d1]">Missions, experience, and applications stay tied to your account.</p>
+            </div>
+          </div>
+        </aside>
+
+        <main className="flex items-center justify-center px-4 py-20 sm:px-8">
+          <div className="w-full max-w-md">
+            <img src={colorLogo} alt="Brainepedia" className="mb-8 h-8 w-auto lg:hidden" />
+            {children}
+          </div>
+        </main>
       </div>
-    </div>
-    <CopyrightBar className="border-t border-white/5 bg-background" />
+      <CopyrightBar className="border-t border-[#e6e8ef] bg-white" />
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LogOut, Menu, X, MessageCircle, Sparkles } from "lucide-react";
+import { Bell, LogOut, Menu, MessageCircle, Search, Sparkles, X } from "lucide-react";
 import { clearToken, getUser } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,37 +35,10 @@ export type NavItem = {
 
 type Theme = "user" | "admin" | "employer";
 
-const themeMap: Record<
-  Theme,
-  {
-    accent: string;
-    accentText: string;
-    accentBorder: string;
-    accentGlow: string;
-    badge: string;
-  }
-> = {
-  user: {
-    accent: "bg-[#FFD700]/10",
-    accentText: "text-[#FFD700]",
-    accentBorder: "border-[#FFD700]/30",
-    accentGlow: "shadow-[0_0_20px_rgba(255,215,0,0.25)]",
-    badge: "bg-[#7C3AED]/15 text-[#A78BFA] border-[#7C3AED]/40",
-  },
-  admin: {
-    accent: "bg-[#6366F1]/10",
-    accentText: "text-[#A5B4FC]",
-    accentBorder: "border-[#6366F1]/30",
-    accentGlow: "shadow-[0_0_20px_rgba(99,102,241,0.25)]",
-    badge: "bg-[#475569]/30 text-slate-300 border-slate-500/40",
-  },
-  employer: {
-    accent: "bg-[#00D2FF]/10",
-    accentText: "text-[#00D2FF]",
-    accentBorder: "border-[#00D2FF]/30",
-    accentGlow: "shadow-[0_0_20px_rgba(0,210,255,0.25)]",
-    badge: "bg-[#00D2FF]/10 text-[#00D2FF] border-[#00D2FF]/40",
-  },
+const workspaceCopy: Record<Theme, { label: string; activityHref: string; settingsHref: string }> = {
+  user: { label: "Professional", activityHref: "/user/activity", settingsHref: "/user/settings" },
+  employer: { label: "Employer", activityHref: "/feed", settingsHref: "/employer/settings" },
+  admin: { label: "Administrator", activityHref: "/admin/activity-logs", settingsHref: "/admin/settings" },
 };
 
 export function DashboardShell({
@@ -88,13 +61,31 @@ export function DashboardShell({
   const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
-  const t = themeMap[theme];
+  const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [noticesOpen, setNoticesOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const noticeRef = useRef<HTMLDivElement>(null);
+  const workspace = workspaceCopy[theme];
   const [user, setUser] = useState(getUser);
 
   useEffect(() => {
     const handleAuthChange = () => setUser(getUser());
     window.addEventListener("auth-change", handleAuthChange);
     return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, []);
+
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (searchRef.current && !searchRef.current.contains(target)) setSearchOpen(false);
+      if (accountRef.current && !accountRef.current.contains(target)) setAccountOpen(false);
+      if (noticeRef.current && !noticeRef.current.contains(target)) setNoticesOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
   }, []);
 
   const requestLogout = () => setLogoutOpen(true);
@@ -104,20 +95,35 @@ export function DashboardShell({
     setLocation("/auth/login");
   };
 
+  const matches = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return nav.slice(0, 6);
+    return nav.filter((item) => item.label.toLowerCase().includes(needle)).slice(0, 8);
+  }, [nav, query]);
+
+  const mobileItems = useMemo(() => pickMobileNav(nav), [nav]);
+  const displayName = user?.userName || user?.email || "Account";
+  const cleanedSubtitle = subtitle?.replace(/^\/\/\s*/, "");
+
+  const goToMatch = (href: string) => {
+    setSearchOpen(false);
+    setQuery("");
+    setLocation(href);
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex transition-colors duration-300">
-      {/* Sidebar - desktop */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-border bg-card sticky top-0 h-screen transition-colors duration-300">
+    <div className="min-h-screen bg-[#f7f8fb] text-[#182137] dark:bg-background dark:text-foreground">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col border-r border-[#e6e8ef] bg-white dark:border-border dark:bg-card md:flex">
         <SidebarContent
           nav={nav}
           location={location}
-          theme={t}
+          workspaceLabel={workspace.label}
+          displayName={displayName}
           onNavigate={() => setMobileOpen(false)}
           onLogout={requestLogout}
         />
       </aside>
 
-      {/* Sidebar - mobile drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <>
@@ -125,7 +131,7 @@ export function DashboardShell({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 z-40 md:hidden"
+              className="fixed inset-0 z-40 bg-[rgba(21,24,40,0.35)] md:hidden"
               onClick={() => setMobileOpen(false)}
             />
             <motion.aside
@@ -133,99 +139,209 @@ export function DashboardShell({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "tween", duration: 0.25 }}
-              className="fixed left-0 top-0 bottom-0 w-72 bg-card border-r border-border z-50 md:hidden flex flex-col transition-colors duration-300"
+              className="fixed bottom-0 left-0 top-0 z-50 flex w-72 flex-col border-r border-[#e6e8ef] bg-white shadow-[12px_0_35px_rgba(25,30,48,0.12)] dark:border-border dark:bg-card md:hidden"
             >
               <SidebarContent
                 nav={nav}
                 location={location}
-                theme={t}
+                workspaceLabel={workspace.label}
+                displayName={displayName}
                 onNavigate={() => setMobileOpen(false)}
                 onLogout={requestLogout}
+                showClose
+                onClose={() => setMobileOpen(false)}
               />
             </motion.aside>
           </>
         )}
       </AnimatePresence>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md transition-colors duration-300">
-          <div className="flex items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:py-4 md:px-8">
-            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => setMobileOpen(true)}
-                aria-label="Open navigation menu"
+      <div className="flex min-h-screen min-w-0 flex-col md:pl-56">
+        <header className="sticky top-0 z-30 border-b border-[#e6e8ef] bg-white/95 backdrop-blur-md dark:border-border dark:bg-background/90">
+          <div className="flex items-center gap-2 px-3 py-3 sm:gap-3 sm:px-5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#667084] md:hidden"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open navigation menu"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+
+            <div ref={searchRef} className="relative min-w-0 flex-1 md:max-w-md">
+              <form
+                className="flex h-[38px] items-center gap-2 rounded-[10px] border border-[#e6e8ef] bg-[#f8f9fb] px-3 text-[#9298a8] dark:border-border dark:bg-muted"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const target = matches[0];
+                  if (target) goToMatch(target.href);
+                }}
               >
-                <Menu className="h-5 w-5" />
-              </Button>
-              <div className="min-w-0">
-                <h1 className="break-words text-base font-bold leading-tight sm:truncate sm:text-xl md:text-2xl">
-                  {title}
-                </h1>
-                {subtitle && (
-                  <p className="truncate text-[11px] font-mono text-muted-foreground sm:text-xs">
-                    {subtitle}
-                  </p>
-                )}
-              </div>
+                <Search className="h-4 w-4 shrink-0" />
+                <input
+                  value={query}
+                  onChange={(event) => {
+                    setQuery(event.target.value);
+                    setSearchOpen(true);
+                  }}
+                  onFocus={() => setSearchOpen(true)}
+                  placeholder="Search menus"
+                  aria-label="Search menus"
+                  className="w-full bg-transparent text-sm text-[#182137] outline-none placeholder:text-[#9298a8] dark:text-foreground"
+                />
+              </form>
+              {searchOpen && (
+                <div className="absolute left-0 right-0 top-[44px] z-40 overflow-hidden rounded-[13px] border border-[#e6e8ef] bg-white shadow-[0_12px_35px_rgba(28,33,54,0.08)] dark:border-border dark:bg-card">
+                  {matches.length === 0 ? (
+                    <p className="px-3 py-3 text-sm text-muted-foreground">No matching menu.</p>
+                  ) : (
+                    matches.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={`${item.href}-${item.label}`}
+                          type="button"
+                          className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-[#626b7d] hover:bg-[#f5f0fc] hover:text-[#7d4ccc]"
+                          onClick={() => goToMatch(item.href)}
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              )}
             </div>
-            <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+
+            <div className="ml-auto flex shrink-0 items-center gap-1.5">
               <HeaderCreditsChip theme={theme} />
               {headerRight}
               <ThemeToggle />
-              <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-muted-foreground">
-                <span>{user?.email || user?.userName || "operator"}</span>
+              <div ref={noticeRef} className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-[#667084]"
+                  aria-label="Open updates"
+                  onClick={() => {
+                    setNoticesOpen((open) => !open);
+                    setAccountOpen(false);
+                  }}
+                >
+                  <Bell className="h-4 w-4" />
+                </Button>
+                {noticesOpen && (
+                  <div className="absolute right-0 top-11 z-40 w-72 rounded-[13px] border border-[#e6e8ef] bg-white p-3 shadow-[0_12px_35px_rgba(28,33,54,0.08)] dark:border-border dark:bg-card">
+                    <div className="mb-2 flex items-center justify-between text-sm font-extrabold">
+                      Updates
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      Activity, feed, and audit pages stay in their existing destinations.
+                    </p>
+                    <div className="mt-3 grid gap-1">
+                      <Link href={workspace.activityHref} onClick={() => setNoticesOpen(false)} className="rounded-lg px-2 py-2 text-sm font-bold text-[#7d4ccc] hover:bg-[#f5f0fc]">
+                        Open activity
+                      </Link>
+                      <Link href="/feed" onClick={() => setNoticesOpen(false)} className="rounded-lg px-2 py-2 text-sm font-bold text-[#7d4ccc] hover:bg-[#f5f0fc]">
+                        Open feed
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={requestLogout}
-                title="Sign out"
-                aria-label="Sign out"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <div ref={accountRef} className="relative">
+                <button
+                  type="button"
+                  className="flex items-center gap-2 rounded-[11px] p-1 hover:bg-[#f2f3f6] dark:hover:bg-muted"
+                  aria-label="Account menu"
+                  onClick={() => {
+                    setAccountOpen((open) => !open);
+                    setNoticesOpen(false);
+                  }}
+                >
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-[#7d4ccc] text-xs font-extrabold text-white">
+                    {displayName.slice(0, 1).toUpperCase()}
+                  </span>
+                </button>
+                {accountOpen && (
+                  <div className="absolute right-0 top-12 z-40 w-60 rounded-[13px] border border-[#e6e8ef] bg-white p-2 shadow-[0_12px_35px_rgba(28,33,54,0.08)] dark:border-border dark:bg-card">
+                    <div className="border-b border-[#e6e8ef] px-2 py-2 dark:border-border">
+                      <p className="truncate text-sm font-extrabold">{displayName}</p>
+                      <p className="truncate text-xs text-muted-foreground">{user?.email || workspace.label}</p>
+                    </div>
+                    <Link href={workspace.settingsHref} onClick={() => setAccountOpen(false)} className="mt-1 flex rounded-lg px-2 py-2 text-sm font-semibold text-[#626b7d] hover:bg-[#f5f0fc] hover:text-[#7d4ccc]">
+                      Settings
+                    </Link>
+                    <button
+                      type="button"
+                      className="flex w-full rounded-lg px-2 py-2 text-left text-sm font-semibold text-[#d34d62] hover:bg-[#fff3f5]"
+                      onClick={() => {
+                        setAccountOpen(false);
+                        requestLogout();
+                      }}
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
 
-        <main
-          id="main-content"
-          className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8"
-          tabIndex={-1}
-        >
+        <main id="main-content" className="min-w-0 flex-1 px-4 py-6 pb-24 md:px-8 md:pb-10" tabIndex={-1}>
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#7d4ccc]">{workspace.label}</p>
+              <h1 className="mt-1 text-[1.7rem] font-extrabold leading-tight tracking-tight">{title}</h1>
+              {cleanedSubtitle && <p className="mt-1 text-sm text-muted-foreground">{cleanedSubtitle}</p>}
+            </div>
+          </div>
           {children}
         </main>
-        <CopyrightBar className="border-t border-border" />
+        <CopyrightBar className="border-t border-[#e6e8ef] dark:border-border" />
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid h-16 grid-cols-4 border-t border-[#e6e8ef] bg-white/95 backdrop-blur-md dark:border-border dark:bg-card/95 md:hidden" aria-label="Primary">
+        {mobileItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(location, item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center justify-center gap-1 text-[11px] font-bold ${active ? "text-[#7d4ccc]" : "text-[#7b8293]"}`}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="max-w-[72px] truncate">{item.label}</span>
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          className="flex flex-col items-center justify-center gap-1 text-[11px] font-bold text-[#7b8293]"
+          onClick={() => setMobileOpen(true)}
+        >
+          <Menu className="h-4 w-4" />
+          Menu
+        </button>
+      </nav>
 
       {showBrainiac && <BrainiacWidget />}
 
-      {/* Logout confirmation dialog */}
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
-        <AlertDialogContent className="bg-[#0d1119] border border-white/10">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-foreground">
-              Sign out of Brainepedia?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              Your session will end and you'll need to log back in to continue
-              your mission.
+            <AlertDialogTitle>Sign out of Brainepedia?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your session will end and you'll need to log back in to continue.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-white/20 text-muted-foreground hover:text-foreground hover:bg-white/5">
-              Stay in
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmLogout}
-              className="bg-destructive/80 hover:bg-destructive text-white border-0"
-            >
-              Sign out
-            </AlertDialogAction>
+            <AlertDialogCancel>Stay in</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLogout}>Sign out</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -252,46 +368,87 @@ function HeaderCreditsChip({ theme }: { theme: Theme }) {
   );
 }
 
+function isActive(location: string, href: string) {
+  return location === href || (href !== "/" && location.startsWith(`${href}/`));
+}
+
+function pickMobileNav(nav: NavItem[]) {
+  const preferred = [
+    "/user/dashboard",
+    "/employer/overview",
+    "/admin/dashboard",
+    "/jobs",
+    "/employer/jobs",
+    "/user/missions",
+    "/employer/applications",
+    "/admin/users",
+    "/feed",
+    "/user/portfolio",
+  ];
+  const picked: NavItem[] = [];
+  for (const href of preferred) {
+    const item = nav.find((entry) => entry.href === href);
+    if (item && !picked.some((entry) => entry.href === item.href)) picked.push(item);
+    if (picked.length === 3) break;
+  }
+  for (const item of nav) {
+    if (picked.length === 3) break;
+    if (!picked.some((entry) => entry.href === item.href)) picked.push(item);
+  }
+  return picked;
+}
+
 function SidebarContent({
   nav,
   location,
-  theme,
+  workspaceLabel,
+  displayName,
   onNavigate,
   onLogout,
+  showClose = false,
+  onClose,
 }: {
   nav: NavItem[];
   location: string;
-  theme: typeof themeMap.user;
+  workspaceLabel: string;
+  displayName: string;
   onNavigate: () => void;
   onLogout: () => void;
+  showClose?: boolean;
+  onClose?: () => void;
 }) {
   return (
     <>
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-border">
-        <img src={logoUrl} alt="Brainepedia" className="h-9 w-9" />
-        <div>
-          <div className="font-bold tracking-wide text-sm">Brainepedia</div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono">
-            Imperial Console
-          </div>
-          <div className="text-[10px] font-mono text-muted-foreground/80">
-            v.2.12.1
-          </div>
+      <div className="flex h-[68px] items-center gap-2 border-b border-[#e6e8ef] px-4 dark:border-border">
+        <Link href="/" className="flex min-w-0 items-center gap-2" onClick={onNavigate}>
+          <img src={logoUrl} alt="" className="h-8 w-8 mix-blend-screen" />
+          <span className="text-sm font-extrabold tracking-tight">Brainepedia</span>
+        </Link>
+        {showClose && (
+          <button type="button" className="ml-auto grid h-9 w-9 place-items-center rounded-[10px] text-[#667084] hover:bg-[#f5f0fc]" onClick={onClose} aria-label="Close navigation">
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+      <div className="flex items-center gap-2 border-b border-[#e6e8ef] px-4 py-3 dark:border-border">
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-[#7d4ccc] text-xs font-extrabold text-white">
+          {displayName.slice(0, 1).toUpperCase()}
+        </span>
+        <div className="min-w-0">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#7d4ccc]">{workspaceLabel}</p>
+          <p className="truncate text-sm font-bold">{displayName}</p>
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
         {nav.map((item, i) => {
-          const active =
-            location === item.href ||
-            (item.href !== "/" && location.startsWith(`${item.href}/`));
+          const active = isActive(location, item.href);
           const Icon = item.icon;
-          const showSectionHeader =
-            !!item.section && (i === 0 || nav[i - 1].section !== item.section);
+          const showSectionHeader = !!item.section && (i === 0 || nav[i - 1].section !== item.section);
           return (
             <div key={`${item.href}__${item.label}`}>
               {showSectionHeader && (
-                <div className="px-3 pt-4 pb-1.5 text-[9px] uppercase tracking-[0.18em] font-mono text-muted-foreground/50 select-none">
+                <div className="px-3 pb-1.5 pt-4 text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#8c93a2]">
                   {item.section}
                 </div>
               )}
@@ -301,10 +458,10 @@ function SidebarContent({
                     href={item.href}
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
+                    className={`flex min-h-[39px] items-center gap-2.5 rounded-lg px-3 text-sm font-bold transition-colors ${
                       active
-                        ? `${theme.accent} ${theme.accentText} ${theme.accentBorder} border`
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent"
+                        ? "bg-[#f5f0fc] text-[#7d4ccc]"
+                        : "text-[#667084] hover:bg-[#f5f0fc] hover:text-[#7d4ccc]"
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
@@ -312,10 +469,7 @@ function SidebarContent({
                   </Link>
                 </TooltipTrigger>
                 {item.tooltip && (
-                  <TooltipContent
-                    side="right"
-                    className="max-w-64 bg-[#111827] text-white border border-white/10"
-                  >
+                  <TooltipContent side="right" className="max-w-64 border border-[#e6e8ef] bg-white text-[#182137]">
                     {item.tooltip}
                   </TooltipContent>
                 )}
@@ -325,15 +479,13 @@ function SidebarContent({
         })}
       </nav>
 
-      <div className="border-t border-border p-3">
-        <button
-          onClick={onLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        >
-          <LogOut className="h-4 w-4" />
-          <span>Sign out</span>
-        </button>
-      </div>
+      <button
+        onClick={onLogout}
+        className="flex min-h-[50px] items-center gap-2 border-t border-[#e6e8ef] px-5 text-sm font-bold text-[#7b8293] hover:text-[#d34d62] dark:border-border"
+      >
+        <LogOut className="h-4 w-4" />
+        <span>Sign out</span>
+      </button>
     </>
   );
 }
@@ -341,35 +493,34 @@ function SidebarContent({
 function BrainiacWidget() {
   const [open, setOpen] = useState(false);
   return (
-    <div className="fixed bottom-5 right-5 z-40">
+    <div className="fixed bottom-20 right-4 z-40 md:bottom-5 md:right-5">
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.85, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, y: 10 }}
-            className="mb-3 w-72 bg-[#13182240] backdrop-blur-md border border-[#7C3AED]/40 rounded-xl p-4 shadow-[0_0_30px_rgba(124,58,237,0.35)]"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="mb-3 w-72 rounded-2xl border border-[#d7c8ed] bg-white p-4 text-[#182137] shadow-[0_12px_35px_rgba(28,33,54,0.08)]"
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-[#A78BFA]" />
-              <div className="text-xs font-mono uppercase tracking-wider text-[#A78BFA]">
-                Brainiac
-              </div>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#7d4ccc] text-white">
+                <Sparkles className="h-4 w-4" />
+              </span>
+              <div className="text-xs font-extrabold uppercase tracking-wider text-[#7d4ccc]">Brainiac</div>
             </div>
-            <p className="text-sm text-foreground/90 leading-relaxed">
-              Tip: Complete a mission today to climb the District ranking. Need
-              a hint? Just ask.
+            <p className="text-sm leading-relaxed text-[#60697b]">
+              Complete a mission to add verified experience. Open Brainiac from a mission when you want a hint.
             </p>
           </motion.div>
         )}
       </AnimatePresence>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="h-12 w-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#4C1D95] flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.6)] hover:scale-105 transition-transform"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-[#7d4ccc] text-white shadow-[0_8px_20px_rgba(125,76,204,0.28)] transition-transform hover:scale-105"
         title="Brainiac AI"
         aria-label="Open Brainiac assistant"
       >
-        <MessageCircle className="h-5 w-5 text-white" />
+        <MessageCircle className="h-5 w-5" />
       </button>
     </div>
   );

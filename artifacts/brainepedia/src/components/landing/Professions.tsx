@@ -38,12 +38,13 @@ export function Professions() {
   ];
 
   return (
-    <section className="py-32 relative border-t border-border/30">
-      <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-20">
-          <h2 className="text-4xl font-bold mb-6">Choose Your Path.</h2>
-          <p className="text-xl text-muted-foreground">
-            Specialized districts for elite operators. What will you master?
+    <section id="professions" className="scroll-mt-24 border-t border-[#e6e8ef] bg-[#f7f8fb] py-20">
+      <div className="mx-auto w-[min(1180px,calc(100%-48px))]">
+        <div className="mx-auto mb-10 max-w-3xl text-center">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#7d4ccc]">Professions</p>
+          <h2 className="mt-2 text-4xl font-extrabold">Choose your path.</h2>
+          <p className="mt-3 text-sm leading-7 text-[#70798d]">
+            Districts and missions stay available for every profession already on the platform.
           </p>
         </div>
 

@@ -1,63 +1,50 @@
 import { Link } from "wouter";
-import lightLogo from "@assets/branepedia_logo_1777539679828.png";
 import darkLogo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/30 bg-background pt-16 pb-8">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-          <div className="col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <img src={lightLogo} alt="Brainepedia" className="h-10 w-auto opacity-95 dark:hidden" />
-              <img src={darkLogo} alt="Brainepedia" className="hidden h-10 w-auto opacity-90 dark:block" />
-              <span className="font-bold text-2xl tracking-tight text-foreground">Brainepedia</span>
-            </div>
-            <p className="text-muted-foreground max-w-sm">
-              The AI-driven career RPG. Earn Verified Experience (VX) by solving real-world missions. Stop learning, start proving.
-            </p>
+    <footer className="bg-[#1d2032] pt-12 pb-8 text-[#c8cbd5]">
+      <div className="mx-auto grid w-[min(1180px,calc(100%-48px))] gap-8 sm:grid-cols-2 lg:grid-cols-[1.7fr_1fr_1fr_1fr]">
+        <div>
+          <div className="flex items-center gap-2">
+            <img src={darkLogo} alt="" className="h-10 w-10 mix-blend-screen" />
+            <span className="text-lg font-extrabold text-white">Brainepedia</span>
           </div>
-          
-          <div>
-            <h4 className="font-bold mb-4">Product</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link href="/problem" className="hover:text-primary transition-colors">The Problem</Link></li>
-              <li><Link href="/solution" className="hover:text-primary transition-colors">The System</Link></li>
-              <li><Link href="/how-it-works" className="hover:text-primary transition-colors">How It Works</Link></li>
-              <li><a href="/#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-bold mb-4">Legal</h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
-              <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
-              <li><a href="/#faq" className="hover:text-foreground transition-colors">FAQ</a></li>
-            </ul>
-          </div>
+          <p className="mt-3 max-w-sm text-sm text-[#9fa4b3]">Don’t just learn. Prove your competence.</p>
         </div>
-
-        <div className="border-t border-border/30 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div className="flex flex-col sm:flex-row items-center gap-1.5 text-center sm:text-left">
-            <p>© {new Date().getFullYear()} Brainepedia. All rights reserved.</p>
-            <span className="hidden sm:inline opacity-40">·</span>
-            <p>
-              A product of{" "}
-              <a
-                href="https://infobrainltd.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground underline underline-offset-2 transition-colors"
-              >
-                Infobrainltd.com
-              </a>
-            </p>
-          </div>
-          <div className="font-mono text-xs opacity-50">
-            SYSTEM.STATUS: ONLINE
-          </div>
+        <div className="flex flex-col gap-2 text-sm">
+          <strong className="mb-1 text-white">Platform</strong>
+          <a href="/#how-it-works" className="w-fit text-[#aeb3c1] hover:text-white">How It Works</a>
+          <a href="/#professionals" className="w-fit text-[#aeb3c1] hover:text-white">For Professionals</a>
+          <a href="/#employers" className="w-fit text-[#aeb3c1] hover:text-white">For Employers</a>
+          <a href="/#jobs-preview" className="w-fit text-[#aeb3c1] hover:text-white">Explore Jobs</a>
+          <Link href="/problem" className="w-fit text-[#aeb3c1] hover:text-white">The Problem</Link>
+          <Link href="/solution" className="w-fit text-[#aeb3c1] hover:text-white">The Solution</Link>
         </div>
+        <div className="flex flex-col gap-2 text-sm">
+          <strong className="mb-1 text-white">Company</strong>
+          <a href="/#community" className="w-fit text-[#aeb3c1] hover:text-white">Community</a>
+          <Link href="/forum" className="w-fit text-[#aeb3c1] hover:text-white">Forum</Link>
+          <Link href="/feed" className="w-fit text-[#aeb3c1] hover:text-white">Feed</Link>
+          <a href="/#faq" className="w-fit text-[#aeb3c1] hover:text-white">Help & Support</a>
+          <a href="/#pricing" className="w-fit text-[#aeb3c1] hover:text-white">Pricing</a>
+        </div>
+        <div className="flex flex-col gap-2 text-sm">
+          <strong className="mb-1 text-white">Get started</strong>
+          <Link href="/auth/login" className="w-fit text-[#aeb3c1] hover:text-white">Log In</Link>
+          <Link href="/auth/register" className="w-fit text-[#aeb3c1] hover:text-white">Create Account</Link>
+          <Link href="/privacy" className="w-fit text-[#aeb3c1] hover:text-white">Privacy Policy</Link>
+          <Link href="/terms" className="w-fit text-[#aeb3c1] hover:text-white">Terms & Conditions</Link>
+        </div>
+      </div>
+      <div className="mx-auto mt-8 flex w-[min(1180px,calc(100%-48px))] flex-col gap-2 border-t border-white/10 pt-6 text-xs text-[#858b9b] sm:flex-row sm:items-center sm:justify-between">
+        <p>© {new Date().getFullYear()} Brainepedia. All rights reserved.</p>
+        <p>
+          A product of{" "}
+          <a href="https://infobrainltd.com" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white">
+            Infobrainltd.com
+          </a>
+        </p>
       </div>
     </footer>
   );

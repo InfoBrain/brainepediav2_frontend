@@ -100,7 +100,7 @@ function FAQItem({ faq, index }: { faq: typeof faqs[0]; index: number }) {
 
 export function FAQ() {
   return (
-    <section id="faq" className="py-24 relative">
+    <section id="faq" className="relative scroll-mt-24 bg-white py-20">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#9D4EDD]/8 blur-[100px] rounded-full" />
       </div>
