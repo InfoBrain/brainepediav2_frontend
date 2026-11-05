@@ -192,7 +192,7 @@ export default function CandidateAssessments() {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="font-bold shadow-[0_0_12px_rgba(255,215,0,0.3)]" style={{ background: "#FFD700", color: "#000" }}>
+                <Button className="font-bold bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-[#FFD700] dark:text-black dark:hover:bg-[#FFD700]/90 dark:shadow-[0_0_12px_rgba(255,215,0,0.3)]">
                   <Send className="h-4 w-4 mr-2" />
                   Invite Candidate
                 </Button>
@@ -269,8 +269,7 @@ export default function CandidateAssessments() {
                   <Button
                     type="submit"
                     disabled={isSubmitting || !selectedProfession || !selectedProblemNodeId}
-                    className="w-full font-bold disabled:opacity-60"
-                    style={{ background: "#FFD700", color: "#000" }}
+                    className="w-full font-bold disabled:opacity-60 bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-[#FFD700] dark:text-black dark:hover:bg-[#FFD700]/90"
                   >
                     Review & Send
                   </Button>
@@ -370,7 +369,7 @@ export default function CandidateAssessments() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onConfirm} style={{ background: "#FFD700", color: "#000" }} className="font-bold">
+            <AlertDialogAction onClick={onConfirm} className="font-bold bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-[#FFD700] dark:text-black dark:hover:bg-[#FFD700]/90">
               <Send className="h-4 w-4 mr-2" />
               Send Invitation
             </AlertDialogAction>

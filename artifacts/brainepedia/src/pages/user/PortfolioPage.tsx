@@ -134,7 +134,7 @@ export default function PortfolioPage() {
   const pct = Math.round((completed.length / SECTIONS.length) * 100);
 
   const headerRight = (
-    <Button asChild size="sm" className="bg-amber-400 text-black hover:bg-amber-300">
+    <Button asChild size="sm" className="bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300">
       <Link href="/profile/edit">
         <Pencil className="h-4 w-4 sm:mr-2" />
         <span className="hidden sm:inline">Update Profile</span>
@@ -145,11 +145,11 @@ export default function PortfolioPage() {
   return (
     <DashboardShell nav={USER_NAV} title="Portfolio" subtitle="// professional.cv.builder" theme="user" showBrainiac headerRight={headerRight}>
       <div className="space-y-6">
-        <section className="rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-400/10 via-[#0d1119] to-[#7C3AED]/10 p-5">
+        <section className="rounded-2xl border border-[#e6e8ef] bg-white bg-gradient-to-br from-white via-white to-[#f5f0fc] dark:border-amber-400/20 dark:from-amber-400/10 dark:via-[#0d1119] dark:to-[#7C3AED]/10 p-5">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-amber-400/70">Portfolio Completion</p>
-              <h2 className="mt-1 text-3xl font-black text-amber-400">{pct}%</h2>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#7d4ccc] dark:font-mono dark:text-amber-400/70">Portfolio Completion</p>
+              <h2 className="mt-1 text-3xl font-black text-[#7d4ccc] dark:text-amber-400">{pct}%</h2>
               <Progress value={pct} className="mt-3 h-2 max-w-sm" />
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[420px]">
@@ -158,12 +158,12 @@ export default function PortfolioPage() {
             </div>
           </div>
           <div className="mt-5 flex flex-wrap gap-3">
-            <Button asChild className="bg-amber-400 text-black hover:bg-amber-300">
+            <Button asChild className="bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300">
               <Link href="/profile/edit">
                 <Pencil className="mr-2 h-4 w-4" /> Update Profile
               </Link>
             </Button>
-            <Button className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]" onClick={() => setCvModalOpen(true)}>
+            <Button className="bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-[#00D2FF] dark:text-black dark:hover:bg-[#00B8DD]" onClick={() => setCvModalOpen(true)}>
               <Download className="mr-2 h-4 w-4" /> Generate Smart CV
             </Button>
             <Button asChild variant="outline" className="border-white/15">
@@ -195,7 +195,7 @@ export default function PortfolioPage() {
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setCvModalOpen(false)} disabled={cvGenerating}>Cancel</Button>
               <Button
-                className="bg-[#00D2FF] text-black hover:bg-[#00B8DD]"
+                className="bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-[#00D2FF] dark:text-black dark:hover:bg-[#00B8DD]"
                 disabled={cvGenerating || !userId}
                 onClick={async () => {
                   if (!userId) return;
@@ -228,7 +228,7 @@ export default function PortfolioPage() {
           <nav className="rounded-2xl border border-white/5 bg-[#0d1119] p-3 lg:sticky lg:top-24 lg:self-start">
             <Link
               href="/profile/edit"
-              className="mb-2 flex items-center gap-3 rounded-xl border border-amber-400/40 bg-amber-400/10 px-3 py-3 text-sm font-medium text-amber-400 transition hover:bg-amber-400/20"
+              className="mb-2 flex items-center gap-3 rounded-xl border border-[#e0d2f3] bg-[#f5f0fc] px-3 py-3 text-sm font-semibold text-[#7d4ccc] transition hover:bg-[#ede4fa] dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-400 dark:hover:bg-amber-400/20"
             >
               <Pencil className="h-4 w-4" />
               <span className="flex-1">Update Profile</span>
@@ -241,7 +241,7 @@ export default function PortfolioPage() {
                   key={item.key}
                   href={`/user/portfolio/${item.key}`}
                   className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-sm transition ${
-                    current ? "border-amber-400/40 bg-amber-400/10 text-amber-400" : "border-transparent text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                    current ? "border-[#e0d2f3] bg-[#f5f0fc] font-semibold text-[#7d4ccc] dark:font-normal dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-400" : "border-transparent text-[#626b7d] hover:bg-[#f5f0fc] hover:text-[#7d4ccc] dark:text-muted-foreground dark:hover:bg-white/5 dark:hover:text-foreground"
                   }`}
                 >
                   <span className="font-mono text-[10px] text-muted-foreground">{index + 1}</span>
@@ -319,14 +319,14 @@ function PersonalStatement({ profile, onSaved }: { profile: any; onSaved: (value
     <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-amber-400">Personal Statement</h2>
+          <h2 className="text-xl font-bold text-[#182137] dark:text-amber-400">Personal Statement</h2>
           <p className="text-sm text-muted-foreground">This replaces the old About Me editing experience.</p>
         </div>
         <Button variant="outline" onClick={() => setAiOpen(true)}><Sparkles className="mr-2 h-4 w-4" /> Improve with Brainiac</Button>
       </div>
       <Textarea rows={10} value={value} onChange={(event) => setValue(event.target.value)} placeholder="Tell employers who you are, what you do, and what outcomes you create." />
       <div className="mt-4 flex justify-end">
-        <Button onClick={save} disabled={saving} className="bg-amber-400 text-black hover:bg-amber-300">
+        <Button onClick={save} disabled={saving} className="bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300">
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Personal Statement
         </Button>
       </div>
@@ -422,7 +422,7 @@ function CrudSection({
       <div className="rounded-2xl border border-white/5 bg-[#0d1119] p-5">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-amber-400">{config.label}</h2>
+            <h2 className="text-xl font-bold text-[#182137] dark:text-amber-400">{config.label}</h2>
             <p className="text-sm text-muted-foreground">Add, edit, and maintain this part of your professional CV.</p>
           </div>
           <Button onClick={startAdd} variant="outline"><Plus className="mr-2 h-4 w-4" /> New</Button>
@@ -442,7 +442,7 @@ function CrudSection({
         {section === "projects" && <MediaPreview form={form} />}
         <div className="mt-4 flex justify-end gap-2">
           {editing && <Button variant="ghost" onClick={startAdd}>Cancel edit</Button>}
-          <Button onClick={save} disabled={saving} className="bg-amber-400 text-black hover:bg-amber-300">
+          <Button onClick={save} disabled={saving} className="bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300">
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {editing ? "Save Changes" : "Add Item"}
           </Button>
         </div>
@@ -497,7 +497,7 @@ function FormField({
     <label className={field.type === "textarea" ? "md:col-span-2" : ""}>
       <span className="mb-1.5 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
         {field.label}
-        {onAi && <button type="button" onClick={onAi} className="text-amber-400 hover:text-amber-300">✨ Improve with Brainiac</button>}
+        {onAi && <button type="button" onClick={onAi} className="font-semibold text-[#7d4ccc] hover:text-[#6538ad] dark:text-amber-400 dark:hover:text-amber-300">✨ Improve with Brainiac</button>}
       </span>
       {field.type === "textarea" ? (
         <Textarea id={id} rows={5} value={value || ""} onChange={(event) => onChange(event.target.value)} />
@@ -528,7 +528,7 @@ function PortfolioCard({ section, item, fields, onEdit, onDelete }: { section: S
   }
   if (section === "interests") {
     return (
-      <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-sm text-amber-300">
+      <span className="inline-flex items-center gap-2 rounded-full border border-[#e0d2f3] bg-[#f5f0fc] px-3 py-2 text-sm text-[#7d4ccc] dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300">
         {textOf(item.interest ?? item.name ?? item.Interest)}
         <CardActions onEdit={onEdit} onDelete={onDelete} small />
       </span>
@@ -621,7 +621,7 @@ function BrainiacModal({ open, onOpenChange, targetModule, original, onAccept }:
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={accept} disabled={!result} className="bg-amber-400 text-black hover:bg-amber-300">Accept</Button>
+          <Button onClick={accept} disabled={!result} className="bg-[#7d4ccc] text-white hover:bg-[#6538ad] dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300">Accept</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -666,9 +666,9 @@ function ProjectLinks({ item }: { item: any }) {
   const fileLabel = isVideo ? "Video" : isImage ? "Image" : "File";
   return (
     <div className="mt-3 flex flex-wrap gap-2">
-      {item.projectUrl && <a href={item.projectUrl} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">Open project</a>}
+      {item.projectUrl && <a href={item.projectUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-[#7d4ccc] hover:underline dark:text-[#00D2FF]">Open project</a>}
       {mediaUrl && (
-        <a href={mediaUrl} target="_blank" rel="noreferrer" className="text-xs text-[#00D2FF] hover:underline">{fileLabel}</a>
+        <a href={mediaUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-[#7d4ccc] hover:underline dark:text-[#00D2FF]">{fileLabel}</a>
       )}
     </div>
   );

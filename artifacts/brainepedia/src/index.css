@@ -234,102 +234,212 @@
 }
 
 @layer utilities {
-  html.light [class*="bg-[#0d1119]"],
-  html.light [class*="bg-[#0A0E14]"],
-  html.light [class*="bg-[#0a0e14]"],
-  html.light [class*="bg-[#0d1117]"],
-  html.light [class*="bg-[#0a0f16]"],
-  html.light [class*="bg-[#0A0F16]"],
-  html.light [class*="bg-[#0d1020]"],
-  html.light [class*="bg-[#060a10]"],
-  html.light [class*="bg-[#1a1230]"],
-  html.light [class*="bg-[#111827]"],
-  html.light [class*="bg-[#131822"] {
+  /*
+   * Light-theme bridge for legacy dark markup. Older pages hardcode dark
+   * surfaces and neon accents; in light mode they resolve to the V3 palette:
+   * white content surfaces, #f7f8fb supporting areas, navy text, purple
+   * accents, and blue/green/orange only for status. Dark mode is untouched.
+   * Hex matches use the `i` flag because the markup mixes #0D1117 and #0d1117.
+   */
+
+  html.light :is(
+    [class*="bg-[#0d1119]" i], [class*="bg-[#0d1117]" i], [class*="bg-[#111827]" i],
+    [class*="bg-[#131822" i], [class*="bg-[#1a1230]" i], [class*="bg-[#0d1020]" i],
+    [class*="bg-[#0a0d16]" i], .bg-gray-900, .bg-slate-900, .bg-zinc-900
+  ) {
     background-color: #ffffff !important;
     color: #182137;
   }
 
-  html.light [class*="via-[#0d1119]"],
-  html.light [class*="to-[#0d1119]"],
-  html.light [class*="to-[#0A0E14]"],
-  html.light [class*="to-[#0d1117]"],
-  html.light [class*="to-[#0a0f16]"],
-  html.light [class*="from-[#0d1119]"],
-  html.light [class*="from-[#0A0E14]"],
-  html.light [class*="from-[#0d1117]"],
-  html.light [class*="from-[#0a0f16]"],
-  html.light [class*="from-[#0d1020]"] {
-    background-image: linear-gradient(135deg, #ffffff, #f7f5fc) !important;
-    background-color: #ffffff !important;
+  html.light :is(
+    [class*="bg-[#0a0e14]" i], [class*="bg-[#0a0f16]" i], [class*="bg-[#060a10]" i],
+    [class*="bg-[#020408]" i], [class*="bg-[#080c12]" i], [class*="bg-[#080b10]" i],
+    [class*="bg-[#0a0e18]" i], .bg-gray-800, .bg-slate-800, .bg-zinc-800,
+    [class*="bg-black/20"], [class*="bg-black/25"], [class*="bg-black/30"], [class*="bg-black/35"],
+    [class*="bg-white/"]
+  ) {
+    background-color: #f7f8fb !important;
     color: #182137;
   }
 
-  html.light [class*="border-white/"] {
+  html.light :is(input, select, textarea):is(
+    [class*="bg-[#0a0e14]" i], [class*="bg-[#0d1117]" i], [class*="bg-[#0d1119]" i],
+    [class*="bg-[#060a10]" i], [class*="bg-black/"], [class*="bg-white/"]
+  ) {
+    background-color: #ffffff !important;
     border-color: #e6e8ef !important;
   }
 
-  html.light [class*="bg-[#0d1119]"] .text-white,
-  html.light [class*="bg-[#0A0E14]"] .text-white,
-  html.light [class*="bg-[#0d1117]"] .text-white,
-  html.light [class*="bg-[#0a0f16]"] .text-white,
-  html.light [class*="bg-[#0d1020]"] .text-white,
-  html.light [class*="bg-[#111827]"] .text-white,
-  html.light [class*="from-[#0d1119]"] .text-white,
-  html.light [class*="from-[#0d1117]"] .text-white,
-  html.light [class*="from-[#0a0f16]"] .text-white,
-  html.light [class*="bg-[#0d1119]"] [class*="text-white/"],
-  html.light [class*="bg-[#0a0f16]"] [class*="text-white/"],
-  html.light [class*="bg-[#0d1020]"] [class*="text-white/"],
-  html.light [class*="bg-[#0d1117]"] [class*="text-white/"],
-  html.light [class*="from-[#0d1119]"] [class*="text-white/"] {
-    color: #323b50 !important;
+  html.light :is(
+    [class*="from-[#0d1119]" i], [class*="from-[#0a0e14]" i], [class*="from-[#0d1117]" i],
+    [class*="from-[#0a0f16]" i], [class*="from-[#0d1020]" i], [class*="from-[#060a10]" i],
+    [class*="via-[#0d1119]" i], [class*="via-[#0d1117]" i], [class*="via-[#0a0e14]" i],
+    [class*="to-[#0d1119]" i], [class*="to-[#0a0e14]" i], [class*="to-[#0d1117]" i],
+    [class*="to-[#0a0f16]" i], [class*="from-amber-400/" i], [class*="from-[#00d2ff]/" i],
+    [class*="from-[#ffd700]/" i], [class*="from-[#7c3aed]/" i], [class*="from-[#9d4edd]/" i],
+    [class*="from-cyan-500/" i], [class*="from-purple-500/" i], [class*="from-[#3d3000]" i]
+  ) {
+    background-image: linear-gradient(135deg, #ffffff, #faf7fe) !important;
+    background-color: #ffffff !important;
+    color: #182137;
   }
 
-  html.light [class*="bg-white/"] {
-    background-color: #f7f8fb !important;
+  html.light :is(.bg-black\/50, .bg-black\/60, .bg-black\/70, .bg-black\/80, .bg-black\/90) {
+    background-color: rgba(21, 24, 40, 0.42) !important;
   }
 
-  html.light [class*="text-[#00D2FF]"] { color: #276ef1 !important; }
-  html.light [class*="text-[#FFD700]"] { color: #b87412 !important; }
-  html.light [class*="text-[#A78BFA]"],
-  html.light [class*="text-[#7C3AED]"],
-  html.light [class*="text-[#9D4EDD]"] { color: #7d4ccc !important; }
-  html.light [class*="bg-[#00D2FF]/"] { background-color: #edf4ff !important; }
-  html.light [class*="bg-[#FFD700]/"] { background-color: #fff6e5 !important; }
-  html.light [class*="bg-[#7C3AED]/"],
-  html.light [class*="bg-[#9D4EDD]/"] { background-color: #f5f0fc !important; }
-  html.light [class*="border-[#00D2FF]"] { border-color: #c9d8f8 !important; }
-  html.light [class*="border-[#FFD700]"] { border-color: #f0ddb4 !important; }
-  html.light [class*="border-[#7C3AED]"],
-  html.light [class*="border-[#9D4EDD]"] { border-color: #e0d2f3 !important; }
-  html.light [class*="shadow-[0_0_"] { box-shadow: 0 8px 24px rgba(28, 33, 54, 0.08) !important; }
+  /* Legacy primary buttons (cyan, gold, amber, violet) become the brand purple. */
+  html.light :is(
+    .bg-\[\#00D2FF\], .bg-\[\#00d2ff\], .bg-\[\#00B8DD\], .bg-\[\#00b8dd\],
+    .bg-cyan-400, .bg-cyan-500, .bg-sky-500,
+    .bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-amber-500\/90, .bg-yellow-400, .bg-yellow-500,
+    .bg-\[\#FFD700\], .bg-\[\#ffd700\], .bg-\[\#f3c800\], .bg-\[\#F3C800\],
+    .bg-\[\#9D4EDD\], .bg-\[\#9d4edd\], .bg-\[\#7C3AED\], .bg-\[\#7c3aed\],
+    .bg-\[\#6D28D9\], .bg-\[\#6d28d9\], .bg-\[\#6366f1\], .bg-\[\#4f46e5\],
+    .bg-purple-500, .bg-purple-600, .bg-violet-600, .bg-indigo-600
+  ) {
+    background-color: #7d4ccc !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 17px rgba(125, 76, 204, 0.2) !important;
+  }
 
-  html.light .text-accent { color: #7d4ccc; }
+  html.light :is(
+    .bg-\[\#00D2FF\], .bg-\[\#00d2ff\], .bg-\[\#00B8DD\], .bg-cyan-400, .bg-cyan-500,
+    .bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-\[\#FFD700\], .bg-\[\#ffd700\], .bg-\[\#f3c800\],
+    .bg-\[\#9D4EDD\], .bg-\[\#7C3AED\], .bg-\[\#6D28D9\], .bg-\[\#6366f1\], .bg-purple-500, .bg-purple-600
+  ):is(button, a, [role="button"]):hover:not(:disabled) {
+    background-color: #6538ad !important;
+  }
 
-  html.light .text-amber-200,
-  html.light .text-amber-300,
-  html.light .text-amber-400,
-  html.light .text-yellow-200,
-  html.light .text-yellow-300,
-  html.light .text-yellow-400,
-  html.light .text-yellow-500 {
+  html.light :is(
+    .bg-\[\#00D2FF\], .bg-\[\#00d2ff\], .bg-\[\#00B8DD\], .bg-cyan-400, .bg-cyan-500,
+    .bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-\[\#FFD700\], .bg-\[\#ffd700\], .bg-\[\#f3c800\],
+    .bg-\[\#9D4EDD\], .bg-\[\#7C3AED\], .bg-\[\#6D28D9\], .bg-\[\#6366f1\], .bg-purple-500, .bg-purple-600
+  ) :is(.text-black, [class*="text-black/"], svg) {
+    color: #ffffff !important;
+  }
+
+  html.light :is(
+    [class*="from-[#00d2ff]" i], [class*="from-[#ffd700]" i], [class*="from-amber-4" i],
+    [class*="from-[#f59e0b]" i], [class*="from-cyan-4" i], [class*="from-[#9d4edd]" i],
+    [class*="from-[#7c3aed]" i], [class*="from-[#a78bfa]" i], [class*="from-[#6366f1]" i]
+  ):not([class*="from-[#00d2ff]/" i], [class*="from-[#ffd700]/" i], [class*="from-amber-400/" i], [class*="from-[#7c3aed]/" i], [class*="from-[#9d4edd]/" i], [class*="from-cyan-500/" i]) {
+    background-image: linear-gradient(135deg, #7d4ccc, #9b74dc) !important;
+  }
+
+  /* Text that was white on a dark panel turns navy unless it sits on a colored fill. */
+  html.light :is(
+    [class*="bg-[#0d1119]" i], [class*="bg-[#0d1117]" i], [class*="bg-[#111827]" i], [class*="bg-[#131822" i],
+    [class*="bg-[#1a1230]" i], [class*="bg-[#0d1020]" i], [class*="bg-[#0a0d16]" i], [class*="bg-[#0a0e14]" i],
+    [class*="bg-[#0a0f16]" i], [class*="bg-[#060a10]" i], [class*="bg-[#020408]" i], [class*="bg-[#080c12]" i],
+    [class*="bg-[#080b10]" i], [class*="bg-[#0a0e18]" i], [class*="from-[#0d1119]" i], [class*="from-[#0d1117]" i],
+    [class*="from-[#0a0f16]" i], [class*="from-amber-400/" i], [class*="from-[#7c3aed]/" i], [class*="from-[#00d2ff]/" i],
+    .bg-gray-800, .bg-gray-900, .bg-slate-800, .bg-slate-900, [data-app-canvas], [role="dialog"], [role="alertdialog"]
+  ) :is(.text-white, .text-gray-100, .text-gray-200, .text-slate-100, .text-slate-200, .text-foreground):not(
+    .bg-\[\#7d4ccc\], .bg-\[\#6538ad\], .bg-\[\#276ef1\], .bg-\[\#5b35c5\], .bg-primary, .bg-destructive,
+    .bg-red-500, .bg-red-600, .bg-emerald-500, .bg-emerald-600, .bg-green-500, .bg-green-600, .bg-black,
+    .bg-\[\#00D2FF\], .bg-\[\#00B8DD\], .bg-amber-400, .bg-amber-500, .bg-\[\#FFD700\], .bg-\[\#9D4EDD\],
+    .bg-\[\#7C3AED\], .bg-\[\#6D28D9\], .bg-\[\#6366f1\], .bg-purple-500, .bg-purple-600, .bg-cyan-500,
+    [class*="bg-gradient"], [class*="bg-[linear-gradient"], [class*="bg-[radial-gradient"], [style*="background"]
+  ):not(:is(
+    [style*="background"],
+    .bg-\[\#7d4ccc\], .bg-\[\#6538ad\], .bg-\[\#276ef1\], .bg-\[\#5b35c5\], .bg-primary, .bg-destructive,
+    .bg-red-500, .bg-red-600, .bg-emerald-500, .bg-emerald-600, .bg-green-500, .bg-green-600, .bg-black,
+    .bg-black\/60, .bg-black\/70, .bg-black\/80, .bg-\[\#00D2FF\], .bg-\[\#00B8DD\], .bg-amber-400, .bg-amber-500,
+    .bg-\[\#FFD700\], .bg-\[\#9D4EDD\], .bg-\[\#7C3AED\], .bg-\[\#6D28D9\], .bg-\[\#6366f1\], .bg-purple-500,
+    .bg-purple-600, .bg-cyan-500, [class*="bg-[linear-gradient"], [class*="bg-[radial-gradient"],
+    [class*="from-[#7d4ccc]" i], [class*="from-[#5b35c5]" i], [class*="from-[#00d2ff]" i]:not([class*="from-[#00d2ff]/" i]),
+    [class*="from-[#7c3aed]" i]:not([class*="from-[#7c3aed]/" i]), [class*="from-[#9d4edd]" i]:not([class*="from-[#9d4edd]/" i]),
+    [class*="from-[#ffd700]" i]:not([class*="from-[#ffd700]/" i]), [class*="from-purple-6"], [class*="from-violet"],
+    [class*="from-amber-400"]:not([class*="from-amber-400/"]), [class*="from-slate-4"], [class*="from-cyan-4"], [class*="from-[#a78bfa]" i]
+  ) *) {
+    color: #182137 !important;
+  }
+
+  html.light :is(
+    [class*="bg-[#0d1119]" i], [class*="bg-[#0d1117]" i], [class*="bg-[#111827]" i], [class*="bg-[#131822" i],
+    [class*="bg-[#1a1230]" i], [class*="bg-[#0d1020]" i], [class*="bg-[#0a0d16]" i], [class*="bg-[#0a0e14]" i],
+    [class*="bg-[#0a0f16]" i], [class*="bg-[#060a10]" i], [class*="bg-[#020408]" i], [class*="bg-[#080c12]" i],
+    [class*="bg-[#080b10]" i], [class*="bg-[#0a0e18]" i], [class*="from-[#0d1119]" i], [class*="from-[#0d1117]" i],
+    [class*="from-amber-400/" i], [class*="from-[#7c3aed]/" i], [class*="from-[#00d2ff]/" i],
+    .bg-gray-800, .bg-gray-900, .bg-slate-800, .bg-slate-900, [data-app-canvas], [role="dialog"], [role="alertdialog"]
+  ) :is([class*="text-white/"], .text-gray-300, .text-slate-300):not(:is(
+    .bg-\[\#7d4ccc\], .bg-\[\#6538ad\], .bg-primary, .bg-destructive, .bg-black\/60, .bg-black\/70, .bg-black\/80,
+    .bg-\[\#00D2FF\], .bg-amber-400, .bg-\[\#FFD700\], .bg-\[\#9D4EDD\], .bg-\[\#7C3AED\], .bg-purple-600,
+    [class*="bg-[linear-gradient"], [class*="bg-[radial-gradient"], [class*="from-[#7d4ccc]" i], [class*="from-[#5b35c5]" i]
+  ) *) {
+    color: #626b7d !important;
+  }
+
+  html.light :is(.text-gray-400, .text-gray-500, .text-slate-400, .text-slate-500, .text-zinc-400, .text-neutral-400) {
+    color: #70798d !important;
+  }
+
+  html.light :is(
+    [class*="bg-[#0d1119]" i], [class*="bg-[#0d1117]" i], [class*="bg-[#0a0e14]" i], [class*="bg-[#060a10]" i],
+    [class*="bg-[#0a0f16]" i], [data-app-canvas], [role="dialog"], [role="alertdialog"]
+  ) .text-black:not(:is(
+    .bg-\[\#00D2FF\], .bg-\[\#00B8DD\], .bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-\[\#FFD700\], .bg-\[\#f3c800\],
+    .bg-cyan-400, .bg-cyan-500, .bg-white, .bg-\[\#7d4ccc\]
+  ), :is(
+    .bg-\[\#00D2FF\], .bg-\[\#00B8DD\], .bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-\[\#FFD700\], .bg-\[\#f3c800\],
+    .bg-cyan-400, .bg-cyan-500, .bg-\[\#7d4ccc\]
+  ) *) {
+    color: #182137 !important;
+  }
+
+  /* Accents: neon cyan, gold, and amber text become brand purple. */
+  html.light :is(
+    [class*="text-[#00D2FF]" i], [class*="text-[#00B8DD]" i], [class*="text-[#FFD700]" i], [class*="text-[#f3c800]" i],
+    [class*="text-[#A78BFA]" i], [class*="text-[#7C3AED]" i], [class*="text-[#9D4EDD]" i], [class*="text-[#C084FC]" i],
+    .text-amber-200, .text-amber-300, .text-amber-400, .text-amber-500,
+    [class*="text-amber-200/"], [class*="text-amber-300/"], [class*="text-amber-400/"],
+    .text-yellow-200, .text-yellow-300, .text-yellow-400, .text-yellow-500,
+    .text-cyan-100, .text-cyan-200, .text-cyan-300, .text-cyan-400, [class*="text-cyan-400/"],
+    .text-sky-300, .text-sky-400, .text-orange-400,
+    .text-purple-300, .text-purple-400, .text-fuchsia-300, .text-fuchsia-400, .text-violet-300, .text-violet-400,
+    .text-primary, .text-accent
+  ):not(:is(
+    .bg-\[\#7d4ccc\], .bg-primary, .bg-\[\#00D2FF\], .bg-amber-400, .bg-\[\#FFD700\], .bg-\[\#9D4EDD\], .bg-\[\#7C3AED\]
+  ) *) {
+    color: #7d4ccc !important;
+  }
+
+  /* Warning boxes keep an orange status tone on a soft cream fill. */
+  html.light :is([class*="bg-amber-400/"], [class*="bg-amber-500/"], [class*="bg-yellow-400/"], [class*="bg-yellow-500/"], [class*="bg-orange-500/"]):not(.bg-\[\#00D2FF\], .bg-\[\#00d2ff\], .bg-\[\#00B8DD\], .bg-cyan-400, .bg-cyan-500, .bg-sky-500, .bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-400, .bg-\[\#FFD700\], .bg-\[\#ffd700\], .bg-\[\#9D4EDD\], .bg-\[\#7C3AED\], .bg-purple-500, .bg-purple-600) {
+    background-color: #fff6e5 !important;
+    border-color: #f0ddb4 !important;
+  }
+
+  html.light :is([class*="bg-amber-400/"], [class*="bg-amber-500/"], [class*="bg-yellow-400/"], [class*="bg-orange-500/"]) :is(
+    .text-amber-200, .text-amber-300, .text-amber-400, [class*="text-amber-200/"], [class*="text-amber-300/"], [class*="text-amber-400/"], .text-orange-400
+  ),
+  html.light :is([class*="bg-amber-400/"], [class*="bg-amber-500/"]):is(.text-amber-200, .text-amber-300, .text-amber-400) {
     color: #b87412 !important;
   }
 
-  html.light .text-cyan-200,
-  html.light .text-cyan-300,
-  html.light .text-cyan-400,
-  html.light .text-sky-300,
-  html.light .text-sky-400 {
-    color: #276ef1 !important;
+  html.light :is(
+    [class*="bg-[#00D2FF]/" i], [class*="bg-[#00B8DD]/" i], [class*="bg-cyan-400/"], [class*="bg-cyan-500/"], [class*="bg-sky-500/"],
+    [class*="bg-[#7C3AED]/" i], [class*="bg-[#9D4EDD]/" i], [class*="bg-[#A78BFA]/" i], [class*="bg-purple-500/"], [class*="bg-violet-500/"],
+    [class*="bg-[#FFD700]/" i]
+  ):not(.bg-\[\#00D2FF\], .bg-\[\#00d2ff\], .bg-\[\#00B8DD\], .bg-cyan-400, .bg-cyan-500, .bg-sky-500, .bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-yellow-400, .bg-\[\#FFD700\], .bg-\[\#ffd700\], .bg-\[\#9D4EDD\], .bg-\[\#7C3AED\], .bg-purple-500, .bg-purple-600) {
+    background-color: #f5f0fc !important;
   }
 
-  html.light .text-purple-300,
-  html.light .text-purple-400,
-  html.light .text-fuchsia-300,
-  html.light .text-fuchsia-400 {
-    color: #7d4ccc !important;
+  html.light :is(
+    [class*="border-[#00D2FF]" i], [class*="border-[#FFD700]" i], [class*="border-[#7C3AED]" i], [class*="border-[#9D4EDD]" i],
+    [class*="border-amber-"], [class*="border-cyan-"], [class*="border-purple-"], [class*="border-yellow-"], [class*="border-sky-"]
+  ):not([class*="bg-amber-400/"], [class*="bg-amber-500/"]) {
+    border-color: #e0d2f3 !important;
   }
+
+  html.light :is([class*="border-white/"], .border-gray-700, .border-gray-800, .border-slate-700, .border-slate-800, [class*="border-slate-500/"]) {
+    border-color: #e6e8ef !important;
+  }
+
+  html.light [class*="shadow-[0_0_"] { box-shadow: 0 8px 24px rgba(28, 33, 54, 0.08) !important; }
+  html.light :is([class*="shadow-cyan-"], [class*="shadow-amber-"], [class*="shadow-purple-"]) { --tw-shadow-color: rgba(28, 33, 54, 0.08) !important; }
+  html.light [class*="drop-shadow-[0_0_"] { filter: none !important; }
 
   html.light .text-emerald-300,
   html.light .text-emerald-400,
@@ -340,26 +450,40 @@
 
   html.light .text-rose-300,
   html.light .text-rose-400,
-  html.light .text-red-300 {
+  html.light .text-red-300,
+  html.light .text-red-400 {
     color: #d34d62 !important;
   }
 
-  html.light [class*="bg-[#0a0d16]"] .text-amber-200 { color: #fde68a !important; }
-  html.light [class*="bg-[#0a0d16]"] .text-amber-300 { color: #fcd34d !important; }
-  html.light [class*="bg-[#0a0d16]"] .text-amber-400 { color: #fbbf24 !important; }
-  html.light [class*="bg-[#0a0d16]"] .text-cyan-300 { color: #67e8f9 !important; }
-  html.light [class*="bg-[#0a0d16]"] .text-cyan-400 { color: #22d3ee !important; }
-  html.light [class*="bg-[#0a0d16]"] .text-purple-300 { color: #d8b4fe !important; }
-  html.light [class*="bg-[#0a0d16]"] .text-purple-400 { color: #c084fc !important; }
-  html.light [class*="bg-[#0a0d16]"] .text-emerald-300 { color: #6ee7b7 !important; }
-  html.light [class*="bg-[#0a0d16]"] .text-emerald-400 { color: #34d399 !important; }
+  /* Inline legacy accents (style="color: …"), serialized by the browser as rgb(). */
+  html.light :is(
+    [style^="color: rgb(255, 215, 0)"], [style*="; color: rgb(255, 215, 0)"],
+    [style^="color: rgb(0, 210, 255)"], [style*="; color: rgb(0, 210, 255)"],
+    [style^="color: rgb(157, 78, 221)"], [style*="; color: rgb(157, 78, 221)"],
+    [style^="color: rgb(124, 58, 237)"], [style*="; color: rgb(124, 58, 237)"]
+  ) {
+    color: #7d4ccc !important;
+  }
 
-  html.light .font-mono.uppercase,
-  html.light .uppercase.font-mono,
-  html.light .font-mono.tracking-wider,
-  html.light .font-mono.tracking-widest,
-  html.light .font-mono.tracking-\[0\.2em\],
-  html.light .font-mono.tracking-\[0\.18em\] {
+  html.light :is([style*="background-color: rgba(255, 215, 0,"], [style*="background-color: rgba(0, 210, 255,"], [style*="background-color: rgba(157, 78, 221,"]) {
+    background-color: #f5f0fc !important;
+    box-shadow: none !important;
+  }
+
+  html.light :is([style*="border-color: rgba(255, 215, 0,"], [style*="border-color: rgba(0, 210, 255,"], [style*="border-color: rgba(157, 78, 221,"]) {
+    border-color: #e0d2f3 !important;
+  }
+
+  html.light :is(
+    [style*="background: rgb(255, 215, 0)"], [style*="background-color: rgb(255, 215, 0)"],
+    [style*="background: rgb(0, 210, 255)"], [style*="background-color: rgb(0, 210, 255)"],
+    [style*="background: rgb(157, 78, 221)"], [style*="background-color: rgb(157, 78, 221)"]
+  ) {
+    background: #7d4ccc !important;
+    color: #ffffff !important;
+  }
+
+  html.light .font-mono:not(code, pre, kbd, samp, code *, pre *) {
     font-family: Manrope, sans-serif;
   }
 

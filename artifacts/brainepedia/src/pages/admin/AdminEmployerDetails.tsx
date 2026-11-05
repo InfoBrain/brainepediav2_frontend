@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation } from "wouter";
+import { useBrandTone } from "@/lib/brandTone";
 import { Building2, Loader2, ArrowLeft, Globe, Phone, Mail, Users, Calendar, ExternalLink } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ADMIN_NAV } from "@/lib/adminNav";
@@ -41,6 +42,7 @@ function DetailRow({ icon: Icon, label, value }: { icon: React.ElementType; labe
 export default function AdminEmployerDetails() {
   const params = useParams<{ employerId: string }>();
   const [, setLocation] = useLocation();
+  const tone = useBrandTone();
   const [details, setDetails] = useState<EmployerDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -155,7 +157,7 @@ export default function AdminEmployerDetails() {
                   { label: "Active Members", value: details.activeTeamMembers ?? "—", color: "#22C55E", icon: Users },
                   ...(details.inactiveTeamMembers != null ? [{ label: "Inactive Members", value: details.inactiveTeamMembers, color: "#F59E0B", icon: Users }] : []),
                   { label: "Jobs Posted", value: details.activeJobs ?? "—", color: "#9D4EDD", icon: Building2 },
-                ].map(({ label, value, color, icon: Icon }) => (
+                ].map(({ label, value, color: rawColor, icon: Icon }) => { const color = tone(rawColor); return (
                   <div key={label} className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
                       style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
@@ -166,7 +168,7 @@ export default function AdminEmployerDetails() {
                       <p className="font-bold">{value}</p>
                     </div>
                   </div>
-                ))}
+                ); })}
               </div>
 
               {/* Account Owner */}

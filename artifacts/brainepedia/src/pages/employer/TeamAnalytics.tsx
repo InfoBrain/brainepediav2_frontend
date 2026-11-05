@@ -5,6 +5,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EMPLOYER_NAV } from "@/lib/employerNav";
 import { api } from "@/lib/api";
 import { text } from "@/lib/jobData";
+import { useBrandTone } from "@/lib/brandTone";
 
 type OverviewMetrics = {
   organizationSize: number;
@@ -53,6 +54,8 @@ type AnalyticsData = {
 };
 
 function StatPill({ label, value, color = "#00D2FF" }: { label: string; value: string | number; color?: string }) {
+  const tone = useBrandTone();
+  color = tone(color);
   return (
     <div className="bg-[#0d1119] border border-white/5 rounded-xl p-4 text-center">
       <p className="text-2xl font-bold" style={{ color }}>{value}</p>

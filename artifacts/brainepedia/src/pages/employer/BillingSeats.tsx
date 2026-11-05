@@ -12,6 +12,7 @@ import { useOptionalBrainiacCredits } from "@/hooks/useBrainiacCredits";
 import { normalizeCurrentMonthSeats, normalizeOrganizationBilling } from "@/lib/aiCredits";
 import type { CurrentMonthSeatsDto, OrganizationBillingSummaryDto } from "@/lib/types/billingCredits";
 import { useLocation } from "wouter";
+import { useBrandTone } from "@/lib/brandTone";
 
 type BillingData = {
   billingCycleStart?: string;
@@ -42,6 +43,8 @@ function InfoCard({
   sub?: string;
   color?: string;
 }) {
+  const tone = useBrandTone();
+  color = tone(color);
   return (
     <div className="bg-[#0d1119] border border-white/5 rounded-xl p-5">
       <div className="flex items-center gap-2 mb-3">
@@ -248,7 +251,7 @@ export default function BillingSeats() {
                 <p className="text-sm text-muted-foreground mt-0.5">Upgrade your plan to unlock more Grandmaster seats for your team.</p>
               </div>
               <a href="/employer/subscription">
-                <Button className="font-bold shadow-[0_0_12px_rgba(157,78,221,0.35)]" style={{ background: "#9D4EDD" }}>
+                <Button className="bg-[#7d4ccc] font-bold text-white hover:bg-[#6538ad] dark:bg-[#9D4EDD] dark:shadow-[0_0_12px_rgba(157,78,221,0.35)] dark:hover:bg-[#9D4EDD]/90">
                   <Gem className="h-4 w-4 mr-2" />
                   View Subscription
                 </Button>

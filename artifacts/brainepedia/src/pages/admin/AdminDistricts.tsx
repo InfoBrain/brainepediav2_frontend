@@ -229,7 +229,7 @@ export default function AdminDistricts() {
   }
 
   return (
-    <DashboardShell nav={ADMIN_NAV} title="Districts">
+    <DashboardShell nav={ADMIN_NAV} theme="admin" title="Districts">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

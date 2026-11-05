@@ -429,7 +429,7 @@ export default function AdminProblemNodes() {
   const diffName = (id: string) => difficulties.find(d => d.id === id)?.name || id;
 
   return (
-    <DashboardShell nav={ADMIN_NAV} title="Challenges">
+    <DashboardShell nav={ADMIN_NAV} theme="admin" title="Challenges">
       <div className="p-6 space-y-6">
         <PageHeader
           title="Challenges"
