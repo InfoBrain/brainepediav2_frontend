@@ -115,7 +115,7 @@ export function MissionActivityFeed({ className }: Props) {
   if (error) {
     return (
       <div className={`bg-[#0d1119] border border-white/6 rounded-2xl p-6 ${className ?? ""}`}>
-        <h2 className="text-lg font-bold text-amber-400">Recent Mission Activity</h2>
+        <h2 className="text-lg font-bold text-[#182137] dark:text-amber-400">Recent Mission Activity</h2>
         <p className="mt-4 text-sm text-white/40 font-mono border border-dashed border-white/10 rounded-xl px-6 py-5">
           Mission activity is temporarily unavailable.
         </p>
@@ -128,7 +128,7 @@ export function MissionActivityFeed({ className }: Props) {
       <div className={`bg-[#0d1119] border border-white/6 rounded-2xl p-6 ${className ?? ""}`}>
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-lg font-bold text-amber-400">Recent Mission Activity</h2>
+            <h2 className="text-lg font-bold text-[#182137] dark:text-amber-400">Recent Mission Activity</h2>
             <p className="text-xs text-muted-foreground font-mono">Community mission feed</p>
           </div>
           <Activity className="h-5 w-5 text-[#A78BFA]" />
@@ -145,7 +145,7 @@ export function MissionActivityFeed({ className }: Props) {
     <div className={`bg-[#0d1119] border border-white/6 rounded-2xl p-6 ${className ?? ""}`}>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-lg font-bold text-amber-400">Recent Mission Activity</h2>
+          <h2 className="text-lg font-bold text-[#182137] dark:text-amber-400">Recent Mission Activity</h2>
           <p className="text-xs text-muted-foreground font-mono">Community mission feed</p>
         </div>
         <Activity className="h-5 w-5 text-[#A78BFA]" />

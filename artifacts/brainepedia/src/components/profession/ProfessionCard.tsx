@@ -77,8 +77,8 @@ export function ProfessionCard({ profession, selected, onClick, index }: Props) 
           />
         ) : null}
         <span
-          className={`relative z-10 text-3xl font-bold font-mono text-white/60
-            ${profession.iconUrl ? "hidden" : "flex"} items-center justify-center w-12 h-12`}
+          className={`relative z-10 flex h-12 w-12 items-center justify-center text-3xl font-extrabold text-[#182137] dark:font-mono dark:text-white/60
+            ${profession.iconUrl ? "hidden" : ""}`}
         >
           {profession.name.charAt(0).toUpperCase()}
         </span>
@@ -86,8 +86,8 @@ export function ProfessionCard({ profession, selected, onClick, index }: Props) 
 
       {/* Name */}
       <p
-        className={`text-sm font-semibold text-center leading-tight transition-colors duration-200 font-mono tracking-wide
-          ${selected ? "text-white" : "text-white/70 group-hover:text-white"}`}
+        className={`text-center text-sm font-bold leading-tight tracking-wide transition-colors duration-200
+          ${selected ? "text-[#7d4ccc] dark:text-white" : "text-[#182137] group-hover:text-[#7d4ccc] dark:text-white/70 dark:group-hover:text-white"}`}
       >
         {profession.name}
       </p>

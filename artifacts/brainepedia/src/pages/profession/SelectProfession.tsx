@@ -67,7 +67,7 @@ export default function SelectProfession() {
   const isAuth = isAuthenticated();
 
   return (
-    <div className="min-h-screen bg-[#060a10] text-white relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-[#182137] dark:bg-[#060a10] dark:text-white">
       {/* Ambient background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
@@ -85,14 +85,14 @@ export default function SelectProfession() {
       </div>
 
       {/* Top bar */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5">
+      <header className="relative z-10 flex items-center justify-between border-b border-[#e6e8ef] px-6 py-4 dark:border-white/5">
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold font-mono text-cyan-400 tracking-widest">BRAINEPEDIA</span>
+          <span className="text-lg font-extrabold tracking-tight text-[#7d4ccc] dark:font-mono dark:tracking-widest dark:text-cyan-400">Brainepedia</span>
         </div>
         {isAuth && (
           <button
             onClick={() => navigate("/user/dashboard")}
-            className="text-xs text-white/40 hover:text-white/70 font-mono transition-colors"
+            className="text-xs font-bold text-[#70798d] transition-colors hover:text-[#182137] dark:font-mono dark:text-white/40 dark:hover:text-white/70"
           >
             ← Back to Dashboard
           </button>
@@ -107,26 +107,26 @@ export default function SelectProfession() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <p className="text-xs font-mono text-cyan-400 tracking-[0.3em] uppercase mb-3">
+          <p className="mb-3 text-xs font-extrabold uppercase tracking-[0.18em] text-[#7d4ccc] dark:font-mono dark:tracking-[0.3em] dark:text-cyan-400">
             Start a Mission
           </p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-cyan-100 to-amber-200 bg-clip-text text-transparent">
+          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-[#182137] dark:bg-gradient-to-r dark:from-white dark:via-cyan-100 dark:to-amber-200 dark:bg-clip-text dark:text-transparent md:text-5xl">
             Start a Mission
           </h1>
-          <p className="text-white/50 text-base max-w-xl mx-auto leading-relaxed mb-8">
+          <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-[#70798d] dark:text-white/50">
             Start solving real-world problems in your chosen field
           </p>
 
           {/* Feature pills */}
           <div className="flex flex-wrap justify-center gap-3 text-xs">
             {[
-              { icon: Map, label: "Progress through districts", color: "text-cyan-400" },
-              { icon: Zap, label: "Solve real-world challenges", color: "text-amber-400" },
-              { icon: Trophy, label: "Earn XP and badges", color: "text-purple-400" },
+              { icon: Map, label: "Progress through districts", color: "border-[#c9d8f8] bg-[#edf4ff] text-[#276ef1] dark:border-white/10 dark:bg-white/5 dark:text-cyan-400" },
+              { icon: Zap, label: "Solve real-world challenges", color: "border-[#f0ddb4] bg-[#fff6e5] text-[#b87412] dark:border-white/10 dark:bg-white/5 dark:text-amber-400" },
+              { icon: Trophy, label: "Earn XP and badges", color: "border-[#e0d2f3] bg-[#f5f0fc] text-[#7d4ccc] dark:border-white/10 dark:bg-white/5 dark:text-purple-400" },
             ].map(({ icon: Icon, label, color }) => (
               <span
                 key={label}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 font-mono ${color}`}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-bold dark:font-mono ${color}`}
               >
                 <Icon className="w-3 h-3" />
                 {label}
@@ -142,13 +142,13 @@ export default function SelectProfession() {
           transition={{ delay: 0.2 }}
           className="relative mb-8 max-w-md mx-auto"
         >
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a91a1] dark:text-white/30" />
           <input
             type="text"
             placeholder="Search professions..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-cyan-400/50 focus:bg-white/8 transition-all font-mono"
+            className="w-full rounded-xl border border-[#e6e8ef] bg-white py-2.5 pl-9 pr-4 text-sm text-[#182137] transition-all placeholder:text-[#8a91a1] focus:border-[#7d4ccc] focus:outline-none dark:border-white/10 dark:bg-white/5 dark:font-mono dark:text-white dark:placeholder:text-white/25 dark:focus:border-cyan-400/50 dark:focus:bg-white/8"
           />
           {search && (
             <button
@@ -176,7 +176,7 @@ export default function SelectProfession() {
             className="flex flex-col items-center gap-4 py-20 text-center"
           >
             <AlertCircle className="w-12 h-12 text-red-400/60" />
-            <p className="text-white/60 font-mono">{error?.message || "Unable to load professions"}</p>
+            <p className="font-semibold text-[#182137] dark:font-mono dark:text-white/60">{error?.message || "Unable to load professions"}</p>
             <Button
               variant="outline"
               size="sm"
@@ -195,7 +195,7 @@ export default function SelectProfession() {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center gap-3 py-20 text-center"
           >
-            <p className="text-white/40 font-mono text-sm">
+            <p className="text-sm text-[#70798d] dark:font-mono dark:text-white/40">
               {search ? `No professions match "${search}"` : "No professions available yet"}
             </p>
             {search && (
@@ -235,16 +235,16 @@ export default function SelectProfession() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="fixed bottom-0 left-0 right-0 z-50 flex justify-center p-4"
             >
-              <div className="flex items-center gap-4 px-6 py-3 rounded-2xl bg-[#0d1117]/95 border border-cyan-400/30 shadow-2xl shadow-cyan-500/20 backdrop-blur-md">
+              <div className="flex items-center gap-4 rounded-2xl border border-[#e6e8ef] bg-white/95 px-6 py-3 shadow-[0_12px_30px_rgba(28,33,54,0.12)] backdrop-blur-md dark:border-cyan-400/30 dark:bg-[#0d1117]/95 dark:shadow-cyan-500/20">
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-white/40 font-mono text-xs">Selected:</span>
-                  <span className="text-cyan-300 font-mono font-semibold text-sm">
+                  <span className="text-xs font-bold text-[#70798d] dark:font-mono dark:text-white/40">Selected:</span>
+                  <span className="text-sm font-extrabold text-[#7d4ccc] dark:font-mono dark:font-semibold dark:text-cyan-300">
                     {professions?.find((p) => p.professionId === selected)?.name ?? "…"}
                   </span>
                 </div>
                 <button
                   onClick={handleContinue}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold font-mono text-sm transition-colors shadow-lg shadow-cyan-500/30"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#7d4ccc] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#6538ad] dark:bg-cyan-500 dark:font-mono dark:text-black dark:shadow-lg dark:shadow-cyan-500/30 dark:hover:bg-cyan-400"
                 >
                   Continue <ChevronRight className="w-4 h-4" />
                 </button>

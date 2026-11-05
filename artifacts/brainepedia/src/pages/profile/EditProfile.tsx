@@ -263,7 +263,7 @@ export default function EditProfile() {
   const headerRight = (
     <Link
       href={viewProfileHref}
-      className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-amber-400/40 bg-amber-400/10 text-xs font-mono uppercase tracking-wider text-amber-400 hover:bg-amber-400/20 transition"
+      className="hidden md:inline-flex items-center gap-1.5 rounded-[10px] border border-[#d7c8ed] bg-[#f5f0fc] px-3 py-1.5 text-xs font-bold text-[#7d4ccc] transition hover:bg-[#efe6fa] dark:border-amber-400/40 dark:bg-amber-400/10 dark:text-amber-400 dark:hover:bg-amber-400/20"
     >
       <Eye className="h-3.5 w-3.5" /> View Public
     </Link>
@@ -312,7 +312,7 @@ export default function EditProfile() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-2 -right-2 h-9 w-9 rounded-full bg-amber-400 hover:bg-amber-300 text-black flex items-center justify-center shadow-lg transition-colors"
+                className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#7d4ccc] text-white shadow-lg transition-colors hover:bg-[#6538ad] dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300"
                 aria-label="Change avatar"
               >
                 <Camera className="h-4 w-4" />
@@ -462,7 +462,7 @@ export default function EditProfile() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-amber-400 hover:bg-amber-300 text-black font-bold shadow-[0_0_15px_rgba(255,215,0,0.4)] disabled:opacity-70"
+              className="bg-[#7d4ccc] font-bold text-white hover:bg-[#6538ad] disabled:opacity-70 dark:bg-amber-400 dark:text-black dark:hover:bg-amber-300 dark:shadow-[0_0_15px_rgba(255,215,0,0.4)]"
             >
               {isSubmitting ? (
                 <>
@@ -493,7 +493,7 @@ function Section({
   return (
     <section className="bg-[#0d1119] border border-white/5 rounded-xl p-5 sm:p-6">
       <div className="mb-4">
-        <h2 className="text-base sm:text-lg font-bold text-amber-400">{title}</h2>
+        <h2 className="text-base font-extrabold text-[#182137] dark:text-amber-400 sm:text-lg">{title}</h2>
         {subtitle && (
           <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mt-0.5">
             {subtitle}
