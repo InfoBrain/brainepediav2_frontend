@@ -150,7 +150,7 @@ function CreateThreadModal({ categoryId, onClose, onCreated }: CreateThreadModal
             <Button
               type="submit"
               disabled={submitting || !title.trim() || !content.trim()}
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_15px_rgba(0,210,255,0.3)]"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-[#6538ad]"
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Post Discussion"}
             </Button>

@@ -131,7 +131,7 @@ export function HowItWorksPage() {
                   <div className="font-mono text-sm text-muted-foreground">
                     STEP_0{i + 1}
                   </div>
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_0_15px_rgba(0,210,255,0.1)] group-hover:shadow-[0_0_25px_rgba(0,210,255,0.25)] transition-shadow">
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-[0_8px_24px_rgba(28,33,54,0.06)] group-hover:shadow-[0_8px_24px_rgba(125,76,204,0.16)] transition-shadow">
                     <s.icon className="w-6 h-6 text-primary" />
                   </div>
                 </div>

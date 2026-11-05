@@ -160,7 +160,7 @@ export default function CompanyProfile() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)]"
+              className="w-full font-bold"
             >
               <ButtonLoading loading={isSubmitting}>
                 <><Save className="mr-2 h-4 w-4" /> {isSubmitting ? "Saving…" : "Save Changes"}</>

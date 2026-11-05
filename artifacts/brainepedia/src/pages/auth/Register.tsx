@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import ReCAPTCHA from "react-google-recaptcha";
 import { api } from "@/lib/api";
-import { AuthLayout } from "@/components/auth/AuthLayout";
+import { AuthIntro, AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthBanner } from "@/pages/auth/Login";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Link } from "wouter";
-import { Loader2, Briefcase, Building2, User } from "lucide-react";
+import { ArrowRight, Building2, Check, CircleUserRound, Loader2, LockKeyhole } from "lucide-react";
 import { SocialLoginSection } from "@/components/auth/SocialLoginSection";
 
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string;
@@ -42,6 +42,7 @@ const employerSchema = z.object({
   confirmPassword: z.string(),
   phoneNumber: z.string().regex(/^[+0-9]*$/, "Invalid phone number format").min(1, "Phone number is required"),
   companyName: z.string().min(1, "Company name is required"),
+  websiteUrl: z.string().optional(),
   acceptTerms: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the Terms and Conditions and Privacy Policy" }),
   }),
@@ -86,38 +87,41 @@ function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void })
   return (
     <>
       <AuthBanner type="error" message={error} />
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstName">First Name</Label>
-            <Input id="firstName" {...register("firstName")} />
-            {errors.firstName && <p className="text-destructive text-xs font-mono">{errors.firstName.message}</p>}
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-5 grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="firstName" className="text-xs font-extrabold text-[#4e576b]">First Name</Label>
+            <Input id="firstName" placeholder="Amara" autoComplete="given-name" {...register("firstName")} />
+            {errors.firstName && <p className="text-xs text-[#d34d62]">{errors.firstName.message}</p>}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
-            <Input id="lastName" {...register("lastName")} />
-            {errors.lastName && <p className="text-destructive text-xs font-mono">{errors.lastName.message}</p>}
+          <div className="grid gap-1.5">
+            <Label htmlFor="lastName" className="text-xs font-extrabold text-[#4e576b]">Last Name</Label>
+            <Input id="lastName" placeholder="Okafor" autoComplete="family-name" {...register("lastName")} />
+            {errors.lastName && <p className="text-xs text-[#d34d62]">{errors.lastName.message}</p>}
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
-          {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
+        <div className="grid gap-1.5">
+          <Label htmlFor="email" className="text-xs font-extrabold text-[#4e576b]">Email Address</Label>
+          <Input id="email" type="email" placeholder="you@example.com" autoComplete="email" {...register("email")} />
+          {errors.email && <p className="text-xs text-[#d34d62]">{errors.email.message}</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <PasswordInput id="password" {...register("password")} />
-            {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="password" className="text-xs font-extrabold text-[#4e576b]">Password</Label>
+            <PasswordInput id="password" placeholder="At least 6 characters" autoComplete="new-password" {...register("password")} />
+            {errors.password && <p className="text-xs text-[#d34d62]">{errors.password.message}</p>}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <PasswordInput id="confirmPassword" {...register("confirmPassword")} />
-            {errors.confirmPassword && <p className="text-destructive text-xs font-mono">{errors.confirmPassword.message}</p>}
+          <div className="grid gap-1.5">
+            <Label htmlFor="confirmPassword" className="text-xs font-extrabold text-[#4e576b]">Confirm Password</Label>
+            <PasswordInput id="confirmPassword" placeholder="Repeat password" autoComplete="new-password" {...register("confirmPassword")} />
+            {errors.confirmPassword && <p className="text-xs text-[#d34d62]">{errors.confirmPassword.message}</p>}
           </div>
         </div>
+        <p className="flex items-center gap-1.5 text-xs text-[#70798d]">
+          <LockKeyhole className="h-3.5 w-3.5" /> Use at least 6 characters. A number and symbol make it stronger.
+        </p>
 
         <div className="flex items-start space-x-2">
           <Checkbox
@@ -125,7 +129,7 @@ function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void })
             checked={acceptTerms === true}
             onCheckedChange={(c) => setValue("acceptTerms", (c === true) as true, { shouldValidate: true })}
           />
-          <Label htmlFor="acceptTerms" className="text-sm font-normal leading-snug">
+          <Label htmlFor="acceptTerms" className="text-sm font-medium leading-snug text-[#70798d]">
             I agree to the{" "}
             <Link href="/terms" className="text-primary hover:underline" target="_blank">
               Terms and Conditions
@@ -136,19 +140,20 @@ function UserRegisterForm({ onSuccess }: { onSuccess: (email: string) => void })
             </Link>
           </Label>
         </div>
-        {errors.acceptTerms && <p className="text-destructive text-xs font-mono">{errors.acceptTerms.message}</p>}
+        {errors.acceptTerms && <p className="text-xs text-[#d34d62]">{errors.acceptTerms.message}</p>}
 
         {RECAPTCHA_SITE_KEY && (
           <div className="flex justify-center pt-1">
-            <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} theme="dark"
+            <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} theme="light"
               onChange={(t) => setRecaptchaToken(t)} onExpired={() => setRecaptchaToken(null)} />
           </div>
         )}
 
-        <Button type="submit" className="w-full font-bold shadow-[0_0_15px_rgba(0,210,255,0.3)] mt-4"
+        <Button type="submit" className="h-11 w-full"
           disabled={isSubmitting || (!!RECAPTCHA_SITE_KEY && !recaptchaToken)}>
-          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {isSubmitting ? "Creating account…" : "Create Account"}
+          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {isSubmitting ? "Creating account..." : "Create Professional Account"}
+          {!isSubmitting && <ArrowRight className="h-4 w-4" />}
         </Button>
       </form>
     </>
@@ -183,7 +188,7 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
       phoneNumber: data.phoneNumber,
       companyName: data.companyName,
       companyLogoUrl: "",
-      websiteUrl: "",
+      websiteUrl: data.websiteUrl || "",
       aboutCompany: "",
       isEmployer: true,
     });
@@ -199,62 +204,60 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
   return (
     <>
       <AuthBanner type="error" message={error} />
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Personal info */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="employer-firstName">First Name</Label>
-            <Input id="employer-firstName" {...register("firstName")} />
-            {errors.firstName && <p className="text-destructive text-xs font-mono">{errors.firstName.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="employer-lastName">Last Name</Label>
-            <Input id="employer-lastName" {...register("lastName")} />
-            {errors.lastName && <p className="text-destructive text-xs font-mono">{errors.lastName.message}</p>}
-          </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-5 grid gap-4">
+        <div className="grid gap-1.5">
+          <Label htmlFor="companyName" className="text-xs font-extrabold text-[#4e576b]">Company Name</Label>
+          <Input id="companyName" placeholder="TechNova Solutions" {...register("companyName")} />
+          {errors.companyName && <p className="text-xs text-[#d34d62]">{errors.companyName.message}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="employer-email">Email</Label>
-          <Input id="employer-email" type="email" placeholder="you@company.com" {...register("email")} />
-          {errors.email && <p className="text-destructive text-xs font-mono">{errors.email.message}</p>}
+        <div className="grid gap-1.5">
+          <Label htmlFor="employer-email" className="text-xs font-extrabold text-[#4e576b]">Company Email Address</Label>
+          <Input id="employer-email" type="email" placeholder="talent@company.com" autoComplete="email" {...register("email")} />
+          {errors.email && <p className="text-xs text-[#d34d62]">{errors.email.message}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="employer-phoneNumber">Phone Number</Label>
-          <Input id="employer-phoneNumber" type="tel" placeholder="+1234567890" {...register("phoneNumber")} />
-          {errors.phoneNumber && <p className="text-destructive text-xs font-mono">{errors.phoneNumber.message}</p>}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="employer-password">Password</Label>
-            <PasswordInput id="employer-password" {...register("password")} />
-            {errors.password && <p className="text-destructive text-xs font-mono">{errors.password.message}</p>}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="employer-firstName" className="text-xs font-extrabold text-[#4e576b]">Contact First Name</Label>
+            <Input id="employer-firstName" placeholder="Daniel" autoComplete="given-name" {...register("firstName")} />
+            {errors.firstName && <p className="text-xs text-[#d34d62]">{errors.firstName.message}</p>}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="employer-confirmPassword">Confirm Password</Label>
-            <PasswordInput id="employer-confirmPassword" {...register("confirmPassword")} />
-            {errors.confirmPassword && <p className="text-destructive text-xs font-mono">{errors.confirmPassword.message}</p>}
+          <div className="grid gap-1.5">
+            <Label htmlFor="employer-lastName" className="text-xs font-extrabold text-[#4e576b]">Contact Last Name</Label>
+            <Input id="employer-lastName" placeholder="Williams" autoComplete="family-name" {...register("lastName")} />
+            {errors.lastName && <p className="text-xs text-[#d34d62]">{errors.lastName.message}</p>}
           </div>
         </div>
 
-        {/* Company info */}
-        <div className="border-t border-border/50 pt-4 space-y-4">
-          <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider flex items-center gap-1.5">
-            <Building2 className="h-3.5 w-3.5" /> Company Information
-          </p>
-
-          <div className="space-y-2">
-            <Label htmlFor="companyName">Company Name</Label>
-            <Input id="companyName" placeholder="Acme Corp" {...register("companyName")} />
-            {errors.companyName && <p className="text-destructive text-xs font-mono">{errors.companyName.message}</p>}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="employer-phoneNumber" className="text-xs font-extrabold text-[#4e576b]">Phone Number</Label>
+            <Input id="employer-phoneNumber" type="tel" placeholder="+234..." autoComplete="tel" {...register("phoneNumber")} />
+            {errors.phoneNumber && <p className="text-xs text-[#d34d62]">{errors.phoneNumber.message}</p>}
           </div>
-
-          <p className="rounded-lg border border-[#00D2FF]/20 bg-[#00D2FF]/10 px-3 py-2 text-xs text-muted-foreground">
-            Logo, website, and company description are managed after registration in Company Profile settings.
-          </p>
+          <div className="grid gap-1.5">
+            <Label htmlFor="websiteUrl" className="text-xs font-extrabold text-[#4e576b]">Company Website <span className="font-medium text-[#9298a8]">Optional</span></Label>
+            <Input id="websiteUrl" type="url" placeholder="https://company.com" {...register("websiteUrl")} />
+          </div>
         </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="employer-password" className="text-xs font-extrabold text-[#4e576b]">Password</Label>
+            <PasswordInput id="employer-password" placeholder="At least 6 characters" autoComplete="new-password" {...register("password")} />
+            {errors.password && <p className="text-xs text-[#d34d62]">{errors.password.message}</p>}
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="employer-confirmPassword" className="text-xs font-extrabold text-[#4e576b]">Confirm Password</Label>
+            <PasswordInput id="employer-confirmPassword" placeholder="Repeat password" autoComplete="new-password" {...register("confirmPassword")} />
+            {errors.confirmPassword && <p className="text-xs text-[#d34d62]">{errors.confirmPassword.message}</p>}
+          </div>
+        </div>
+        <p className="flex items-center gap-1.5 text-xs text-[#70798d]">
+          <LockKeyhole className="h-3.5 w-3.5" /> Use at least 6 characters. A number and symbol make it stronger.
+        </p>
+        <p className="text-xs text-[#70798d]">Logo and company description can be added after registration in Company Profile.</p>
 
         <div className="flex items-start space-x-2">
           <Checkbox
@@ -262,7 +265,7 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
             checked={acceptTerms === true}
             onCheckedChange={(c) => setValue("acceptTerms", (c === true) as true, { shouldValidate: true })}
           />
-          <Label htmlFor="employer-acceptTerms" className="text-sm font-normal leading-snug">
+          <Label htmlFor="employer-acceptTerms" className="text-sm font-medium leading-snug text-[#70798d]">
             I agree to the{" "}
             <Link href="/terms" className="text-primary hover:underline" target="_blank">
               Terms and Conditions
@@ -273,21 +276,20 @@ function EmployerRegisterForm({ onSuccess }: { onSuccess: (email: string) => voi
             </Link>
           </Label>
         </div>
-        {errors.acceptTerms && <p className="text-destructive text-xs font-mono">{errors.acceptTerms.message}</p>}
+        {errors.acceptTerms && <p className="text-xs text-[#d34d62]">{errors.acceptTerms.message}</p>}
 
         {RECAPTCHA_SITE_KEY && (
           <div className="flex justify-center pt-1">
-            <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} theme="dark"
+            <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} theme="light"
               onChange={(t) => setRecaptchaToken(t)} onExpired={() => setRecaptchaToken(null)} />
           </div>
         )}
 
-        <Button type="submit"
-          className="w-full font-bold mt-4"
-          style={{ background: "#00D2FF", color: "#000", boxShadow: "0 0 15px rgba(0,210,255,0.35)" }}
+        <Button type="submit" className="h-11 w-full"
           disabled={isSubmitting || (!!RECAPTCHA_SITE_KEY && !recaptchaToken)}>
-          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Building2 className="mr-2 h-4 w-4" />}
-          {isSubmitting ? "Registering employer…" : "Create Employer Account"}
+          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {isSubmitting ? "Creating account..." : "Create Employer Account"}
+          {!isSubmitting && <ArrowRight className="h-4 w-4" />}
         </Button>
       </form>
     </>
@@ -304,43 +306,43 @@ export default function Register() {
   };
 
   return (
-    <AuthLayout quote={isEmployer ? "Build your team." : "Start your journey."}>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">
-          {isEmployer ? "Create your employer account." : "Create your account."}
-        </h1>
-        <p className="text-muted-foreground">
-          {isEmployer
-            ? "Apply as Employer and hire through verified experience."
-            : "Join Brainepedia and turn real-world problem solving into verified experience."}
-        </p>
-      </div>
+    <AuthLayout wide>
+      <AuthIntro eyebrow="Join Brainepedia" title="Choose how you want to use Brainepedia.">
+        Your account type shapes the workspace and tools available to you.
+      </AuthIntro>
 
-      {/* Mode toggle */}
-      <div className="flex rounded-lg border border-border/50 p-1 bg-background/50 mb-6 gap-1">
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
         <button
           type="button"
           onClick={() => setIsEmployer(false)}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
-            !isEmployer
-              ? "bg-primary text-primary-foreground shadow-[0_0_12px_rgba(0,210,255,0.3)]"
-              : "text-muted-foreground hover:text-foreground"
+          className={`flex items-center gap-3 rounded-[11px] border px-3 py-3 text-left ${
+            !isEmployer ? "border-[#b89cdd] bg-[#faf7fe]" : "border-[#e6e8ef] bg-white"
           }`}
         >
-          <User className={`h-4 w-4 shrink-0 ${!isEmployer ? "text-black" : "text-slate-300"}`} />
-          Individual
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] bg-[#f5f0fc] text-[#7d4ccc]">
+            <CircleUserRound className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-extrabold text-[#182137]">I’m a Professional</span>
+            <span className="block text-xs text-[#70798d]">Build proof and discover opportunities</span>
+          </span>
+          {!isEmployer && <Check className="h-4 w-4 text-[#7d4ccc]" />}
         </button>
         <button
           type="button"
           onClick={() => setIsEmployer(true)}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
-            isEmployer
-              ? "bg-[#00D2FF] text-black shadow-[0_0_12px_rgba(0,210,255,0.35)]"
-              : "text-muted-foreground hover:text-foreground"
+          className={`flex items-center gap-3 rounded-[11px] border px-3 py-3 text-left ${
+            isEmployer ? "border-[#b89cdd] bg-[#faf7fe]" : "border-[#e6e8ef] bg-white"
           }`}
         >
-          <Briefcase className={`h-5 w-5 shrink-0 ${isEmployer ? "text-black" : "text-slate-300"}`} strokeWidth={2.5} />
-          Apply as Employer
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[9px] bg-[#f5f0fc] text-[#7d4ccc]">
+            <Building2 className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-extrabold text-[#182137]">I’m an Employer</span>
+            <span className="block text-xs text-[#70798d]">Discover talent and manage recruitment</span>
+          </span>
+          {isEmployer && <Check className="h-4 w-4 text-[#7d4ccc]" />}
         </button>
       </div>
 
@@ -352,11 +354,10 @@ export default function Register() {
 
       {!isEmployer && <SocialLoginSection label="Or create account with" />}
 
-      <div className="mt-6 text-center text-sm">
-        <Link href="/auth/login" className="text-muted-foreground hover:text-primary transition-colors">
-          Already have an account? <span className="font-bold text-primary">Log in →</span>
-        </Link>
-      </div>
+      <p className="mt-6 text-center text-sm text-[#70798d]">
+        Already have an account?{" "}
+        <Link href="/auth/login" className="font-extrabold text-[#7d4ccc]">Log In</Link>
+      </p>
     </AuthLayout>
   );
 }

@@ -622,10 +622,10 @@ function SessionGuard() {
 
 function RouteFallback() {
   return (
-    <div className="min-h-screen bg-[#0A0E14] text-foreground flex items-center justify-center">
-      <div className="rounded-2xl border border-white/10 bg-[#0d1119] px-6 py-5 text-center shadow-[0_0_30px_rgba(0,210,255,0.12)]">
-        <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#00D2FF]/30 border-t-[#00D2FF]" />
-        <p className="text-sm font-mono text-muted-foreground">Loading Brainepedia...</p>
+    <div className="flex min-h-screen items-center justify-center bg-[#f7f8fb] text-[#182137]">
+      <div className="rounded-2xl border border-[#e6e8ef] bg-white px-6 py-5 text-center shadow-[0_8px_24px_rgba(28,33,54,0.06)]">
+        <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#efe8f8] border-t-[#7d4ccc]" />
+        <p className="text-sm font-semibold text-[#70798d]">Loading Brainepedia...</p>
       </div>
     </div>
   );
@@ -635,7 +635,8 @@ function GlobalBrainiacWidget() {
   const [location] = useLocation();
   // Mission workspace has its own contextual Brainiac mentor — hide global widget to avoid overlap
   const hideOnMissionWorkspace = /^\/app\/session\/[^/]+\/workspace/.test(location);
-  if (hideOnMissionWorkspace) return null;
+  const hideOnAuth = location.startsWith("/auth") || location.startsWith("/login-success");
+  if (hideOnMissionWorkspace || hideOnAuth) return null;
   return <BrainiacWidget />;
 }
 
