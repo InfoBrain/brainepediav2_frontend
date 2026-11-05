@@ -1,6 +1,6 @@
 import { Link } from "wouter";
-import whiteLogo from "@assets/branepedia_white_logo_(1)_1777483519569.png";
-import colorLogo from "@assets/branepedia_logo_1777539679828.png";
+import whiteLogo from "@assets/branepedia_mark_white.png";
+import colorLogo from "@assets/branepedia_mark_color.png";
 import { ReactNode } from "react";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
@@ -23,7 +23,7 @@ export function AuthLayout({ children, wide = false }: AuthLayoutProps) {
         </Link>
 
         <aside className="relative hidden min-h-[100dvh] flex-col justify-between bg-[radial-gradient(circle_at_15%_15%,#8054c1,transparent_38%),linear-gradient(145deg,#292744,#1c2035)] px-10 pb-10 pt-24 text-white lg:flex xl:px-14">
-          <img src={whiteLogo} alt="Brainepedia" className="h-11 w-auto mix-blend-screen" />
+          <img src={whiteLogo} alt="Brainepedia" className="h-20 w-auto max-w-[8rem] shrink-0 self-start object-contain" />
           <div>
             <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#ddd0f5]">Prove your competence</p>
             <h1 className="mt-3 max-w-xl text-4xl font-extrabold leading-[1.08] tracking-tight xl:text-5xl">
@@ -44,7 +44,7 @@ export function AuthLayout({ children, wide = false }: AuthLayoutProps) {
 
         <main className="flex items-center justify-center overflow-y-auto px-4 py-20 sm:px-8 lg:px-[7vw]">
           <div className={wide ? "w-full max-w-[680px]" : "w-full max-w-[480px]"}>
-            <img src={colorLogo} alt="Brainepedia" className="mb-6 h-8 w-auto mix-blend-screen lg:hidden" />
+            <img src={colorLogo} alt="Brainepedia" className="mb-6 h-9 w-auto shrink-0 object-contain lg:hidden" />
             {children}
           </div>
         </main>
