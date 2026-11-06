@@ -283,7 +283,7 @@ export default function EditProfile() {
       {loading ? (
         <BrainiacSpinner text="Brainiac retrieving dossier…" />
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-4xl pb-24 md:pb-0">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-4xl pb-20 md:pb-0">
           <Link
             href={viewProfileHref}
             className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-amber-400"
@@ -448,7 +448,8 @@ export default function EditProfile() {
           </Section>
 
           {/* Sticky save bar */}
-          <div className="fixed bottom-0 left-0 right-0 md:static md:bottom-auto md:left-auto md:right-auto z-30 flex items-center justify-end gap-3 bg-[#0A0E14]/95 backdrop-blur md:bg-transparent md:backdrop-blur-none border-t border-white/5 md:border-0 px-4 py-3 md:px-0 md:py-0 md:pt-2">
+          {/* On phones this sits directly above the shell's fixed bottom nav (h-16). */}
+          <div className="fixed inset-x-0 bottom-16 z-30 flex items-center justify-end gap-3 border-t border-[#e6e8ef] bg-[rgba(255,255,255,0.96)] px-4 py-3 shadow-[0_-8px_24px_rgba(28,33,54,0.06)] backdrop-blur dark:border-white/10 dark:bg-[rgba(10,14,20,0.95)] md:static md:inset-x-auto md:bottom-auto md:border-0 md:bg-transparent md:px-0 md:py-0 md:pt-2 md:shadow-none md:backdrop-blur-none">
             <Link href={viewProfileHref} className="md:hidden">
               <Button type="button" variant="outline" size="sm">
                 Cancel
