@@ -331,7 +331,7 @@ export function DashboardShell({
           </div>
         </header>
 
-        <main id="main-content" className="min-w-0 flex-1 px-4 py-6 pb-24 md:px-8 md:pb-10" tabIndex={-1}>
+        <main id="main-content" className="min-w-0 max-w-full flex-1 overflow-x-clip px-4 py-6 pb-24 md:px-8 md:pb-10" tabIndex={-1}>
           {showHeading && (
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">

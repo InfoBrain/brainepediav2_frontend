@@ -169,7 +169,7 @@ export function SocialFeedPanel({
   const activeType = FILTERS.find((filter) => filter.postType === filters.postType)?.label;
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 max-w-full space-y-4">
       {!preview && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -300,7 +300,7 @@ export function SocialFeedPanel({
       ) : posts.length === 0 ? (
         <EmptyState icon={Search} title="No feed posts" description="Nothing matches these filters yet. Try another search or publish an update." />
       ) : (
-        <div className="grid gap-4">
+        <div className="grid min-w-0 max-w-full grid-cols-1 gap-4">
           {posts.map((post) => (
             <FeedPostCard
               key={post.feedPostId || `${post.postType}-${post.createdAt}`}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { AlertTriangle, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { AlertTriangle, ExternalLink, Info, Loader2, Sparkles, UserRoundPen } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -134,11 +134,40 @@ export default function JobCompatibilityPage() {
     <DashboardShell nav={nav} title="Jobs That Fit Me" subtitle="// brainiac.compatibility" theme={theme}>
       <section className="mb-6 rounded-2xl border border-[#7C3AED]/30 bg-gradient-to-br from-[#7C3AED]/15 to-[#0d1119] p-6">
         <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#A78BFA]">Brainiac AI</p>
-        <h2 className="mt-1 text-2xl font-black">Jobs That Fit Me</h2>
+        <h2 className="mt-1 text-2xl font-black">Job Compatibility</h2>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
           Brainiac compares your existing profile, skills, experience, and verified mission history with available jobs. This is a compatibility analysis, not a job offer or a guarantee of employment. Generating a report uses Brainiac credits from your personal wallet.
         </p>
       </section>
+
+      {role !== "Employer" && role !== "GlobalAdmin" && (
+        <section
+          role="note"
+          aria-label="Improve your job matches"
+          className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-5"
+        >
+          <div className="flex items-start gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-400/15 text-amber-300">
+              <Info className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-mono uppercase tracking-[0.2em] text-amber-300">Before you generate</p>
+              <h3 className="mt-1 text-base font-bold">Complete your profile and portfolio for better matches</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Brainiac can only match you against what it knows about you. Keep your profile, work experience, education, skills, services, and projects up to date so the information helps find the perfect job for you. Incomplete details lead to weaker, less accurate compatibility scores.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button asChild size="sm" className="bg-[#7C3AED] text-white hover:bg-[#6D28D9]">
+                  <Link href="/user/portfolio"><UserRoundPen className="mr-2 h-4 w-4" /> Complete portfolio</Link>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/profile/edit">Update profile</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="mb-6 space-y-4 rounded-2xl border border-white/8 bg-[#0d1119] p-5">
         <div className="flex flex-wrap gap-6">

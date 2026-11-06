@@ -181,7 +181,7 @@ export function CommentThread({
                         </div>
                       </div>
                     ) : (
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{publicFeedText(comment.content)}</p>
+                      <p className="mt-1 whitespace-pre-wrap break-words text-sm text-foreground/90">{publicFeedText(comment.content)}</p>
                     )}
                     {editingId !== comment.commentId && (
                       <div className="mt-2 flex gap-2">

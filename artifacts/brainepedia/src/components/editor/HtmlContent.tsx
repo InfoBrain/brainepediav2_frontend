@@ -70,18 +70,19 @@ function sanitizeHtml(html: string): string {
 export function HtmlContent({ html, fallback = "No content provided.", className }: HtmlContentProps) {
   const value = (html || "").trim();
   if (!value) {
-    return <p className={cn("whitespace-pre-wrap text-muted-foreground", className)}>{fallback}</p>;
+    return <p className={cn("whitespace-pre-wrap break-words text-muted-foreground", className)}>{fallback}</p>;
   }
 
   if (!looksLikeHtml(value)) {
-    return <p className={cn("whitespace-pre-wrap text-muted-foreground", className)}>{value}</p>;
+    return <p className={cn("whitespace-pre-wrap break-words text-muted-foreground", className)}>{value}</p>;
   }
 
   return (
     <div
       className={cn(
-        "prose prose-invert prose-sm max-w-none text-muted-foreground",
-        "prose-a:text-[#00D2FF] prose-blockquote:border-[#00D2FF]/50 prose-code:text-white prose-headings:text-white prose-strong:text-white",
+        "prose prose-invert prose-sm min-w-0 max-w-none break-words text-muted-foreground",
+        "prose-a:break-all prose-a:text-[#00D2FF] prose-blockquote:border-[#00D2FF]/50 prose-code:text-white prose-headings:text-white prose-strong:text-white",
+        "prose-img:max-w-full prose-pre:max-w-full prose-pre:overflow-x-auto",
         className
       )}
       dangerouslySetInnerHTML={{ __html: sanitizeHtml(value) }}
