@@ -108,25 +108,25 @@ export function FeedPostCard({
   };
 
   return (
-    <article className={`rounded-2xl border bg-[#0d1119] p-5 ${isAnnouncement ? "border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/10 to-[#0d1119]" : "border-white/8"}`}>
+    <article className={`min-w-0 max-w-full overflow-hidden rounded-2xl border bg-[#0d1119] p-4 [overflow-wrap:anywhere] sm:p-5 ${isAnnouncement ? "border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/10 to-[#0d1119]" : "border-white/8"}`}>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           {isAnnouncement ? (
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFD700]/15 text-[#FFD700]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFD700]/15 text-[#FFD700]">
               <Megaphone className="h-5 w-5" />
             </div>
           ) : showAuthorIdentity && avatar ? (
-            <img src={avatar} alt="" className="h-10 w-10 rounded-full object-cover" />
+            <img src={avatar} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
           ) : media && (isExternal || post.postType === "Job") ? (
-            <img src={media} alt="" className="h-10 w-10 rounded-xl object-cover" />
+            <img src={media} alt="" className="h-10 w-10 shrink-0 rounded-xl object-cover" />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#00D2FF]/10 text-[#00D2FF]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#00D2FF]/10 text-[#00D2FF]">
               {post.postType === "MissionResult" ? <Trophy className="h-4 w-4" /> : post.postType === "CandidateProgress" ? <Sparkles className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
             </div>
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{authorLabel}</p>
-            <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+            <p className="break-words text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
               {TYPE_LABEL[post.postType] || post.postType}
               {post.visibility && post.postType === "UserPost" ? ` · ${post.visibility}` : ""}
               {formatFeedDate(post.publishedAt || post.createdAt) ? ` · ${formatFeedDate(post.publishedAt || post.createdAt)}` : ""}
@@ -142,26 +142,26 @@ export function FeedPostCard({
         )}
       </div>
 
-      {post.title && <h3 className="text-lg font-bold">{post.title}</h3>}
+      {post.title && <h3 className="break-words text-lg font-bold">{post.title}</h3>}
       {(post.organisationName && post.postType !== "ExternalJob") || (isExternal && post.organisationName) ? (
-        <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Building2 className="h-4 w-4" /> {post.organisationName}
+        <p className="mt-1 flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <Building2 className="h-4 w-4 shrink-0" /> <span className="truncate">{post.organisationName}</span>
         </p>
       ) : null}
       {post.content && (
         <HtmlContent
           html={publicFeedText(post.content)}
-          className="mt-3 text-sm leading-6 text-foreground/85"
+          className="mt-3 min-w-0 break-words text-sm leading-6 text-foreground/85"
         />
       )}
       {media && post.postType !== "SystemAnnouncement" && (
         isVideoMediaUrl(media) ? (
-          <video src={media} controls className="mt-4 max-h-72 w-full rounded-xl bg-black" />
+          <video src={media} controls className="mt-4 max-h-72 w-full max-w-full rounded-xl bg-black" />
         ) : (
           <img
             src={media}
             alt=""
-            className="mt-4 max-h-72 w-full rounded-xl object-cover"
+            className="mt-4 max-h-72 w-full max-w-full rounded-xl object-cover"
             onError={(event) => { (event.currentTarget as HTMLImageElement).style.display = "none"; }}
           />
         )
@@ -214,7 +214,7 @@ export function FeedPostCard({
         )}
       </div>
       {isExternal && (
-        <p className="mt-3 text-xs text-muted-foreground">External application. Brainepedia does not submit an internal job application for this role.</p>
+        <p className="mt-3 break-words text-xs text-muted-foreground">External application. Brainepedia does not submit an internal job application for this role.</p>
       )}
       {commentsOpen && post.feedPostId && (
         <CommentThread
