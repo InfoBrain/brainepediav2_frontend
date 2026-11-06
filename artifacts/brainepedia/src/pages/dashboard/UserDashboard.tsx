@@ -144,7 +144,6 @@ export default function UserDashboard() {
   usePageTitle("Dashboard");
   const [, navigate] = useLocation();
   const userId = getUserId();
-  const profileId = getProfileId();
   const user = getUser();
   const { toast } = useToast();
 
@@ -458,7 +457,7 @@ export default function UserDashboard() {
   };
 
   const handleCopyProfileLink = () => {
-    const url = `${window.location.origin}/public-profile/${userId}`;
+    const url = `${window.location.origin}/public-profile/${encodeURIComponent(userId || "")}`;
     if (navigator.share) {
       navigator.share({ title: "My Brainepedia Dossier", url }).catch(() => {});
     } else {
@@ -551,7 +550,7 @@ export default function UserDashboard() {
               </section>
             </div>
 
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               <section className="rounded-2xl border border-[#e6e8ef] dark:border-white/10 bg-white dark:bg-[#0d1119] p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
                 <div className="flex items-center gap-3">
                   {avatarUrl ? (
@@ -575,8 +574,8 @@ export default function UserDashboard() {
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm font-bold">
-                  <Link href="/profile/edit" className="text-[#7d4ccc]">Complete profile</Link>
-                  <Link href={(profileId || userId) ? `/profile/${encodeURIComponent(profileId || userId || "")}` : "/user/portfolio"} className="text-[#276ef1]">Public profile</Link>
+                  <Link href="/user/portfolio" className="text-[#7d4ccc]">Complete profile</Link>
+                  <Link href={userId ? `/public-profile/${encodeURIComponent(userId)}` : "/user/portfolio"} className="text-[#276ef1]">Public profile</Link>
                   <button type="button" onClick={handleCopyProfileLink} disabled={!userId} className="text-[#70798d] dark:text-white/50 disabled:opacity-50">Share</button>
                 </div>
               </section>
