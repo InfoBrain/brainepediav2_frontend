@@ -51,17 +51,33 @@ export function normalizeSmartDocumentPage(raw: unknown, pageNumber = 1, pageSiz
 }
 
 /** Nigeria stores this timestamp without a zone. Keep the clock time in Africa/Lagos. */
-export function formatNigeriaTimestamp(value: string | null | undefined): string {
-  if (!value) return "";
+function parseNigeriaTimestamp(value: string): Date | null {
   const hasZone = /(?:Z|[+-]\d{2}:\d{2})$/i.test(value);
   const normalized = value.includes("T") ? value : value.replace(" ", "T");
   const date = new Date(hasZone ? normalized : `${normalized}+01:00`);
-  if (Number.isNaN(date.getTime())) return value;
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function formatNigeriaTimestamp(value: string | null | undefined): string {
+  if (!value) return "";
+  const date = parseNigeriaTimestamp(value);
+  if (!date) return value;
   return new Intl.DateTimeFormat("en-NG", {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "Africa/Lagos",
   }).format(date);
+}
+
+/** Separate date and clock-time strings (Africa/Lagos) for tabular layouts. */
+export function formatNigeriaDateParts(value: string | null | undefined): { date: string; time: string } {
+  if (!value) return { date: "", time: "" };
+  const date = parseNigeriaTimestamp(value);
+  if (!date) return { date: value, time: "" };
+  return {
+    date: new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }).format(date),
+    time: new Intl.DateTimeFormat("en-NG", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Lagos" }).format(date),
+  };
 }
 
 export async function listSmartDocuments(

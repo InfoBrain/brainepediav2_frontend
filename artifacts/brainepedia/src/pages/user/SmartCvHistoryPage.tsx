@@ -25,7 +25,7 @@ export default function SmartCvHistoryPage() {
           Open any Smart CV you have already generated. New documents appear here after you generate one from your portfolio.
         </p>
         {userId ? (
-          <SmartCvHistory userId={userId} />
+          <SmartCvHistory userId={userId} heading="Your Smart CV documents" />
         ) : (
           <section className="rounded-2xl border border-white/5 bg-[#0d1119] p-5 text-sm text-muted-foreground">
             Sign in to view your generated CVs.
