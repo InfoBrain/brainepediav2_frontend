@@ -300,6 +300,26 @@ function scenarioPayloadWithTitle(node, district, title, index, difficultyId) {
   };
 }
 
+function levelLabel(levelIndex, totalLevels) {
+  if (totalLevels <= 1) return "Core";
+  if (totalLevels === 2) return levelIndex === 0 ? "Foundation" : "Advanced";
+  if (levelIndex === 0) return "Foundation";
+  if (levelIndex === totalLevels - 1) return "Advanced";
+  return "Intermediate";
+}
+
+function payloadForDifficulty(district, difficulty, levelIndex, totalLevels, scenarioIndex) {
+  const label = levelLabel(levelIndex, totalLevels);
+  const titleBase = scenarioTitle(district.professionName, district.name, scenarioIndex);
+  const title = `${label}: ${titleBase}`;
+  const syntheticNode = {
+    experiencePoints: 120 + levelIndex * 55,
+    estimatedMinutes: 35 + levelIndex * 15,
+    difficultyId: difficulty.id,
+  };
+  return scenarioPayloadWithTitle(syntheticNode, district, title, scenarioIndex, difficulty.id);
+}
+
 function buildContextNarrative(professionName, districtName, title, index = 0) {
   const organisations = ["regional operations team", "national service unit", "enterprise delivery group", "public-sector transformation office"];
   const org = organisations[index % organisations.length];
@@ -458,11 +478,15 @@ async function loadCatalogue() {
   return catalogue;
 }
 
-function planCatalogue(catalogue, defaultDifficultyId) {
+function planCatalogue(catalogue, difficulties, defaultDifficultyId) {
   const actions = [];
   const renameByDistrictId = new Map();
   const backend = catalogue.find((profession) => profession.name === "Backend Developer");
   const backendDistrictByName = new Map((backend?.districts || []).map((district) => [district.name, district]));
+  const difficultyList = (difficulties || []).length
+    ? [...difficulties]
+    : [{ id: defaultDifficultyId, level: 1 }];
+  const totalLevels = difficultyList.length;
 
   for (const profession of catalogue) {
     for (const district of profession.districts) {
@@ -501,16 +525,12 @@ function planCatalogue(catalogue, defaultDifficultyId) {
         ...(renameByDistrictId.get(district.id) || {}),
       };
       if (!district.nodes.length) {
-        for (let seedIndex = 0; seedIndex < 3; seedIndex++) {
-          const syntheticNode = {
-            experiencePoints: 150 + seedIndex * 25,
-            estimatedMinutes: 45 + seedIndex * 10,
-            difficultyId: defaultDifficultyId,
-          };
+        for (let seedIndex = 0; seedIndex < difficultyList.length; seedIndex++) {
+          const difficulty = difficultyList[seedIndex];
           actions.push({
             type: "create-node",
             district: effectiveDistrict,
-            payload: scenarioPayload(syntheticNode, effectiveDistrict, seedIndex, defaultDifficultyId),
+            payload: payloadForDifficulty(effectiveDistrict, difficulty, seedIndex, totalLevels, seedIndex),
             reason: "District had no problem nodes",
           });
         }
@@ -553,6 +573,28 @@ function planCatalogue(catalogue, defaultDifficultyId) {
           replacementIndex++;
         }
       }
+
+      const existingDifficultyIds = new Set(
+        district.nodes
+          .map((node) => String(node.difficultyId || "").trim())
+          .filter(Boolean),
+      );
+      for (let difficultyIndex = 0; difficultyIndex < difficultyList.length; difficultyIndex++) {
+        const difficulty = difficultyList[difficultyIndex];
+        if (!difficulty?.id || existingDifficultyIds.has(difficulty.id)) continue;
+        actions.push({
+          type: "create-node",
+          district: effectiveDistrict,
+          payload: payloadForDifficulty(
+            effectiveDistrict,
+            difficulty,
+            difficultyIndex,
+            totalLevels,
+            replacementIndex + difficultyIndex,
+          ),
+          reason: "District missing one or more difficulty levels",
+        });
+      }
     }
   }
 
@@ -592,10 +634,11 @@ async function main() {
   } catch (error) {
     if (APPLY) throw error;
   }
-  const defaultDifficultyId = difficulties.sort((a, b) => a.level - b.level)[1]?.id || difficulties[0]?.id || "";
+  difficulties = difficulties.sort((a, b) => a.level - b.level);
+  const defaultDifficultyId = difficulties[1]?.id || difficulties[0]?.id || "";
 
   const catalogue = await loadCatalogue();
-  const actions = planCatalogue(catalogue, defaultDifficultyId);
+  const actions = planCatalogue(catalogue, difficulties, defaultDifficultyId);
   const totals = summarize(catalogue, actions);
   log(JSON.stringify(totals, null, 2));
 
@@ -643,18 +686,21 @@ async function main() {
         const created = await createDistrict(action.profession, action.districtName, action.districtDescription, auth);
         const districtId = String(created?.districtId || created?.id || created?.data?.districtId || created?.data?.id || "");
         if (!districtId) throw new Error(`Created district for ${action.profession.name} but response did not include districtId.`);
-        for (let seedIndex = 0; seedIndex < 3; seedIndex++) {
+        const seedDifficulties = difficulties.length ? difficulties : [{ id: defaultDifficultyId, level: 1 }];
+        const totalLevels = seedDifficulties.length;
+        for (let seedIndex = 0; seedIndex < seedDifficulties.length; seedIndex++) {
           const targetDistrict = {
             id: districtId,
             name: action.districtName,
             professionName: action.profession.name,
           };
-          const syntheticNode = {
-            experiencePoints: 150 + seedIndex * 25,
-            estimatedMinutes: 45 + seedIndex * 10,
-            difficultyId: defaultDifficultyId,
-          };
-          const payload = scenarioPayload(syntheticNode, targetDistrict, seedIndex, defaultDifficultyId);
+          const payload = payloadForDifficulty(
+            targetDistrict,
+            seedDifficulties[seedIndex],
+            seedIndex,
+            totalLevels,
+            seedIndex,
+          );
           await createNode(payload, auth);
         }
       }
