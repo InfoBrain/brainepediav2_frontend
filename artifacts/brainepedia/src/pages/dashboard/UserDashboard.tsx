@@ -527,7 +527,7 @@ export default function UserDashboard() {
           </div>
 
           <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,0.82fr)]">
-            <div className="min-w-0 space-y-4">
+            <div className="order-2 min-w-0 space-y-4 xl:order-1">
               <div className="grid items-stretch gap-4 md:grid-cols-2">
                 <div className="flex min-w-0 flex-col gap-4">
                   <TokenUsageCard />
@@ -550,7 +550,7 @@ export default function UserDashboard() {
               </section>
             </div>
 
-            <div className="min-w-0 space-y-4">
+            <div className="order-1 min-w-0 space-y-4 xl:order-2">
               <section className="rounded-2xl border border-[#e6e8ef] dark:border-white/10 bg-white dark:bg-[#0d1119] p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
                 <div className="flex items-center gap-3">
                   {avatarUrl ? (
@@ -674,6 +674,11 @@ function JobsForYou() {
               </span>
             </Link>
           ))}
+          <div className="pt-1">
+            <Link href="/jobs" className="inline-flex text-sm font-bold text-[#7d4ccc]">
+              View more jobs
+            </Link>
+          </div>
         </div>
       )}
     </section>

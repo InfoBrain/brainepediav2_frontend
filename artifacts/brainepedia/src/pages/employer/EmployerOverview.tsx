@@ -58,14 +58,14 @@ function MetricCard({
   tint: string;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+    <div className="flex items-start gap-3 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)] dark:border-white/10 dark:bg-[#0d1119]">
       <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${tint}`}>
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="text-2xl font-extrabold leading-none tracking-tight text-[#182137]">{value}</p>
-        <p className="mt-1 text-sm font-bold text-[#182137]">{label}</p>
-        {sub && <p className="mt-0.5 text-xs text-[#70798d]">{sub}</p>}
+        <p className="text-2xl font-extrabold leading-none tracking-tight text-[#182137] dark:text-white">{value}</p>
+        <p className="mt-1 text-sm font-bold text-[#182137] dark:text-white">{label}</p>
+        {sub && <p className="mt-0.5 text-xs text-[#70798d] dark:text-white/60">{sub}</p>}
       </div>
     </div>
   );
@@ -115,13 +115,13 @@ export default function EmployerOverview() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#276ef1]">Employer overview</p>
-            <h1 className="mt-1 text-[1.85rem] font-extrabold tracking-tight text-[#182137]">
+            <h1 className="mt-1 text-[1.85rem] font-extrabold tracking-tight text-[#182137] dark:text-white">
               {greeting}, {companyName}.
             </h1>
-            <p className="mt-1 max-w-xl text-sm text-[#70798d]">Manage recruitment, discover skilled professionals, and find the right talent.</p>
+            <p className="mt-1 max-w-xl text-sm text-[#70798d] dark:text-white/60">Manage recruitment, discover skilled professionals, and find the right talent.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/employer/candidates" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] bg-white px-4 text-sm font-bold text-[#182137] shadow-sm">
+            <Link href="/employer/candidates" className="inline-flex h-10 items-center rounded-[10px] border border-[#e6e8ef] bg-white px-4 text-sm font-bold text-[#182137] shadow-sm dark:border-white/15 dark:bg-[#0d1119] dark:text-white">
               Discover Talent
             </Link>
             <Link href="/employer/jobs/create" className="inline-flex h-10 items-center rounded-[10px] bg-[#7d4ccc] px-4 text-sm font-bold text-white shadow-[0_8px_18px_rgba(125,76,204,0.28)]">
@@ -139,7 +139,7 @@ export default function EmployerOverview() {
           <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6 text-center text-sm text-destructive">{error}</div>
         ) : summary ? (
           <>
-            <section className="flex flex-col gap-4 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)] sm:flex-row sm:items-center">
+            <section className="flex flex-col gap-4 rounded-2xl border border-[#e6e8ef] bg-white p-4 shadow-[0_8px_24px_rgba(28,33,54,0.04)] sm:flex-row sm:items-center dark:border-white/10 dark:bg-[#0d1119]">
               {logoUrl ? (
                 <img src={logoUrl} alt="" className="h-14 w-14 rounded-full object-cover" />
               ) : (
@@ -149,8 +149,8 @@ export default function EmployerOverview() {
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#276ef1]">
                   {summary.activeSubscriptionTier && summary.activeSubscriptionTier !== "-" ? "Verified employer" : "Employer"}
                 </p>
-                <h2 className="text-lg font-extrabold text-[#182137]">{companyName}</h2>
-                <p className="text-sm text-[#70798d]">{plan}{user?.email ? ` · ${user.email}` : ""}</p>
+                <h2 className="text-lg font-extrabold text-[#182137] dark:text-white">{companyName}</h2>
+                <p className="text-sm text-[#70798d] dark:text-white/60">{plan}{user?.email ? ` · ${user.email}` : ""}</p>
               </div>
               <span className="inline-flex items-center rounded-full bg-[#edf4ff] px-3 py-1 text-xs font-extrabold text-[#276ef1]">
                 Employer workspace active
@@ -166,18 +166,18 @@ export default function EmployerOverview() {
             </div>
 
             <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
-              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
+              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)] dark:border-white/10 dark:bg-[#0d1119]">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-base font-extrabold text-[#182137]">Recent activity</h2>
-                    <p className="text-xs text-[#70798d]">Latest updates from your employer workspace</p>
+                    <h2 className="text-base font-extrabold text-[#182137] dark:text-white">Recent activity</h2>
+                    <p className="text-xs text-[#70798d] dark:text-white/60">Latest updates from your employer workspace</p>
                   </div>
                   <Link href="/employer/applications" className="text-sm font-bold text-[#276ef1]">View all</Link>
                 </div>
                 {summary.recentActivities.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-[#e6e8ef] px-4 py-10 text-center">
-                    <p className="text-sm font-semibold text-[#182137]">No recent activity yet</p>
-                    <p className="mt-1 text-sm text-[#70798d]">Applications and hiring updates will show here as they happen.</p>
+                    <p className="text-sm font-semibold text-[#182137] dark:text-white">No recent activity yet</p>
+                    <p className="mt-1 text-sm text-[#70798d] dark:text-white/60">Applications and hiring updates will show here as they happen.</p>
                     <Link href="/employer/applications" className="mt-3 inline-flex text-sm font-bold text-[#276ef1]">Review applications</Link>
                   </div>
                 ) : (
@@ -185,9 +185,9 @@ export default function EmployerOverview() {
                     {summary.recentActivities.map((item) => (
                       <div key={item.id} className="flex items-start justify-between gap-3 py-3">
                         <div className="min-w-0">
-                          <p className="font-bold text-[#182137]">{item.title}</p>
-                          {item.description && <p className="text-sm text-[#70798d]">{item.description}</p>}
-                          <p className="mt-1 text-xs text-[#8c93a2]">{formatDisplayDate(item.date, "Date unavailable")}</p>
+                          <p className="font-bold text-[#182137] dark:text-white">{item.title}</p>
+                          {item.description && <p className="text-sm text-[#70798d] dark:text-white/60">{item.description}</p>}
+                          <p className="mt-1 text-xs text-[#8c93a2] dark:text-white/45">{formatDisplayDate(item.date, "Date unavailable")}</p>
                         </div>
                         <Link href="/employer/applications" className="shrink-0 text-sm font-bold text-[#276ef1]">Review</Link>
                       </div>
@@ -206,18 +206,18 @@ export default function EmployerOverview() {
                   </Link>
                 </section>
 
-                <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
-                  <h2 className="text-base font-extrabold text-[#182137]">Recruitment pipeline</h2>
+                <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)] dark:border-white/10 dark:bg-[#0d1119]">
+                  <h2 className="text-base font-extrabold text-[#182137] dark:text-white">Recruitment pipeline</h2>
                   <div className="mt-4 space-y-3">
                     <PipelineRow label="Active jobs" value={summary.activeJobsCount} max={Math.max(summary.activeJobsCount, summary.totalApplicantsCount, summary.pendingApplicantsCount, summary.totalSavedCandidatesCount, 1)} />
                     <PipelineRow label="Awaiting review" value={summary.pendingApplicantsCount} max={Math.max(summary.activeJobsCount, summary.totalApplicantsCount, summary.pendingApplicantsCount, summary.totalSavedCandidatesCount, 1)} />
                     <PipelineRow label="Total applications" value={summary.totalApplicantsCount} max={Math.max(summary.activeJobsCount, summary.totalApplicantsCount, summary.pendingApplicantsCount, summary.totalSavedCandidatesCount, 1)} />
                     <PipelineRow label="Saved professionals" value={summary.totalSavedCandidatesCount} max={Math.max(summary.activeJobsCount, summary.totalApplicantsCount, summary.pendingApplicantsCount, summary.totalSavedCandidatesCount, 1)} />
                   </div>
-                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-[#70798d]">
-                    <p>Plan: <span className="font-bold text-[#182137]">{summary.activeSubscriptionTier}</span></p>
-                    <p>Billing: <span className="font-bold text-[#182137]">{summary.billingStatus}</span></p>
-                    <p className="col-span-2">Next billing: <span className="font-bold text-[#182137]">{summary.nextBillingDate}</span></p>
+                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-[#70798d] dark:text-white/60">
+                    <p>Plan: <span className="font-bold text-[#182137] dark:text-white">{summary.activeSubscriptionTier}</span></p>
+                    <p>Billing: <span className="font-bold text-[#182137] dark:text-white">{summary.billingStatus}</span></p>
+                    <p className="col-span-2">Next billing: <span className="font-bold text-[#182137] dark:text-white">{summary.nextBillingDate}</span></p>
                   </div>
                 </section>
               </div>
@@ -238,8 +238,8 @@ export default function EmployerOverview() {
                   onRecharge={() => navigate("/employer/billing")}
                 />
               )}
-              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)]">
-                <h2 className="text-base font-extrabold text-[#182137]">Workspace actions</h2>
+              <section className="rounded-2xl border border-[#e6e8ef] bg-white p-5 shadow-[0_8px_24px_rgba(28,33,54,0.04)] dark:border-white/10 dark:bg-[#0d1119]">
+                <h2 className="text-base font-extrabold text-[#182137] dark:text-white">Workspace actions</h2>
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   {[
                     { label: "Add team member", href: "/employer/team" },
@@ -249,7 +249,7 @@ export default function EmployerOverview() {
                     { label: "Saved professionals", href: "/employer/saved-candidates" },
                     { label: "Team analytics", href: "/employer/analytics" },
                   ].map((action) => (
-                    <Link key={action.href} href={action.href} className="rounded-xl border border-[#e6e8ef] px-3 py-3 text-sm font-bold text-[#276ef1] hover:bg-[#edf4ff]">
+                    <Link key={action.href} href={action.href} className="rounded-xl border border-[#e6e8ef] px-3 py-3 text-sm font-bold text-[#276ef1] hover:bg-[#edf4ff] dark:border-white/15 dark:text-[#8db5ff] dark:hover:bg-white/5">
                       {action.label}
                     </Link>
                   ))}
@@ -268,10 +268,10 @@ function PipelineRow({ label, value, max }: { label: string; value: number; max:
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-sm">
-        <span className="font-semibold text-[#626b7d]">{label}</span>
-        <span className="font-extrabold text-[#182137]">{value}</span>
+        <span className="font-semibold text-[#626b7d] dark:text-white/65">{label}</span>
+        <span className="font-extrabold text-[#182137] dark:text-white">{value}</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-[#eef1f6]">
+      <div className="h-2 overflow-hidden rounded-full bg-[#eef1f6] dark:bg-white/10">
         <div className="h-full rounded-full bg-[#276ef1]" style={{ width: `${width}%` }} />
       </div>
     </div>

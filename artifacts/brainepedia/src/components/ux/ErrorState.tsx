@@ -2,7 +2,6 @@ import { AlertTriangle, RefreshCw, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-import { Link } from "wouter";
 
 type ErrorStateProps = {
   title?: string;
@@ -62,11 +61,9 @@ export function ErrorState({
           </Button>
         )}
         {showDashboardLink && (
-          <Button variant="outline" asChild>
-            <Link href={dashboardHref}>
-              <LayoutDashboard className="mr-2 h-4 w-4" aria-hidden="true" />
-              Return to Dashboard
-            </Link>
+          <Button variant="outline" onClick={() => window.location.assign(dashboardHref)}>
+            <LayoutDashboard className="mr-2 h-4 w-4" aria-hidden="true" />
+            Return to Dashboard
           </Button>
         )}
       </div>

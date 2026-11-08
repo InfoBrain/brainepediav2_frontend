@@ -13,8 +13,6 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { PrivacySettingsSection } from "@/components/settings/PrivacySettingsSection";
-import { FeedSharingSection } from "@/components/settings/FeedSharingSection";
 import { BrainiacCreditsCard } from "@/components/credits/BrainiacCreditsCard";
 import { useBrainiacCredits } from "@/hooks/useBrainiacCredits";
 import {
@@ -119,19 +117,17 @@ export default function EmployerSettings() {
           </form>
         </div>
 
-        <PrivacySettingsSection />
-        <FeedSharingSection />
-
         <BrainiacCreditsCard
+          title="Organization Brainiac credits"
           compact
-          balance={credits.balance}
-          loading={credits.loading}
-          error={credits.error}
+          balance={credits.organizationBalance}
+          loading={credits.organizationLoading}
+          error={credits.organizationError}
           usageHref="/employer/credits"
           billingHref="/employer/billing"
-          onRefresh={() => void credits.refresh()}
+          onRefresh={() => void credits.refreshOrganization()}
           onUpgrade={() => setLocation("/employer/subscription")}
-          onRecharge={() => void credits.startRecharge("Employer")}
+          onRecharge={() => setLocation("/employer/billing")}
           actionLoading={credits.rechargeLoading}
         />
 

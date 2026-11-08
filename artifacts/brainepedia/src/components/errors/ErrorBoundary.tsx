@@ -1,5 +1,4 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { Link } from "wouter";
 import { AlertTriangle, LayoutDashboard, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -119,11 +118,9 @@ function ErrorFallback({
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
             Retry
           </Button>
-          <Button variant="outline" asChild>
-            <Link href={dashboardHref}>
-              <LayoutDashboard className="mr-2 h-4 w-4" aria-hidden="true" />
-              Return to Dashboard
-            </Link>
+          <Button variant="outline" onClick={() => window.location.assign(dashboardHref)}>
+            <LayoutDashboard className="mr-2 h-4 w-4" aria-hidden="true" />
+            Return to Dashboard
           </Button>
         </div>
       </div>
@@ -150,6 +147,8 @@ export class AppErrorBoundary extends Component<Props, State> {
   handleReset = () => {
     this.setState({ hasError: false, errorId: "" });
     this.props.onReset?.();
+    // Reload guarantees recovery even when a render-time crash left the current tree unstable.
+    window.location.reload();
   };
 
   render() {

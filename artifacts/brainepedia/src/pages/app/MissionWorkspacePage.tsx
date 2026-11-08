@@ -761,7 +761,7 @@ export default function MissionWorkspacePage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#060a10] text-white flex flex-col">
+    <div className="dark min-h-screen bg-[#060a10] text-white flex flex-col">
       <MissionHeader
         missionTitle={workspace.missionTitle}
         employerChallenge={Boolean(workspace.employerChallengeAssignmentId)}
