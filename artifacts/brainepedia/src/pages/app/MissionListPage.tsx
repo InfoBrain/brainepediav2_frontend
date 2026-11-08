@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getUserId, getDashboardPath, isAuthenticated } from "@/lib/auth";
+import { parseProblemNodeList } from "@/lib/problemNodeTypes";
 import { prepareMissionNavigation } from "@/lib/missionAssignmentContext";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { Button } from "@/components/ui/button";
@@ -50,8 +51,8 @@ function normMissions(data: any): Mission[] {
     title: x.title || x.name || "Untitled Challenge",
     context: x.context || "",
     missionBrief: x.missionBrief || "",
-    constraints: Array.isArray(x.constraints) ? x.constraints : [],
-    expectedOutcomes: Array.isArray(x.expectedOutcomes) ? x.expectedOutcomes : [],
+    constraints: parseProblemNodeList(x.constraints),
+    expectedOutcomes: parseProblemNodeList(x.expectedOutcomes),
     experiencePoints: Number(x.experiencePoints ?? 0),
     estimatedMinutes: Number(x.estimatedMinutes ?? 0),
     difficultyId: x.difficultyId || x.difficulty?.difficultyId || x.difficulty?.id || "",

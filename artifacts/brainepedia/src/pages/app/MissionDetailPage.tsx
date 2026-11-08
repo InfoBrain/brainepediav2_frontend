@@ -38,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CopyrightBar } from "@/components/ui/CopyrightBar";
 import { useDifficulties, buildDifficultyLookup, getDifficultyStyle } from "@/hooks/useDifficulties";
+import { parseProblemNodeList } from "@/lib/problemNodeTypes";
 
 type ProblemNode = {
   problemNodeId: string;
@@ -64,20 +65,13 @@ type ActiveSession = {
 };
 
 function normNode(data: any): ProblemNode {
-  const parseArr = (v: any): string[] => {
-    if (Array.isArray(v)) return v.map(String).filter(Boolean);
-    if (typeof v === "string") {
-      try { return JSON.parse(v); } catch { return v ? [v] : []; }
-    }
-    return [];
-  };
   return {
     problemNodeId: data?.problemNodeId || data?.id || data?.nodeId || "",
     title: data?.title || data?.name || "Untitled Challenge",
     context: data?.context || "",
     missionBrief: data?.missionBrief || "",
-    constraints: parseArr(data?.constraints),
-    expectedOutcomes: parseArr(data?.expectedOutcomes),
+    constraints: parseProblemNodeList(data?.constraints),
+    expectedOutcomes: parseProblemNodeList(data?.expectedOutcomes),
     experiencePoints: Number(data?.experiencePoints ?? 0),
     estimatedMinutes: Number(data?.estimatedMinutes ?? 0),
     difficultyId: data?.difficultyId || data?.difficulty?.difficultyId || data?.difficulty?.id || "",

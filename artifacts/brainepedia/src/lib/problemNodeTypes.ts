@@ -16,31 +16,30 @@ export type ProblemNodeDetail = {
   employerChallengeAssignmentId?: string | null;
 };
 
-function parseArr(v: unknown): string[] {
-  if (Array.isArray(v)) return v.map(String).filter(Boolean);
-  if (typeof v === "string") {
-    const s = v.trim();
-    if (s.startsWith("[") && s.endsWith("]")) {
-      try {
-        const parsed = JSON.parse(s);
-        if (Array.isArray(parsed)) {
-          if (parsed.length === 1 && typeof parsed[0] === "string" && parsed[0].trim().startsWith("[")) {
-            try {
-              const inner = JSON.parse(parsed[0]);
-              if (Array.isArray(inner)) return inner.map(String).filter(Boolean);
-            } catch {
-              /* fall through */
-            }
-          }
-          return parsed.map(String).filter(Boolean);
-        }
-      } catch {
-        /* fall through */
-      }
-    }
-    return s ? [s] : [];
+export function parseProblemNodeList(value: unknown, depth = 0): string[] {
+  if (value == null || depth > 4) return [];
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => parseProblemNodeList(item, depth + 1)).filter(Boolean);
   }
-  return [];
+  if (typeof value !== "string") return [];
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+  const looksLikeJson = (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+    (trimmed.startsWith("\"") && trimmed.endsWith("\""));
+  if (looksLikeJson) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      const nested = parseProblemNodeList(parsed, depth + 1);
+      if (nested.length) return nested;
+    } catch {
+      /* fall through */
+    }
+  }
+  return [trimmed];
+}
+
+function parseArr(v: unknown): string[] {
+  return parseProblemNodeList(v);
 }
 
 export function normProblemNodeDetail(data: unknown): ProblemNodeDetail {
