@@ -227,8 +227,10 @@ function normalizeNode(raw, district) {
     title: raw.title || raw.name || "",
     context: raw.context || "",
     missionBrief: raw.missionBrief || "",
-    constraints: raw.constraints || [],
-    expectedOutcomes: raw.expectedOutcomes || [],
+    constraintsRaw: raw.constraints,
+    expectedOutcomesRaw: raw.expectedOutcomes,
+    constraints: unwrapList(raw.constraints),
+    expectedOutcomes: unwrapList(raw.expectedOutcomes),
     experiencePoints: Number(raw.experiencePoints ?? raw.xp ?? 150),
     estimatedMinutes: Number(raw.estimatedMinutes ?? raw.minutes ?? 45),
     difficultyId: String(raw.difficultyId || ""),
@@ -341,12 +343,50 @@ function hasUnclearInformation(node) {
   return false;
 }
 
+function unwrapList(value, depth = 0) {
+  if (value == null || depth > 4) return [];
+  if (Array.isArray(value)) return value.flatMap((item) => unwrapList(item, depth + 1)).filter(Boolean);
+  if (typeof value !== "string") return [];
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+  const looksLikeJson = (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+    (trimmed.startsWith("\"") && trimmed.endsWith("\""));
+  if (looksLikeJson) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      const nested = unwrapList(parsed, depth + 1);
+      if (nested.length) return nested;
+    } catch {
+      /* fall through */
+    }
+  }
+  return [trimmed];
+}
+
+function isJsonListBlob(value) {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.startsWith("[") && trimmed.endsWith("]");
+  }
+  if (Array.isArray(value) && value.length === 1 && typeof value[0] === "string") {
+    const trimmed = value[0].trim();
+    return trimmed.startsWith("[") && trimmed.endsWith("]");
+  }
+  return false;
+}
+
 function formData(fields) {
   const fd = new FormData();
   for (const [key, value] of Object.entries(fields)) {
     if (value == null) continue;
-    if (Array.isArray(value)) fd.append(key, JSON.stringify(value));
-    else fd.append(key, String(value));
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item == null || item === "") continue;
+        fd.append(key, String(item));
+      }
+    } else {
+      fd.append(key, String(value));
+    }
   }
   return fd;
 }
@@ -540,6 +580,7 @@ function planCatalogue(catalogue, difficulties, defaultDifficultyId) {
       let replacementIndex = 0;
       for (const node of district.nodes) {
         const duplicate = seen.find((candidate) => {
+          if (String(candidate.difficultyId || "") !== String(node.difficultyId || "")) return false;
           const exact = normalizeText(candidate.title) === normalizeText(node.title);
           const similar = jaccard(candidate.title, node.title) >= SIMILAR_TITLE_THRESHOLD;
           return exact || similar;
@@ -571,6 +612,27 @@ function planCatalogue(catalogue, difficulties, defaultDifficultyId) {
             reason: "Unclear context or task description",
           });
           replacementIndex++;
+          continue;
+        }
+
+        if (isJsonListBlob(node.constraintsRaw) || isJsonListBlob(node.expectedOutcomesRaw)) {
+          actions.push({
+            type: "repair-lists",
+            node,
+            district: effectiveDistrict,
+            payload: {
+              title: node.title,
+              context: node.context,
+              missionBrief: node.missionBrief,
+              constraints: unwrapList(node.constraintsRaw),
+              expectedOutcomes: unwrapList(node.expectedOutcomesRaw),
+              experiencePoints: Math.max(100, Number(node.experiencePoints) || 150),
+              estimatedMinutes: Math.max(30, Number(node.estimatedMinutes) || 45),
+              difficultyId: node.difficultyId || defaultDifficultyId || "",
+              districtId: district.id,
+            },
+            reason: "Constraints/expected outcomes stored as a JSON string instead of bullet items",
+          });
         }
       }
 
@@ -617,6 +679,7 @@ function summarize(catalogue, actions) {
     deleteNodes: count("delete-node"),
     createDistricts: count("create-district"),
     createNodes: count("create-node"),
+    repairLists: count("repair-lists"),
   };
   return totals;
 }
@@ -655,6 +718,8 @@ async function main() {
       log(`CREATE DISTRICT: ${action.profession.name} / ${action.districtName}`);
     } else if (action.type === "create-node") {
       log(`CREATE NODE: ${action.district.professionName} / ${action.district.name} / ${action.payload.title}`);
+    } else if (action.type === "repair-lists") {
+      log(`REPAIR LISTS: ${action.district.professionName} / ${action.district.name} / ${action.node.title}`);
     }
   }
   if (actions.length > 80) log(`... ${actions.length - 80} more planned actions`);
@@ -680,6 +745,8 @@ async function main() {
           else await moveNode(node.id, action.to.id, auth);
         }
         await deleteDistrict(action.from.id, auth);
+      } else if (action.type === "repair-lists") {
+        await updateNode(action.node.id, action.payload, auth);
       } else if (action.type === "create-node") {
         await createNode(action.payload, auth);
       } else if (action.type === "create-district") {

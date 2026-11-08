@@ -27,6 +27,7 @@ import { PageHeader } from "@/components/ux/PageHeader";
 import { ADMIN_NAV } from "@/lib/adminNav";
 import { api } from "@/lib/api";
 import { getUserId } from "@/lib/auth";
+import { parseProblemNodeList } from "@/lib/problemNodeTypes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useApiFeedback } from "@/hooks/useApiFeedback";
@@ -265,19 +266,14 @@ export default function AdminProblemNodes() {
     const res = await api.problemNodes.get(node.id);
     let full: any = node;
     if (res.ok && res.data) full = res.data;
-    const parseArray = (v: any): string[] => {
-      if (Array.isArray(v)) return v.map(String);
-      if (typeof v === "string") {
-        try { const p = JSON.parse(v); return Array.isArray(p) ? p.map(String) : [v]; } catch { return [v]; }
-      }
-      return [""];
-    };
+    const parsedConstraints = parseProblemNodeList(full.constraints);
+    const parsedOutcomes = parseProblemNodeList(full.expectedOutcomes);
     setForm({
       title: full.title || "",
       context: full.context || "",
       missionBrief: full.missionBrief || "",
-      constraints: parseArray(full.constraints).length ? parseArray(full.constraints) : [""],
-      expectedOutcomes: parseArray(full.expectedOutcomes).length ? parseArray(full.expectedOutcomes) : [""],
+      constraints: parsedConstraints.length ? parsedConstraints : [""],
+      expectedOutcomes: parsedOutcomes.length ? parsedOutcomes : [""],
       experiencePoints: String(full.experiencePoints ?? ""),
       estimatedMinutes: String(full.estimatedMinutes ?? ""),
       difficultyId: full.difficultyId || "",
@@ -301,8 +297,8 @@ export default function AdminProblemNodes() {
     fd.append("Title", form.title.trim());
     fd.append("Context", form.context);
     fd.append("MissionBrief", form.missionBrief);
-    fd.append("Constraints", JSON.stringify(form.constraints.filter(Boolean)));
-    fd.append("ExpectedOutcomes", JSON.stringify(form.expectedOutcomes.filter(Boolean)));
+    for (const item of form.constraints.filter(Boolean)) fd.append("Constraints", item);
+    for (const item of form.expectedOutcomes.filter(Boolean)) fd.append("ExpectedOutcomes", item);
     fd.append("ExperiencePoints", form.experiencePoints || "0");
     fd.append("EstimatedMinutes", form.estimatedMinutes || "0");
     fd.append("DifficultyId", form.difficultyId);
@@ -398,18 +394,13 @@ export default function AdminProblemNodes() {
       showSuccess({ title: "Problem node saved", description: "The generated challenge is in this district." });
       return;
     }
-    const parseArray = (v: any): string[] => {
-      if (Array.isArray(v)) return v.map(String);
-      if (typeof v === "string") { try { return JSON.parse(v); } catch { return [v]; } }
-      return [""];
-    };
     setSaving(true);
     const fd = new FormData();
     fd.append("Title", p.title || "AI Generated");
     fd.append("Context", p.context || "");
     fd.append("MissionBrief", p.missionBrief || "");
-    fd.append("Constraints", JSON.stringify(parseArray(p.constraints)));
-    fd.append("ExpectedOutcomes", JSON.stringify(parseArray(p.expectedOutcomes)));
+    for (const item of parseProblemNodeList(p.constraints)) fd.append("Constraints", item);
+    for (const item of parseProblemNodeList(p.expectedOutcomes)) fd.append("ExpectedOutcomes", item);
     fd.append("ExperiencePoints", String(p.experiencePoints ?? 0));
     fd.append("EstimatedMinutes", String(p.estimatedMinutes ?? 0));
     fd.append("DifficultyId", aiForm.difficultyId);

@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getDashboardPath, isAuthenticated, getUserId } from "@/lib/auth";
+import { parseProblemNodeList } from "@/lib/problemNodeTypes";
 import { useDifficulties, buildDifficultyLookup, getDifficultyStyle } from "@/hooks/useDifficulties";
 
 type Evaluation = {
@@ -71,11 +72,7 @@ type Badge = {
 };
 
 function parseArr(v: any): string[] {
-  if (Array.isArray(v)) return v.map(String).filter(Boolean);
-  if (typeof v === "string") {
-    try { return JSON.parse(v); } catch { return v ? [v] : []; }
-  }
-  return [];
+  return parseProblemNodeList(v);
 }
 
 function normSubmission(d: any): Submission {
