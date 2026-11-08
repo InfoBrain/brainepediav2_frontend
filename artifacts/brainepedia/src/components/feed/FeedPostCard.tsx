@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   BriefcaseBusiness,
@@ -12,12 +12,20 @@ import {
   Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import { likeFeedPost, unlikeFeedPost } from "@/lib/feedService";
 import { HtmlContent } from "@/components/editor/HtmlContent";
 import { isVideoMediaUrl } from "@/lib/feedMedia";
+import { loadFullFeedText } from "@/lib/feedFullText";
 import { formatFeedDate, publicFeedText, safeHttpUrl } from "@/lib/safeUrl";
 import type { FeedPostDto } from "@/lib/types/socialFeed";
 import { CommentThread } from "./CommentThread";
@@ -35,20 +43,29 @@ const TYPE_LABEL: Record<string, string> = {
   ExternalJob: "External job",
 };
 
+const FULL_TEXT_CLASS = "whitespace-pre-wrap break-words text-sm leading-7 !text-[#182137] [&_*]:!text-[#182137] [&_a]:!text-[#7d4ccc] [&_code]:!text-[#182137]";
+
 export function FeedPostCard({
   post,
   onPostChange,
   onFollowChange,
+  expanded = false,
 }: {
   post: FeedPostDto;
   onPostChange: (post: FeedPostDto) => void;
   onFollowChange: (userId: string, following: boolean) => void;
+  /** Detail view: show the complete post instead of a preview. */
+  expanded?: boolean;
 }) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [likePending, setLikePending] = useState(false);
   const [applyPending, setApplyPending] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [readerOpen, setReaderOpen] = useState(false);
+  const [fullText, setFullText] = useState(post.content || "");
+  const [fullMeta, setFullMeta] = useState<string[]>([]);
+  const [fullLoading, setFullLoading] = useState(false);
   const destination = feedDestination(post);
   const media = safeHttpUrl(post.mediaUrl) || safeHttpUrl(post.thumbnailUrl);
   const avatar = safeHttpUrl(post.author?.avatarUrl);
@@ -97,6 +114,19 @@ export function FeedPostCard({
     }
     toast({ title: "Application sent", description: res.message || "Your application was submitted." });
   };
+
+  useEffect(() => {
+    if (!expanded && !readerOpen) return;
+    let cancelled = false;
+    setFullLoading(true);
+    void loadFullFeedText(post).then((result) => {
+      if (cancelled) return;
+      setFullText(result.body || post.content || "");
+      setFullMeta(result.meta);
+      setFullLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [expanded, readerOpen, post]);
 
   const openExternal = (href: string) => {
     const safe = safeHttpUrl(href);
@@ -148,10 +178,17 @@ export function FeedPostCard({
           <Building2 className="h-4 w-4 shrink-0" /> <span className="truncate">{post.organisationName}</span>
         </p>
       ) : null}
-      {post.content && (
+      {expanded && fullMeta.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+          {fullMeta.map((item) => <span key={item} className="break-words">{item}</span>)}
+        </div>
+      )}
+      {(expanded ? (fullText || post.content) : post.content) && (
         <HtmlContent
-          html={publicFeedText(post.content)}
-          className="mt-3 min-w-0 break-words text-sm leading-6 text-foreground/85"
+          html={publicFeedText(expanded ? (fullText || post.content) : post.content)}
+          className={expanded
+            ? "mt-3 min-w-0 whitespace-pre-wrap break-words text-sm leading-7 text-foreground/85"
+            : "mt-3 min-w-0 line-clamp-6 break-words text-sm leading-6 text-foreground/85"}
         />
       )}
       {media && post.postType !== "SystemAnnouncement" && (
@@ -176,9 +213,9 @@ export function FeedPostCard({
           <MessageCircle className="mr-1.5 h-4 w-4" />
           {typeof post.commentCount === "number" ? post.commentCount : "—"}
         </Button>
-        {post.feedPostId && (
-          <Button asChild size="sm" variant="ghost">
-            <Link href={`/feed/posts/${encodeURIComponent(post.feedPostId)}`}>View more</Link>
+        {!expanded && post.feedPostId && (
+          <Button type="button" size="sm" variant="ghost" onClick={() => setReaderOpen(true)}>
+            View more
           </Button>
         )}
         {destination.kind === "apply-internal" && (
@@ -222,6 +259,35 @@ export function FeedPostCard({
           onCount={(count) => onPostChange({ ...post, commentCount: count })}
         />
       )}
+      <Dialog open={readerOpen} onOpenChange={setReaderOpen}>
+        <DialogContent className="top-3 flex max-h-[calc(100dvh-4rem)] w-[calc(100%-1.5rem)] max-w-2xl translate-y-0 flex-col gap-4 overflow-hidden border-[#e6e8ef] bg-white p-5 text-[#182137] sm:top-[50%] sm:max-h-[min(86dvh,820px)] sm:translate-y-[-50%] sm:p-6">
+          <DialogHeader className="shrink-0 pr-8 text-left">
+            <DialogTitle className="break-words text-lg leading-snug text-[#182137]">
+              {post.title || authorLabel}
+            </DialogTitle>
+            <DialogDescription className="break-words text-[#5e6a7f]">
+              {post.organisationName || TYPE_LABEL[post.postType] || "Feed post"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            {fullMeta.length > 0 && (
+              <div className="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[#5e6a7f]">
+                {fullMeta.map((item) => <span key={item} className="break-words">{item}</span>)}
+              </div>
+            )}
+            {fullLoading && (
+              <div className="mb-3 flex items-center gap-2 text-sm text-[#5e6a7f]">
+                <Loader2 className="h-4 w-4 animate-spin text-[#7d4ccc]" /> Loading the full post…
+              </div>
+            )}
+            <HtmlContent
+              html={publicFeedText(fullText || post.content)}
+              fallback="This post has no additional text."
+              className={FULL_TEXT_CLASS}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </article>
   );
 }
