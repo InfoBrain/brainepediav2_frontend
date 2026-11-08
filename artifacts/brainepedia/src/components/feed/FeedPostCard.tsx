@@ -176,9 +176,9 @@ export function FeedPostCard({
           <MessageCircle className="mr-1.5 h-4 w-4" />
           {typeof post.commentCount === "number" ? post.commentCount : "—"}
         </Button>
-        {post.feedPostId && post.postType === "UserPost" && (
+        {post.feedPostId && (
           <Button asChild size="sm" variant="ghost">
-            <Link href={`/feed/posts/${encodeURIComponent(post.feedPostId)}`}>View post</Link>
+            <Link href={`/feed/posts/${encodeURIComponent(post.feedPostId)}`}>View more</Link>
           </Button>
         )}
         {destination.kind === "apply-internal" && (
