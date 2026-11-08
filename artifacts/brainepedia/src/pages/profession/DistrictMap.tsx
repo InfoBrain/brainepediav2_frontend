@@ -145,7 +145,7 @@ export default function DistrictMap() {
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";
 
   return (
-    <div className="min-h-screen bg-[#060a10] text-white relative overflow-hidden flex flex-col">
+    <div className="dark min-h-screen bg-[#060a10] text-white relative overflow-hidden flex flex-col">
       {/* Ambient background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/3 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
@@ -176,7 +176,7 @@ export default function DistrictMap() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          <Link href="/app/dashboard">
+          <Link href={dashPath}>
             <Button variant="ghost" size="sm" className="gap-1.5 text-cyan-400/70 hover:text-cyan-400 text-xs font-mono">
               <TrendingUp className="w-3.5 h-3.5" /> Progress
             </Button>

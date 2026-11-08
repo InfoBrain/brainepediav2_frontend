@@ -272,7 +272,7 @@ export default function MissionEvaluatingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020408] text-white flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="dark min-h-screen bg-[#020408] text-white flex flex-col items-center justify-center relative overflow-hidden">
       {/* Grid */}
       <div
         className="absolute inset-0 opacity-[0.025]"

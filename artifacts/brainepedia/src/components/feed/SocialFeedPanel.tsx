@@ -177,6 +177,9 @@ export function SocialFeedPanel({
               <SlidersHorizontal className="mr-2 h-4 w-4" />
               Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
             </Button>
+            <Button asChild type="button" variant="outline">
+              <Link href="/jobs">View more jobs</Link>
+            </Button>
             {activeType && activeType !== "All" && (
               <span className="rounded-full border border-[#00D2FF]/40 bg-[#00D2FF]/10 px-3 py-1 text-xs text-[#00D2FF]">{activeType}</span>
             )}

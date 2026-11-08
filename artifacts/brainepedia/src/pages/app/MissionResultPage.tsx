@@ -517,7 +517,7 @@ function MissionResultActions({
 
       {/* Leaderboard */}
       <button
-        onClick={() => navigate("/app/dashboard")}
+        onClick={() => navigate(dashPath)}
         className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-[#FFD700]/15 text-[#FFD700]/50 font-mono text-sm hover:bg-[#FFD700]/5 hover:text-[#FFD700]/80 transition-all"
       >
         <Trophy className="w-4 h-4" />
@@ -812,7 +812,7 @@ export default function MissionResultPage() {
   ];
 
   return (
-    <div className={`min-h-screen text-white relative overflow-x-hidden ${isPassed ? "bg-[#020408]" : "bg-[#070408]"}`}>
+    <div className={`dark min-h-screen text-white relative overflow-x-hidden ${isPassed ? "bg-[#020408]" : "bg-[#070408]"}`}>
 
       {/* Confetti */}
       {isPassed && (
