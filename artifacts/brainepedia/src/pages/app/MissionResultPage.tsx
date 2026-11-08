@@ -41,13 +41,13 @@ function MissionStatusTimeline({ passed }: { passed: boolean }) {
     const t = setTimeout(() => setActive(a => a + 1), 350);
     return () => clearTimeout(t);
   }, [active]);
-  const accentColor = passed ? "#00D2FF" : "#FF6B6B";
+  const accentColor = passed ? "#7d4ccc" : "#FF6B6B";
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative z-10 border-b border-white/5 px-4 py-4 bg-[#060a10]/80 backdrop-blur"
+      className="relative z-10 border-b border-[#eef1f7] px-4 py-4 bg-white/95 backdrop-blur"
     >
       <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 overflow-x-auto pb-1">
         {TIMELINE.map((step, i) => {
@@ -64,21 +64,21 @@ function MissionStatusTimeline({ passed }: { passed: boolean }) {
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300"
                   style={{
-                    borderColor: isActive ? accentColor : "rgba(255,255,255,0.1)",
+                    borderColor: isActive ? accentColor : "rgba(24,33,55,0.12)",
                     backgroundColor: isActive ? `${accentColor}18` : "transparent",
                     boxShadow: isActive ? `0 0 12px ${accentColor}40` : "none",
                   }}
                 >
-                  <Icon className="w-3.5 h-3.5" style={{ color: isActive ? accentColor : "rgba(255,255,255,0.2)" }} />
+                  <Icon className="w-3.5 h-3.5" style={{ color: isActive ? accentColor : "rgba(24,33,55,0.32)" }} />
                 </div>
-                <span className="text-[9px] font-mono whitespace-nowrap" style={{ color: isActive ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)" }}>
+                <span className="text-[9px] font-mono whitespace-nowrap" style={{ color: isActive ? "rgba(24,33,55,0.72)" : "rgba(24,33,55,0.32)" }}>
                   {step.label}
                 </span>
               </motion.div>
               {i < TIMELINE.length - 1 && (
                 <motion.div
                   className="h-[1px] w-8 md:w-12 rounded shrink-0"
-                  style={{ backgroundColor: isActive && i < active ? accentColor : "rgba(255,255,255,0.08)" }}
+                  style={{ backgroundColor: isActive && i < active ? accentColor : "rgba(24,33,55,0.1)" }}
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: isActive && i < active ? 1 : 0.3 }}
                   transition={{ delay: i * 0.12 + 0.1, duration: 0.3 }}
@@ -96,11 +96,11 @@ function MissionStatusTimeline({ passed }: { passed: boolean }) {
 function ScoreRing({ score, passed }: { score: number; passed: boolean }) {
   const r = 52;
   const circ = 2 * Math.PI * r;
-  const color = passed ? "#00D2FF" : "#FF6B6B";
+  const color = passed ? "#7d4ccc" : "#FF6B6B";
   return (
     <div className="relative flex items-center justify-center w-36 h-36 shrink-0">
       <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 136 136">
-        <circle cx="68" cy="68" r={r} stroke="rgba(255,255,255,0.05)" strokeWidth="8" fill="none" />
+        <circle cx="68" cy="68" r={r} stroke="rgba(24,33,55,0.08)" strokeWidth="8" fill="none" />
         <motion.circle
           cx="68" cy="68" r={r}
           stroke={color} strokeWidth="8" fill="none"
@@ -122,7 +122,7 @@ function ScoreRing({ score, passed }: { score: number; passed: boolean }) {
         >
           {score}%
         </motion.p>
-        <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest">Score</p>
+        <p className="text-[10px] font-mono text-[#7a869d] uppercase tracking-widest">Score</p>
       </div>
     </div>
   );
@@ -130,7 +130,7 @@ function ScoreRing({ score, passed }: { score: number; passed: boolean }) {
 
 /* ── Confetti ── */
 function ConfettiPiece({ i }: { i: number }) {
-  const colors = ["#00D2FF", "#FFD700", "#9D4EDD", "#00FF88", "#FF6B6B"];
+  const colors = ["#7d4ccc", "#7d4ccc", "#7d4ccc", "#168a68", "#FF6B6B"];
   return (
     <motion.div
       className="absolute w-2 h-2 rounded-sm pointer-events-none"
@@ -179,7 +179,7 @@ function FeedbackCard({ config, delay }: { config: FeedbackCardConfig; delay: nu
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: delay + 0.05 * i }}
-              className="flex items-start gap-2.5 text-sm text-white/65 leading-relaxed"
+              className="flex items-start gap-2.5 text-sm text-[#3e4a60] leading-relaxed"
             >
               <span className="shrink-0 mt-0.5" style={{ color: config.color }}>›</span>
               {line}
@@ -218,7 +218,7 @@ function BrainiacAnalysisPanel({ rawReasoning }: { rawReasoning: string }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.7 }}
-      className="rounded-2xl border border-[#9D4EDD]/25 bg-[#9D4EDD]/5 overflow-hidden"
+      className="rounded-2xl border border-[#e0d2f3]/25 bg-[#f5f0fc]/5 overflow-hidden"
       style={{ boxShadow: "0 0 24px rgba(157,78,221,0.08)" }}
     >
       <button
@@ -230,13 +230,13 @@ function BrainiacAnalysisPanel({ rawReasoning }: { rawReasoning: string }) {
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 1.8, repeat: Infinity }}
           >
-            <Brain className="w-4 h-4 text-[#9D4EDD]" />
+            <Brain className="w-4 h-4 text-[#7d4ccc]" />
           </motion.div>
-          <span className="text-sm font-bold font-mono text-white/80">Brainiac Deep Analysis</span>
-          <span className="text-[10px] font-mono text-[#9D4EDD]/50 bg-[#9D4EDD]/10 px-2 py-0.5 rounded-full">AI Terminal</span>
+          <span className="text-sm font-bold font-mono text-[#182137]">Brainiac Deep Analysis</span>
+          <span className="text-[10px] font-mono text-[#7d4ccc]/50 bg-[#f5f0fc]/10 px-2 py-0.5 rounded-full">AI Terminal</span>
         </div>
         <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown className="w-4 h-4 text-white/30" />
+          <ChevronDown className="w-4 h-4 text-[#7a869d]" />
         </motion.div>
       </button>
 
@@ -250,7 +250,7 @@ function BrainiacAnalysisPanel({ rawReasoning }: { rawReasoning: string }) {
           >
             <div className="px-5 pb-5 pt-1">
               <div
-                className="rounded-xl p-4 border border-[#9D4EDD]/20 font-mono text-xs leading-relaxed overflow-auto max-h-72 relative"
+                className="rounded-xl p-4 border border-[#e0d2f3]/20 font-mono text-xs leading-relaxed overflow-auto max-h-72 relative"
                 style={{ backgroundColor: "rgba(10,5,20,0.8)", color: "rgba(157,78,221,0.8)" }}
               >
                 {/* Scanline overlay */}
@@ -258,15 +258,15 @@ function BrainiacAnalysisPanel({ rawReasoning }: { rawReasoning: string }) {
                   className="absolute inset-0 pointer-events-none rounded-xl"
                   style={{ background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(157,78,221,0.02) 2px,rgba(157,78,221,0.02) 4px)" }}
                 />
-                <span className="text-[#9D4EDD]/40">{">"} </span>
-                <span className="text-[#00D2FF]/60">brainiac.analyze</span>
-                <span className="text-white/30">(session) </span>
-                <span className="text-[#FFD700]/40">→</span>
+                <span className="text-[#7d4ccc]/40">{">"} </span>
+                <span className="text-[#7d4ccc]/60">brainiac.analyze</span>
+                <span className="text-[#7a869d]">(session) </span>
+                <span className="text-[#7d4ccc]/40">→</span>
                 <br /><br />
-                <span className="text-[#9D4EDD]/70 whitespace-pre-wrap">{displayed}</span>
+                <span className="text-[#7d4ccc]/70 whitespace-pre-wrap">{displayed}</span>
                 {displayed.length < rawReasoning.length && (
                   <motion.span
-                    className="inline-block w-1.5 h-3 bg-[#9D4EDD]/70 ml-0.5"
+                    className="inline-block w-1.5 h-3 bg-[#f5f0fc]/70 ml-0.5"
                     animate={{ opacity: [1, 0] }}
                     transition={{ duration: 0.5, repeat: Infinity }}
                   />
@@ -315,7 +315,7 @@ function XpRewardCard({ xp, passed }: { xp: number; passed: boolean }) {
       transition={{ delay: 0.45 }}
       className="relative rounded-2xl border overflow-hidden"
       style={{
-        borderColor: passed ? "rgba(255,215,0,0.25)" : "rgba(255,255,255,0.08)",
+        borderColor: passed ? "rgba(255,215,0,0.25)" : "rgba(24,33,55,0.1)",
         backgroundColor: passed ? "rgba(255,215,0,0.05)" : "rgba(255,255,255,0.02)",
         boxShadow: passed ? "0 0 30px rgba(255,215,0,0.08)" : "none",
       }}
@@ -326,7 +326,7 @@ function XpRewardCard({ xp, passed }: { xp: number; passed: boolean }) {
           {particles.map(p => (
             <motion.div
               key={p.id}
-              className="absolute text-[10px] font-mono font-bold text-[#FFD700]/60"
+              className="absolute text-[10px] font-mono font-bold text-[#7d4ccc]/60"
               style={{ left: `${p.x}%`, bottom: 0 }}
               animate={{ y: [0, -80], opacity: [0, 1, 0] }}
               transition={{ duration: 2, delay: p.delay, repeat: Infinity, ease: "easeOut" }}
@@ -344,22 +344,22 @@ function XpRewardCard({ xp, passed }: { xp: number; passed: boolean }) {
           animate={passed ? { boxShadow: ["0 0 0px rgba(255,215,0,0.3)", "0 0 20px rgba(255,215,0,0.5)", "0 0 0px rgba(255,215,0,0.3)"] } : {}}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <Zap className="w-8 h-8 text-[#FFD700]" />
+          <Zap className="w-8 h-8 text-[#7d4ccc]" />
         </motion.div>
 
         <div className="flex-1">
-          <p className="text-[11px] font-mono text-white/30 uppercase tracking-widest mb-1">
+          <p className="text-[11px] font-mono text-[#7a869d] uppercase tracking-widest mb-1">
             {passed ? "XP Earned This Challenge" : "No XP Awarded"}
           </p>
           <motion.p
             className="text-4xl font-black font-mono"
-            style={{ color: passed ? "#FFD700" : "rgba(255,255,255,0.2)" }}
+            style={{ color: passed ? "#7d4ccc" : "rgba(24,33,55,0.32)" }}
           >
             {passed ? `+${count}` : "0"}
           </motion.p>
           {passed && xp > 0 && (
             <div className="mt-2">
-              <div className="h-1 rounded-full bg-white/5 overflow-hidden w-full max-w-[200px]">
+              <div className="h-1 rounded-full bg-[#f4f6fb] overflow-hidden w-full max-w-[200px]">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-[#FFD700]/70 to-[#FFD700]"
                   initial={{ width: "0%" }}
@@ -367,7 +367,7 @@ function XpRewardCard({ xp, passed }: { xp: number; passed: boolean }) {
                   transition={{ duration: 1.8, ease: "easeOut", delay: 0.3 }}
                 />
               </div>
-              <p className="text-[10px] font-mono text-[#FFD700]/40 mt-1">XP awarded to your profile</p>
+              <p className="text-[10px] font-mono text-[#7d4ccc]/40 mt-1">XP awarded to your profile</p>
             </div>
           )}
         </div>
@@ -378,7 +378,7 @@ function XpRewardCard({ xp, passed }: { xp: number; passed: boolean }) {
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 1, type: "spring", stiffness: 200 }}
           >
-            <Star className="w-8 h-8 text-[#FFD700]" fill="#FFD700" />
+            <Star className="w-8 h-8 text-[#7d4ccc]" fill="#7d4ccc" />
           </motion.div>
         )}
       </div>
@@ -390,7 +390,7 @@ function XpRewardCard({ xp, passed }: { xp: number; passed: boolean }) {
 function ClientAcceptanceBadge({ acceptance, recommendation }: { acceptance?: string; recommendation?: string }) {
   if (!acceptance && !recommendation) return null;
   const color =
-    acceptance === "YES" ? "#00FF88" : acceptance === "PARTIALLY" ? "#FFD700" : "#FF6B6B";
+    acceptance === "YES" ? "#168a68" : acceptance === "PARTIALLY" ? "#7d4ccc" : "#FF6B6B";
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -402,14 +402,14 @@ function ClientAcceptanceBadge({ acceptance, recommendation }: { acceptance?: st
         backgroundColor: `${color}08`,
       }}
     >
-      <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Client review</p>
+      <p className="text-[10px] font-mono text-[#6b768c] uppercase tracking-widest">Client review</p>
       {acceptance && (
         <p className="text-lg font-bold font-mono" style={{ color }}>
           Acceptance: {acceptance}
         </p>
       )}
       {recommendation && (
-        <p className="text-sm text-white/60 leading-relaxed">{recommendation}</p>
+        <p className="text-sm text-[#52617a] leading-relaxed">{recommendation}</p>
       )}
     </motion.div>
   );
@@ -428,16 +428,16 @@ function JourneyScoresGrid({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6 }}
-      className="rounded-2xl border border-white/10 bg-white/[0.02] p-5"
+      className="rounded-2xl border border-[#e6e8ef] bg-white/[0.02] p-5"
     >
-      <p className="text-[10px] font-mono text-white/35 uppercase tracking-widest mb-4 flex items-center gap-2">
+      <p className="text-[10px] font-mono text-[#7a869d] uppercase tracking-widest mb-4 flex items-center gap-2">
         <Target className="w-3.5 h-3.5" /> Journey scores
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {visible.map((s) => (
-          <div key={s.label} className="rounded-xl border border-white/8 bg-black/20 px-3 py-2">
-            <p className="text-[9px] font-mono text-white/35 uppercase">{s.label}</p>
-            <p className="text-lg font-bold font-mono text-[#00D2FF]">{s.value}%</p>
+          <div key={s.label} className="rounded-xl border border-[#e6e8ef] bg-[#f4f6fb] px-3 py-2">
+            <p className="text-[9px] font-mono text-[#7a869d] uppercase">{s.label}</p>
+            <p className="text-lg font-bold font-mono text-[#7d4ccc]">{s.value}%</p>
           </div>
         ))}
       </div>
@@ -468,7 +468,7 @@ function MissionResultActions({
       {requiresReflection && (
         <button
           onClick={() => navigate(`/mission/reflection/${sessionId}`)}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold font-mono text-sm border border-[#9D4EDD]/35 bg-[#9D4EDD]/10 text-[#9D4EDD] hover:bg-[#9D4EDD]/20 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold font-mono text-sm border border-[#e0d2f3]/35 bg-[#f5f0fc]/10 text-[#7d4ccc] hover:bg-[#f5f0fc]/20 transition-all"
         >
           <Sparkles className="w-4 h-4" />
           Complete reflection (required)
@@ -490,7 +490,7 @@ function MissionResultActions({
 
         {/* Dashboard */}
         <Link href={dashPath}>
-          <button className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-white/10 text-white/60 font-mono text-sm hover:bg-white/5 hover:text-white transition-all">
+          <button className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-[#e6e8ef] text-[#52617a] font-mono text-sm hover:bg-[#f4f6fb] hover:text-[#182137] transition-all">
             <Home className="w-4 h-4" />
             Dashboard
           </button>
@@ -499,7 +499,7 @@ function MissionResultActions({
         {/* Retry — always shown */}
         <button
           onClick={() => navigate("/profession/select")}
-          className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-white/10 text-white/50 font-mono text-sm hover:bg-white/5 hover:text-white transition-all"
+          className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-[#e6e8ef] text-[#5e6a7f] font-mono text-sm hover:bg-[#f4f6fb] hover:text-[#182137] transition-all"
         >
           <RotateCcw className="w-4 h-4" />
           {passed ? "Retry Challenge" : "Retry Challenge"}
@@ -508,7 +508,7 @@ function MissionResultActions({
         {/* Back to District */}
         <button
           onClick={() => navigate("/profession/select")}
-          className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-white/10 text-white/50 font-mono text-sm hover:bg-white/5 hover:text-white transition-all"
+          className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-[#e6e8ef] text-[#5e6a7f] font-mono text-sm hover:bg-[#f4f6fb] hover:text-[#182137] transition-all"
         >
           <Map className="w-4 h-4" />
           Back to District
@@ -518,7 +518,7 @@ function MissionResultActions({
       {/* Leaderboard */}
       <button
         onClick={() => navigate(dashPath)}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-[#FFD700]/15 text-[#FFD700]/50 font-mono text-sm hover:bg-[#FFD700]/5 hover:text-[#FFD700]/80 transition-all"
+        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border border-[#e0d2f3]/15 text-[#7d4ccc]/50 font-mono text-sm hover:bg-[#f5f0fc]/5 hover:text-[#7d4ccc]/80 transition-all"
       >
         <Trophy className="w-4 h-4" />
         View Leaderboard
@@ -530,18 +530,18 @@ function MissionResultActions({
 /* ── Polling state UI ── */
 function EvaluationStillProcessing({ pollCount, onRetry }: { pollCount: number; onRetry: () => void }) {
   return (
-    <div className="min-h-screen bg-[#020408] text-white flex flex-col items-center justify-center gap-8 px-6">
+    <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] flex flex-col items-center justify-center gap-8 px-6">
       <motion.div
         animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 2, repeat: Infinity }}
-        className="w-16 h-16 rounded-full border-2 border-[#00D2FF]/40 flex items-center justify-center"
+        className="w-16 h-16 rounded-full border-2 border-[#7d4ccc]/40 flex items-center justify-center"
         style={{ boxShadow: "0 0 30px rgba(0,210,255,0.15)" }}
       >
-        <Brain className="w-7 h-7 text-[#00D2FF]" />
+        <Brain className="w-7 h-7 text-[#7d4ccc]" />
       </motion.div>
       <div className="text-center space-y-2">
-        <p className="text-white/80 font-mono font-bold">Evaluation Still Processing</p>
-        <p className="text-sm font-mono text-white/40">
+        <p className="text-[#182137] font-mono font-bold">Evaluation Still Processing</p>
+        <p className="text-sm font-mono text-[#6b768c]">
           Brainiac is still computing your results…
           {pollCount > 0 && ` (Check ${pollCount})`}
         </p>
@@ -553,7 +553,7 @@ function EvaluationStillProcessing({ pollCount, onRetry }: { pollCount: number; 
       />
       <button
         onClick={onRetry}
-        className="flex items-center gap-2 text-xs text-white/40 hover:text-white border border-white/15 hover:border-white/30 rounded-xl px-5 py-2.5 transition-all font-mono"
+        className="flex items-center gap-2 text-xs text-[#6b768c] hover:text-[#182137] border border-[#d8dde8] hover:border-[#c9d2e3] rounded-xl px-5 py-2.5 transition-all font-mono"
       >
         <RefreshCw className="w-3.5 h-3.5" /> Refresh Manually
       </button>
@@ -695,14 +695,14 @@ export default function MissionResultPage() {
   /* ── Loading ── */
   if (loading && !evalData) {
     return (
-      <div className="min-h-screen bg-[#020408] flex items-center justify-center">
+      <div className="mission-light min-h-screen bg-[#f7f8fb] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
             className="w-10 h-10 rounded-full border-2 border-transparent border-t-[#00D2FF] border-r-[#9D4EDD]"
           />
-          <p className="text-sm font-mono text-white/40">Loading your results…</p>
+          <p className="text-sm font-mono text-[#6b768c]">Loading your results…</p>
         </div>
       </div>
     );
@@ -721,15 +721,15 @@ export default function MissionResultPage() {
   /* ── Error ── */
   if (error && !evalData) {
     return (
-      <div className="min-h-screen bg-[#020408] flex flex-col items-center justify-center gap-6 px-6">
+      <div className="mission-light min-h-screen bg-[#f7f8fb] flex flex-col items-center justify-center gap-6 px-6">
         <AlertCircle className="w-12 h-12 text-red-400/60" />
         <div className="text-center">
-          <p className="text-white/70 font-mono font-bold">Unable to Load Results</p>
-          <p className="text-sm font-mono text-white/40 mt-1">{error}</p>
+          <p className="text-[#3e4a60] font-mono font-bold">Unable to Load Results</p>
+          <p className="text-sm font-mono text-[#6b768c] mt-1">{error}</p>
         </div>
         <button
           onClick={() => fetchResults(true)}
-          className="flex items-center gap-2 text-sm border border-white/20 rounded-xl px-5 py-3 text-white/50 hover:text-white transition-all font-mono"
+          className="flex items-center gap-2 text-sm border border-[#d8dde8] rounded-xl px-5 py-3 text-[#5e6a7f] hover:text-[#182137] transition-all font-mono"
         >
           <RefreshCw className="w-4 h-4" /> Retry
         </button>
@@ -757,9 +757,9 @@ export default function MissionResultPage() {
   const feedbackCards: FeedbackCardConfig[] = [
     {
       title: "Strengths",
-      icon: <Shield className="w-4 h-4 text-[#00FF88]" />,
+      icon: <Shield className="w-4 h-4 text-[#168a68]" />,
       lines: strengths,
-      color: "#00FF88",
+      color: "#168a68",
       borderColor: "rgba(0,255,136,0.25)",
       bgColor: "rgba(0,255,136,0.05)",
       glowColor: "rgba(0,255,136,0.06)",
@@ -775,18 +775,18 @@ export default function MissionResultPage() {
     },
     {
       title: "Positive Feedback",
-      icon: <ThumbsUp className="w-4 h-4 text-[#00D2FF]" />,
+      icon: <ThumbsUp className="w-4 h-4 text-[#7d4ccc]" />,
       lines: positiveFeedback,
-      color: "#00D2FF",
+      color: "#7d4ccc",
       borderColor: "rgba(0,210,255,0.25)",
       bgColor: "rgba(0,210,255,0.05)",
       glowColor: "rgba(0,210,255,0.06)",
     },
     {
       title: "Improvement Areas",
-      icon: <Lightbulb className="w-4 h-4 text-[#FFD700]" />,
+      icon: <Lightbulb className="w-4 h-4 text-[#7d4ccc]" />,
       lines: improvementAreas,
-      color: "#FFD700",
+      color: "#7d4ccc",
       borderColor: "rgba(255,215,0,0.25)",
       bgColor: "rgba(255,215,0,0.05)",
       glowColor: "rgba(255,215,0,0.06)",
@@ -812,7 +812,7 @@ export default function MissionResultPage() {
   ];
 
   return (
-    <div className={`dark min-h-screen text-white relative overflow-x-hidden ${isPassed ? "bg-[#020408]" : "bg-[#070408]"}`}>
+    <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] relative overflow-x-hidden">
 
       {/* Confetti */}
       {isPassed && (
@@ -881,8 +881,8 @@ export default function MissionResultPage() {
                   className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold font-mono mb-4 border"
                   style={
                     isPassed
-                      ? { color: "#00D2FF", borderColor: "rgba(0,210,255,0.35)", backgroundColor: "rgba(0,210,255,0.1)", boxShadow: "0 0 16px rgba(0,210,255,0.15)" }
-                      : { color: "#FF6B6B", borderColor: "rgba(255,107,107,0.35)", backgroundColor: "rgba(255,107,107,0.1)" }
+                      ? { color: "#168a68", borderColor: "#b9e8d6", backgroundColor: "#eefaf4" }
+                      : { color: "#d34d62", borderColor: "#f3c3cb", backgroundColor: "#fff1f3" }
                   }
                 >
                   {isPassed
@@ -891,14 +891,14 @@ export default function MissionResultPage() {
                   }
                 </div>
 
-                <h1 className="text-2xl md:text-3xl font-black text-white mb-2">{missionTitle}</h1>
+                <h1 className="text-2xl md:text-3xl font-black text-[#182137] mb-2">{missionTitle}</h1>
 
                 {!isPassed && (
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.6 }}
-                    className="text-sm text-white/45 italic leading-relaxed max-w-sm"
+                    className="text-sm text-[#5e6a7f] italic leading-relaxed max-w-sm"
                   >
                     You're close! Review Brainiac's feedback below, sharpen your approach, and try again. You've got this.
                   </motion.p>
@@ -911,10 +911,10 @@ export default function MissionResultPage() {
                     transition={{ delay: 0.5, type: "spring" }}
                     className="flex flex-wrap gap-2 mt-2 justify-center md:justify-start"
                   >
-                    <span className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full border border-[#00FF88]/30 bg-[#00FF88]/8 text-[#00FF88]/80">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full border border-[#00FF88]/30 bg-[#00FF88]/8 text-[#168a68]/80">
                       <Sparkles className="w-3 h-3" /> Excellent Work
                     </span>
-                    <span className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full border border-[#9D4EDD]/30 bg-[#9D4EDD]/8 text-[#9D4EDD]/80">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full border border-[#e0d2f3]/30 bg-[#f5f0fc]/8 text-[#7d4ccc]/80">
                       <Flame className="w-3 h-3" /> Brainiac Certified
                     </span>
                   </motion.div>
@@ -928,19 +928,19 @@ export default function MissionResultPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            className="relative z-10 mt-6 pt-5 border-t border-white/5 flex items-center justify-between flex-wrap gap-3"
+            className="relative z-10 mt-6 pt-5 border-t border-[#eef1f7] flex items-center justify-between flex-wrap gap-3"
           >
-            <div className="flex items-center gap-2 text-[11px] font-mono text-white/30">
+            <div className="flex items-center gap-2 text-[11px] font-mono text-[#7a869d]">
               <motion.div
                 animate={{ opacity: [0.4, 1, 0.4] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <Brain className="w-3.5 h-3.5 text-[#9D4EDD]/60" />
+                <Brain className="w-3.5 h-3.5 text-[#7d4ccc]/60" />
               </motion.div>
               Brainiac Evaluation Complete
             </div>
             {isPolling && (
-              <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#FFD700]/60">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#7d4ccc]/60">
                 <Loader2 className="w-3 h-3 animate-spin" />
                 Results updating…
               </div>
@@ -962,7 +962,7 @@ export default function MissionResultPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="text-xs font-mono text-white/30 uppercase tracking-widest mb-4 flex items-center gap-2"
+              className="text-xs font-mono text-[#7a869d] uppercase tracking-widest mb-4 flex items-center gap-2"
             >
               <TrendingUp className="w-3.5 h-3.5" /> Team lead feedback
             </motion.p>
@@ -985,7 +985,7 @@ export default function MissionResultPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="text-center text-[10px] font-mono text-white/15 pb-4"
+          className="text-center text-[10px] font-mono text-[#9ba5b7] pb-4"
         >
           Brainiac · AI Evaluation Engine · Session {sessionId.slice(0, 8)}…
         </motion.p>

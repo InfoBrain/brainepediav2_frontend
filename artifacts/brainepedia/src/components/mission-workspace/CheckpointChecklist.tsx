@@ -20,18 +20,18 @@ export function CheckpointChecklist({ checkpoints, briefReviewed, completingId, 
 
   return (
     <nav
-      className="rounded-xl border border-white/10 bg-[#0a0f16] p-4 space-y-3"
+      className="rounded-xl border border-[#e6e8ef] bg-white p-4 space-y-3"
       aria-label="Mission checkpoints"
     >
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-mono text-[#9D4EDD] tracking-widest uppercase">Checkpoints</p>
-        <span className="text-[10px] font-mono text-white/35">
+        <p className="text-[10px] font-mono text-[#7d4ccc] tracking-widest uppercase">Checkpoints</p>
+        <span className="text-[10px] font-mono text-[#7a869d]">
           {requiredDone}/{requiredTotal} required
         </span>
       </div>
 
       {!briefReviewed && (
-        <p className="text-[11px] font-mono text-white/40 border border-white/5 rounded-lg p-2">
+        <p className="text-[11px] font-mono text-[#6b768c] border border-[#eef1f7] rounded-lg p-2">
           Confirm the brief to unlock checkpoints.
         </p>
       )}
@@ -44,11 +44,7 @@ export function CheckpointChecklist({ checkpoints, briefReviewed, completingId, 
           return (
             <li
               key={cp.checkpointProgressId}
-              className={`rounded-lg border p-3 transition-colors ${
-                cp.isCompleted
-                  ? "border-emerald-500/25 bg-emerald-500/5"
-                  : "border-white/8 bg-white/[0.02]"
-              }`}
+              className={`rounded-lg border p-3 transition-colors ${ cp.isCompleted ? "border-emerald-500/25 bg-emerald-500/5" : "border-[#e6e8ef] bg-white/[0.02]" }`}
             >
               <div className="flex items-start gap-2">
                 <button
@@ -65,25 +61,25 @@ export function CheckpointChecklist({ checkpoints, briefReviewed, completingId, 
                   }
                 >
                   {isCompleting ? (
-                    <Loader2 className="w-4 h-4 text-[#00D2FF] animate-spin" />
+                    <Loader2 className="w-4 h-4 text-[#7d4ccc] animate-spin" />
                   ) : cp.isCompleted ? (
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   ) : (
-                    <Circle className="w-4 h-4 text-white/25" />
+                    <Circle className="w-4 h-4 text-[#8b96ab]" />
                   )}
                 </button>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-medium text-white/85">{cp.name}</span>
+                    <span className="text-xs font-medium text-[#182137]">{cp.name}</span>
                     {cp.isRequired && (
-                      <span className="text-[9px] font-mono text-white/30 uppercase">Required</span>
+                      <span className="text-[9px] font-mono text-[#7a869d] uppercase">Required</span>
                     )}
-                    <span className="text-[9px] font-mono text-[#FFD700]/70 flex items-center gap-0.5">
+                    <span className="text-[9px] font-mono text-[#7d4ccc]/70 flex items-center gap-0.5">
                       <Zap className="w-2.5 h-2.5" /> +{cp.xpReward}
                     </span>
                   </div>
                   {cp.description && (
-                    <p className="text-[11px] text-white/45 mt-1 leading-relaxed">{cp.description}</p>
+                    <p className="text-[11px] text-[#5e6a7f] mt-1 leading-relaxed">{cp.description}</p>
                   )}
                 </div>
               </div>
@@ -94,7 +90,7 @@ export function CheckpointChecklist({ checkpoints, briefReviewed, completingId, 
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Optional notes on completion…"
-                    className="min-h-[60px] text-xs bg-black/30 border-white/10"
+                    className="min-h-[60px] text-xs bg-white border-[#e6e8ef]"
                     aria-label={`Notes for ${cp.name}`}
                   />
                   <div className="flex gap-2">
@@ -113,7 +109,7 @@ export function CheckpointChecklist({ checkpoints, briefReviewed, completingId, 
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-xs font-mono text-white/40"
+                      className="text-xs font-mono text-[#6b768c]"
                       onClick={() => {
                         setNotesFor(null);
                         setNotes("");

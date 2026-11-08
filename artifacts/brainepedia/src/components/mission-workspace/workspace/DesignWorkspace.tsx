@@ -28,7 +28,7 @@ export function DesignWorkspace({
   return (
     <div className="space-y-4">
       <div className="space-y-2" id="workspace-deliverable">
-        <Label className="text-xs font-mono text-[#00D2FF]/80 flex items-center gap-1">
+        <Label className="text-xs font-mono text-[#7d4ccc]/80 flex items-center gap-1">
           <Image className="w-3.5 h-3.5" /> Design / Creative Output
         </Label>
         <Textarea
@@ -36,31 +36,27 @@ export function DesignWorkspace({
           onChange={(e) => onDescriptionChange(e.target.value)}
           onBlur={onBlurSave}
           placeholder="Describe your design solution — layout, visual direction, user flow, creative concept…"
-          className={`min-h-[180px] text-sm bg-black/25 border-white/10 resize-y ${
-            focusSection === "deliverable" ? "border-[#00D2FF]/40 ring-1 ring-[#00D2FF]/20" : ""
-          }`}
+          className={`min-h-[180px] text-sm bg-white border-[#e6e8ef] resize-y ${ focusSection === "deliverable" ? "border-[#7d4ccc]/40 ring-1 ring-[#7d4ccc]/20" : "" }`}
         />
       </div>
 
       <div className="space-y-2" id="workspace-approach">
-        <Label className="text-xs font-mono text-white/45">Design decisions & rationale</Label>
+        <Label className="text-xs font-mono text-[#5e6a7f]">Design decisions & rationale</Label>
         <Textarea
           value={designDecisions}
           onChange={(e) => onDecisionsChange(e.target.value)}
           onBlur={onBlurSave}
           placeholder="Why did you make these design choices? What trade-offs did you consider?"
-          className="min-h-[100px] text-sm bg-black/25 border-white/10 resize-y"
+          className="min-h-[100px] text-sm bg-white border-[#e6e8ef] resize-y"
         />
       </div>
 
       <div
         id="workspace-evidence"
-        className={`rounded-xl border bg-[#0a0f16] p-4 ${
-          focusSection === "evidence" ? "border-[#FFD700]/40 ring-1 ring-[#FFD700]/20" : "border-white/10"
-        }`}
+        className={`rounded-xl border bg-white p-4 ${ focusSection === "evidence" ? "border-[#e0d2f3]/40 ring-1 ring-[#FFD700]/20" : "border-[#e6e8ef]" }`}
       >
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-mono text-[#FFD700] uppercase tracking-widest flex items-center gap-1">
+          <p className="text-[10px] font-mono text-[#7d4ccc] uppercase tracking-widest flex items-center gap-1">
             <Paperclip className="w-3 h-3" /> Design Evidence
           </p>
           <Button size="sm" variant="ghost" onClick={onOpenEvidence} className="text-xs font-mono h-7 gap-1">
@@ -76,7 +72,7 @@ export function DesignWorkspace({
             ))}
           </ul>
         ) : (
-          <p className="text-[11px] font-mono text-white/30">
+          <p className="text-[11px] font-mono text-[#7a869d]">
             Attach Figma links, screenshots, or exports to prove your design work.
           </p>
         )}

@@ -13,22 +13,22 @@ export function MissionContext({ node, missionBrief, compact }: Props) {
 
   return (
     <aside
-      className={`rounded-xl border border-white/10 bg-[#0a0f16] ${compact ? "p-4 space-y-3" : "p-5 space-y-4"}`}
+      className={`rounded-xl border border-[#e6e8ef] bg-white ${compact ? "p-4 space-y-3" : "p-5 space-y-4"}`}
       aria-label="Mission context"
     >
       <div>
-        <p className="text-[10px] font-mono text-[#00D2FF] uppercase tracking-widest flex items-center gap-1 mb-1">
+        <p className="text-[10px] font-mono text-[#7d4ccc] uppercase tracking-widest flex items-center gap-1 mb-1">
           <Briefcase className="w-3 h-3" /> Client Situation
         </p>
-        <p className="text-sm text-white/65 leading-relaxed whitespace-pre-wrap">{clientContext}</p>
+        <p className="text-sm text-[#3e4a60] leading-relaxed whitespace-pre-wrap">{clientContext}</p>
       </div>
 
       {brief && brief !== clientContext && (
         <div>
-          <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest flex items-center gap-1 mb-1">
+          <p className="text-[10px] font-mono text-[#6b768c] uppercase tracking-widest flex items-center gap-1 mb-1">
             <Target className="w-3 h-3" /> Your Task
           </p>
-          <p className="text-sm text-white/60 leading-relaxed whitespace-pre-wrap">{brief}</p>
+          <p className="text-sm text-[#52617a] leading-relaxed whitespace-pre-wrap">{brief}</p>
         </div>
       )}
 
@@ -39,7 +39,7 @@ export function MissionContext({ node, missionBrief, compact }: Props) {
           </p>
           <ul className="space-y-1.5" role="list">
             {node.expectedOutcomes.map((o, i) => (
-              <li key={i} className="text-xs text-white/55 leading-relaxed flex gap-2">
+              <li key={i} className="text-xs text-[#52617a] leading-relaxed flex gap-2">
                 <span className="text-emerald-400/50 shrink-0">•</span>
                 <span>{o}</span>
               </li>
@@ -50,13 +50,13 @@ export function MissionContext({ node, missionBrief, compact }: Props) {
 
       {node.constraints.length > 0 && (
         <div>
-          <p className="text-[10px] font-mono text-amber-400/70 uppercase tracking-widest flex items-center gap-1 mb-2">
+          <p className="text-[10px] font-mono text-[#9a3412]/70 uppercase tracking-widest flex items-center gap-1 mb-2">
             <AlertTriangle className="w-3 h-3" /> Constraints
           </p>
           <ul className="space-y-1.5" role="list">
             {node.constraints.map((c, i) => (
-              <li key={i} className="text-xs text-white/50 leading-relaxed flex gap-2">
-                <span className="text-amber-400/50 shrink-0">•</span>
+              <li key={i} className="text-xs text-[#5e6a7f] leading-relaxed flex gap-2">
+                <span className="text-[#9a3412]/50 shrink-0">•</span>
                 <span>{c}</span>
               </li>
             ))}

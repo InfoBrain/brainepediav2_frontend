@@ -40,16 +40,16 @@ function SkeletonCard({ index }: { index: number }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: index * 0.05 }}
-      className="flex flex-col gap-3 p-5 rounded-2xl border border-white/10 bg-[#0d1117]"
+      className="flex flex-col gap-3 p-5 rounded-2xl border border-[#e6e8ef] bg-white"
     >
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 rounded-full bg-white/10 animate-pulse" />
-        <div className="h-3 w-32 rounded-full bg-white/10 animate-pulse" />
+        <div className="w-4 h-4 rounded-full bg-[#e6e8ef] animate-pulse" />
+        <div className="h-3 w-32 rounded-full bg-[#e6e8ef] animate-pulse" />
       </div>
-      <div className="h-2 w-full rounded-full bg-white/5 animate-pulse" />
-      <div className="h-2 w-3/4 rounded-full bg-white/5 animate-pulse" />
+      <div className="h-2 w-full rounded-full bg-[#f4f6fb] animate-pulse" />
+      <div className="h-2 w-3/4 rounded-full bg-[#f4f6fb] animate-pulse" />
       <div className="mt-auto space-y-1.5">
-        <div className="h-1.5 w-full rounded-full bg-white/5 animate-pulse" />
+        <div className="h-1.5 w-full rounded-full bg-[#f4f6fb] animate-pulse" />
       </div>
     </motion.div>
   );
@@ -145,44 +145,44 @@ export default function DistrictMap() {
   const dashPath = isAuthenticated() ? getDashboardPath() : "/";
 
   return (
-    <div className="dark min-h-screen bg-[#060a10] text-white relative overflow-hidden flex flex-col">
+    <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] relative overflow-hidden flex flex-col">
       {/* Ambient background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/3 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/3 w-96 h-96 bg-[#7d4ccc]/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#f5f0fc]/8 rounded-full blur-3xl" />
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(0,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.3) 1px, transparent 1px)",
+              "linear-gradient(rgba(125,76,204,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(125,76,204,0.08) 1px, transparent 1px)",
             backgroundSize: "60px 60px",
           }}
         />
       </div>
 
       {/* Top bar */}
-      <header className="relative z-10 flex items-center gap-3 px-4 md:px-8 py-4 border-b border-white/5 bg-black/20 backdrop-blur">
+      <header className="relative z-10 flex items-center gap-3 px-4 md:px-8 py-4 border-b border-[#e6e8ef] bg-white/90 backdrop-blur">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs font-mono text-white/30 min-w-0">
-          <Link href={dashPath} className="hover:text-white/60 transition-colors flex items-center gap-1">
+        <nav className="flex items-center gap-1.5 text-xs font-mono text-[#7a869d] min-w-0">
+          <Link href={dashPath} className="hover:text-[#182137] transition-colors flex items-center gap-1">
             <Home className="w-3 h-3" /> Dashboard
           </Link>
           <span>/</span>
-          <Link href="/profession/select" className="hover:text-white/60 transition-colors">
+          <Link href="/profession/select" className="hover:text-[#182137] transition-colors">
             Professions
           </Link>
           <span>/</span>
-          <span className="text-white/50 truncate max-w-[120px]">{profName}</span>
+          <span className="text-[#52617a] truncate max-w-[120px]">{profName}</span>
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
           <Link href={dashPath}>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-cyan-400/70 hover:text-cyan-400 text-xs font-mono">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-[#7d4ccc] hover:text-[#6538ad] text-xs font-mono">
               <TrendingUp className="w-3.5 h-3.5" /> Progress
             </Button>
           </Link>
           <Link href="/profession/select">
-            <Button variant="ghost" size="sm" className="gap-1.5 text-white/40 hover:text-white text-xs font-mono">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-[#7a869d] hover:text-[#182137] text-xs font-mono">
               <ArrowLeft className="w-3.5 h-3.5" /> Professions
             </Button>
           </Link>
@@ -202,15 +202,15 @@ export default function DistrictMap() {
               <img src={data.iconUrl} alt={profName} className="w-10 h-10 object-contain drop-shadow-lg" />
             )}
             <div>
-              <p className="text-[10px] font-mono text-purple-400 tracking-[0.3em] uppercase mb-0.5">
+              <p className="text-[10px] font-mono text-[#7d4ccc] tracking-[0.3em] uppercase mb-0.5">
                 <Map className="w-3 h-3 inline mr-1" />District Map
               </p>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-purple-100 to-cyan-200 bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-4xl font-extrabold text-[#182137]" style={{ color: "#182137" }}>
                 {profName}
               </h1>
             </div>
           </div>
-          <p className="text-white/40 text-sm font-mono">
+          <p className="text-[#5e6a7f] text-sm font-mono">
             Explore districts and master real-world skills
           </p>
 
@@ -231,9 +231,9 @@ export default function DistrictMap() {
                   value: `${Math.round(districts.reduce((s, d) => s + d.completionPercentage, 0) / districts.length)}%`,
                 },
               ].map(({ label, value }) => (
-                <div key={label} className="flex flex-col px-4 py-2 rounded-xl border border-white/10 bg-white/3 min-w-[100px]">
-                  <span className="text-[10px] font-mono text-white/30 uppercase tracking-wider">{label}</span>
-                  <span className="text-lg font-bold text-white/80">{value}</span>
+                <div key={label} className="flex flex-col px-4 py-2 rounded-xl border border-[#e6e8ef] bg-white min-w-[100px]">
+                  <span className="text-[10px] font-mono text-[#7a869d] uppercase tracking-wider">{label}</span>
+                  <span className="text-lg font-bold text-[#182137]">{value}</span>
                 </div>
               ))}
             </motion.div>
@@ -255,12 +255,12 @@ export default function DistrictMap() {
             className="flex flex-col items-center gap-4 py-24 text-center"
           >
             <AlertCircle className="w-12 h-12 text-red-400/60" />
-            <p className="text-white/50 font-mono text-sm">Unable to load districts</p>
+            <p className="text-[#5e6a7f] font-mono text-sm">Unable to load districts</p>
             <Button
               variant="outline"
               size="sm"
               onClick={() => refetch()}
-              className="border-white/20 text-white/50 hover:text-white gap-2"
+              className="border-[#d8dde8] text-[#5e6a7f] hover:text-[#182137] gap-2"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Retry
             </Button>
@@ -274,14 +274,14 @@ export default function DistrictMap() {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center gap-4 py-24 text-center"
           >
-            <Map className="w-14 h-14 text-white/10" />
-            <p className="text-white/40 font-mono text-sm max-w-xs">
+            <Map className="w-14 h-14 text-[#c9d0de]" />
+            <p className="text-[#5e6a7f] font-mono text-sm max-w-xs">
               No districts available for this profession yet.
               <br />
               Check back soon — the city is being built.
             </p>
             <Link href="/profession/select">
-              <Button variant="outline" size="sm" className="border-white/20 text-white/50 hover:text-white gap-2 mt-2">
+              <Button variant="outline" size="sm" className="border-[#d8dde8] text-[#5e6a7f] hover:text-[#182137] gap-2 mt-2">
                 <ArrowLeft className="w-3.5 h-3.5" /> Choose another profession
               </Button>
             </Link>
@@ -297,11 +297,11 @@ export default function DistrictMap() {
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-3 px-4 py-2.5 mb-6 rounded-xl border border-amber-400/20 bg-amber-400/5 text-xs font-mono text-amber-400"
+                  className="flex items-center gap-3 px-4 py-3 mb-6 rounded-xl border border-[#e0d2f3] bg-white text-sm text-[#182137] shadow-[0_8px_24px_rgba(24,33,55,0.05)]"
                 >
-                  <span className="text-base">★</span>
-                  <span>
-                    Recommended next: <strong>{recommended.name}</strong>
+                  <span className="text-base text-[#7d4ccc]">★</span>
+                  <span style={{ color: "#182137" }}>
+                    Recommended next: <strong className="font-extrabold" style={{ color: "#182137" }}>{recommended.name}</strong>
                     {recommended.completionPercentage > 0 && (
                       <> — {recommended.completionPercentage}% complete</>
                     )}
@@ -325,7 +325,7 @@ export default function DistrictMap() {
         )}
       </main>
 
-      <CopyrightBar className="relative z-10 border-t border-white/5" />
+      <CopyrightBar className="relative z-10 border-t border-[#e6e8ef]" />
     </div>
   );
 }

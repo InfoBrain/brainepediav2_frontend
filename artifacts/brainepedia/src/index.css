@@ -533,6 +533,57 @@
     color: #182137;
     border-radius: 18px;
   }
+
+  /* White gradient titles (from-white + bg-clip-text) disappear on light surfaces. */
+  html.light :is([class*="from-white"], [class*="via-purple-100"], [class*="to-cyan-200"])[class*="bg-clip-text"] {
+    background-image: none !important;
+    color: #182137 !important;
+    -webkit-text-fill-color: #182137 !important;
+  }
+}
+
+/*
+ * Mission flow always uses the light brand, including when the app theme is dark.
+ * Primary #7D4CCC, white surfaces, light grey canvas, navy type.
+ */
+.mission-light {
+  --background: 225 40% 98%;
+  --foreground: 223 39% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 223 39% 15%;
+  --muted: 225 33% 97%;
+  --muted-foreground: 221 14% 40%;
+  --border: 227 22% 90%;
+  --input: 227 22% 90%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 223 39% 15%;
+  --primary: 263 56% 55%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 265 67% 96%;
+  --accent-foreground: 263 48% 36%;
+  color: #182137;
+  background-color: #f7f8fb;
+  color-scheme: light;
+}
+
+.mission-light textarea:not(.inputarea),
+.mission-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.mission-light select,
+.mission-light [contenteditable="true"] {
+  background-color: #ffffff !important;
+  color: #182137 !important;
+  border-color: #e6e8ef !important;
+}
+
+.mission-light textarea::placeholder,
+.mission-light input::placeholder {
+  color: #52617a !important;
+}
+
+.mission-light :is([class*="bg-clip-text"], [class*="from-white"]) {
+  background-image: none !important;
+  color: #182137 !important;
+  -webkit-text-fill-color: #182137 !important;
 }
 
 /**

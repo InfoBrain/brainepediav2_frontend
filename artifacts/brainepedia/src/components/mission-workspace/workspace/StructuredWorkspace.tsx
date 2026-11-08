@@ -19,18 +19,13 @@ export function StructuredWorkspace({ sections, onSectionChange, onBlurSave, foc
           className="space-y-2"
           id={i === 0 ? "workspace-deliverable" : i === sections.length - 1 ? "workspace-approach" : undefined}
         >
-          <Label className="text-xs font-mono text-[#00D2FF]/80">{section.label}</Label>
+          <Label className="text-xs font-mono text-[#7d4ccc]/80">{section.label}</Label>
           <Textarea
             value={section.value}
             onChange={(e) => onSectionChange(section.key, e.target.value)}
             onBlur={onBlurSave}
             placeholder={section.placeholder}
-            className={`min-h-[100px] text-sm bg-black/25 border-white/10 resize-y ${
-              (focusSection === "deliverable" && i === 0) ||
-              (focusSection === "approach" && i === sections.length - 1)
-                ? "border-[#00D2FF]/40 ring-1 ring-[#00D2FF]/20"
-                : ""
-            }`}
+            className={`min-h-[100px] text-sm bg-white border-[#e6e8ef] resize-y ${ (focusSection === "deliverable" && i === 0) || (focusSection === "approach" && i === sections.length - 1) ? "border-[#7d4ccc]/40 ring-1 ring-[#7d4ccc]/20" : "" }`}
           />
         </div>
       ))}

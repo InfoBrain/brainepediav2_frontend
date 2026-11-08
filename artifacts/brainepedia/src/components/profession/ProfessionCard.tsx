@@ -13,39 +13,21 @@ type Props = {
   index: number;
 };
 
-const GLOWS: string[] = [
-  "hover:shadow-cyan-500/40 hover:border-cyan-400/70 group-hover:text-cyan-300",
-  "hover:shadow-amber-500/40 hover:border-amber-400/70 group-hover:text-amber-300",
-  "hover:shadow-purple-500/40 hover:border-purple-400/70 group-hover:text-purple-300",
-  "hover:shadow-emerald-500/40 hover:border-emerald-400/70 group-hover:text-emerald-300",
-  "hover:shadow-rose-500/40 hover:border-rose-400/70 group-hover:text-rose-300",
-  "hover:shadow-sky-500/40 hover:border-sky-400/70 group-hover:text-sky-300",
-];
-
-const SELECTED_RINGS: string[] = [
-  "border-cyan-400 shadow-cyan-500/50",
-  "border-amber-400 shadow-amber-500/50",
-  "border-purple-400 shadow-purple-500/50",
-  "border-emerald-400 shadow-emerald-500/50",
-  "border-rose-400 shadow-rose-500/50",
-  "border-sky-400 shadow-sky-500/50",
-];
+const GLOWS = "hover:border-[#d8c6ef] hover:shadow-[0_12px_28px_rgba(125,76,204,0.12)]";
 
 export function ProfessionCard({ profession, selected, onClick, index }: Props) {
-  const colorIdx = index % GLOWS.length;
-
   return (
     <motion.button
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.06, ease: "easeOut" }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.97 }}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.98 }}
       onClick={() => onClick(profession)}
-      className={`group relative flex flex-col items-center gap-4 p-6 rounded-2xl border bg-[#0d1117] cursor-pointer text-left w-full transition-all duration-300 shadow-lg
+      className={`group relative flex flex-col items-center gap-4 p-6 rounded-2xl border bg-white cursor-pointer text-left w-full transition-all duration-300 shadow-[0_10px_24px_rgba(24,33,55,0.06)]
         ${selected
-          ? `${SELECTED_RINGS[colorIdx]} shadow-xl border-2 bg-white/5`
-          : `border-white/10 ${GLOWS[colorIdx]} hover:shadow-xl hover:bg-white/5`
+          ? "border-[#7d4ccc] shadow-[0_12px_28px_rgba(125,76,204,0.16)] border-2"
+          : `border-[#e6e8ef] ${GLOWS}`
         }`}
     >
       {/* Selected glow ring */}
@@ -61,8 +43,7 @@ export function ProfessionCard({ profession, selected, onClick, index }: Props) 
       {/* Icon */}
       <div className="relative w-16 h-16 flex items-center justify-center">
         <div
-          className={`absolute inset-0 rounded-full blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300
-            ${colorIdx === 0 ? "bg-cyan-400" : colorIdx === 1 ? "bg-amber-400" : colorIdx === 2 ? "bg-purple-400" : colorIdx === 3 ? "bg-emerald-400" : colorIdx === 4 ? "bg-rose-400" : "bg-sky-400"}`}
+          className="absolute inset-0 rounded-full blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300 bg-[#7d4ccc]/30"
         />
         {profession.iconUrl ? (
           <img
@@ -77,8 +58,7 @@ export function ProfessionCard({ profession, selected, onClick, index }: Props) 
           />
         ) : null}
         <span
-          className={`relative z-10 flex h-12 w-12 items-center justify-center text-3xl font-extrabold text-[#182137] dark:font-mono dark:text-white/60
-            ${profession.iconUrl ? "hidden" : ""}`}
+          className={`relative z-10 flex h-12 w-12 items-center justify-center text-3xl font-extrabold text-[#182137] ${profession.iconUrl ? "hidden" : ""}`}
         >
           {profession.name.charAt(0).toUpperCase()}
         </span>
@@ -86,8 +66,8 @@ export function ProfessionCard({ profession, selected, onClick, index }: Props) 
 
       {/* Name */}
       <p
-        className={`text-center text-sm font-bold leading-tight tracking-wide transition-colors duration-200
-          ${selected ? "text-[#7d4ccc] dark:text-white" : "text-[#182137] group-hover:text-[#7d4ccc] dark:text-white/70 dark:group-hover:text-white"}`}
+        className={`text-center text-sm font-extrabold leading-tight tracking-wide transition-colors duration-200 ${selected ? "text-[#7d4ccc]" : "text-[#182137] group-hover:text-[#7d4ccc]"}`}
+        style={{ color: selected ? "#7d4ccc" : "#182137" }}
       >
         {profession.name}
       </p>
@@ -97,9 +77,9 @@ export function ProfessionCard({ profession, selected, onClick, index }: Props) 
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="absolute top-2 right-2 w-5 h-5 rounded-full bg-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/50"
+          className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#7d4ccc] flex items-center justify-center"
         >
-          <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </motion.div>

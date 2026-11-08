@@ -39,27 +39,19 @@ export function DeveloperWorkspace({
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-xs font-mono text-white/45">Solution Type</Label>
-        <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/25 p-1 w-fit">
+        <Label className="text-xs font-mono text-[#5e6a7f]">Solution Type</Label>
+        <div className="flex items-center gap-1 rounded-xl border border-[#e6e8ef] bg-white p-1 w-fit">
           <button
             type="button"
             onClick={() => setSolutionMode("prose")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-mono transition-colors ${
-              solutionMode === "prose"
-                ? "border border-[#00D2FF]/35 bg-[#00D2FF]/15 text-[#00D2FF]"
-                : "text-white/45 hover:text-white/70"
-            }`}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-mono transition-colors ${ solutionMode === "prose" ? "border border-[#7d4ccc]/35 bg-[#f5f0fc]/15 text-[#7d4ccc]" : "text-[#5e6a7f] hover:text-[#182137]" }`}
           >
             <AlignLeft className="h-3.5 w-3.5" /> Professional Response
           </button>
           <button
             type="button"
             onClick={() => setSolutionMode("code")}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-mono transition-colors ${
-              solutionMode === "code"
-                ? "border border-[#FFD700]/35 bg-[#FFD700]/15 text-[#FFD700]"
-                : "text-white/45 hover:text-white/70"
-            }`}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-mono transition-colors ${ solutionMode === "code" ? "border border-[#e0d2f3]/35 bg-[#f5f0fc]/15 text-[#7d4ccc]" : "text-[#5e6a7f] hover:text-[#182137]" }`}
           >
             <Code2 className="h-3.5 w-3.5" /> Code Solution
           </button>
@@ -70,9 +62,9 @@ export function DeveloperWorkspace({
         {solutionMode === "code" ? (
           <>
             <div className="flex items-center justify-between gap-2">
-              <Label className="text-xs font-mono text-[#00D2FF]/80">Implementation</Label>
+              <Label className="text-xs font-mono text-[#7d4ccc]/80">Implementation</Label>
               <Select value={language} onValueChange={onLanguageChange}>
-                <SelectTrigger className="h-7 w-[140px] text-[10px] font-mono bg-black/30 border-white/10">
+                <SelectTrigger className="h-7 w-[140px] text-[10px] font-mono bg-white border-[#e6e8ef]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -85,14 +77,12 @@ export function DeveloperWorkspace({
               </Select>
             </div>
             <div
-              className={`rounded-xl border overflow-hidden ${
-                focusSection === "deliverable" ? "border-[#00D2FF]/40 ring-1 ring-[#00D2FF]/20" : "border-white/10"
-              }`}
+              className={`rounded-xl border overflow-hidden ${ focusSection === "deliverable" ? "border-[#7d4ccc]/40 ring-1 ring-[#7d4ccc]/20" : "border-[#e6e8ef]" }`}
             >
               <Editor
                 height="320px"
                 language={language}
-                theme="vs-dark"
+                theme="vs"
                 value={code}
                 onChange={(v) => onCodeChange(v ?? "")}
                 onMount={(editor) => {
@@ -111,7 +101,7 @@ export function DeveloperWorkspace({
           </>
         ) : (
           <>
-            <Label className="text-xs font-mono text-[#00D2FF]/80">Professional Response</Label>
+            <Label className="text-xs font-mono text-[#7d4ccc]/80">Professional Response</Label>
             <div className={focusSection === "deliverable" ? "rounded-xl ring-1 ring-[#00D2FF]/20" : undefined}>
               <RichTextEditor
                 value={code}
@@ -125,15 +115,13 @@ export function DeveloperWorkspace({
       </div>
 
       <div className="space-y-2" id="workspace-approach">
-        <Label className="text-xs font-mono text-white/45">Why did you make these technical decisions?</Label>
+        <Label className="text-xs font-mono text-[#5e6a7f]">Why did you make these technical decisions?</Label>
         <Textarea
           value={approach}
           onChange={(e) => onApproachChange(e.target.value)}
           onBlur={onBlurSave}
           placeholder="Document your reasoning for your team lead — trade-offs, security, performance…"
-          className={`min-h-[100px] text-sm bg-black/25 border-white/10 resize-y ${
-            focusSection === "approach" ? "border-[#00D2FF]/40 ring-1 ring-[#00D2FF]/20" : ""
-          }`}
+          className={`min-h-[100px] text-sm bg-white border-[#e6e8ef] resize-y ${ focusSection === "approach" ? "border-[#7d4ccc]/40 ring-1 ring-[#7d4ccc]/20" : "" }`}
         />
       </div>
     </div>

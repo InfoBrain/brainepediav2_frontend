@@ -47,20 +47,20 @@ export default function MissionReflectionPage() {
 
   if (!sessionId) {
     return (
-      <div className="min-h-screen bg-[#060a10] text-white flex items-center justify-center">
-        <p className="text-sm font-mono text-white/40">Invalid session.</p>
+      <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] flex items-center justify-center">
+        <p className="text-sm font-mono text-[#6b768c]">Invalid session.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#060a10] text-white flex flex-col">
-      <header className="px-4 py-4 border-b border-white/5 bg-black/20">
-        <p className="text-[10px] font-mono text-[#9D4EDD] tracking-widest uppercase flex items-center gap-1">
+    <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] flex flex-col">
+      <header className="px-4 py-4 border-b border-[#eef1f7] bg-[#f4f6fb]">
+        <p className="text-[10px] font-mono text-[#7d4ccc] tracking-widest uppercase flex items-center gap-1">
           <Sparkles className="w-3 h-3" /> Reflection
         </p>
         <h1 className="text-xl font-bold font-mono mt-1">Close the loop</h1>
-        <p className="text-sm text-white/45 mt-1 max-w-xl">
+        <p className="text-sm text-[#5e6a7f] mt-1 max-w-xl">
           Every professional mission ends with reflection. Capture what you learned before moving on.
         </p>
       </header>
@@ -69,48 +69,48 @@ export default function MissionReflectionPage() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-white/10 bg-[#0a0f16] p-6 space-y-5"
+          className="rounded-2xl border border-[#e6e8ef] bg-white p-6 space-y-5"
         >
-          <div className="flex items-center gap-2 text-white/50 text-xs font-mono">
+          <div className="flex items-center gap-2 text-[#5e6a7f] text-xs font-mono">
             <BookOpen className="w-4 h-4" />
             Required before you finish (min. 10 characters each)
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="what-learned" className="text-xs font-mono text-white/55">
+            <Label htmlFor="what-learned" className="text-xs font-mono text-[#52617a]">
               What did you learn?
             </Label>
             <Textarea
               id="what-learned"
               value={whatLearned}
               onChange={(e) => setWhatLearned(e.target.value)}
-              className="min-h-[100px] bg-black/25 border-white/10 text-sm"
+              className="min-h-[100px] bg-white border-[#e6e8ef] text-sm"
               placeholder="New skills, insights, or techniques from this mission…"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="what-improve" className="text-xs font-mono text-white/55">
+            <Label htmlFor="what-improve" className="text-xs font-mono text-[#52617a]">
               What would you improve next time?
             </Label>
             <Textarea
               id="what-improve"
               value={whatToImprove}
               onChange={(e) => setWhatToImprove(e.target.value)}
-              className="min-h-[100px] bg-black/25 border-white/10 text-sm"
+              className="min-h-[100px] bg-white border-[#e6e8ef] text-sm"
               placeholder="Process, planning, or execution improvements…"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="what-challenged" className="text-xs font-mono text-white/55">
+            <Label htmlFor="what-challenged" className="text-xs font-mono text-[#52617a]">
               What challenged you?
             </Label>
             <Textarea
               id="what-challenged"
               value={whatChallenged}
               onChange={(e) => setWhatChallenged(e.target.value)}
-              className="min-h-[100px] bg-black/25 border-white/10 text-sm"
+              className="min-h-[100px] bg-white border-[#e6e8ef] text-sm"
               placeholder="Obstacles, trade-offs, or difficult decisions…"
             />
           </div>
@@ -118,7 +118,7 @@ export default function MissionReflectionPage() {
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button
               variant="outline"
-              className="font-mono text-xs border-white/15 text-white/50"
+              className="font-mono text-xs border-[#d8dde8] text-[#5e6a7f]"
               onClick={() => navigate(`/mission/results/${sessionId}`)}
             >
               Back to feedback
@@ -126,7 +126,7 @@ export default function MissionReflectionPage() {
             <Button
               disabled={!canFinish || saving}
               onClick={handleSave}
-              className="flex-1 font-mono text-xs bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD]"
+              className="flex-1 font-mono text-xs bg-gradient-to-r from-[#7d4ccc] to-[#9b74dc]"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Finish mission
@@ -134,7 +134,7 @@ export default function MissionReflectionPage() {
           </div>
         </motion.div>
 
-        <p className="text-[10px] font-mono text-white/25 text-center">
+        <p className="text-[10px] font-mono text-[#8b96ab] text-center">
           Portfolio update coming soon — your reflection will feed your professional story.
         </p>
       </main>

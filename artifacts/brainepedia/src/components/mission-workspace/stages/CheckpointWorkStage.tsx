@@ -102,19 +102,19 @@ export function CheckpointWorkStage({
       className="w-full max-w-4xl mx-auto space-y-5"
     >
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-[#182137] dark:text-white">Do the Work</h2>
-        <p className="text-sm text-[#5e6a7f] dark:text-white/50 mt-1">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#182137]">Do the Work</h2>
+        <p className="text-sm text-[#5e6a7f] mt-1">
           Complete each step with real output — your team lead expects professional work, not checkbox clicks.
         </p>
       </div>
 
-      <div className="flex items-center gap-3 text-xs font-mono text-[#7a869d] dark:text-white/40">
+      <div className="flex items-center gap-3 text-xs font-mono text-[#7a869d]">
         <span>
           Step {Math.min(progress.completed + 1, progress.total)} of {progress.total}
         </span>
-        <div className="flex-1 h-1 rounded-full bg-[#e8ecf4] dark:bg-white/5 overflow-hidden">
+        <div className="flex-1 h-1 rounded-full bg-[#e8ecf4] overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD] transition-all duration-500"
+            className="h-full bg-gradient-to-r from-[#7d4ccc] to-[#9b74dc] transition-all duration-500"
             style={{ width: `${progress.pct}%` }}
           />
         </div>
@@ -128,7 +128,7 @@ export function CheckpointWorkStage({
           return (
             <span
               key={cp.checkpointProgressId}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-[#7d4ccc]/25 bg-[#7d4ccc]/8 text-[10px] font-mono text-[#7d4ccc] dark:border-[#7d4ccc]/35 dark:bg-[#7d4ccc]/12 dark:text-[#b89bf0]"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-[#7d4ccc]/25 bg-[#7d4ccc]/8 text-[10px] font-mono text-[#7d4ccc]"
             >
               <CheckCircle2 className="w-3 h-3" /> {cp.name}
             </span>
@@ -152,10 +152,10 @@ export function CheckpointWorkStage({
                   <motion.div
                     key={cp.checkpointProgressId}
                     layout
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#dde3ee] dark:border-white/5 opacity-50"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#dde3ee] opacity-50"
                   >
-                    <Lock className="w-3.5 h-3.5 text-[#a5afc1] dark:text-white/20" />
-                    <span className="text-xs font-mono text-[#9ba5b7] dark:text-white/25">{cp.name}</span>
+                    <Lock className="w-3.5 h-3.5 text-[#a5afc1]" />
+                    <span className="text-xs font-mono text-[#9ba5b7]">{cp.name}</span>
                   </motion.div>
                 );
               }
@@ -171,51 +171,47 @@ export function CheckpointWorkStage({
                 layout
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`rounded-xl border-2 p-5 space-y-4 ${
-                  focusCheckpointId === cp.checkpointProgressId
-                    ? "border-[#00B8DD]/45 bg-[#00D2FF]/8 dark:border-[#00D2FF]/50 dark:bg-[#00D2FF]/8"
-                    : "border-[#d2dced] bg-[#f8fbff] dark:border-[#00D2FF]/30 dark:bg-[#00D2FF]/5"
-                }`}
+                className={`rounded-xl border-2 p-5 space-y-4 ${ focusCheckpointId === cp.checkpointProgressId ? "border-[#7d4ccc]/45 bg-[#f5f0fc]/8 " : "border-[#d2dced] bg-[#f8fbff] " }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono text-[#0089ad] dark:text-[#00D2FF] uppercase tracking-widest">
+                  <span className="text-[10px] font-mono text-[#7d4ccc] uppercase tracking-widest">
                     Current — Step {i + 1} of {sorted.length}
                   </span>
-                  <span className="text-[9px] font-mono text-[#7d4ccc] dark:text-[#FFD700]/70 flex items-center gap-0.5">
+                  <span className="text-[9px] font-mono text-[#7d4ccc] flex items-center gap-0.5">
                     <Zap className="w-2.5 h-2.5" /> +{cp.xpReward} XP
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-[#182137] dark:text-white flex items-center gap-2">
-                  <Circle className="w-4 h-4 text-[#0089ad] dark:text-[#00D2FF]" />
+                <h3 className="text-lg font-bold text-[#182137] flex items-center gap-2">
+                  <Circle className="w-4 h-4 text-[#7d4ccc]" />
                   {cp.name}
                 </h3>
                 {cp.description && (
-                  <p className="text-sm text-[#5e6a7f] dark:text-white/55 leading-relaxed">{cp.description}</p>
+                  <p className="text-sm text-[#5e6a7f] leading-relaxed">{cp.description}</p>
                 )}
 
                 {/* Action-specific work UI */}
                 {action === "confirm_understanding" && (
                   <div className="space-y-2">
-                    <Label className="text-xs font-mono text-[#6f7b90] dark:text-white/50">
+                    <Label className="text-xs font-mono text-[#6f7b90]">
                       Summarize what the client needs in your own words
                     </Label>
                     <Textarea
                       value={work.understandingSummary}
                       onChange={(e) => onUnderstandingChange(e.target.value)}
                       placeholder="What is the client situation? What does success look like?"
-                      className="min-h-[100px] text-sm bg-white border-[#d8dde8] text-[#182137] placeholder:text-[#8b96ab] dark:bg-black/30 dark:border-white/10 dark:text-white dark:placeholder:text-white/30"
+                      className="min-h-[100px] text-sm bg-white border-[#d8dde8] text-[#182137] placeholder:text-[#52617a]"
                     />
                   </div>
                 )}
 
                 {action === "identify_constraints" && (
                   <div className="space-y-2">
-                    <Label className="text-xs font-mono text-[#6f7b90] dark:text-white/50">
+                    <Label className="text-xs font-mono text-[#6f7b90]">
                       What constraints must your solution respect?
                     </Label>
                     {problemNode?.constraints && problemNode.constraints.length > 0 && (
-                      <ul className="text-xs text-[#6f7b90] dark:text-white/40 space-y-1 mb-2">
+                      <ul className="text-xs text-[#6f7b90] space-y-1 mb-2">
                         {problemNode.constraints.map((c, idx) => (
                           <li key={idx}>• {c}</li>
                         ))}
@@ -225,28 +221,28 @@ export function CheckpointWorkStage({
                       value={work.constraintReflection}
                       onChange={(e) => onConstraintReflectionChange(e.target.value)}
                       placeholder="List the key constraints, risks, and boundaries for your approach…"
-                      className="min-h-[100px] text-sm bg-white border-[#d8dde8] text-[#182137] placeholder:text-[#8b96ab] dark:bg-black/30 dark:border-white/10 dark:text-white dark:placeholder:text-white/30"
+                      className="min-h-[100px] text-sm bg-white border-[#d8dde8] text-[#182137] placeholder:text-[#52617a]"
                     />
                   </div>
                 )}
 
                 {action === "create_plan" && (
                   <div className="space-y-2">
-                    <Label className="text-xs font-mono text-[#6f7b90] dark:text-white/50">Your plan of action</Label>
+                    <Label className="text-xs font-mono text-[#6f7b90]">Your plan of action</Label>
                     <Textarea
                       value={work.planContent}
                       onChange={(e) => onPlanContentChange(e.target.value)}
                       placeholder="Outline how you will solve the client's problem — steps, decisions, and approach…"
-                      className="min-h-[140px] text-sm bg-white border-[#d8dde8] text-[#182137] placeholder:text-[#8b96ab] dark:bg-black/30 dark:border-white/10 dark:text-white dark:placeholder:text-white/30"
+                      className="min-h-[140px] text-sm bg-white border-[#d8dde8] text-[#182137] placeholder:text-[#52617a]"
                     />
                   </div>
                 )}
 
                 {action === "review_work" && (
-                  <div className="space-y-3 rounded-lg border border-[#d8dde8] bg-white p-4 dark:border-white/10 dark:bg-black/20">
-                    <p className="text-xs font-mono text-[#6f7b90] dark:text-white/45 uppercase">Review checklist</p>
+                  <div className="space-y-3 rounded-lg border border-[#d8dde8] bg-white p-4">
+                    <p className="text-xs font-mono text-[#6f7b90] uppercase">Review checklist</p>
                     {(problemNode?.expectedOutcomes ?? []).slice(0, 6).map((outcome, idx) => (
-                      <label key={idx} className="flex items-start gap-2 text-xs text-[#4f5b70] dark:text-white/60">
+                      <label key={idx} className="flex items-start gap-2 text-xs text-[#4f5b70]">
                         <Checkbox
                           checked={work.reviewConfirmed}
                           onCheckedChange={(c) => onReviewConfirmedChange(c === true)}
@@ -256,7 +252,7 @@ export function CheckpointWorkStage({
                       </label>
                     ))}
                     {(!problemNode?.expectedOutcomes || problemNode.expectedOutcomes.length === 0) && (
-                      <label className="flex items-center gap-2 text-xs text-[#4f5b70] dark:text-white/60">
+                      <label className="flex items-center gap-2 text-xs text-[#4f5b70]">
                         <Checkbox
                           checked={work.reviewConfirmed}
                           onCheckedChange={(c) => onReviewConfirmedChange(c === true)}
@@ -268,20 +264,20 @@ export function CheckpointWorkStage({
                 )}
 
                 {action === "attach_evidence" && (
-                  <div className="rounded-lg border border-[#7d4ccc]/25 bg-[#7d4ccc]/8 dark:border-[#FFD700]/20 dark:bg-[#FFD700]/5 p-4 space-y-2">
-                    <p className="text-sm text-[#4f5b70] dark:text-white/55">
+                  <div className="rounded-lg border border-[#7d4ccc]/25 bg-[#7d4ccc]/8 p-4 space-y-2">
+                    <p className="text-sm text-[#4f5b70]">
                       How would you prove this work was completed in a real organisation?
                     </p>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={onOpenEvidence}
-                      className="font-mono text-xs border-[#7d4ccc]/35 text-[#7d4ccc] hover:bg-[#7d4ccc]/10 dark:border-[#FFD700]/30 dark:text-[#FFD700]/80"
+                      className="font-mono text-xs border-[#7d4ccc]/35 text-[#7d4ccc] hover:bg-[#7d4ccc]/10"
                     >
                       Add Evidence
                     </Button>
                     {evidence.length > 0 && (
-                      <ul className="text-xs font-mono text-[#6f5bb2] dark:text-[#b89bf0] space-y-1">
+                      <ul className="text-xs font-mono text-[#6f5bb2] space-y-1">
                         {evidence.map((ev, idx) => (
                           <li key={ev.evidenceId ?? idx}>✓ {ev.title}</li>
                         ))}
@@ -291,8 +287,8 @@ export function CheckpointWorkStage({
                 )}
 
                 {showWorkspace && (
-                  <div className="rounded-xl border border-[#d8dde8] bg-white p-4 dark:border-white/10 dark:bg-[#0a0f16]">
-                    <p className="text-[10px] font-mono text-[#7a869d] dark:text-white/40 uppercase mb-3">Your Workspace</p>
+                  <div className="rounded-xl border border-[#d8dde8] bg-white p-4">
+                    <p className="text-[10px] font-mono text-[#7a869d] uppercase mb-3">Your Workspace</p>
                     <WorkspaceRenderer
                       workspaceType={workspaceType}
                       approach={approach}
@@ -313,7 +309,7 @@ export function CheckpointWorkStage({
 
                 {(action === "produce_draft" || action === "finalize" || action === "generic_work") &&
                   !showWorkspace && (
-                  <div className="rounded-xl border border-[#d8dde8] bg-white p-4 dark:border-white/10 dark:bg-[#0a0f16]">
+                  <div className="rounded-xl border border-[#d8dde8] bg-white p-4">
                     <WorkspaceRenderer
                       workspaceType={workspaceType}
                       approach={approach}
@@ -339,8 +335,8 @@ export function CheckpointWorkStage({
                   >
                     <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs font-mono text-amber-700 dark:text-amber-300/90">{validation.reason}</p>
-                      <p className="text-[10px] font-mono text-amber-600/80 dark:text-amber-200/50 mt-0.5">{validation.hint}</p>
+                      <p className="text-xs font-mono text-amber-700">{validation.reason}</p>
+                      <p className="text-[10px] font-mono text-amber-600/80 mt-0.5">{validation.hint}</p>
                     </div>
                   </div>
                 )}
@@ -348,7 +344,7 @@ export function CheckpointWorkStage({
                 <Button
                   onClick={() => onComplete(cp.checkpointProgressId, work.planContent || undefined)}
                   disabled={isCompleting || !validation.canComplete}
-                  className="font-mono text-xs bg-[#7d4ccc]/12 text-[#7d4ccc] border border-[#7d4ccc]/35 hover:bg-[#7d4ccc]/20 dark:bg-[#7d4ccc]/20 dark:text-[#d2c0ff] dark:border-[#7d4ccc]/40 dark:hover:bg-[#7d4ccc]/30 disabled:opacity-40"
+                  className="font-mono text-xs bg-[#7d4ccc]/12 text-[#7d4ccc] border border-[#7d4ccc]/35 hover:bg-[#7d4ccc]/20 disabled:opacity-40"
                 >
                   {isCompleting ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />

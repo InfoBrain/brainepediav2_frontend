@@ -145,28 +145,28 @@ function UpgradeModal({ onClose, userId }: { onClose: () => void; userId: string
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-sm bg-[#0d1117] border border-[#9D4EDD]/40 rounded-2xl p-6 shadow-2xl text-center"
+        className="relative w-full max-w-sm bg-white border border-[#e0d2f3]/40 rounded-2xl p-6 shadow-2xl text-center"
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-[#7a869d] hover:text-[#182137] transition-colors"
           disabled={loading}
         >
           <X className="w-4 h-4" />
         </button>
-        <div className="w-12 h-12 rounded-full bg-[#9D4EDD]/20 border border-[#9D4EDD]/40 flex items-center justify-center mx-auto mb-4">
-          <Lock className="w-6 h-6 text-[#9D4EDD]" />
+        <div className="w-12 h-12 rounded-full bg-[#f5f0fc]/20 border border-[#e0d2f3]/40 flex items-center justify-center mx-auto mb-4">
+          <Lock className="w-6 h-6 text-[#7d4ccc]" />
         </div>
-        <h3 className="text-lg font-bold text-white mb-2">Challenge Limit Reached</h3>
-        <p className="text-sm text-white/50 mb-1 leading-relaxed">
+        <h3 className="text-lg font-bold text-[#182137] mb-2">Challenge Limit Reached</h3>
+        <p className="text-sm text-[#5e6a7f] mb-1 leading-relaxed">
           You've reached your monthly challenge limit.
           Upgrade to Architect to continue solving challenges.
         </p>
-        <p className="text-xs text-[#9D4EDD]/80 font-mono mb-5">$19.99 / month</p>
+        <p className="text-xs text-[#7d4ccc]/80 font-mono mb-5">$19.99 / month</p>
         <button
           onClick={handleUpgrade}
           disabled={loading}
-          className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#9D4EDD] to-[#00D2FF] text-white text-sm font-bold font-mono hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#9D4EDD] to-[#9b74dc] text-white text-sm font-bold font-mono hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading
             ? <><Loader2 className="w-4 h-4 animate-spin" /> Preparing…</>
@@ -176,7 +176,7 @@ function UpgradeModal({ onClose, userId }: { onClose: () => void; userId: string
         <button
           onClick={onClose}
           disabled={loading}
-          className="w-full mt-2 py-2 text-xs font-mono text-white/30 hover:text-white/60 transition-colors disabled:opacity-40"
+          className="w-full mt-2 py-2 text-xs font-mono text-[#7a869d] hover:text-[#182137] transition-colors disabled:opacity-40"
         >
           Maybe later
         </button>
@@ -198,10 +198,10 @@ function ChecklistSection({
 }) {
   if (items.length === 0) return null;
   return (
-    <div className="rounded-xl border border-white/10 bg-[#0d1117] p-5">
+    <div className="rounded-xl border border-[#e6e8ef] bg-white p-5">
       <div className="flex items-center gap-2 mb-4">
         {icon}
-        <h3 className="text-sm font-bold font-mono text-white/80 uppercase tracking-wider">{title}</h3>
+        <h3 className="text-sm font-bold font-mono text-[#182137] uppercase tracking-wider">{title}</h3>
       </div>
       <ul className="space-y-2.5">
         {items.map((item, i) => (
@@ -210,12 +210,12 @@ function ChecklistSection({
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.05 + 0.1 }}
-            className="flex items-start gap-2.5 text-sm text-white/60 leading-relaxed"
+            className="flex items-start gap-2.5 text-sm text-[#5e6a7f] leading-relaxed"
           >
             {variant === "constraint" ? (
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+              <AlertTriangle className="w-3.5 h-3.5 text-[#9a3412] shrink-0 mt-0.5" />
             ) : (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#168a68] shrink-0 mt-0.5" />
             )}
             {item}
           </motion.li>
@@ -447,47 +447,47 @@ export default function MissionDetailPage() {
   const diffLabel = diffMeta?.name || node?.difficultyName;
 
   return (
-    <div className="dark min-h-screen bg-[#060a10] text-white relative overflow-hidden flex flex-col">
+    <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] relative overflow-hidden flex flex-col">
       {/* Ambient background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/3 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#7d4ccc]/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/3 w-80 h-80 bg-[#f5f0fc]/8 rounded-full blur-3xl" />
         <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(0,210,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,255,0.3) 1px, transparent 1px)",
+              "linear-gradient(rgba(125,76,204,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(125,76,204,0.08) 1px, transparent 1px)",
             backgroundSize: "60px 60px",
           }}
         />
       </div>
 
       {/* Header */}
-      <header className="relative z-10 flex items-center gap-3 px-4 md:px-8 py-4 border-b border-white/5 bg-black/20 backdrop-blur">
-        <nav className="flex items-center gap-1.5 text-xs font-mono text-white/30 min-w-0 flex-1">
-          <Link href={dashPath} className="hover:text-white/60 transition-colors flex items-center gap-1">
+      <header className="relative z-10 flex items-center gap-3 px-4 md:px-8 py-4 border-b border-[#e6e8ef] bg-white/90 backdrop-blur">
+        <nav className="flex items-center gap-1.5 text-xs font-mono text-[#7a869d] min-w-0 flex-1">
+          <Link href={dashPath} className="hover:text-[#182137] transition-colors flex items-center gap-1">
             <Home className="w-3 h-3" /> Dashboard
           </Link>
           <span>/</span>
           {node?.districtId && (
             <>
-              <Link href={`/app/district/${node.districtId}/missions`} className="hover:text-white/60 transition-colors">
+              <Link href={`/app/district/${node.districtId}/missions`} className="hover:text-[#182137] transition-colors">
                 Challenges
               </Link>
               <span>/</span>
             </>
           )}
-          <span className="text-white/60 truncate max-w-[160px]">{node?.title || "Challenge"}</span>
+          <span className="text-[#52617a] truncate max-w-[160px]">{node?.title || "Challenge"}</span>
         </nav>
         <div className="flex items-center gap-2">
           <Link href={dashPath}>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-cyan-400/70 hover:text-cyan-400 text-xs font-mono">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-[#7d4ccc] hover:text-[#6538ad] text-xs font-mono">
               <TrendingUp className="w-3.5 h-3.5" /> Progress
             </Button>
           </Link>
           <button
             onClick={() => window.history.back()}
-            className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-xs font-mono text-[#7a869d] hover:text-[#182137] transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back
           </button>
@@ -506,10 +506,10 @@ export default function MissionDetailPage() {
                 <div className="h-7 w-20 rounded-full bg-white/10 animate-pulse" />
               </div>
             </div>
-            <div className="rounded-xl border border-white/10 bg-[#0d1117] p-5">
+            <div className="rounded-xl border border-[#e6e8ef] bg-white p-5">
               <TextSkeleton lines={4} />
             </div>
-            <div className="rounded-xl border border-white/10 bg-[#0d1117] p-5">
+            <div className="rounded-xl border border-[#e6e8ef] bg-white p-5">
               <TextSkeleton lines={3} />
             </div>
           </div>
@@ -523,12 +523,12 @@ export default function MissionDetailPage() {
             className="flex flex-col items-center gap-4 py-24 text-center"
           >
             <AlertCircle className="w-12 h-12 text-red-400/60" />
-            <p className="text-white/50 font-mono text-sm">{nodeErrorDetail?.message || "Unable to load challenge details"}</p>
+            <p className="text-[#5e6a7f] font-mono text-sm">{nodeErrorDetail?.message || "Unable to load challenge details"}</p>
             <Button
               variant="outline"
               size="sm"
               onClick={() => refetch()}
-              className="border-white/20 text-white/50 hover:text-white gap-2"
+              className="border-[#d8dde8] text-[#5e6a7f] hover:text-[#182137] gap-2"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Retry
             </Button>
@@ -548,7 +548,7 @@ export default function MissionDetailPage() {
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-400/20 bg-amber-400/5 text-xs font-mono text-amber-400"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-400/20 bg-amber-400/5 text-xs font-mono text-[#9a3412]"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 You started this challenge earlier — pick up where you left off.
@@ -557,10 +557,10 @@ export default function MissionDetailPage() {
 
             {/* Hero header */}
             <div className="space-y-3">
-              <p className="text-[10px] font-mono text-[#00D2FF] tracking-[0.3em] uppercase">
+              <p className="text-[10px] font-mono text-[#7d4ccc] tracking-[0.3em] uppercase">
                 <Target className="w-3 h-3 inline mr-1" />Task Overview
               </p>
-              <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+              <h1 className="text-3xl md:text-4xl font-bold text-[#182137] leading-tight">
                 {node.title}
               </h1>
               <div className="flex flex-wrap items-center gap-2.5">
@@ -572,12 +572,12 @@ export default function MissionDetailPage() {
                     {diffLabel}
                   </span>
                 )}
-                <div className="flex items-center gap-1.5 text-[#FFD700] text-sm font-mono px-3 py-1.5 rounded-full border border-[#FFD700]/20 bg-[#FFD700]/5">
+                <div className="flex items-center gap-1.5 text-[#7d4ccc] text-sm font-mono px-3 py-1.5 rounded-full border border-[#e0d2f3]/20 bg-[#f5f0fc]/5">
                   <Zap className="w-3.5 h-3.5" />
                   {node.experiencePoints} XP
                 </div>
                 {node.estimatedMinutes > 0 && (
-                  <div className="flex items-center gap-1.5 text-white/50 text-sm font-mono px-3 py-1.5 rounded-full border border-white/10 bg-white/3">
+                  <div className="flex items-center gap-1.5 text-[#7a869d] text-sm font-mono px-3 py-1.5 rounded-full border border-[#e6e8ef] bg-white">
                     <Clock className="w-3.5 h-3.5" />
                     {node.estimatedMinutes} min
                   </div>
@@ -591,13 +591,13 @@ export default function MissionDetailPage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="rounded-xl border border-white/10 bg-gradient-to-br from-[#0d1117] to-[#0a0e14] p-5"
+                className="rounded-xl border border-[#e6e8ef] bg-white p-5"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <BookOpen className="w-4 h-4 text-[#00D2FF]" />
-                  <h3 className="text-xs font-mono text-white/60 uppercase tracking-widest">Context</h3>
+                  <BookOpen className="w-4 h-4 text-[#7d4ccc]" />
+                  <h3 className="text-xs font-mono text-[#7a869d] uppercase tracking-widest">Context</h3>
                 </div>
-                <p className="text-white/70 text-sm leading-relaxed font-sans">{node.context}</p>
+                <p className="text-[#5e6a7f] text-sm leading-relaxed font-sans">{node.context}</p>
               </motion.div>
             )}
 
@@ -607,13 +607,13 @@ export default function MissionDetailPage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
-                className="rounded-xl border border-[#9D4EDD]/20 bg-[#9D4EDD]/5 p-5"
+                className="rounded-xl border border-[#e0d2f3]/20 bg-[#f5f0fc]/5 p-5"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <Target className="w-4 h-4 text-[#9D4EDD]" />
-                  <h3 className="text-xs font-mono text-[#9D4EDD]/80 uppercase tracking-widest">Your Task</h3>
+                  <Target className="w-4 h-4 text-[#7d4ccc]" />
+                  <h3 className="text-xs font-mono text-[#7d4ccc]/80 uppercase tracking-widest">Your Task</h3>
                 </div>
-                <p className="text-white/80 text-sm leading-relaxed font-sans">{node.missionBrief}</p>
+                <p className="text-[#4f5b70] text-sm leading-relaxed font-sans">{node.missionBrief}</p>
               </motion.div>
             )}
 
@@ -621,7 +621,7 @@ export default function MissionDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ChecklistSection
                 title="Constraints"
-                icon={<AlertTriangle className="w-4 h-4 text-amber-400" />}
+                icon={<AlertTriangle className="w-4 h-4 text-[#9a3412]" />}
                 items={node.constraints}
                 variant="constraint"
               />
@@ -639,9 +639,9 @@ export default function MissionDetailPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.25 }}
-                className="rounded-xl border border-white/10 bg-[#0d1117] p-5"
+                className="rounded-xl border border-[#e6e8ef] bg-white p-5"
               >
-                <h3 className="text-xs font-mono text-white/40 uppercase tracking-widest mb-3">Attachment</h3>
+                <h3 className="text-xs font-mono text-[#7a869d] uppercase tracking-widest mb-3">Attachment</h3>
                 {/\.(png|jpg|jpeg|gif|webp|svg)/i.test(node.attachmentUrl) ? (
                   <img
                     src={node.attachmentUrl}
@@ -653,7 +653,7 @@ export default function MissionDetailPage() {
                     href={node.attachmentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-[#00D2FF] hover:underline"
+                    className="inline-flex items-center gap-2 text-sm text-[#7d4ccc] hover:underline"
                   >
                     <ExternalLink className="w-4 h-4" />
                     Download attachment
@@ -679,15 +679,15 @@ export default function MissionDetailPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/3 to-transparent p-6"
+              className="rounded-2xl border border-[#e6e8ef] bg-white p-6"
             >
-              <p className="text-xs font-mono text-white/30 text-center mb-4">
+              <p className="text-xs font-mono text-[#7a869d] text-center mb-4">
                 You can pause and resume anytime
               </p>
 
               {sessionLoading || assignmentContextLoading ? (
                 <div className="flex items-center justify-center py-3">
-                  <Loader2 className="w-5 h-5 text-[#00D2FF] animate-spin" />
+                  <Loader2 className="w-5 h-5 text-[#7d4ccc] animate-spin" />
                 </div>
               ) : isCompleted ? (
                 <div className="space-y-3">
@@ -709,7 +709,7 @@ export default function MissionDetailPage() {
                 <button
                   onClick={handleResume}
                   disabled={starting}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-base font-bold font-mono hover:bg-amber-500/20 hover:scale-[1.01] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-amber-500/10 text-[#9a3412] border border-amber-500/30 text-base font-bold font-mono hover:bg-amber-500/20 hover:scale-[1.01] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {starting ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> Resuming…</>
@@ -721,7 +721,7 @@ export default function MissionDetailPage() {
                 <button
                   onClick={handleStart}
                   disabled={starting}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-[#00D2FF]/20 to-[#9D4EDD]/20 text-white border border-[#00D2FF]/40 text-base font-bold font-mono hover:from-[#00D2FF]/30 hover:to-[#9D4EDD]/30 hover:scale-[1.01] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-[#00D2FF]/10"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-[#f5f0fc] text-[#7d4ccc] border border-[#e0d2f3] text-base font-bold font-mono hover:bg-[#ece1fa] hover:scale-[1.01] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {starting ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> Starting…</>
@@ -735,7 +735,7 @@ export default function MissionDetailPage() {
         )}
       </main>
 
-      <CopyrightBar className="relative z-10 border-t border-white/5" />
+      <CopyrightBar className="relative z-10 border-t border-[#eef1f7]" />
 
       {/* Upgrade modal */}
       <AnimatePresence>

@@ -27,39 +27,39 @@ export function MissionBriefPanel({
 
   return (
     <section
-      className="rounded-xl border border-white/10 bg-[#0a0f16] p-4 space-y-3"
+      className="rounded-xl border border-[#e6e8ef] bg-white p-4 space-y-3"
       aria-labelledby="mission-brief-heading"
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-[10px] font-mono text-[#00D2FF] tracking-widest uppercase mb-1 flex items-center gap-1">
+          <p className="text-[10px] font-mono text-[#7d4ccc] tracking-widest uppercase mb-1 flex items-center gap-1">
             <BookOpen className="w-3 h-3" /> Mission Brief
           </p>
-          <h2 id="mission-brief-heading" className="text-sm font-bold text-white leading-snug">
+          <h2 id="mission-brief-heading" className="text-sm font-bold text-[#182137] leading-snug">
             {missionTitle}
           </h2>
         </div>
         {employerChallenge && (
-          <span className="shrink-0 text-[10px] font-mono px-2 py-1 rounded-full border border-amber-400/30 bg-amber-400/10 text-amber-300">
+          <span className="shrink-0 text-[10px] font-mono px-2 py-1 rounded-full border border-amber-400/30 bg-amber-400/10 text-[#9a3412]">
             Employer Challenge
           </span>
         )}
       </div>
 
       <div className="space-y-1">
-        <div className="flex justify-between text-[10px] font-mono text-white/40">
+        <div className="flex justify-between text-[10px] font-mono text-[#6b768c]">
           <span>{phaseLabel}</span>
           <span>{Math.round(progressPercentage)}%</span>
         </div>
-        <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-[#f4f6fb] overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD] transition-all duration-500"
+            className="h-full rounded-full bg-gradient-to-r from-[#7d4ccc] to-[#9b74dc] transition-all duration-500"
             style={{ width: `${Math.min(100, progressPercentage)}%` }}
           />
         </div>
       </div>
 
-      <div className="text-xs text-white/55 leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">
+      <div className="text-xs text-[#52617a] leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">
         {missionBrief || "Review the mission brief before starting your work."}
       </div>
 
@@ -68,7 +68,7 @@ export function MissionBriefPanel({
           size="sm"
           onClick={onConfirmBrief}
           disabled={confirming}
-          className="w-full bg-[#00D2FF]/20 text-[#00D2FF] border border-[#00D2FF]/30 hover:bg-[#00D2FF]/30 font-mono text-xs"
+          className="w-full bg-[#f5f0fc]/20 text-[#7d4ccc] border border-[#7d4ccc]/30 hover:bg-[#f5f0fc]/30 font-mono text-xs"
         >
           {confirming ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />

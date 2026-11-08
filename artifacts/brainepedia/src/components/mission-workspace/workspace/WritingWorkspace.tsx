@@ -28,7 +28,7 @@ export function WritingWorkspace({
   return (
     <div className="space-y-4">
       <div className="space-y-2" id="workspace-deliverable">
-        <Label className="text-xs font-mono text-[#00D2FF]/80">{deliverableLabel}</Label>
+        <Label className="text-xs font-mono text-[#7d4ccc]/80">{deliverableLabel}</Label>
         {useRichText ? (
           <div
             className={
@@ -49,21 +49,19 @@ export function WritingWorkspace({
             onChange={(e) => onDeliverableChange(e.target.value)}
             onBlur={onBlurSave}
             placeholder="Write your professional deliverable…"
-            className="min-h-[280px] text-sm bg-black/25 border-white/10 resize-y"
+            className="min-h-[280px] text-sm bg-white border-[#e6e8ef] resize-y"
           />
         )}
       </div>
 
       <div className="space-y-2" id="workspace-approach">
-        <Label className="text-xs font-mono text-white/45">{approachLabel}</Label>
+        <Label className="text-xs font-mono text-[#5e6a7f]">{approachLabel}</Label>
         <Textarea
           value={approach}
           onChange={(e) => onApproachChange(e.target.value)}
           onBlur={onBlurSave}
           placeholder="Document your reasoning for your team lead…"
-          className={`min-h-[100px] text-sm bg-black/25 border-white/10 resize-y ${
-            focusSection === "approach" ? "border-[#00D2FF]/40 ring-1 ring-[#00D2FF]/20" : ""
-          }`}
+          className={`min-h-[100px] text-sm bg-white border-[#e6e8ef] resize-y ${ focusSection === "approach" ? "border-[#7d4ccc]/40 ring-1 ring-[#7d4ccc]/20" : "" }`}
         />
       </div>
     </div>
