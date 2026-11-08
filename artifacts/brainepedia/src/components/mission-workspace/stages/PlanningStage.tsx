@@ -35,17 +35,17 @@ export function PlanningStage({ checkpoints, completingId, onComplete }: Props) 
       className="max-w-2xl mx-auto w-full space-y-6"
     >
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-white">Plan Your Approach</h2>
-        <p className="text-sm text-white/50 mt-1">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#182137]">Plan Your Approach</h2>
+        <p className="text-sm text-[#5e6a7f] mt-1">
           Before you build, think like a professional solving a real client problem.
         </p>
       </div>
 
-      <div className="flex items-center gap-3 text-xs font-mono text-white/40">
+      <div className="flex items-center gap-3 text-xs font-mono text-[#6b768c]">
         <span>Step {Math.min(progress.completed + 1, progress.total)} of {progress.total}</span>
-        <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
+        <div className="flex-1 h-1 rounded-full bg-[#f4f6fb] overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD] transition-all duration-500"
+            className="h-full bg-gradient-to-r from-[#7d4ccc] to-[#9b74dc] transition-all duration-500"
             style={{ width: `${progress.pct}%` }}
           />
         </div>
@@ -79,10 +79,10 @@ export function PlanningStage({ checkpoints, completingId, onComplete }: Props) 
                 <motion.div
                   key={cp.checkpointProgressId}
                   layout
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-white/5 bg-white/[0.01] opacity-50"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#eef1f7] bg-white/[0.01] opacity-50"
                 >
-                  <Lock className="w-3.5 h-3.5 text-white/20 shrink-0" />
-                  <span className="text-xs font-mono text-white/25 truncate">{cp.name}</span>
+                  <Lock className="w-3.5 h-3.5 text-[#9ba5b7] shrink-0" />
+                  <span className="text-xs font-mono text-[#8b96ab] truncate">{cp.name}</span>
                 </motion.div>
               );
             }
@@ -94,26 +94,26 @@ export function PlanningStage({ checkpoints, completingId, onComplete }: Props) 
                   layout
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl border-2 border-[#00D2FF]/30 bg-[#00D2FF]/5 p-5 space-y-4"
+                  className="rounded-xl border-2 border-[#7d4ccc]/30 bg-[#f5f0fc]/5 p-5 space-y-4"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono text-[#00D2FF] uppercase tracking-widest">Current</span>
-                    <span className="text-[9px] font-mono text-[#FFD700]/70 flex items-center gap-0.5">
+                    <span className="text-[10px] font-mono text-[#7d4ccc] uppercase tracking-widest">Current</span>
+                    <span className="text-[9px] font-mono text-[#7d4ccc]/70 flex items-center gap-0.5">
                       <Zap className="w-2.5 h-2.5" /> +{cp.xpReward} XP
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Circle className="w-4 h-4 text-[#00D2FF]" />
+                  <h3 className="text-lg font-bold text-[#182137] flex items-center gap-2">
+                    <Circle className="w-4 h-4 text-[#7d4ccc]" />
                     {cp.name}
                   </h3>
                   {cp.description && (
-                    <p className="text-sm text-white/55 leading-relaxed">{cp.description}</p>
+                    <p className="text-sm text-[#52617a] leading-relaxed">{cp.description}</p>
                   )}
                   <Textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Optional notes on completion…"
-                    className="min-h-[60px] text-xs bg-black/30 border-white/10"
+                    className="min-h-[60px] text-xs bg-white border-[#e6e8ef]"
                     aria-label={`Notes for ${cp.name}`}
                   />
                   <Button

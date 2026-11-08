@@ -25,24 +25,24 @@ function BrainiacOrb() {
       {[0, 1, 2, 3].map(i => (
         <motion.div
           key={i}
-          className="absolute rounded-full border border-[#00D2FF]/15"
+          className="absolute rounded-full border border-[#7d4ccc]/15"
           style={{ width: `${90 + i * 44}px`, height: `${90 + i * 44}px` }}
           animate={{ scale: [1, 1.07, 1], opacity: [0.2, 0.55, 0.2] }}
           transition={{ duration: 2.6, repeat: Infinity, delay: i * 0.35, ease: "easeInOut" }}
         />
       ))}
       <motion.div
-        className="absolute w-48 h-48 rounded-full border border-[#00D2FF]/20 border-t-[#00D2FF]/70 border-r-[#9D4EDD]/50"
+        className="absolute w-48 h-48 rounded-full border border-[#7d4ccc]/20 border-t-[#00D2FF]/70 border-r-[#9D4EDD]/50"
         animate={{ rotate: 360 }}
         transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
       />
       <motion.div
-        className="absolute w-36 h-36 rounded-full border border-[#9D4EDD]/20 border-b-[#9D4EDD]/60 border-l-[#00D2FF]/30"
+        className="absolute w-36 h-36 rounded-full border border-[#e0d2f3]/20 border-b-[#9D4EDD]/60 border-l-[#00D2FF]/30"
         animate={{ rotate: -360 }}
         transition={{ duration: 5.5, repeat: Infinity, ease: "linear" }}
       />
       <motion.div
-        className="absolute w-24 h-24 rounded-full border border-[#FFD700]/10 border-t-[#FFD700]/40"
+        className="absolute w-24 h-24 rounded-full border border-[#e0d2f3]/10 border-t-[#FFD700]/40"
         animate={{ rotate: 360 }}
         transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
       />
@@ -51,7 +51,7 @@ function BrainiacOrb() {
         animate={{ scale: [0.93, 1.06, 0.93] }}
         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
       >
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#00D2FF] via-[#9D4EDD] to-[#00D2FF] opacity-80" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#7d4ccc] via-[#9D4EDD] to-[#9b74dc] opacity-80" />
         <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/25 to-transparent" />
         <motion.div
           className="absolute inset-2 rounded-full bg-white/10"
@@ -60,8 +60,8 @@ function BrainiacOrb() {
         />
         <div className="absolute inset-0 flex items-center justify-center text-2xl select-none">🧠</div>
       </motion.div>
-      <div className="absolute w-20 h-20 rounded-full bg-[#00D2FF]/25 blur-2xl" />
-      <div className="absolute w-16 h-16 rounded-full bg-[#9D4EDD]/25 blur-xl" />
+      <div className="absolute w-20 h-20 rounded-full bg-[#f5f0fc]/25 blur-2xl" />
+      <div className="absolute w-16 h-16 rounded-full bg-[#f5f0fc]/25 blur-xl" />
     </div>
   );
 }
@@ -77,7 +77,7 @@ function NeuralBackground() {
       {nodes.map((n, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 rounded-full bg-[#00D2FF]"
+          className="absolute w-1 h-1 rounded-full bg-[#f5f0fc]"
           style={{ left: `${n.x}%`, top: `${n.y}%` }}
           animate={{ opacity: [0, 0.8, 0], scale: [0, 1.5, 0] }}
           transition={{ duration: 3, repeat: Infinity, delay: n.delay, ease: "easeInOut" }}
@@ -95,7 +95,7 @@ function Particles() {
     size: Math.random() * 2.5 + 0.5,
     duration: Math.random() * 7 + 4,
     delay: Math.random() * 5,
-    color: ["#00D2FF", "#9D4EDD", "#FFD700", "#00FF88"][i % 4],
+    color: ["#7d4ccc", "#7d4ccc", "#7d4ccc", "#168a68"][i % 4],
   }));
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -122,7 +122,7 @@ function PhaseText({ phase }: { phase: number }) {
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           exit={{ opacity: 0, y: -12, filter: "blur(4px)" }}
           transition={{ duration: 0.45 }}
-          className="text-sm font-mono text-white/60 text-center tracking-wide px-4"
+          className="text-sm font-mono text-[#52617a] text-center tracking-wide px-4"
         >
           {PHASES[Math.min(phase, PHASES.length - 1)]}
         </motion.p>
@@ -134,13 +134,13 @@ function PhaseText({ phase }: { phase: number }) {
 function ProgressBar({ progress }: { progress: number }) {
   return (
     <div className="w-full max-w-sm mx-auto">
-      <div className="flex items-center justify-between mb-2 text-[10px] font-mono text-white/30">
+      <div className="flex items-center justify-between mb-2 text-[10px] font-mono text-[#7a869d]">
         <span>Brainiac Processing</span>
         <span>{Math.round(progress)}%</span>
       </div>
-      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-[#f4f6fb] overflow-hidden">
         <motion.div
-          className="h-full rounded-full bg-gradient-to-r from-[#00D2FF] via-[#9D4EDD] to-[#FFD700]"
+          className="h-full rounded-full bg-gradient-to-r from-[#7d4ccc] via-[#9D4EDD] to-[#FFD700]"
           style={{ width: `${progress}%` }}
           transition={{ duration: 0.3, ease: "linear" }}
         />
@@ -272,7 +272,7 @@ export default function MissionEvaluatingPage() {
   };
 
   return (
-    <div className="dark min-h-screen bg-[#020408] text-white flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] flex flex-col items-center justify-center relative overflow-hidden">
       {/* Grid */}
       <div
         className="absolute inset-0 opacity-[0.025]"
@@ -284,8 +284,8 @@ export default function MissionEvaluatingPage() {
       />
 
       {/* Ambient glow */}
-      <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-[#00D2FF]/3 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[#9D4EDD]/3 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-[#f5f0fc]/3 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[#f5f0fc]/3 rounded-full blur-[130px] pointer-events-none" />
 
       <NeuralBackground />
       <Particles />
@@ -306,7 +306,7 @@ export default function MissionEvaluatingPage() {
 
         <div className="space-y-4 w-full">
           <motion.p
-            className="text-[10px] font-mono text-[#00D2FF]/60 tracking-[0.45em] uppercase"
+            className="text-[10px] font-mono text-[#7d4ccc]/60 tracking-[0.45em] uppercase"
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
@@ -321,10 +321,10 @@ export default function MissionEvaluatingPage() {
                 exit={{ opacity: 0 }}
                 className="flex items-center justify-center gap-2"
               >
-                <Cpu className="w-3 h-3 text-[#9D4EDD]/50 shrink-0" />
-                <p className="text-[11px] font-mono text-white/35 leading-snug">
+                <Cpu className="w-3 h-3 text-[#7d4ccc]/50 shrink-0" />
+                <p className="text-[11px] font-mono text-[#7a869d] leading-snug">
                   Evaluating:{" "}
-                  <span className="text-[#9D4EDD]/70">{missionTitle}</span>
+                  <span className="text-[#7d4ccc]/70">{missionTitle}</span>
                 </p>
               </motion.div>
             )}
@@ -345,7 +345,7 @@ export default function MissionEvaluatingPage() {
                 </div>
                 <button
                   onClick={handleRetry}
-                  className="flex items-center gap-2 text-xs text-white/50 hover:text-white border border-white/20 hover:border-white/40 rounded-xl px-5 py-2.5 transition-all"
+                  className="flex items-center gap-2 text-xs text-[#5e6a7f] hover:text-[#182137] border border-[#d8dde8] hover:border-[#c9d2e3] rounded-xl px-5 py-2.5 transition-all"
                 >
                   <RefreshCw className="w-3.5 h-3.5" /> Retry Evaluation
                 </button>
@@ -362,7 +362,7 @@ export default function MissionEvaluatingPage() {
 
         {!error && (
           <motion.p
-            className="text-[11px] font-mono text-white/20 max-w-xs"
+            className="text-[11px] font-mono text-[#9ba5b7] max-w-xs"
             animate={{ opacity: [0.4, 0.8, 0.4] }}
             transition={{ duration: 3, repeat: Infinity }}
           >

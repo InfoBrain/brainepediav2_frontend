@@ -32,47 +32,41 @@ export function DataWorkspace({
   return (
     <div className="space-y-4">
       <div className="space-y-2" id="workspace-deliverable">
-        <Label className="text-xs font-mono text-[#00D2FF]/80">Analysis & Method</Label>
+        <Label className="text-xs font-mono text-[#7d4ccc]/80">Analysis & Method</Label>
         <Textarea
           value={analysis}
           onChange={(e) => onAnalysisChange(e.target.value)}
           onBlur={onBlurSave}
           placeholder="Describe your data sources, queries, methodology, or analytical approach…"
-          className={`min-h-[120px] text-sm font-mono bg-black/30 border-white/10 resize-y ${
-            focusSection === "deliverable" ? "border-[#00D2FF]/40 ring-1 ring-[#00D2FF]/20" : ""
-          }`}
+          className={`min-h-[120px] text-sm font-mono bg-white border-[#e6e8ef] resize-y ${ focusSection === "deliverable" ? "border-[#7d4ccc]/40 ring-1 ring-[#7d4ccc]/20" : "" }`}
         />
       </div>
       <div className="space-y-2">
-        <Label className="text-xs font-mono text-white/45">Key Findings</Label>
+        <Label className="text-xs font-mono text-[#5e6a7f]">Key Findings</Label>
         <Textarea
           value={findings}
           onChange={(e) => onFindingsChange(e.target.value)}
           onBlur={onBlurSave}
           placeholder="What did the data reveal? Include metrics, patterns, or insights…"
-          className="min-h-[120px] text-sm bg-black/25 border-white/10 resize-y"
+          className="min-h-[120px] text-sm bg-white border-[#e6e8ef] resize-y"
         />
       </div>
       <div className="space-y-2" id="workspace-approach">
-        <Label className="text-xs font-mono text-white/45">Conclusions & Recommendations</Label>
+        <Label className="text-xs font-mono text-[#5e6a7f]">Conclusions & Recommendations</Label>
         <Textarea
           value={conclusions}
           onChange={(e) => onConclusionsChange(e.target.value)}
           onBlur={onBlurSave}
           placeholder="What do these findings mean for the client? What should they do next?"
-          className={`min-h-[100px] text-sm bg-black/25 border-white/10 resize-y ${
-            focusSection === "approach" ? "border-[#00D2FF]/40 ring-1 ring-[#00D2FF]/20" : ""
-          }`}
+          className={`min-h-[100px] text-sm bg-white border-[#e6e8ef] resize-y ${ focusSection === "approach" ? "border-[#7d4ccc]/40 ring-1 ring-[#7d4ccc]/20" : "" }`}
         />
       </div>
       <div
         id="workspace-evidence"
-        className={`rounded-xl border p-4 bg-[#0a0f16] ${
-          focusSection === "evidence" ? "border-[#FFD700]/40" : "border-white/10"
-        }`}
+        className={`rounded-xl border p-4 bg-white ${ focusSection === "evidence" ? "border-[#e0d2f3]/40" : "border-[#e6e8ef]" }`}
       >
         <div className="flex items-center justify-between">
-          <p className="text-[10px] font-mono text-[#FFD700] uppercase">Supporting Data</p>
+          <p className="text-[10px] font-mono text-[#7d4ccc] uppercase">Supporting Data</p>
           <Button size="sm" variant="ghost" onClick={onOpenEvidence} className="text-xs h-7 gap-1">
             <Paperclip className="w-3 h-3" /> Add spreadsheet / chart
           </Button>

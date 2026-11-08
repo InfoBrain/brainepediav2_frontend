@@ -65,17 +65,17 @@ export function EvidencePanel({
 
   return (
     <section
-      className="rounded-xl border border-white/10 bg-[#0a0f16] p-4 space-y-3"
+      className="rounded-xl border border-[#e6e8ef] bg-white p-4 space-y-3"
       aria-label="Evidence submission"
     >
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-mono text-[#FFD700] tracking-widest uppercase flex items-center gap-1">
+        <p className="text-[10px] font-mono text-[#7d4ccc] tracking-widest uppercase flex items-center gap-1">
           <Paperclip className="w-3 h-3" /> Evidence
         </p>
         <Button
           size="sm"
           variant="ghost"
-          className="text-xs font-mono text-white/50 h-7"
+          className="text-xs font-mono text-[#5e6a7f] h-7"
           onClick={() => setOpen((o) => !o)}
         >
           <Plus className="w-3 h-3 mr-1" /> Add
@@ -83,14 +83,14 @@ export function EvidencePanel({
       </div>
 
       {open && (
-        <div className="space-y-3 border border-white/8 rounded-lg p-3 bg-black/20">
+        <div className="space-y-3 border border-[#e6e8ef] rounded-lg p-3 bg-[#f4f6fb]">
           <div className="space-y-1">
-            <Label className="text-[10px] font-mono text-white/40">Type</Label>
+            <Label className="text-[10px] font-mono text-[#6b768c]">Type</Label>
             <Select
               value={String(evidenceType)}
               onValueChange={(v) => setEvidenceType(Number(v))}
             >
-              <SelectTrigger className="h-8 text-xs bg-black/30 border-white/10">
+              <SelectTrigger className="h-8 text-xs bg-white border-[#e6e8ef]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -103,29 +103,29 @@ export function EvidencePanel({
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px] font-mono text-white/40">Title</Label>
+            <Label className="text-[10px] font-mono text-[#6b768c]">Title</Label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="h-8 text-xs bg-black/30 border-white/10"
+              className="h-8 text-xs bg-white border-[#e6e8ef]"
               placeholder="e.g. GitHub repo, Figma link"
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px] font-mono text-white/40">URL</Label>
+            <Label className="text-[10px] font-mono text-[#6b768c]">URL</Label>
             <Input
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="h-8 text-xs bg-black/30 border-white/10"
+              className="h-8 text-xs bg-white border-[#e6e8ef]"
               placeholder="https://…"
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px] font-mono text-white/40">Description</Label>
+            <Label className="text-[10px] font-mono text-[#6b768c]">Description</Label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="min-h-[50px] text-xs bg-black/30 border-white/10"
+              className="min-h-[50px] text-xs bg-white border-[#e6e8ef]"
               placeholder="What does this evidence show?"
             />
           </div>
@@ -133,7 +133,7 @@ export function EvidencePanel({
             size="sm"
             disabled={adding || !title.trim() || !url.trim()}
             onClick={handleAdd}
-            className="w-full text-xs font-mono bg-[#FFD700]/15 text-[#FFD700] border border-[#FFD700]/25"
+            className="w-full text-xs font-mono bg-[#f5f0fc]/15 text-[#7d4ccc] border border-[#e0d2f3]/25"
           >
             {adding ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Link2 className="w-3 h-3 mr-1" />}
             Register evidence (+10 XP)
@@ -142,7 +142,7 @@ export function EvidencePanel({
       )}
 
       <div className="space-y-2">
-        <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-white/15 text-xs font-mono text-white/40 cursor-pointer hover:border-white/25 hover:text-white/55 transition-colors">
+        <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-[#d8dde8] text-xs font-mono text-[#6b768c] cursor-pointer hover:border-white/25 hover:text-[#182137]/55 transition-colors">
           <FileUp className="w-3.5 h-3.5" />
           Attach files (included on final submit)
           <input
@@ -160,13 +160,13 @@ export function EvidencePanel({
         {stagedFiles.map((sf) => (
           <div
             key={sf.id}
-            className="flex items-center justify-between gap-2 text-[11px] font-mono text-white/50 border border-white/8 rounded-lg px-2 py-1.5"
+            className="flex items-center justify-between gap-2 text-[11px] font-mono text-[#5e6a7f] border border-[#e6e8ef] rounded-lg px-2 py-1.5"
           >
             <span className="truncate">{sf.file.name}</span>
             <button
               type="button"
               onClick={() => onRemoveStagedFile(sf.id)}
-              className="text-white/30 hover:text-red-400 text-[10px]"
+              className="text-[#7a869d] hover:text-red-400 text-[10px]"
             >
               Remove
             </button>
@@ -176,18 +176,18 @@ export function EvidencePanel({
         {evidence.map((ev, i) => (
           <div
             key={ev.evidenceId ?? `${ev.url}-${i}`}
-            className="flex items-start gap-2 border border-white/8 rounded-lg p-2 bg-black/15"
+            className="flex items-start gap-2 border border-[#e6e8ef] rounded-lg p-2 bg-[#f7f8fb]"
           >
-            <Zap className="w-3 h-3 text-[#FFD700]/60 shrink-0 mt-0.5" />
+            <Zap className="w-3 h-3 text-[#7d4ccc]/60 shrink-0 mt-0.5" />
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-white/80 font-medium truncate">{ev.title}</p>
-              <p className="text-[10px] text-white/35 font-mono">{evidenceTypeLabel(ev.evidenceType)}</p>
+              <p className="text-xs text-[#182137] font-medium truncate">{ev.title}</p>
+              <p className="text-[10px] text-[#7a869d] font-mono">{evidenceTypeLabel(ev.evidenceType)}</p>
               {ev.url && (
                 <a
                   href={ev.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] text-[#00D2FF]/70 hover:text-[#00D2FF] flex items-center gap-1 mt-0.5 truncate"
+                  className="text-[10px] text-[#7d4ccc]/70 hover:text-[#7d4ccc] flex items-center gap-1 mt-0.5 truncate"
                 >
                   <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                   <span className="truncate">{ev.url}</span>
@@ -198,7 +198,7 @@ export function EvidencePanel({
         ))}
 
         {evidence.length === 0 && stagedFiles.length === 0 && (
-          <p className="text-[11px] font-mono text-white/30 text-center py-2">
+          <p className="text-[11px] font-mono text-[#7a869d] text-center py-2">
             Add links or files to support your submission.
           </p>
         )}

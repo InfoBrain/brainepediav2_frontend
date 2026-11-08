@@ -24,15 +24,15 @@ export function SubmitBar({
   const reviewDone = submissionStage >= 1;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-[#0a0f16] p-4 space-y-3">
+    <div className="rounded-xl border border-[#e6e8ef] bg-white p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-[10px] font-mono text-[#FFD700] tracking-widest uppercase">Session XP</p>
-          <p className="text-lg font-bold font-mono text-[#FFD700] flex items-center gap-1">
+          <p className="text-[10px] font-mono text-[#7d4ccc] tracking-widest uppercase">Session XP</p>
+          <p className="text-lg font-bold font-mono text-[#7d4ccc] flex items-center gap-1">
             <Zap className="w-4 h-4" /> {sessionXpEarned}
           </p>
         </div>
-        <div className="text-[9px] font-mono text-white/30 text-right leading-relaxed max-w-[140px]">
+        <div className="text-[9px] font-mono text-[#7a869d] text-right leading-relaxed max-w-[140px]">
           +{XP_HINTS.missionStart} start · +{XP_HINTS.checkpoint} checkpoint · +{XP_HINTS.evidence} evidence · +{XP_HINTS.mentor} mentor · +{XP_HINTS.submission} submit
         </div>
       </div>
@@ -43,7 +43,7 @@ export function SubmitBar({
             variant="outline"
             disabled={requestingReview || submitting}
             onClick={onRequestReview}
-            className="flex-1 text-xs font-mono border-[#9D4EDD]/25 text-[#9D4EDD]/80 hover:bg-[#9D4EDD]/10 gap-1"
+            className="flex-1 text-xs font-mono border-[#e0d2f3]/25 text-[#7d4ccc]/80 hover:bg-[#f5f0fc]/10 gap-1"
           >
             {requestingReview ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -56,7 +56,7 @@ export function SubmitBar({
         <Button
           disabled={!isReady || submitting}
           onClick={onSubmitFinal}
-          className="flex-1 text-xs font-mono bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD] text-white border-0 gap-1 disabled:opacity-40"
+          className="flex-1 text-xs font-mono bg-gradient-to-r from-[#7d4ccc] to-[#9b74dc] text-white border-0 gap-1 disabled:opacity-40"
         >
           {submitting ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />

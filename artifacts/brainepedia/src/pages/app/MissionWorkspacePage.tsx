@@ -716,29 +716,29 @@ export default function MissionWorkspacePage() {
 
   if (!sessionId) {
     return (
-      <div className="min-h-screen bg-[#060a10] text-white flex items-center justify-center">
-        <p className="text-sm font-mono text-white/40">Invalid session.</p>
+      <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] flex items-center justify-center">
+        <p className="text-sm font-mono text-[#7a869d]">Invalid session.</p>
       </div>
     );
   }
 
   if (isLoading && !workspace) {
     return (
-      <div className="min-h-screen bg-[#060a10] text-white flex flex-col items-center justify-center gap-4">
-        <Loader2 className="w-8 h-8 text-[#00D2FF] animate-spin" />
-        <p className="text-sm font-mono text-white/40">Loading mission workspace…</p>
+      <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="w-8 h-8 text-[#7d4ccc] animate-spin" />
+        <p className="text-sm font-mono text-[#7a869d]">Loading mission workspace…</p>
       </div>
     );
   }
 
   if (isError || !workspace) {
     return (
-      <div className="min-h-screen bg-[#060a10] text-white flex flex-col items-center justify-center gap-4 px-6">
+      <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] flex flex-col items-center justify-center gap-4 px-6">
         <AlertCircle className="w-10 h-10 text-red-400/60" />
-        <p className="text-sm font-mono text-white/50 text-center">
+        <p className="text-sm font-mono text-[#7a869d] text-center">
           {friendlyError((error as Error)?.message || "Could not load workspace.")}
         </p>
-        <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2 font-mono text-xs">
+        <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2 font-mono text-xs border-[#d8dde8] text-[#5e6a7f] hover:text-[#182137]">
           <RefreshCw className="w-3.5 h-3.5" /> Retry
         </Button>
       </div>
@@ -761,7 +761,7 @@ export default function MissionWorkspacePage() {
   );
 
   return (
-    <div className="dark min-h-screen bg-[#060a10] text-white flex flex-col">
+    <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] flex flex-col">
       <MissionHeader
         missionTitle={workspace.missionTitle}
         employerChallenge={Boolean(workspace.employerChallengeAssignmentId)}
@@ -781,7 +781,7 @@ export default function MissionWorkspacePage() {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#FFD700]/20 border border-[#FFD700]/40 text-[#FFD700] text-sm font-mono font-bold shadow-lg"
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#f5f0fc] border border-[#e0d2f3] text-[#7d4ccc] text-sm font-mono font-bold shadow-lg"
           >
             +{xpFlash} XP
           </motion.div>
@@ -934,10 +934,10 @@ export default function MissionWorkspacePage() {
 
       {/* Mobile sticky action bar */}
       {isMobile && activeStage !== MissionStage.Brief && activeStage !== MissionStage.Planning && (
-        <div className="sticky bottom-0 z-20 p-3 border-t border-white/5 bg-[#060a10]/95 backdrop-blur">
+        <div className="sticky bottom-0 z-20 p-3 border-t border-[#e6e8ef] bg-white/95 backdrop-blur">
           <Button
             onClick={handlePrimaryAction}
-            className="w-full font-mono text-sm bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD] gap-1"
+            className="w-full font-mono text-sm bg-[#7d4ccc] text-white hover:bg-[#6538ad] gap-1"
           >
             {nextAction.ctaLabel}
           </Button>
@@ -975,29 +975,29 @@ export default function MissionWorkspacePage() {
               initial={{ scale: 0.95, y: 10 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 10 }}
-              className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0d1117] p-6 space-y-4"
+              className="w-full max-w-md rounded-2xl border border-[#e6e8ef] bg-white p-6 space-y-4"
             >
               <div className="flex items-start justify-between gap-2">
                 <h2 id="submit-modal-title" className="text-lg font-bold font-mono">
                   Ready to send?
                 </h2>
-                <button type="button" onClick={() => setShowSubmitModal(false)} className="text-white/30 hover:text-white">
+                <button type="button" onClick={() => setShowSubmitModal(false)} className="text-[#9ba5b7] hover:text-[#182137]">
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-sm text-white/55 leading-relaxed">
+              <p className="text-sm text-[#5e6a7f] leading-relaxed">
                 Your solution will be submitted to the team lead for review. You won't be able to edit this submission after sending.
               </p>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1 font-mono text-xs border-white/15"
+                  className="flex-1 font-mono text-xs border-[#d8dde8] text-[#5e6a7f] hover:text-[#182137]"
                   onClick={() => setShowSubmitModal(false)}
                 >
                   Go Back
                 </Button>
                 <Button
-                  className="flex-1 font-mono text-xs bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD]"
+                  className="flex-1 font-mono text-xs bg-[#7d4ccc] text-white hover:bg-[#6538ad]"
                   onClick={handleFinalSubmit}
                   disabled={submitting}
                 >

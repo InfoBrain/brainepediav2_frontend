@@ -16,7 +16,7 @@ const ITEMS: Array<{ key: keyof ReadinessDto; label: string }> = [
 export function ReadinessChecklist({ readiness, loading }: Props) {
   if (loading) {
     return (
-      <div className="rounded-xl border border-white/10 bg-[#0a0f16] p-4 text-xs font-mono text-white/35">
+      <div className="rounded-xl border border-[#e6e8ef] bg-white p-4 text-xs font-mono text-[#7a869d]">
         Checking readiness…
       </div>
     );
@@ -26,10 +26,10 @@ export function ReadinessChecklist({ readiness, loading }: Props) {
 
   return (
     <section
-      className="rounded-xl border border-white/10 bg-[#0a0f16] p-4 space-y-3"
+      className="rounded-xl border border-[#e6e8ef] bg-white p-4 space-y-3"
       aria-label="Submission readiness"
     >
-      <p className="text-[10px] font-mono text-white/50 tracking-widest uppercase flex items-center gap-1">
+      <p className="text-[10px] font-mono text-[#5e6a7f] tracking-widest uppercase flex items-center gap-1">
         <ClipboardCheck className="w-3 h-3" /> Readiness
       </p>
 
@@ -43,7 +43,7 @@ export function ReadinessChecklist({ readiness, loading }: Props) {
               ) : (
                 <XCircle className="w-3.5 h-3.5 text-red-400/70 shrink-0" aria-hidden />
               )}
-              <span className={ok ? "text-white/65" : "text-white/40"}>{label}</span>
+              <span className={ok ? "text-[#3e4a60]" : "text-[#6b768c]"}>{label}</span>
             </li>
           );
         })}
@@ -51,10 +51,10 @@ export function ReadinessChecklist({ readiness, loading }: Props) {
 
       {!readiness.isReady && readiness.missingRequirements.length > 0 && (
         <div className="border border-amber-500/20 bg-amber-500/5 rounded-lg p-3">
-          <p className="text-[10px] font-mono text-amber-300/80 mb-1">Still needed:</p>
+          <p className="text-[10px] font-mono text-[#9a3412]/80 mb-1">Still needed:</p>
           <ul className="space-y-1">
             {readiness.missingRequirements.map((req) => (
-              <li key={req} className="text-[11px] text-amber-200/70">• {req}</li>
+              <li key={req} className="text-[11px] text-[#9a3412]/70">• {req}</li>
             ))}
           </ul>
         </div>

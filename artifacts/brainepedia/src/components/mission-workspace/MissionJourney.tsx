@@ -16,10 +16,10 @@ export function MissionJourney({ currentStep, maxReachableStep, onStepSelect }: 
 
   return (
     <nav
-      className="px-4 py-3 border-b border-[#e6e8ef] bg-white dark:border-white/5 dark:bg-[#060a10]/50"
+      className="px-4 py-3 border-b border-[#e6e8ef] bg-white"
       aria-label="Mission journey progress"
     >
-      <p className="text-[9px] font-mono text-[#8c93a2] dark:text-white/30 uppercase tracking-widest mb-2 hidden sm:block">
+      <p className="text-[9px] font-mono text-[#8c93a2] uppercase tracking-widest mb-2 hidden sm:block">
         Mission Journey — tap a completed step to revisit
       </p>
       <ol className="flex items-center justify-between gap-1 max-w-3xl mx-auto">
@@ -32,21 +32,13 @@ export function MissionJourney({ currentStep, maxReachableStep, onStepSelect }: 
           const stepButton = (
             <>
               <div
-                className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-all duration-300 ${
-                  isComplete
-                    ? "bg-[#7d4ccc]/12 border border-[#7d4ccc]/35 text-[#7d4ccc] dark:bg-[#7d4ccc]/20 dark:border-[#7d4ccc]/50 dark:text-[#b89bf0]"
-                    : isCurrent
-                      ? "bg-[#00D2FF]/12 border-2 border-[#00B8DD] text-[#007ea0] dark:bg-[#00D2FF]/20 dark:border-[#00D2FF] dark:text-[#00D2FF] shadow-[0_0_12px_rgba(0,210,255,0.2)]"
-                      : "bg-[#f5f6fa] border border-[#d8dde8] text-[#9ba5b7] dark:bg-white/5 dark:border-white/10 dark:text-white/25"
-                } ${isReachable && !isCurrent ? "hover:border-[#00D2FF]/50 hover:text-[#00D2FF]/80 cursor-pointer" : ""}`}
+                className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-all duration-300 ${ isComplete ? "bg-[#7d4ccc]/12 border border-[#7d4ccc]/35 text-[#7d4ccc] " : isCurrent ? "bg-[#f5f0fc]/12 border-2 border-[#7d4ccc] text-[#7d4ccc] shadow-[0_0_12px_rgba(0,210,255,0.2)]" : "bg-[#f5f6fa] border border-[#d8dde8] text-[#9ba5b7] " } ${isReachable && !isCurrent ? "hover:border-[#7d4ccc]/50 hover:text-[#7d4ccc]/80 cursor-pointer" : ""}`}
                 aria-current={isCurrent ? "step" : undefined}
               >
                 {isComplete ? <Check className="w-3 h-3" /> : i + 1}
               </div>
               <span
-                className={`text-[8px] sm:text-[9px] font-mono truncate w-full text-center ${
-                  isCurrent ? "text-[#007ea0] dark:text-[#00D2FF]" : isComplete ? "text-[#6f5bb2] dark:text-white/60" : "text-[#9ba5b7] dark:text-white/25"
-                }`}
+                className={`text-[8px] sm:text-[9px] font-mono truncate w-full text-center ${ isCurrent ? "text-[#7d4ccc] " : isComplete ? "text-[#6f5bb2] " : "text-[#9ba5b7] " }`}
               >
                 {step.label}
               </span>
@@ -60,7 +52,7 @@ export function MissionJourney({ currentStep, maxReachableStep, onStepSelect }: 
                   <button
                     type="button"
                     onClick={() => onStepSelect?.(step.id)}
-                    className="flex flex-col items-center gap-1 flex-1 min-w-0 rounded-lg p-0.5 transition-colors hover:bg-white/5"
+                    className="flex flex-col items-center gap-1 flex-1 min-w-0 rounded-lg p-0.5 transition-colors hover:bg-[#f4f6fb]"
                     aria-label={`Go to ${step.label}`}
                   >
                     {stepButton}
@@ -71,9 +63,7 @@ export function MissionJourney({ currentStep, maxReachableStep, onStepSelect }: 
               </div>
               {i < JOURNEY_STEPS.length - 1 && (
                 <div
-                  className={`h-px flex-1 mx-0.5 sm:mx-1 mb-4 transition-colors duration-300 ${
-                    i < currentIdx ? "bg-[#7d4ccc]/35 dark:bg-[#7d4ccc]/45" : "bg-[#dbe1ed] dark:bg-white/10"
-                  }`}
+                  className={`h-px flex-1 mx-0.5 sm:mx-1 mb-4 transition-colors duration-300 ${ i < currentIdx ? "bg-[#7d4ccc]/35 " : "bg-[#dbe1ed] " }`}
                   aria-hidden
                 />
               )}

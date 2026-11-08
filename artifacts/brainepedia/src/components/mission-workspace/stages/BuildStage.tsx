@@ -58,8 +58,8 @@ export function BuildStage({
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-white">Build Your Solution</h2>
-          <p className="text-sm text-white/50 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#182137]">Build Your Solution</h2>
+          <p className="text-sm text-[#5e6a7f] mt-1">
             This is your professional workspace. Produce real work your team lead can review.
           </p>
         </div>
@@ -70,7 +70,7 @@ export function BuildStage({
             variant="outline"
             onClick={onSaveDraft}
             disabled={saving}
-            className="text-xs font-mono border-white/15 text-white/60 hover:text-white gap-1"
+            className="text-xs font-mono border-[#d8dde8] text-[#52617a] hover:text-[#182137] gap-1"
           >
             {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
             Save Draft
@@ -82,9 +82,9 @@ export function BuildStage({
         <MissionContext node={problemNode} missionBrief={missionBrief} compact />
       )}
 
-      <div className="rounded-2xl border border-white/10 bg-[#0a0f16] overflow-hidden">
-        <div className="px-4 py-3 border-b border-white/5">
-          <p className="text-[10px] font-mono text-white/50 tracking-widest uppercase">Work Area</p>
+      <div className="rounded-2xl border border-[#e6e8ef] bg-white overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#eef1f7]">
+          <p className="text-[10px] font-mono text-[#5e6a7f] tracking-widest uppercase">Work Area</p>
         </div>
         <div className="p-4">
           <WorkspaceRenderer
@@ -107,24 +107,22 @@ export function BuildStage({
 
       <div
         id="workspace-evidence"
-        className={`rounded-xl border bg-[#0a0f16] p-4 ${
-          focusSection === "evidence" ? "border-[#FFD700]/40 ring-1 ring-[#FFD700]/20" : "border-white/10"
-        }`}
+        className={`rounded-xl border bg-white p-4 ${ focusSection === "evidence" ? "border-[#e0d2f3]/40 ring-1 ring-[#FFD700]/20" : "border-[#e6e8ef]" }`}
       >
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-mono text-[#FFD700] tracking-widest uppercase flex items-center gap-1">
+          <p className="text-[10px] font-mono text-[#7d4ccc] tracking-widest uppercase flex items-center gap-1">
             <Paperclip className="w-3 h-3" /> Evidence
           </p>
           <Button
             size="sm"
             variant="ghost"
             onClick={onOpenEvidence}
-            className="text-xs font-mono text-white/50 h-7 gap-1"
+            className="text-xs font-mono text-[#5e6a7f] h-7 gap-1"
           >
             <Plus className="w-3 h-3" /> Add Evidence
           </Button>
         </div>
-        <p className="text-[11px] text-white/40 mb-2">
+        <p className="text-[11px] text-[#6b768c] mb-2">
           How would you prove this work was completed in a real organisation?
         </p>
         {evidence.length > 0 ? (
@@ -140,7 +138,7 @@ export function BuildStage({
             ))}
           </ul>
         ) : (
-          <p className="text-[11px] font-mono text-white/30">No evidence attached yet.</p>
+          <p className="text-[11px] font-mono text-[#7a869d]">No evidence attached yet.</p>
         )}
       </div>
     </motion.div>

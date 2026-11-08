@@ -72,9 +72,9 @@ function normDistrict(data: any) {
 }
 
 function getMissionStatus(m: Mission) {
-  if (m.isCompleted) return { label: "Completed", color: "text-emerald-400", bg: "bg-emerald-400/10 border-emerald-400/30" };
-  if (m.isStarted) return { label: "In Progress", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/30" };
-  return { label: "New", color: "text-cyan-400", bg: "bg-cyan-400/10 border-cyan-400/30" };
+  if (m.isCompleted) return { label: "Completed", color: "text-[#168a68]", bg: "bg-[#eefaf4] border-[#b9e8d6]" };
+  if (m.isStarted) return { label: "In Progress", color: "text-[#b87412]", bg: "bg-[#fff6e5] border-[#f0ddb4]" };
+  return { label: "New", color: "text-[#276ef1]", bg: "bg-[#edf4ff] border-[#c9d8f8]" };
 }
 
 function SkeletonMissionCard({ index }: { index: number }) {
@@ -83,19 +83,19 @@ function SkeletonMissionCard({ index }: { index: number }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: index * 0.06 }}
-      className="rounded-2xl border border-white/10 bg-[#0d1117] p-5 space-y-3"
+      className="rounded-2xl border border-[#e6e8ef] bg-white p-5 space-y-3"
     >
       <div className="flex items-center justify-between">
-        <div className="h-4 w-2/3 rounded-full bg-white/10 animate-pulse" />
-        <div className="h-5 w-16 rounded-full bg-white/10 animate-pulse" />
+        <div className="h-4 w-2/3 rounded-full bg-[#e6e8ef] animate-pulse" />
+        <div className="h-5 w-16 rounded-full bg-[#e6e8ef] animate-pulse" />
       </div>
-      <div className="h-3 w-full rounded-full bg-white/5 animate-pulse" />
-      <div className="h-3 w-3/4 rounded-full bg-white/5 animate-pulse" />
+      <div className="h-3 w-full rounded-full bg-[#eef1f6] animate-pulse" />
+      <div className="h-3 w-3/4 rounded-full bg-[#eef1f6] animate-pulse" />
       <div className="flex gap-4 pt-1">
-        <div className="h-5 w-20 rounded-full bg-white/5 animate-pulse" />
-        <div className="h-5 w-20 rounded-full bg-white/5 animate-pulse" />
+        <div className="h-5 w-20 rounded-full bg-[#eef1f6] animate-pulse" />
+        <div className="h-5 w-20 rounded-full bg-[#eef1f6] animate-pulse" />
       </div>
-      <div className="h-9 w-full rounded-xl bg-white/5 animate-pulse" />
+      <div className="h-9 w-full rounded-xl bg-[#eef1f6] animate-pulse" />
     </motion.div>
   );
 }
@@ -108,15 +108,15 @@ function MissionCard({ mission, index, onClick, difficultyMeta }: { mission: Mis
 
   const isInProgress = mission.isStarted && !mission.isCompleted;
   const cardBorder = mission.isCompleted
-    ? "border-emerald-500/30"
+    ? "border-[#b9e8d6]"
     : isInProgress
-    ? "border-amber-500/30"
-    : "border-white/10";
+    ? "border-[#f0ddb4]"
+    : "border-[#e6e8ef]";
   const cardGlow = mission.isCompleted
-    ? "hover:shadow-emerald-500/20 hover:border-emerald-500/50"
+    ? "hover:border-[#9edec8]"
     : isInProgress
-    ? "hover:shadow-amber-500/20 hover:border-amber-500/50"
-    : "hover:shadow-cyan-500/10 hover:border-white/20";
+    ? "hover:border-[#ebcc8f]"
+    : "hover:border-[#d8dde8]";
 
   return (
     <motion.div
@@ -125,8 +125,7 @@ function MissionCard({ mission, index, onClick, difficultyMeta }: { mission: Mis
       transition={{ duration: 0.35, delay: index * 0.06, ease: "easeOut" }}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
-      className={`relative group rounded-2xl border bg-[#0d1117] p-5 cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5
-        ${cardBorder} ${cardGlow}`}
+      className={`relative group rounded-2xl border bg-white p-5 cursor-pointer transition-all duration-300 shadow-[0_10px_24px_rgba(24,33,55,0.06)] hover:shadow-[0_12px_28px_rgba(24,33,55,0.12)] hover:-translate-y-0.5 ${cardBorder} ${cardGlow}`}
       onClick={onClick}
     >
       {/* In-progress pulse */}
@@ -140,7 +139,7 @@ function MissionCard({ mission, index, onClick, difficultyMeta }: { mission: Mis
       {/* Top row */}
       <div className="flex items-start gap-2 pr-6 mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-white text-base leading-snug line-clamp-2 group-hover:text-cyan-100 transition-colors">
+          <h3 className="font-bold text-[#182137] text-base leading-snug line-clamp-2 group-hover:text-[#7d4ccc] transition-colors">
             {mission.title}
           </h3>
         </div>
@@ -163,24 +162,24 @@ function MissionCard({ mission, index, onClick, difficultyMeta }: { mission: Mis
 
       {/* Body */}
       {mission.context && (
-        <p className="text-xs text-white/40 leading-relaxed line-clamp-2 mb-2 font-sans">
+        <p className="text-xs text-[#5e6a7f] leading-relaxed line-clamp-2 mb-2 font-sans">
           {mission.context}
         </p>
       )}
       {mission.missionBrief && (
-        <p className="text-xs text-white/30 leading-relaxed line-clamp-1 mb-3 font-sans italic">
+        <p className="text-xs text-[#8b96ab] leading-relaxed line-clamp-1 mb-3 font-sans italic">
           {mission.missionBrief}
         </p>
       )}
 
       {/* Metadata */}
       <div className="flex items-center gap-4 mb-4">
-        <div className="flex items-center gap-1.5 text-[#FFD700] text-xs font-mono">
+        <div className="flex items-center gap-1.5 text-[#7d4ccc] text-xs font-mono">
           <Zap className="w-3.5 h-3.5" />
           <span>{mission.experiencePoints} XP</span>
         </div>
         {mission.estimatedMinutes > 0 && (
-          <div className="flex items-center gap-1.5 text-white/40 text-xs font-mono">
+          <div className="flex items-center gap-1.5 text-[#7a869d] text-xs font-mono">
             <Clock className="w-3.5 h-3.5" />
             <span>{mission.estimatedMinutes}m</span>
           </div>
@@ -190,13 +189,7 @@ function MissionCard({ mission, index, onClick, difficultyMeta }: { mission: Mis
       {/* Action button */}
       <button
         onClick={(e) => { e.stopPropagation(); onClick(); }}
-        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold font-mono transition-all duration-200
-          ${mission.isCompleted
-            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"
-            : isInProgress
-            ? "bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20"
-            : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 hover:scale-[1.01]"
-          }`}
+        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold font-mono transition-all duration-200 ${mission.isCompleted ? "bg-[#eefaf4] text-[#168a68] border border-[#b9e8d6] hover:bg-[#e2f7ee]" : isInProgress ? "bg-[#fff6e5] text-[#9a3412] border border-[#f0ddb4] hover:bg-[#ffefd1]" : "bg-[#f5f0fc] text-[#7d4ccc] border border-[#e0d2f3] hover:bg-[#ece1fa] hover:scale-[1.01]" }`}
       >
         {mission.isCompleted ? (
           <><Eye className="w-4 h-4" /> View Result</>
@@ -215,15 +208,15 @@ function MissionCard({ mission, index, onClick, difficultyMeta }: { mission: Mis
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-0 mb-2 w-72 z-20 rounded-xl border border-white/10 bg-[#0a0e14]/95 backdrop-blur p-4 shadow-2xl pointer-events-none"
+            className="absolute bottom-full left-0 mb-2 w-72 z-20 rounded-xl border border-[#e6e8ef] bg-white/95 backdrop-blur p-4 shadow-2xl pointer-events-none"
           >
             {mission.constraints.length > 0 && (
               <div className="mb-3">
-                <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1.5">Constraints</p>
+                <p className="text-[10px] font-mono text-[#7a869d] uppercase tracking-widest mb-1.5">Constraints</p>
                 <ul className="space-y-1">
                   {mission.constraints.slice(0, 3).map((c, i) => (
-                    <li key={i} className="text-xs text-white/50 flex gap-1.5">
-                      <span className="text-amber-400 mt-0.5">⚠</span> {c}
+                    <li key={i} className="text-xs text-[#5e6a7f] flex gap-1.5">
+                      <span className="text-[#9a3412] mt-0.5">⚠</span> {c}
                     </li>
                   ))}
                 </ul>
@@ -231,11 +224,11 @@ function MissionCard({ mission, index, onClick, difficultyMeta }: { mission: Mis
             )}
             {mission.expectedOutcomes.length > 0 && (
               <div>
-                <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-1.5">Expected Outcomes</p>
+                <p className="text-[10px] font-mono text-[#7a869d] uppercase tracking-widest mb-1.5">Expected Outcomes</p>
                 <ul className="space-y-1">
                   {mission.expectedOutcomes.slice(0, 3).map((o, i) => (
-                    <li key={i} className="text-xs text-white/50 flex gap-1.5">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" /> {o}
+                    <li key={i} className="text-xs text-[#5e6a7f] flex gap-1.5">
+                      <CheckCircle2 className="w-3 h-3 text-[#168a68] shrink-0 mt-0.5" /> {o}
                     </li>
                   ))}
                 </ul>
@@ -265,20 +258,16 @@ function FilterBar({
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="flex items-center gap-1.5">
-        <Filter className="w-3.5 h-3.5 text-white/30" />
-        <span className="text-xs font-mono text-white/30 uppercase tracking-wider">Filter</span>
+        <Filter className="w-3.5 h-3.5 text-[#7a869d]" />
+        <span className="text-xs font-mono text-[#7a869d] uppercase tracking-wider">Filter</span>
       </div>
 
-      <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/3 p-1">
+      <div className="flex items-center gap-1.5 rounded-xl border border-[#e6e8ef] bg-white p-1">
         {(["all", "new", "started", "completed"] as StatusFilter[]).map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 capitalize
-              ${statusFilter === s
-                ? "bg-[#00D2FF]/15 text-[#00D2FF] border border-[#00D2FF]/30"
-                : "text-white/30 hover:text-white/60"
-              }`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 capitalize ${statusFilter === s ? "bg-[#f5f0fc] text-[#7d4ccc] border border-[#e0d2f3]" : "text-[#7a869d] hover:text-[#182137]" }`}
           >
             {s === "all" ? "All" : s === "new" ? "New" : s === "started" ? "In Progress" : "Completed"}
           </button>
@@ -286,12 +275,12 @@ function FilterBar({
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <ChevronDown className="w-3.5 h-3.5 text-white/30" />
-        <span className="text-xs font-mono text-white/30 uppercase tracking-wider">Sort</span>
+        <ChevronDown className="w-3.5 h-3.5 text-[#7a869d]" />
+        <span className="text-xs font-mono text-[#7a869d] uppercase tracking-wider">Sort</span>
         <select
           value={sortKey}
           onChange={e => setSortKey(e.target.value as SortKey)}
-          className="bg-[#0d1117] border border-white/10 text-white/60 text-xs font-mono rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00D2FF]/40"
+          className="bg-white border border-[#e6e8ef] text-[#5e6a7f] text-xs font-mono rounded-lg px-2.5 py-1.5 outline-none focus:border-[#7d4ccc]/40"
         >
           <option value="xp-desc">XP: High → Low</option>
           <option value="time-asc">Time: Short → Long</option>
@@ -306,15 +295,15 @@ function ProgressBar({ completed, total, label }: { completed: number; total: nu
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs font-mono">
-        <span className="text-white/50">{label || `You've completed ${pct}% of this district`}</span>
-        <span className="text-[#00D2FF]">{completed}/{total}</span>
+        <span className="text-[#5e6a7f]">{label || `You've completed ${pct}% of this district`}</span>
+        <span className="text-[#7d4ccc]">{completed}/{total}</span>
       </div>
-      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+      <div className="h-2 rounded-full bg-[#edf1f7] overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
-          className="h-full rounded-full bg-gradient-to-r from-[#00D2FF] to-[#9D4EDD]"
+          className="h-full rounded-full bg-gradient-to-r from-[#7d4ccc] to-[#9b74dc]"
         />
       </div>
     </div>
@@ -411,35 +400,35 @@ export default function MissionListPage() {
   }, [effectiveMissions, statusFilter, sortKey]);
 
   return (
-    <div className="min-h-screen bg-[#060a10] text-white relative overflow-hidden flex flex-col">
+    <div className="mission-light min-h-screen bg-[#f7f8fb] text-[#182137] relative overflow-hidden flex flex-col">
       {/* Ambient background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#f5f0fc]/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#7d4ccc]/8 rounded-full blur-3xl" />
         <div
           className="absolute inset-0 opacity-[0.025]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(0,210,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,210,255,0.3) 1px, transparent 1px)",
+              "linear-gradient(rgba(125,76,204,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(125,76,204,0.08) 1px, transparent 1px)",
             backgroundSize: "60px 60px",
           }}
         />
       </div>
 
       {/* Header */}
-      <header className="relative z-10 flex items-center gap-3 px-4 md:px-8 py-4 border-b border-white/5 bg-black/20 backdrop-blur">
-        <nav className="flex items-center gap-1.5 text-xs font-mono text-white/30 min-w-0 flex-1">
-          <Link href={dashPath} className="hover:text-white/60 transition-colors flex items-center gap-1">
+      <header className="relative z-10 flex items-center gap-3 px-4 md:px-8 py-4 border-b border-[#e6e8ef] bg-white/90 backdrop-blur">
+        <nav className="flex items-center gap-1.5 text-xs font-mono text-[#7a869d] min-w-0 flex-1">
+          <Link href={dashPath} className="hover:text-[#182137] transition-colors flex items-center gap-1">
             <Home className="w-3 h-3" /> Dashboard
           </Link>
           <span>/</span>
-          <span className="text-white/40 truncate max-w-[120px]">{district?.name || "District"}</span>
+          <span className="text-[#7a869d] truncate max-w-[120px]">{district?.name || "District"}</span>
           <span>/</span>
-          <span className="text-white/60">Missions</span>
+          <span className="text-[#52617a]">Missions</span>
         </nav>
         <button
           onClick={() => window.history.back()}
-          className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-white transition-colors"
+          className="flex items-center gap-1.5 text-xs font-mono text-[#7a869d] hover:text-[#182137] transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back
         </button>
@@ -452,7 +441,7 @@ export default function MissionListPage() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex items-center gap-2 px-4 py-2.5 mb-6 rounded-xl border border-amber-400/20 bg-amber-400/5 text-xs font-mono text-amber-400"
+          className="flex items-center gap-2 px-4 py-2.5 mb-6 rounded-xl border border-[#ffd9a6] bg-[#fff4e5] text-xs font-mono text-[#9a3412]"
         >
           <Flame className="w-4 h-4" />
           <span>Complete all missions to unlock a district badge</span>
@@ -467,14 +456,14 @@ export default function MissionListPage() {
         >
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <p className="text-[10px] font-mono text-[#00D2FF] tracking-[0.3em] uppercase mb-1">
+              <p className="text-[10px] font-mono text-[#7d4ccc] tracking-[0.3em] uppercase mb-1">
                 <Target className="w-3 h-3 inline mr-1" />Challenges
               </p>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-cyan-100 to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-4xl font-bold text-[#182137]">
                 {district?.name || "District Challenges"}
               </h1>
               {district?.description && (
-                <p className="text-white/40 text-sm font-sans mt-2 max-w-lg">{district.description}</p>
+                <p className="text-[#5e6a7f] text-sm font-sans mt-2 max-w-lg">{district.description}</p>
               )}
             </div>
 
@@ -488,13 +477,13 @@ export default function MissionListPage() {
               >
                 {[
                   { label: "Total", value: total },
-                  { label: "Completed", value: completed, accent: "text-emerald-400" },
-                  { label: "In Progress", value: started, accent: "text-amber-400" },
-                  { label: "XP Available", value: `${totalXp}`, accent: "text-[#FFD700]" },
+                  { label: "Completed", value: completed, accent: "text-[#168a68]" },
+                  { label: "In Progress", value: started, accent: "text-[#b87412]" },
+                  { label: "XP Available", value: `${totalXp}`, accent: "text-[#7d4ccc]" },
                 ].map(({ label, value, accent }) => (
-                  <div key={label} className="flex flex-col px-4 py-2.5 rounded-xl border border-white/10 bg-white/3 min-w-[90px] text-center">
-                    <span className="text-[10px] font-mono text-white/30 uppercase tracking-wider">{label}</span>
-                    <span className={`text-xl font-bold ${accent || "text-white/80"}`}>{value}</span>
+                  <div key={label} className="flex flex-col px-4 py-2.5 rounded-xl border border-[#e6e8ef] bg-white min-w-[90px] text-center">
+                    <span className="text-[10px] font-mono text-[#7a869d] uppercase tracking-wider">{label}</span>
+                    <span className={`text-xl font-bold ${accent || "text-[#182137]"}`}>{value}</span>
                   </div>
                 ))}
               </motion.div>
@@ -507,7 +496,7 @@ export default function MissionListPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.35 }}
-              className="mt-6 p-4 rounded-xl border border-white/10 bg-white/3"
+              className="mt-6 p-4 rounded-xl border border-[#e6e8ef] bg-white"
             >
               <ProgressBar completed={completed} total={total} />
             </motion.div>
@@ -548,12 +537,12 @@ export default function MissionListPage() {
             className="flex flex-col items-center gap-4 py-24 text-center"
           >
             <AlertCircle className="w-12 h-12 text-red-400/60" />
-            <p className="text-white/50 font-mono text-sm">{missionsErrorDetail?.message || "Failed to load missions. Please retry."}</p>
+            <p className="text-[#5e6a7f] font-mono text-sm">{missionsErrorDetail?.message || "Failed to load missions. Please retry."}</p>
             <Button
               variant="outline"
               size="sm"
               onClick={() => refetch()}
-              className="border-white/20 text-white/50 hover:text-white gap-2"
+              className="border-[#d8dde8] text-[#5e6a7f] hover:text-[#182137] gap-2"
             >
               <RefreshCw className="w-3.5 h-3.5" /> Retry
             </Button>
@@ -567,8 +556,8 @@ export default function MissionListPage() {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center gap-4 py-24 text-center"
           >
-            <Target className="w-14 h-14 text-white/10" />
-            <p className="text-white/40 font-mono text-sm max-w-xs">
+            <Target className="w-14 h-14 text-[#c9d0de]" />
+            <p className="text-[#5e6a7f] font-mono text-sm max-w-xs">
               No challenges available yet in this district.
               <br />
               Check back soon — challenges are being crafted.
@@ -583,11 +572,11 @@ export default function MissionListPage() {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center gap-4 py-16 text-center"
           >
-            <Target className="w-10 h-10 text-white/10" />
-            <p className="text-white/40 font-mono text-sm">No challenges match the current filter.</p>
+            <Target className="w-10 h-10 text-[#c9d0de]" />
+            <p className="text-[#5e6a7f] font-mono text-sm">No challenges match the current filter.</p>
             <button
               onClick={() => setStatusFilter("all")}
-              className="text-xs font-mono text-[#00D2FF] hover:underline"
+              className="text-xs font-mono text-[#7d4ccc] hover:underline"
             >
               Clear filter
             </button>
@@ -614,7 +603,7 @@ export default function MissionListPage() {
         )}
       </main>
 
-      <CopyrightBar className="relative z-10 border-t border-white/5" />
+      <CopyrightBar className="relative z-10 border-t border-[#e6e8ef]" />
     </div>
   );
 }

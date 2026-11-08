@@ -24,16 +24,16 @@ export function DraftSaveIndicator({ saving, lastSavedAt }: Props) {
     <div className="flex items-center gap-1.5 text-[10px] font-mono" aria-live="polite">
       {saving ? (
         <>
-          <Loader2 className="w-3 h-3 animate-spin text-[#00D2FF]" />
-          <span className="text-[#00D2FF]/70">Saving…</span>
+          <Loader2 className="w-3 h-3 animate-spin text-[#7d4ccc]" />
+          <span className="text-[#7d4ccc]/70">Saving…</span>
         </>
       ) : label ? (
         <>
           <CheckCircle2 className="w-3 h-3 text-emerald-400/70" />
-          <span className="text-white/35">{label}</span>
+          <span className="text-[#7a869d]">{label}</span>
         </>
       ) : (
-        <span className="text-white/25">Draft not saved yet</span>
+        <span className="text-[#8b96ab]">Draft not saved yet</span>
       )}
     </div>
   );
