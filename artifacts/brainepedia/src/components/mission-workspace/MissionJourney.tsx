@@ -16,10 +16,10 @@ export function MissionJourney({ currentStep, maxReachableStep, onStepSelect }: 
 
   return (
     <nav
-      className="px-4 py-3 border-b border-white/5 bg-[#060a10]/50"
+      className="px-4 py-3 border-b border-[#e6e8ef] bg-white dark:border-white/5 dark:bg-[#060a10]/50"
       aria-label="Mission journey progress"
     >
-      <p className="text-[9px] font-mono text-white/30 uppercase tracking-widest mb-2 hidden sm:block">
+      <p className="text-[9px] font-mono text-[#8c93a2] dark:text-white/30 uppercase tracking-widest mb-2 hidden sm:block">
         Mission Journey — tap a completed step to revisit
       </p>
       <ol className="flex items-center justify-between gap-1 max-w-3xl mx-auto">
@@ -34,10 +34,10 @@ export function MissionJourney({ currentStep, maxReachableStep, onStepSelect }: 
               <div
                 className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] font-mono font-bold transition-all duration-300 ${
                   isComplete
-                    ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-400"
+                    ? "bg-[#7d4ccc]/12 border border-[#7d4ccc]/35 text-[#7d4ccc] dark:bg-[#7d4ccc]/20 dark:border-[#7d4ccc]/50 dark:text-[#b89bf0]"
                     : isCurrent
-                      ? "bg-[#00D2FF]/20 border-2 border-[#00D2FF] text-[#00D2FF] shadow-[0_0_12px_rgba(0,210,255,0.25)]"
-                      : "bg-white/5 border border-white/10 text-white/25"
+                      ? "bg-[#00D2FF]/12 border-2 border-[#00B8DD] text-[#007ea0] dark:bg-[#00D2FF]/20 dark:border-[#00D2FF] dark:text-[#00D2FF] shadow-[0_0_12px_rgba(0,210,255,0.2)]"
+                      : "bg-[#f5f6fa] border border-[#d8dde8] text-[#9ba5b7] dark:bg-white/5 dark:border-white/10 dark:text-white/25"
                 } ${isReachable && !isCurrent ? "hover:border-[#00D2FF]/50 hover:text-[#00D2FF]/80 cursor-pointer" : ""}`}
                 aria-current={isCurrent ? "step" : undefined}
               >
@@ -45,7 +45,7 @@ export function MissionJourney({ currentStep, maxReachableStep, onStepSelect }: 
               </div>
               <span
                 className={`text-[8px] sm:text-[9px] font-mono truncate w-full text-center ${
-                  isCurrent ? "text-[#00D2FF]" : isComplete ? "text-white/50" : "text-white/25"
+                  isCurrent ? "text-[#007ea0] dark:text-[#00D2FF]" : isComplete ? "text-[#6f5bb2] dark:text-white/60" : "text-[#9ba5b7] dark:text-white/25"
                 }`}
               >
                 {step.label}
@@ -72,7 +72,7 @@ export function MissionJourney({ currentStep, maxReachableStep, onStepSelect }: 
               {i < JOURNEY_STEPS.length - 1 && (
                 <div
                   className={`h-px flex-1 mx-0.5 sm:mx-1 mb-4 transition-colors duration-300 ${
-                    i < currentIdx ? "bg-emerald-500/40" : "bg-white/10"
+                    i < currentIdx ? "bg-[#7d4ccc]/35 dark:bg-[#7d4ccc]/45" : "bg-[#dbe1ed] dark:bg-white/10"
                   }`}
                   aria-hidden
                 />

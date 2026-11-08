@@ -22,13 +22,13 @@ export function NextActionCard({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-[#00D2FF]/20 bg-gradient-to-br from-[#00D2FF]/5 to-[#9D4EDD]/5 p-4 sm:p-5"
+      className="rounded-xl border border-[#d8dde8] bg-gradient-to-br from-[#00D2FF]/6 to-[#9D4EDD]/6 p-4 sm:p-5 dark:border-[#00D2FF]/20 dark:from-[#00D2FF]/5 dark:to-[#9D4EDD]/5"
       role="region"
       aria-label="Your next step"
     >
-      <p className="text-[10px] font-mono text-[#00D2FF] uppercase tracking-widest mb-2">Your Next Step</p>
-      <h2 className="text-base sm:text-lg font-bold text-white mb-1">{action.title}</h2>
-      <p className="text-sm text-white/55 leading-relaxed mb-4">{action.description}</p>
+      <p className="text-[10px] font-mono text-[#0089ad] dark:text-[#00D2FF] uppercase tracking-widest mb-2">Your Next Step</p>
+      <h2 className="text-base sm:text-lg font-bold text-[#182137] dark:text-white mb-1">{action.title}</h2>
+      <p className="text-sm text-[#5e6a7f] dark:text-white/55 leading-relaxed mb-4">{action.description}</p>
       {!hideCta && onPrimaryAction && (
         <Button
           onClick={onPrimaryAction}
