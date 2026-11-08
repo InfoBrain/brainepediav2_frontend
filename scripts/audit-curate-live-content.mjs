@@ -20,6 +20,8 @@ const APPLY = process.argv.includes("--apply");
 
 const BAD_TITLE_RE =
   /\bundefined\b|Solution Design|Enterprise .*Transformation|Production .*Crisis|Guided .*Audit|Root Cause Investigation|Master Trial|Foundations Quest|Real-World Scenario/i;
+const UNCLEAR_TEXT_RE =
+  /\b(undefined|tbd|n\/a|null|lorem ipsum|sample text|placeholder|generic|write your answer|complete this task)\b/i;
 const SIMILAR_TITLE_THRESHOLD = 0.62;
 
 const BACKEND_MERGES = new Map([
@@ -247,8 +249,8 @@ function scenarioTitle(professionName, districtName, index) {
 
 function scenarioPayload(node, district, index, difficultyId) {
   const title = scenarioTitle(district.professionName, district.name, index);
-  const context = `${district.professionName}s need practical ${district.name.toLowerCase()} missions that mirror decisions they make on real jobs. This challenge replaces a generic or off-topic placeholder with a concrete workplace scenario.`;
-  const missionBrief = `Complete the mission "${title}". Produce concise evidence that explains the situation, the data or constraints reviewed, the decision made, and how the outcome would be validated in a real organisation.`;
+  const context = buildContextNarrative(district.professionName, district.name, title);
+  const missionBrief = buildTaskNarrative(district.professionName, district.name, title);
   return {
     title,
     context,
@@ -270,6 +272,53 @@ function scenarioPayload(node, district, index, difficultyId) {
     difficultyId: node.difficultyId || difficultyId || "",
     districtId: district.id,
   };
+}
+
+function scenarioPayloadWithTitle(node, district, title, index, difficultyId) {
+  const context = buildContextNarrative(district.professionName, district.name, title, index);
+  const missionBrief = buildTaskNarrative(district.professionName, district.name, title);
+  return {
+    title,
+    context,
+    missionBrief,
+    constraints: [
+      `Stay within the ${district.professionName} role and the ${district.name} district.`,
+      "Use a realistic workplace scenario with named inputs, constraints, and trade-offs.",
+      "Document assumptions, risks, and the evidence used to reach the recommendation.",
+      "Avoid generic implementation plans that could apply to any profession.",
+    ],
+    expectedOutcomes: [
+      "The submission clearly describes a real-world problem and why it matters.",
+      "The proposed solution or analysis is specific to the district skill area.",
+      "Risks, validation steps, and success criteria are documented.",
+      "A non-specialist stakeholder can understand the recommendation.",
+    ],
+    experiencePoints: Math.max(100, Number(node.experiencePoints) || 150),
+    estimatedMinutes: Math.max(30, Number(node.estimatedMinutes) || 45),
+    difficultyId: node.difficultyId || difficultyId || "",
+    districtId: district.id,
+  };
+}
+
+function buildContextNarrative(professionName, districtName, title, index = 0) {
+  const organisations = ["regional operations team", "national service unit", "enterprise delivery group", "public-sector transformation office"];
+  const org = organisations[index % organisations.length];
+  return `A ${org} is facing a high-stakes ${districtName.toLowerCase()} challenge that is delaying decisions and increasing risk. The ${professionName} team has to stabilise the situation quickly, align stakeholders, and produce a defensible recommendation before the next executive review.`;
+}
+
+function buildTaskNarrative(professionName, districtName, title) {
+  return `You are a ${professionName} trying to resolve "${title}" for your ${districtName.toLowerCase()} team. Review the available evidence, choose the best course of action under realistic constraints, and present a concise plan your organisation can execute immediately.`;
+}
+
+function hasUnclearInformation(node) {
+  const context = String(node.context || "").trim();
+  const missionBrief = String(node.missionBrief || "").trim();
+  if (!context || !missionBrief) return true;
+  if (context.length < 60 || missionBrief.length < 60) return true;
+  if (UNCLEAR_TEXT_RE.test(context) || UNCLEAR_TEXT_RE.test(missionBrief)) return true;
+  if (/^(complete|solve|do|work on|perform)\b/i.test(missionBrief) && missionBrief.length < 110) return true;
+  if (!/team|organisation|organization|stakeholder|client|department/i.test(context) && context.length < 90) return true;
+  return false;
 }
 
 function formData(fields) {
@@ -336,6 +385,25 @@ async function deleteNode(nodeId, auth) {
   });
 }
 
+async function createNode(payload, auth) {
+  const fd = formData({
+    Title: payload.title,
+    Context: payload.context,
+    MissionBrief: payload.missionBrief,
+    Constraints: payload.constraints,
+    ExpectedOutcomes: payload.expectedOutcomes,
+    ExperiencePoints: payload.experiencePoints,
+    EstimatedMinutes: payload.estimatedMinutes,
+    DifficultyId: payload.difficultyId,
+    DistrictId: payload.districtId,
+  });
+  return request(`/api/ProblemNodes?userId=${encodeURIComponent(auth.userId)}`, {
+    method: "POST",
+    headers: authHeaders(auth.token),
+    body: fd,
+  });
+}
+
 async function updateDistrict(district, next, auth) {
   const fd = formData({
     DistrictId: district.id,
@@ -354,6 +422,20 @@ async function deleteDistrict(districtId, auth) {
   return request(`/api/Districts/${encodeURIComponent(districtId)}?userId=${encodeURIComponent(auth.userId)}`, {
     method: "DELETE",
     headers: authHeaders(auth.token),
+  });
+}
+
+async function createDistrict(profession, name, description, auth) {
+  const fd = formData({
+    Name: name,
+    Description: description,
+    ProfessionId: profession.id,
+    MapCoordinatesJson: "",
+  });
+  return request(`/api/Districts?userId=${encodeURIComponent(auth.userId)}`, {
+    method: "POST",
+    headers: authHeaders(auth.token),
+    body: fd,
   });
 }
 
@@ -402,12 +484,38 @@ function planCatalogue(catalogue, defaultDifficultyId) {
 
   const mergedDistrictIds = new Set(actions.filter((a) => a.type === "merge-district").map((a) => a.from.id));
   for (const profession of catalogue) {
+    if (!profession.districts.length) {
+      actions.push({
+        type: "create-district",
+        profession,
+        districtName: "Core Operations Challenge",
+        districtDescription: `Practical, scenario-based missions for ${profession.name} teams handling real organisational pressure.`,
+      });
+      continue;
+    }
+
     for (const district of profession.districts) {
       if (mergedDistrictIds.has(district.id)) continue;
       const effectiveDistrict = {
         ...district,
         ...(renameByDistrictId.get(district.id) || {}),
       };
+      if (!district.nodes.length) {
+        for (let seedIndex = 0; seedIndex < 3; seedIndex++) {
+          const syntheticNode = {
+            experiencePoints: 150 + seedIndex * 25,
+            estimatedMinutes: 45 + seedIndex * 10,
+            difficultyId: defaultDifficultyId,
+          };
+          actions.push({
+            type: "create-node",
+            district: effectiveDistrict,
+            payload: scenarioPayload(syntheticNode, effectiveDistrict, seedIndex, defaultDifficultyId),
+            reason: "District had no problem nodes",
+          });
+        }
+        continue;
+      }
       const seen = [];
       let replacementIndex = 0;
       for (const node of district.nodes) {
@@ -429,6 +537,18 @@ function planCatalogue(catalogue, defaultDifficultyId) {
             district: effectiveDistrict,
             payload: scenarioPayload(node, effectiveDistrict, replacementIndex, defaultDifficultyId),
             reason: "Broken or generic AI-seeded title",
+          });
+          replacementIndex++;
+          continue;
+        }
+
+        if (hasUnclearInformation(node)) {
+          actions.push({
+            type: "replace-node",
+            node,
+            district: effectiveDistrict,
+            payload: scenarioPayloadWithTitle(node, effectiveDistrict, node.title, replacementIndex, defaultDifficultyId),
+            reason: "Unclear context or task description",
           });
           replacementIndex++;
         }
@@ -453,6 +573,8 @@ function summarize(catalogue, actions) {
     mergeDistricts: count("merge-district"),
     replaceNodes: count("replace-node"),
     deleteNodes: count("delete-node"),
+    createDistricts: count("create-district"),
+    createNodes: count("create-node"),
   };
   return totals;
 }
@@ -486,6 +608,10 @@ async function main() {
       log(`REPLACE NODE: ${action.district.professionName} / ${action.district.name} / ${action.node.title} -> ${action.payload.title}`);
     } else if (action.type === "delete-node") {
       log(`DELETE NODE: ${action.district.professionName} / ${action.district.name} / ${action.node.title} (${action.reason})`);
+    } else if (action.type === "create-district") {
+      log(`CREATE DISTRICT: ${action.profession.name} / ${action.districtName}`);
+    } else if (action.type === "create-node") {
+      log(`CREATE NODE: ${action.district.professionName} / ${action.district.name} / ${action.payload.title}`);
     }
   }
   if (actions.length > 80) log(`... ${actions.length - 80} more planned actions`);
@@ -511,6 +637,26 @@ async function main() {
           else await moveNode(node.id, action.to.id, auth);
         }
         await deleteDistrict(action.from.id, auth);
+      } else if (action.type === "create-node") {
+        await createNode(action.payload, auth);
+      } else if (action.type === "create-district") {
+        const created = await createDistrict(action.profession, action.districtName, action.districtDescription, auth);
+        const districtId = String(created?.districtId || created?.id || created?.data?.districtId || created?.data?.id || "");
+        if (!districtId) throw new Error(`Created district for ${action.profession.name} but response did not include districtId.`);
+        for (let seedIndex = 0; seedIndex < 3; seedIndex++) {
+          const targetDistrict = {
+            id: districtId,
+            name: action.districtName,
+            professionName: action.profession.name,
+          };
+          const syntheticNode = {
+            experiencePoints: 150 + seedIndex * 25,
+            estimatedMinutes: 45 + seedIndex * 10,
+            difficultyId: defaultDifficultyId,
+          };
+          const payload = scenarioPayload(syntheticNode, targetDistrict, seedIndex, defaultDifficultyId);
+          await createNode(payload, auth);
+        }
       }
     } catch (error) {
       failures.push({ action: action.type, target: action.node?.title || action.district?.name || action.from?.name, error: error.message });
