@@ -22,6 +22,61 @@ function nullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function field(item: Record<string, any>, key: string): unknown {
+  if (key in item) return item[key];
+  const pascal = key.charAt(0).toUpperCase() + key.slice(1);
+  return item[pascal];
+}
+
+const TEXT_KEYS = new Set([
+  "content",
+  "fullContent",
+  "body",
+  "description",
+  "details",
+  "jobDescription",
+  "responsibilities",
+  "keyResponsibilities",
+  "requirements",
+  "qualifications",
+  "summary",
+  "text",
+  "html",
+]);
+
+/** Prefer the longest text the payload includes, so a short preview does not hide the full post. */
+function longestString(values: unknown[]): string | null {
+  let best: string | null = null;
+  for (const value of values) {
+    const text = nullableString(value);
+    if (text && (!best || text.length > best.length)) best = text;
+  }
+  return best;
+}
+
+const NEST_KEYS = new Set([
+  "job",
+  "externalJob",
+  "relatedEntity",
+  "entity",
+  "details",
+  "posting",
+  "jobPosting",
+  "payload",
+  "data",
+]);
+
+function collectPostText(value: unknown, found: unknown[], nested = false) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return;
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    const camel = key.charAt(0).toLowerCase() + key.slice(1);
+    if (typeof child === "string" && TEXT_KEYS.has(camel)) found.push(child);
+    else if (child && typeof child === "object" && !Array.isArray(child) && (nested || NEST_KEYS.has(camel))) {
+      collectPostText(child, found, true);
+    }
+  }
+}
+
 export function normalizeFeedPost(raw: unknown): FeedPostDto {
   const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, any>;
   const authorRaw = item.author && typeof item.author === "object" ? item.author : null;
@@ -29,8 +84,12 @@ export function normalizeFeedPost(raw: unknown): FeedPostDto {
   return {
     feedPostId: String(item.feedPostId ?? ""),
     postType: nullableString(item.postType) ?? "UserPost",
-    title: nullableString(item.title),
-    content: nullableString(item.content),
+    title: nullableString(field(item, "title")),
+    content: (() => {
+      const found: unknown[] = [];
+      collectPostText(item, found);
+      return longestString(found);
+    })(),
     mediaUrl: nullableString(item.mediaUrl),
     thumbnailUrl: nullableString(item.thumbnailUrl),
     author: authorRaw
